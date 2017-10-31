@@ -1,0 +1,15 @@
+#include "BrowserApplication.h"
+#include "MainWindow.h"
+#include "AdBlocker.h"
+#include "SecurityManager.h"
+
+#include <memory>
+#include <QDebug>
+
+int main(int argc, char *argv[])
+{
+    BrowserApplication a(argc, argv);
+    a.getNewWindow();
+    int val = a.exec();
+    return val;
+}

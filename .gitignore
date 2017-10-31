@@ -1,0 +1,9 @@
+https_insecure.xcf
+https_secure.xcf
+search_icon.xcf
+Preferences_Window_Content_Tab.png
+build-Browser-Clang_Desktop-Debug/
+build-debug/
+build-profile/
+documentation/
+Browser/Browser.pro.user

@@ -1,0 +1,194 @@
+#include "UserAgentManager.h"
+#include "AddUserAgentDialog.h"
+#include "Settings.h"
+#include "WebPage.h"
+
+#include <QByteArray>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+
+UserAgentManager::UserAgentManager(std::shared_ptr<Settings> settings, QObject *parent) :
+    QObject(parent),
+    m_settings(settings),
+    m_userAgents(),
+    m_activeAgentCategory(),
+    m_activeAgent(),
+    m_addAgentDialog(nullptr)
+{
+    load();
+}
+
+UserAgentManager::~UserAgentManager()
+{
+    save();
+
+    if (m_addAgentDialog)
+        delete m_addAgentDialog;
+}
+
+const QString &UserAgentManager::getUserAgentCategory() const
+{
+    return m_activeAgentCategory;
+}
+
+const UserAgent &UserAgentManager::getUserAgent() const
+{
+    return m_activeAgent;
+}
+
+void UserAgentManager::setActiveAgent(const QString &category, const UserAgent &agent)
+{
+    m_activeAgentCategory = category;
+    m_activeAgent = agent;
+}
+
+void UserAgentManager::disableActiveAgent()
+{
+    m_activeAgent = UserAgent();
+    m_activeAgentCategory.clear();
+    m_settings->setValue("CustomUserAgent", false);
+    WebPage::setUserAgent(QString());
+}
+
+void UserAgentManager::addUserAgent()
+{
+    if (!m_addAgentDialog)
+    {
+        // Setup dialog to add a user agent
+        m_addAgentDialog = new AddUserAgentDialog;
+
+        // Add categories to dialog
+        auto uaCategories = m_userAgents.keys();
+        for (auto cat : uaCategories)
+            m_addAgentDialog->addAgentCategory(cat);
+
+        connect(m_addAgentDialog, &AddUserAgentDialog::userAgentAdded, this, &UserAgentManager::onUserAgentAdded);
+    }
+    m_addAgentDialog->show();
+}
+
+void UserAgentManager::modifyUserAgents()
+{
+    //todo:
+    /*
+     * TODO: spawn window for addition, modification and deletion of user agents
+     * if (!m_modifyAgentsWidget)
+     *     m_modifyAgentsWidget = new ModifyUserAgentWidget;
+     * m_modifyAgentsWidget->show();
+     */
+}
+
+void UserAgentManager::onUserAgentAdded()
+{
+    UserAgent newAgent;
+    newAgent.Name = m_addAgentDialog->getAgentName();
+    newAgent.Value = m_addAgentDialog->getAgentValue();
+
+    QString category = m_addAgentDialog->getCategory();
+    auto it = m_userAgents.find(category);
+    if (it != m_userAgents.end())
+        it->append(newAgent);
+    else
+    {
+        QList<UserAgent> agentList;
+        agentList.append(newAgent);
+        m_userAgents.insert(category, agentList);
+    }
+
+    emit updateUserAgents();
+}
+
+void UserAgentManager::load()
+{
+    QFile dataFile(m_settings->getPathValue("UserAgentsFile"));
+    if (!dataFile.exists() || !dataFile.open(QIODevice::ReadOnly))
+        return;
+
+    // Attempt to parse data file
+    QByteArray uaData = dataFile.readAll();
+    dataFile.close();
+
+    QJsonDocument uaDocument(QJsonDocument::fromJson(uaData));
+    if (!uaDocument.isObject())
+        return;
+
+    QJsonObject uaObj = uaDocument.object();
+
+    /* load a format like the following
+     * {
+     *     "categoryName1": [
+     *       { "Name": "UA Name 1", "Value": "UA Value 1" },
+     *       { "Name": "UA Name 2", "Value": "UA Value 2", "Active": true }
+     *     ],
+     *     "categoryName2": [ ... ]
+     * }
+     */
+
+    QString categoryName;
+    for (auto it = uaObj.begin(); it != uaObj.end(); ++it)
+    {
+        auto itVal = it.value();
+        if (!itVal.isArray())
+            continue;
+
+        categoryName = it.key();
+        QList<UserAgent> agents;
+        QJsonArray uaArray = itVal.toArray();
+        for (auto agentIt = uaArray.begin(); agentIt != uaArray.end(); ++agentIt)
+        {
+            auto agentObj = agentIt->toObject();
+            UserAgent currentAgent;
+            currentAgent.Name = agentObj.value("Name").toString();
+            currentAgent.Value = agentObj.value("Value").toString();
+
+            // Check if user agent is toggled as active
+            auto isActiveIt = agentObj.find("Active");
+            if (isActiveIt != agentObj.end())
+            {
+                m_activeAgentCategory = categoryName;
+                m_activeAgent = currentAgent;
+            }
+
+            agents.append(currentAgent);
+        }
+
+        m_userAgents.insert(categoryName, agents);
+    }
+}
+
+void UserAgentManager::save()
+{
+    QFile dataFile(m_settings->getValue("UserAgentsFile").toString());
+    if (!dataFile.open(QIODevice::WriteOnly))
+        return;
+
+    // Construct a QJsonDocument containing the data in our UA map, and write to the data file
+    QJsonObject uaObj;
+    bool hasActiveAgent = !m_activeAgent.Name.isNull();
+    for (auto it = m_userAgents.begin(); it != m_userAgents.end(); ++it)
+    {
+        bool activeAgentCategory = (hasActiveAgent && m_activeAgentCategory.compare(it.key()) == 0);
+        QJsonArray agentArray;
+        const QList<UserAgent> &agentList = it.value();
+        for (auto uaIt = agentList.cbegin(); uaIt != agentList.cend(); ++uaIt)
+        {
+            QJsonObject agent;
+            agent.insert("Name", uaIt->Name);
+            agent.insert("Value", uaIt->Value);
+            if (activeAgentCategory
+                    && uaIt->Name.compare(m_activeAgent.Name) == 0
+                    && uaIt->Value.compare(m_activeAgent.Value) == 0)
+                agent.insert("Active", true);
+            agentArray.append(QJsonValue(agent));
+        }
+
+        uaObj.insert(it.key(), QJsonValue(agentArray));
+    }
+    QJsonDocument uaDoc(uaObj);
+
+    dataFile.write(uaDoc.toJson());
+    dataFile.close();
+}

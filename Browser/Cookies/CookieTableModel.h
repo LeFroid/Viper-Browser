@@ -1,0 +1,83 @@
+#ifndef COOKIETABLEMODEL_H
+#define COOKIETABLEMODEL_H
+
+#include <memory>
+
+#include <QAbstractTableModel>
+#include <QList>
+#include <QNetworkCookie>
+
+class CookieJar;
+
+/**
+ * @class CookieTableModel
+ * @brief Handles formatting of general cookie information in the \ref CookieWidget top table
+ */
+class CookieTableModel : public QAbstractTableModel
+{
+    friend class CookieWidget;
+
+    Q_OBJECT
+
+public:
+    explicit CookieTableModel(QObject *parent = nullptr);
+
+    // Header:
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+
+    // Basic functionality:
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    // Editable
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
+
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::EditRole) override;
+
+    // Add data:
+    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
+
+    // Remove data:
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex()) override;
+
+    /// Returns the cookie associated with the given index
+    QNetworkCookie getCookie(const QModelIndex &index) const;
+
+    /// Returns a list of each row and whether or not the row is checked
+    const QList<int> &getCheckedStates() const;
+
+public slots:
+    /// Searches for cookies with either a name or domain containing the given string, displaying
+    /// the matching subset of cookies in the model
+    void searchFor(const QString &text);
+
+private slots:
+    /// Reloads the local copy of the browser's cookies
+    void loadCookies();
+
+    /// Called when the cookies have been erased
+    void eraseCookies();
+
+private:
+    /// Cookie jar, containing cookie information
+    std::shared_ptr<CookieJar> m_cookieJar;
+
+    /// Stores each row's checked state
+    QList<int> m_checkedState;
+
+    /// Stores a copy of the browser's cookies
+    QList<QNetworkCookie> m_cookies;
+
+    /// Stores a copy of the browser's cookies that match a search query
+    QList<QNetworkCookie> m_searchResults;
+
+    /// True if the model is displaying the results of a cookie search, false if else
+    bool m_searchModeOn;
+};
+
+#endif // COOKIETABLEMODEL_H

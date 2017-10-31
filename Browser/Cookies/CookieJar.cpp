@@ -1,0 +1,225 @@
+#include <QDateTime>
+#include <QNetworkCookie>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QSqlRecord>
+#include <QDebug>
+
+#include "CookieJar.h"
+
+#include <QDebug>
+
+CookieJar::CookieJar(const QString &databaseFile, QObject *parent) :
+    QNetworkCookieJar(parent),
+    DatabaseWorker(databaseFile, "Cookies")
+{
+}
+
+CookieJar::~CookieJar()
+{
+    save();
+}
+
+bool CookieJar::hasCookiesFor(const QString &host) const
+{
+    if (host.isEmpty())
+        return false;
+
+    // Get substring of host such that the hostname = the string
+    // between the second-to-last dot (not including said dot), and
+    // the end of the string
+    int endSearchPos = host.size() - 4;
+    if (endSearchPos <= 0)
+        return false;
+    QString hostLeft = host.left(endSearchPos);
+    int startPos = 0, currentPos = 0;
+    while (currentPos >= 0)
+    {
+        currentPos = hostLeft.indexOf('.', startPos);
+        if (currentPos >= 0)
+            startPos = currentPos;
+    }
+
+    QString hostSearch = host;
+    if (startPos > 0)
+        hostSearch = host.mid(startPos + 1);
+
+    auto cookies = allCookies();
+    for (const QNetworkCookie &cookie : cookies)
+        if (cookie.domain().endsWith(hostSearch))
+            return true;
+    return false;
+}
+
+void CookieJar::clearCookiesFrom(const QDateTime &start)
+{
+    if (!start.isValid() || start.isNull())
+        return;
+
+    QSqlQuery query(m_database);
+    query.prepare("DELETE FROM Cookies WHERE DateCreated > (:date)");
+    query.bindValue(":date", start.toMSecsSinceEpoch());
+    if (!query.exec())
+        qDebug() << "[Warning]: In CookieJar::clearCookiesFrom(..) - Could not erase cookies newer than "
+                 << start.toString() << " from database";
+}
+
+bool CookieJar::insertCookie(const QNetworkCookie &cookie)
+{
+    if (QNetworkCookieJar::insertCookie(cookie))
+    {
+        if (!cookie.isSessionCookie())
+        {
+            QSqlQuery query(m_database);
+            query.prepare("INSERT OR REPLACE INTO Cookies(Domain, Name, Path, EncryptedOnly, HttpOnly, "
+                          "ExpirationDate, Value, DateCreated) VALUES(:domain, :name, :path, :encryptedOnly, "
+                          ":httpOnly, :expireDate, :value, :dateCreated)");
+            query.bindValue(":domain", cookie.domain());
+            query.bindValue(":name", cookie.name());
+            query.bindValue(":path", cookie.path());
+            query.bindValue(":encryptedOnly", cookie.isSecure() ? 1 : 0);
+            query.bindValue(":httpOnly", cookie.isHttpOnly() ? 1 : 0);
+            query.bindValue(":expireDate", cookie.expirationDate().toString());
+            query.bindValue(":value", cookie.value());
+            query.bindValue(":dateCreated", QDateTime::currentMSecsSinceEpoch());
+            if (!query.exec())
+                qDebug() << "[Warning]: In CookieJar::insertCookie - Could not insert new cookie into database";
+        }
+        emit cookieAdded();
+        return true;
+    }
+    return false;
+}
+
+bool CookieJar::deleteCookie(const QNetworkCookie &cookie)
+{
+    if (QNetworkCookieJar::deleteCookie(cookie))
+    {
+        QSqlQuery query(m_database);
+        query.prepare("DELETE FROM Cookies WHERE Domain = (:domain) AND Name = (:name)");
+        query.bindValue(":domain", cookie.domain());
+        query.bindValue(":name", cookie.name());
+        query.exec();
+        return true;
+    }
+    return false;
+}
+
+void CookieJar::eraseAllCookies()
+{
+    QList<QNetworkCookie> noCookies;
+    setAllCookies(noCookies);
+
+    if (!exec("DELETE FROM Cookies"))
+        qDebug() << "[Warning]: In CookieJar::eraseAllCookies() - could not delete cookies.";
+
+    emit cookiesRemoved();
+}
+
+void CookieJar::setup()
+{
+    // Setup table structure
+    QSqlQuery query(m_database);
+    query.prepare("CREATE TABLE IF NOT EXISTS Cookies(Domain TEXT NOT NULL, Name TEXT NOT NULL, Path TEXT NOT NULL,"
+                  "EncryptedOnly INTEGER NOT NULL DEFAULT 0, HttpOnly INTEGER NOT NULL DEFAULT 0,"
+                  "ExpirationDate TEXT NOT NULL, Value BLOB, DateCreated INTEGER NOT NULL, PRIMARY KEY(Domain, Name))");
+    if (!query.exec())
+        qDebug() << "[Error]: In CookieJar::setup - unable to create cookie storage table in database. Message: " << query.lastError().text();
+}
+
+void CookieJar::save()
+{
+    removeExpired();
+    /*
+     * No need to insert cookies into DB here, as CookieJar::insertCookie(..) handles this as soon as the cookie is created
+    QList<QNetworkCookie> cookies = allCookies();
+    if (cookies.empty())
+        return;
+
+    QSqlQuery query(m_database);
+    query.prepare("INSERT OR REPLACE INTO Cookies(Domain, Name, Path, EncryptedOnly, HttpOnly, ExpirationDate, Value, DateCreated) "
+                  "VALUES(:domain, :name, :path, :encryptedOnly, :httpOnly, :expireDate, :value, (SELECT DateCreated FROM Cookies "
+                  "WHERE Domain=(:domain2) AND Name=(:name2)))");
+    for (const QNetworkCookie &cookie : cookies)
+    {
+        // Ignore session cookies
+        if (cookie.isSessionCookie())
+            continue;
+
+        query.bindValue(":domain", cookie.domain());
+        query.bindValue(":name", cookie.name());
+        query.bindValue(":path", cookie.path());
+        query.bindValue(":encryptedOnly", cookie.isSecure() ? 1 : 0);
+        query.bindValue(":httpOnly", cookie.isHttpOnly() ? 1 : 0);
+        query.bindValue(":expireDate", cookie.expirationDate().toString());
+        query.bindValue(":value", cookie.value());
+        query.bindValue(":domain2", cookie.domain());
+        query.bindValue(":name2", cookie.name());
+        if (!query.exec())
+            qDebug() << "[Error]: In CookieJar::save - unable to insert cookie into database. Message: " << query.lastError().text();
+    }*/
+}
+
+void CookieJar::load()
+{
+    QList<QNetworkCookie> cookies;
+
+    // Load cookies and remove any that have expired
+    QSqlQuery query(m_database);
+    query.prepare("SELECT * FROM Cookies");
+    if (query.exec())
+    {
+        QSqlRecord rec = query.record();
+        int idDomain = rec.indexOf("Domain");
+        int idName = rec.indexOf("Name");
+        int idPath = rec.indexOf("Path");
+        int idEncrypt = rec.indexOf("EncryptedOnly");
+        int idHttpOnly = rec.indexOf("HttpOnly");
+        int idExpDate = rec.indexOf("ExpirationDate");
+        int idValue = rec.indexOf("Value");
+        while (query.next())
+        {
+            QNetworkCookie cookie(query.value(idName).toByteArray(), query.value(idValue).toByteArray());
+            cookie.setDomain(query.value(idDomain).toString());
+            cookie.setHttpOnly(query.value(idHttpOnly).toBool());
+            cookie.setSecure(query.value(idEncrypt).toBool());
+            cookie.setPath(query.value(idPath).toString());
+            cookie.setExpirationDate(QDateTime::fromString(query.value(idExpDate).toString()));
+            cookies.append(cookie);
+        }
+    }
+    else
+        qDebug() << "[Error]: In CookieJar::load - unable to fetch cookies from database. Message: " << query.lastError().text();
+
+    setAllCookies(cookies);
+    removeExpired();
+}
+
+void CookieJar::removeExpired()
+{
+    QList<QNetworkCookie> cookies = allCookies();
+    if (cookies.empty())
+        return;
+
+    // Prepare query and then iterate through the list
+    QSqlQuery query(m_database);
+    query.prepare("DELETE FROM Cookies WHERE ExpirationDate = (:expireDate)");
+
+    QDateTime now = QDateTime::currentDateTime();
+    int numCookies = cookies.size();
+    for (int i = numCookies - 1; i >= 0; --i)
+    {
+        const QNetworkCookie &cookie = cookies.at(i);
+        QDateTime expireDate = cookie.expirationDate();
+        if (cookie.isSessionCookie() || expireDate > now)
+            continue;
+
+        query.bindValue(":expireDate", expireDate.toString());
+        if (!query.exec())
+            qDebug() << "[Error]: In CookieJar::removeExpired - unable to remove expired cookie from database. Message: " << query.lastError().text();
+
+        cookies.removeAt(i);
+    }
+
+    setAllCookies(cookies);
+}

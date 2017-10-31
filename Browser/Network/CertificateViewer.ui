@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CertificateViewer</class>
+ <widget class="QWidget" name="CertificateViewer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>560</width>
+    <height>663</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Certificate Viewer</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="CertificateGeneralTab" name="tabGeneral">
+      <attribute name="title">
+       <string>General</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tabDetails">
+      <attribute name="title">
+       <string>Details</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CertificateGeneralTab</class>
+   <extends>QWidget</extends>
+   <header>Network/CertificateGeneralTab.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

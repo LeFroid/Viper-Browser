@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="plus_icon.png">Images/plus_icon.png</file>
+    <file alias="https_secure.png">Images/https_secure.png</file>
+    <file alias="https_insecure.png">Images/https_insecure.png</file>
+    <file alias="search_icon.png">Images/search_icon.png</file>
+    <file alias="blank.html">HTML/blank.html</file>
+</qresource>
+</RCC>

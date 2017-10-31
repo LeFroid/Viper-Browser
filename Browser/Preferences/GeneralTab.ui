@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GeneralTab</class>
+ <widget class="QWidget" name="GeneralTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>566</width>
+    <height>572</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="groupBoxStartup">
+     <property name="title">
+      <string>Startup</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <property name="labelAlignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+      <property name="formAlignment">
+       <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="labelStartupStatic">
+        <property name="text">
+         <string>When the Browser starts:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="labelHomePageStatic">
+        <property name="text">
+         <string>Home Page:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="lineEditHomePage"/>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="comboBoxStartup">
+        <property name="currentText">
+         <string/>
+        </property>
+        <property name="currentIndex">
+         <number>-1</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBoxDownloads">
+     <property name="title">
+      <string>Downloads</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <property name="labelAlignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+      <property name="formAlignment">
+       <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+      </property>
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="radioButtonSaveToDir">
+        <property name="text">
+         <string>Sa&amp;ve files to:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="FileChooserLineEdit" name="lineEditDownloadDir" native="true"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="radioButtonAskForDir">
+        <property name="text">
+         <string>Always ask &amp;me where to save files</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBoxTabs">
+     <property name="title">
+      <string>Tabs</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QRadioButton" name="radioButtonTabHomePage">
+        <property name="text">
+         <string>Load the home page on new tabs</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="radioButtonTabBlankPage">
+        <property name="text">
+         <string>Load a blan&amp;k page on new tabs</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>216</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>FileChooserLineEdit</class>
+   <extends>QWidget</extends>
+   <header>FileChooserLineEdit.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

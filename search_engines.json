@@ -1,0 +1,17 @@
+{
+    "Default": "IxQuick",
+    "Engines": [
+        {
+            "Name": "Google",
+            "Query": "https://www.google.com/search?q=%s"
+        },
+        {
+            "Name": "DuckDuckGo",
+            "Query": "https://duckduckgo.com/?q=%s"
+        },
+        {
+            "Name": "IxQuick",
+            "Query": "https://www.ixquick.com/do/dsearch?query=%s&cat=web&pl=opensearch&language=english"
+        }
+    ]
+}
