@@ -88,7 +88,8 @@ SOURCES += \
     Widgets/URLLineEdit.cpp \
     Network/CertificateGeneralTab.cpp \
     Preferences/ContentTab.cpp \
-    Web/HTMLHighlighter.cpp
+    Web/HTMLHighlighter.cpp \
+    Widgets/AddBookmarkDialog.cpp
 
 HEADERS += \
     History/HistoryTableModel.h \
@@ -141,7 +142,8 @@ HEADERS += \
     Widgets/URLLineEdit.h \
     Network/CertificateGeneralTab.h \
     Preferences/ContentTab.h \
-    Web/HTMLHighlighter.h
+    Web/HTMLHighlighter.h \
+    Widgets/AddBookmarkDialog.h
 
 FORMS += \
         mainwindow.ui \
@@ -161,4 +163,5 @@ FORMS += \
     Preferences/SearchTab.ui \
     Preferences/AddSearchEngineDialog.ui \
     Network/CertificateGeneralTab.ui \
-    Preferences/ContentTab.ui
+    Preferences/ContentTab.ui \
+    Widgets/AddBookmarkDialog.ui

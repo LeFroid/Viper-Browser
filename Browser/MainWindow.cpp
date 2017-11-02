@@ -2,6 +2,7 @@
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
 #include "ui_mainwindow.h"
+#include "AddBookmarkDialog.h"
 #include "BookmarkBar.h"
 #include "BookmarkWidget.h"
 #include "CookieWidget.h"
@@ -47,7 +48,8 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<Bookm
     m_addPageBookmarks(nullptr),
     m_removePageBookmarks(nullptr),
     m_userAgentGroup(new QActionGroup(this)),
-    m_preferences(nullptr)
+    m_preferences(nullptr),
+    m_addBookmarkDialog(nullptr)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
@@ -78,6 +80,9 @@ MainWindow::~MainWindow()
 
     if (m_preferences)
         delete m_preferences;
+
+    if (m_addBookmarkDialog)
+        delete m_addBookmarkDialog;
 }
 
 void MainWindow::setPrivate(bool value)
@@ -199,10 +204,8 @@ void MainWindow::setupBookmarks()
     ui->menuBookmarks->addSeparator();
     setupBookmarkFolder(m_bookmarkManager->getRoot(), ui->menuBookmarks);
 
-    //TODO: Slot that will add current page to bookmarks
-    //      The slot to add a new bookmark should activate a dialog with a dropdown so the use
-    //      can then decide which folder to place the bookmark inside
     m_addPageBookmarks = new QAction(tr("Bookmark this page"), this);
+    connect(m_addPageBookmarks, &QAction::triggered, this, &MainWindow::addPageToBookmarks);
 
     m_removePageBookmarks = new QAction(tr("Remove this bookmark"), this);
     connect(m_removePageBookmarks, &QAction::triggered, this, &MainWindow::removePageFromBookmarks);
@@ -393,7 +396,7 @@ void MainWindow::openBookmarkWidget()
         // Setup bookmark manager UI
         m_bookmarkUI = new BookmarkWidget;
         m_bookmarkUI->setBookmarkManager(m_bookmarkManager);
-        connect(m_bookmarkUI, &BookmarkWidget::managerClosed, this, &MainWindow::refreshBookmarkMenu);
+        connect(m_bookmarkUI, &BookmarkWidget::managerClosed, sBrowserApplication, &BrowserApplication::updateBookmarkMenus);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewWindow, this, &MainWindow::openLinkNewWindow);
@@ -487,17 +490,36 @@ void MainWindow::refreshBookmarkMenu()
     ui->bookmarkBar->refresh();
 }
 
+void MainWindow::addPageToBookmarks()
+{
+    WebView *view = m_tabWidget->currentWebView();
+    if (!view)
+        return;
+
+    const QString bookmarkName = view->title();
+    const QString bookmarkUrl = view->url().toString();
+    if (m_bookmarkManager->isBookmarked(bookmarkUrl))
+        return;
+    m_bookmarkManager->addBookmark(bookmarkName, bookmarkUrl);
+
+    if (!m_addBookmarkDialog)
+    {
+        m_addBookmarkDialog = new AddBookmarkDialog(m_bookmarkManager);
+        connect(m_addBookmarkDialog, &AddBookmarkDialog::updateBookmarkMenu, sBrowserApplication, &BrowserApplication::updateBookmarkMenus);
+    }
+    m_addBookmarkDialog->setBookmarkInfo(bookmarkName, bookmarkUrl);
+    m_addBookmarkDialog->show();
+}
+
 void MainWindow::removePageFromBookmarks()
 {
     WebView *view = m_tabWidget->currentWebView();
     if (!view)
         return;
 
-    if (m_bookmarkManager->removeBookmark(view->url().toString()))
-    {
-        QMessageBox::information(this, tr("Bookmark"), tr("Page removed from bookmarks."));
-        refreshBookmarkMenu();
-    }
+    m_bookmarkManager->removeBookmark(view->url().toString());
+    QMessageBox::information(this, tr("Bookmark"), tr("Page removed from bookmarks."));
+    sBrowserApplication->updateBookmarkMenus();
 }
 
 void MainWindow::toggleBookmarkBar(bool enabled)

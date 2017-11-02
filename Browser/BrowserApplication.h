@@ -91,6 +91,9 @@ public slots:
     /// Spawns a new browser window, setting it to private browsing mode before returning a pointer to the window
     MainWindow *getNewPrivateWindow();
 
+    /// Updates all browser windows' bookmark menus / toolbars
+    void updateBookmarkMenus();
+
 protected:
     /// Clears the given history type(s) from the browser's storage, beginning with the start time until the present.
     /// If no start time is given, all history will be cleared

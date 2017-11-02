@@ -19,6 +19,7 @@ class QActionGroup;
 class QNetworkReply;
 class QSslError;
 class QWebInspector;
+class AddBookmarkDialog;
 class BookmarkWidget;
 class BrowserTabWidget;
 class ClearHistoryDialog;
@@ -118,6 +119,9 @@ public slots:
     /// Refreshes the bookmarks menu
     void refreshBookmarkMenu();
 
+    /// Attempts to add the current page to the user's bookmark collection
+    void addPageToBookmarks();
+
     /// Attempts to remove the current page from the user's bookmarks
     void removePageFromBookmarks();
 
@@ -197,6 +201,9 @@ private:
 
     /// Preferences window
     Preferences *m_preferences;
+
+    /// Dialog that is shown when a bookmark is added through the bookmark menu option
+    AddBookmarkDialog *m_addBookmarkDialog;
 };
 
 #endif // MAINWINDOW_H

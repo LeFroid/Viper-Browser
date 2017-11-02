@@ -146,7 +146,7 @@ bool BookmarkManager::removeBookmark(const QString &url)
 {
     // Search DB rather than traverse tree
     QSqlQuery query(m_database);
-    query.prepare("SELECT FolderID FROM BookmarkManager WHERE URL = (:url)");
+    query.prepare("SELECT FolderID FROM Bookmarks WHERE URL = (:url)");
     query.bindValue(":url", url);
     if (!query.exec() || !query.first())
     {
@@ -154,7 +154,7 @@ bool BookmarkManager::removeBookmark(const QString &url)
         return false;
     }
     int folderId = query.value(0).toInt();
-    BookmarkFolder *folder = this->findFolder(folderId);
+    BookmarkFolder *folder = findFolder(folderId);
     if (!folder)
     {
         qDebug() << "[Warning]: In BookmarkManager::removeBookmark(..) - found bookmark, could not find folder it belongs to";

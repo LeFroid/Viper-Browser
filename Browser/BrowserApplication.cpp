@@ -224,6 +224,16 @@ MainWindow *BrowserApplication::getNewPrivateWindow()
     return w;
 }
 
+void BrowserApplication::updateBookmarkMenus()
+{
+    for (int i = 0; i < m_browserWindows.size(); ++i)
+    {
+        QPointer<MainWindow> m = m_browserWindows.at(i);
+        if (!m.isNull())
+            m->refreshBookmarkMenu();
+    }
+}
+
 void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
 {
     // Check if browsing history flag is set
