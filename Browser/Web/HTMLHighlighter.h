@@ -27,8 +27,7 @@ private:
 
         None    = 0, /// When no patterns match current text
         Tag     = 1, /// Highlighting contents within an HTML tag
-        Comment = 2, /// Commented out section of code <!-- like so -->
-        Quote   = 3  /// Within a quote
+        Comment = 2  /// Commented out section of code <!-- like so -->
     };
 
     /// Highlighting rule for certain patterns of text

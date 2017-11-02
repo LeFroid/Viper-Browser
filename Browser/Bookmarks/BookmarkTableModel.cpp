@@ -118,14 +118,6 @@ bool BookmarkTableModel::insertRows(int row, int count, const QModelIndex &paren
     return true;
 }
 
-bool BookmarkTableModel::insertColumns(int column, int count, const QModelIndex &parent)
-{
-    beginInsertColumns(parent, column, column + count - 1);
-    // FIXME: Implement me!
-    endInsertColumns();
-    return true;
-}
-
 bool BookmarkTableModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     if (!m_folder)
@@ -139,14 +131,6 @@ bool BookmarkTableModel::removeRows(int row, int count, const QModelIndex &paren
         m_bookmarkMgr->removeBookmark(item, m_folder);
     }
     endRemoveRows();
-    return true;
-}
-
-bool BookmarkTableModel::removeColumns(int column, int count, const QModelIndex &parent)
-{
-    beginRemoveColumns(parent, column, column + count - 1);
-    // FIXME: Implement me!
-    endRemoveColumns();
     return true;
 }
 
@@ -198,6 +182,7 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
 
     // Shift row positions
     int currentRow = parent.row();
+    beginResetModel();
     for (int r : rowNums)
     {
         if (r >= m_folder->bookmarks.size())
@@ -208,8 +193,6 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
         Bookmark *b = m_folder->bookmarks.at(r);
         m_bookmarkMgr->setBookmarkPosition(b, m_folder, currentRow++);
     }
-
-    beginResetModel();
     endResetModel();
 
     return true;

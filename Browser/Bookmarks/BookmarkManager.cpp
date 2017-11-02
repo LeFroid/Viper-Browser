@@ -41,7 +41,7 @@ BookmarkFolder *BookmarkManager::getRoot()
     return &m_root;
 }
 
-int BookmarkManager::addFolder(QString name, int parentID)
+int BookmarkManager::addFolder(const QString &name, int parentID)
 {
     // Search for folder with given parent ID
     BookmarkFolder *parent = findFolder(parentID);
@@ -85,7 +85,7 @@ int BookmarkManager::addFolder(QString name, int parentID)
     return f->id;
 }
 
-void BookmarkManager::addBookmark(QString name, QString url, int folderID)
+void BookmarkManager::addBookmark(const QString &name, const QString &url, int folderID)
 {
     // Create new bookmark
     Bookmark *b = new Bookmark(name, url);
@@ -111,7 +111,7 @@ void BookmarkManager::addBookmark(QString name, QString url, int folderID)
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
 }
 
-void BookmarkManager::addBookmark(QString name, QString url, BookmarkFolder *folder, int position)
+void BookmarkManager::addBookmark(const QString &name, const QString &url, BookmarkFolder *folder, int position)
 {
     if (!folder)
         return;
@@ -134,7 +134,7 @@ void BookmarkManager::addBookmark(QString name, QString url, BookmarkFolder *fol
         setBookmarkPosition(b, folder, position);
 }
 
-bool BookmarkManager::isBookmarked(QString url)
+bool BookmarkManager::isBookmarked(const QString &url)
 {
     QSqlQuery query(m_database);
     query.prepare("SELECT FolderID FROM Bookmarks WHERE URL = (:url)");
@@ -283,14 +283,17 @@ void BookmarkManager::setBookmarkPosition(Bookmark *item, BookmarkFolder *parent
         qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update position of bookmark. "
                  << "Message: " << query.lastError().text();
 
-    // Adjust position in lists
-    int bookmarkListsPos = position;
-    query.prepare("SELECT COUNT(DISTINCT FolderID) FROM BookmarkFolders WHERE ParentID = (:folderId) AND POSITION >= (:pos)");
+    // Adjust position in bookmark list
+    int bookmarkListsPos = bookmarkIdx;
+    query.prepare("SELECT COUNT(FolderID) FROM Bookmarks WHERE FolderID = (:folderId) AND POSITION < (:pos)");
     query.bindValue(":folderId", parent->id);
     query.bindValue(":pos", position);
     if (query.exec() && query.next())
-        bookmarkListsPos -= query.value(0).toInt();
-    parent->bookmarks.move(bookmarkIdx, bookmarkListsPos);
+        bookmarkListsPos = query.value(0).toInt();
+
+    // Only adjust position if required
+    if (bookmarkListsPos < bookmarkIdx)
+        parent->bookmarks.move(bookmarkIdx, bookmarkListsPos);
 }
 
 void BookmarkManager::updatedBookmark(Bookmark *bookmark, Bookmark oldValue, int folderID)

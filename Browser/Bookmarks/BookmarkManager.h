@@ -74,7 +74,7 @@ public:
      * @param parentID Identifier of the parent folder
      * @return The identifier of the newly created bookmark folder, or -1 if there was an error
      */
-    int addFolder(QString name, int parentID);
+    int addFolder(const QString &name, int parentID);
 
     /**
      * @brief addBookmark Adds a bookmark to the collection
@@ -82,7 +82,7 @@ public:
      * @param url Location of the bookmark (ex: http://xyz.co/page123)
      * @param folderID Optional identifier of the parent folder to place the bookmark into. Defaults to root folder
      */
-    void addBookmark(QString name, QString url, int folderID = 0);
+    void addBookmark(const QString &name, const QString &url, int folderID = 0);
 
     /**
      * @brief addBookmark Adds a bookmark to the collection
@@ -91,10 +91,10 @@ public:
      * @param folder Pointer to the folder the bookmark will belong to
      * @param position Optional position specification of the new bookmark
      */
-    void addBookmark(QString name, QString url, BookmarkFolder *folder, int position = -1);
+    void addBookmark(const QString &name, const QString &url, BookmarkFolder *folder, int position = -1);
 
     /// Checks if the given url is bookmarked, returning true if it is
-    bool isBookmarked(QString url);
+    bool isBookmarked(const QString &url);
 
     /// Removes the bookmark with the given URL (if it is a bookmark) from storage, returning true on success
     bool removeBookmark(const QString &url);

@@ -611,11 +611,12 @@ void MainWindow::onRequestViewSource()
     QString pageTitle = currentView->title();
     QTextEdit *view = new QTextEdit;
     view->setPlainText(pageSource);
-    HTMLHighlighter *h = new HTMLHighlighter(view->document());
+    HTMLHighlighter *h = new HTMLHighlighter;
+    h->setDocument(view->document());
     view->setReadOnly(true);
     view->setWindowTitle(tr("Viewing Source of %1").arg(pageTitle));
     view->setMinimumWidth(640);
-    view->setMinimumHeight(geometry().height() / 3);
+    view->setMinimumHeight(geometry().height() / 2);
     view->setAttribute(Qt::WA_DeleteOnClose);
     view->show();
 }
