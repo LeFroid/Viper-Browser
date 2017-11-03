@@ -1,5 +1,5 @@
 #include "HTMLHighlighter.h"
-
+#include <QDebug>
 HTMLHighlighter::HTMLHighlighter(QTextDocument *parent) :
     QSyntaxHighlighter(parent),
     m_tagRule(),
@@ -15,11 +15,11 @@ HTMLHighlighter::HTMLHighlighter(QTextDocument *parent) :
     m_tagRule.format.setForeground(QBrush(QColor(136, 18, 128)));
 
     // Attribute highlighting rule
-    m_attributeRule.pattern = QRegularExpression("[a-zA-Z]+=");
+    m_attributeRule.pattern = QRegularExpression("[a-zA-Z-]+=");
     m_attributeRule.format.setForeground(QBrush(QColor(153, 69, 0)));
 
     // Quote highlighting rule
-    m_quoteRule.pattern = QRegularExpression("\"[^\"]*\"");
+    m_quoteRule.pattern = QRegularExpression("=\"[^\"]*(\"?)");
     m_quoteRule.format.setForeground(QBrush(QColor(26, 26, 166)));
 
     // Doctype highlighting rule
@@ -49,17 +49,18 @@ void HTMLHighlighter::highlightBlock(const QString &text)
         int tagEndIdx = text.indexOf(endTag, endIdx);
         if (tagEndIdx == -1)
             setCurrentBlockState(HTMLHighlighter::Tag);
-        else
-        {
-            QString tagSubstr = text.mid(endIdx, tagEndIdx);
-            auto attrItr = m_attributeRule.pattern.globalMatch(tagSubstr);
-            while (attrItr.hasNext())
-            {
-                auto attrMatch = attrItr.next();
-                setFormat(endIdx + attrMatch.capturedStart(), attrMatch.capturedLength(), m_attributeRule.format);
-            }
 
-            // Format at position tagEndIdx
+        QString tagSubstr = text.mid(endIdx, tagEndIdx);
+        auto attrItr = m_attributeRule.pattern.globalMatch(tagSubstr);
+        while (attrItr.hasNext())
+        {
+            auto attrMatch = attrItr.next();
+            setFormat(endIdx + attrMatch.capturedStart(), attrMatch.capturedLength(), m_attributeRule.format);
+        }
+
+        // Format at position tagEndIdx
+        if (tagEndIdx >= 0)
+        {
             int tagEndLen = text.at(tagEndIdx) == '/' ? 2 : 1;
             setFormat(tagEndIdx, tagEndLen, m_tagRule.format);
         }
@@ -70,7 +71,7 @@ void HTMLHighlighter::highlightBlock(const QString &text)
     while (matchItr.hasNext())
     {
         auto match = matchItr.next();
-        setFormat(match.capturedStart(), match.capturedLength(), m_quoteRule.format);
+        setFormat(match.capturedStart() + 1, match.capturedLength() - 1, m_quoteRule.format);
     }
 
     // Search for doctype
@@ -90,6 +91,31 @@ void HTMLHighlighter::highlightBlock(const QString &text)
     // Otherwise, find a closing tag and then search for highlighting rules
     if (prevBlockState < 1)
         startIdx = text.indexOf(m_commentStartExpr);
+    else if (prevBlockState == HTMLHighlighter::Tag)
+    {
+        // Search for attributes within the tag
+        int tagEndIdx = text.indexOf(endTag);
+        if (tagEndIdx == -1)
+            setCurrentBlockState(HTMLHighlighter::Tag);
+
+        QString tagSubstr = text.left(tagEndIdx + 1);
+        auto attrItr = m_attributeRule.pattern.globalMatch(tagSubstr);
+        while (attrItr.hasNext())
+        {
+            auto attrMatch = attrItr.next();
+            setFormat(endIdx + attrMatch.capturedStart(), attrMatch.capturedLength(), m_attributeRule.format);
+        }
+
+        // Format at position tagEndIdx
+        if (tagEndIdx >= 0)
+        {
+            int tagEndLen = text.at(tagEndIdx) == '/' ? 2 : 1;
+            setFormat(tagEndIdx, tagEndLen, m_tagRule.format);
+            startIdx = text.indexOf(m_commentStartExpr, tagEndIdx + 1);
+        }
+        else
+            startIdx = -1;
+    }
 
     while (startIdx >= 0)
     {
