@@ -63,6 +63,7 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<Bookm
 
     ui->dockWidget->hide();
     ui->widgetFindText->hide();
+    m_tabWidget->currentWebView()->setFocus();
 }
 
 MainWindow::~MainWindow()
