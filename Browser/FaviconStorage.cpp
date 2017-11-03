@@ -102,11 +102,18 @@ void FaviconStorage::onReplyFinished()
     auto it = m_favicons.find(m_reply->url().toString());
     if (it != m_favicons.end())
     {
-        qDebug() << "FaviconStorage::onReplyFinished - found structure in hash map to update icon with";
+        QString format = QFileInfo(m_reply->url().toString()).suffix();
         QByteArray data = m_reply->readAll();
+
+        // Handle compressed data
+        if (format.compare("gzip") == 0)
+        {
+            data = qUncompress(data);
+            format.clear();
+        }
+
         QBuffer buffer(&data);
         QImage img;
-        QString format = QFileInfo(m_reply->url().toString()).suffix();
         if (!img.load(&buffer, format.toStdString().c_str()))
         {
             qDebug() << "FaviconStorage::onReplyFinished - failed to load image from response. Format was " << format;

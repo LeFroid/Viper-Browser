@@ -508,6 +508,17 @@ void MainWindow::addPageToBookmarks()
         connect(m_addBookmarkDialog, &AddBookmarkDialog::updateBookmarkMenu, sBrowserApplication, &BrowserApplication::updateBookmarkMenus);
     }
     m_addBookmarkDialog->setBookmarkInfo(bookmarkName, bookmarkUrl);
+
+    // Set position of add bookmark dialog to align just under the URL bar on the right side
+    QPoint dialogPos;
+    const QRect winGeom = frameGeometry();
+    const QRect toolbarGeom = ui->toolBar->frameGeometry();
+    const QRect urlBarGeom = m_urlInput->frameGeometry();
+    dialogPos.setX(winGeom.x() + toolbarGeom.x() + urlBarGeom.x()
+                   + urlBarGeom.width() - m_addBookmarkDialog->width());
+    dialogPos.setY(winGeom.y() + toolbarGeom.y() + toolbarGeom.height() + (urlBarGeom.height() * 2 / 3));
+    m_addBookmarkDialog->move(dialogPos);
+
     m_addBookmarkDialog->show();
 }
 

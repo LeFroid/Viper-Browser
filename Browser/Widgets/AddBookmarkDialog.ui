@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Bookmark Added</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { border: 1px solid #000000; }</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="labelBookmarkAdded">
