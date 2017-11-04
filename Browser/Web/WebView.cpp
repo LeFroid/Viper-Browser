@@ -8,6 +8,7 @@
 
 #include "BrowserApplication.h"
 #include "DownloadManager.h"
+#include "SearchEngineManager.h"
 #include "Settings.h"
 #include "WebDialog.h"
 #include "WebView.h"
@@ -130,7 +131,14 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         // Text selection menu
         QMenu menu(this);
         menu.addAction(pageAction(QWebPage::Copy));
-        menu.addAction(tr("Search for selected text"));
+
+        // Search for current selection menu option
+        SearchEngineManager *searchMgr = &SearchEngineManager::instance();
+        menu.addAction(tr("Search %1 for selected text").arg(searchMgr->getDefaultSearchEngine()), [=](){
+            QString searchUrl = searchMgr->getQueryString(searchMgr->getDefaultSearchEngine());
+            searchUrl.replace("=%s", QString("=%1").arg(page()->selectedText()));
+            emit openInNewTabRequest(QUrl::fromUserInput(searchUrl));
+        });
         addInspectorIfEnabled(&menu);
         menu.exec(mapToGlobal(event->pos()));
         return;
