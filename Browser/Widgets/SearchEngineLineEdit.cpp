@@ -45,6 +45,7 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
 
     // Connect search engine manager's signals for search engines being added or removed to appropriate slots
     SearchEngineManager *manager = &SearchEngineManager::instance();
+    connect(manager, &SearchEngineManager::defaultEngineChanged, this, &SearchEngineLineEdit::setSearchEngine);
     connect(manager, &SearchEngineManager::engineAdded, this, &SearchEngineLineEdit::addSearchEngine);
     connect(manager, &SearchEngineManager::engineRemoved, this, &SearchEngineLineEdit::removeSearchEngine);
 }

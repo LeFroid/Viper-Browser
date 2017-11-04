@@ -39,6 +39,9 @@ public:
     void loadSearchEngines(const QString &fileName);
 
 signals:
+    /// Emitted when the default search engine has been changed to the given name
+    void defaultEngineChanged(const QString &name);
+
     /// Emitted when a new search engine has been added to the collection
     void engineAdded(const QString &name);
 

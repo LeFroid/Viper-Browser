@@ -86,9 +86,10 @@ void WebView::showLinkRef(const QString &link, const QString &/*title*/, const Q
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
     QWebHitTestResult res = page()->mainFrame()->hitTestContent(event->pos());
+
+    // Check if context menu includes links
     if (!res.linkUrl().isEmpty())
     {
-        // Build menu for links
         QMenu menu(this);
         menu.addAction(tr("Open link in new tab"), [=](){
             emit openInNewTabRequest(res.linkUrl());
@@ -103,9 +104,9 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         menu.exec(mapToGlobal(event->pos()));
         return;
     }
+    // Check if context menu is activated when mouse is on an image
     if (!res.imageUrl().isEmpty())
     {
-        // Build menu for images
         QMenu menu(this);
         menu.addAction(tr("Open image"), [=](){
             emit openRequest(res.imageUrl());
@@ -123,6 +124,7 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         menu.exec(mapToGlobal(event->pos()));
         return;
     }
+    // Check if context menu is activated when there is a text selection
     if (!page()->selectedText().isEmpty())
     {
         // Text selection menu
@@ -140,7 +142,6 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     menu.addAction(pageAction(QWebPage::Reload));
     addInspectorIfEnabled(&menu);
     menu.exec(mapToGlobal(event->pos()));
-    //QWebView::contextMenuEvent(event);
 }
 
 void WebView::resizeEvent(QResizeEvent *event)

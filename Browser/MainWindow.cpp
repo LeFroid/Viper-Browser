@@ -320,16 +320,20 @@ void MainWindow::setupTabWidget()
 void MainWindow::setupToolBar()
 {
     ui->toolBar->setStyleSheet("QToolBar { spacing: 3px; }");
+
+    // Previous Page Button
     m_prevPage = new QAction(this);
     m_prevPage->setIcon(style()->standardIcon(QStyle::SP_ArrowBack, 0, this));
     m_prevPage->setToolTip(tr("Go back one page"));
     addWebProxyAction(QWebPage::Back, m_prevPage);
 
+    // Next Page Button
     m_nextPage = new QAction(this);
     m_nextPage->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
     m_nextPage->setToolTip(tr("Go forward one page"));
     addWebProxyAction(QWebPage::Forward, m_nextPage);
 
+    // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
     m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
     connect(m_stopRefresh, &QAction::triggered, [=](){
@@ -337,10 +341,12 @@ void MainWindow::setupToolBar()
             view->reload();
     });
 
+    // URL Bar
     m_urlInput = new URLLineEdit(ui->toolBar);
     connect(m_urlInput, &URLLineEdit::returnPressed, this, &MainWindow::goToURL);
     connect(m_urlInput, &URLLineEdit::viewSecurityInfo, this, &MainWindow::onClickSecurityInfo);
 
+    // Quick search tool
     m_searchEngineLineEdit = new SearchEngineLineEdit(this);
     connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoad, this, &MainWindow::loadUrl);
 

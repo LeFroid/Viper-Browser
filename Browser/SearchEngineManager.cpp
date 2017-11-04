@@ -44,6 +44,7 @@ void SearchEngineManager::setDefaultSearchEngine(const QString &name)
         return;
 
     m_defaultEngine = name;
+    emit defaultEngineChanged(m_defaultEngine);
 }
 
 QList<QString> SearchEngineManager::getSearchEngineNames() const
