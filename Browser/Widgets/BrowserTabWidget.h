@@ -7,6 +7,7 @@
 #include <QTabWidget>
 #include <QUrl>
 
+class BrowserTabBar;
 class WebView;
 
 /**
@@ -80,6 +81,9 @@ private:
 
     /// Active web view
     WebView *m_activeView;
+
+    /// Custom tab bar
+    BrowserTabBar *m_tabBar;
 };
 
 #endif // BROWSERTABWIDGET_H

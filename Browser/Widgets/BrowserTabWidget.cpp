@@ -1,27 +1,24 @@
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
+#include "BrowserTabBar.h"
 #include "MainWindow.h"
 #include "WebView.h"
-
-#include <QTabBar>
-
-//TODO: Context menu for tabBar
 
 BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *parent) :
     QTabWidget(parent),
     m_settings(settings),
     m_privateBrowsing(false),
     m_newTabPage(settings->getValue("NewTabsLoadHomePage").toBool() ? HomePage : BlankPage),
-    m_activeView(nullptr)
+    m_activeView(nullptr),
+    m_tabBar(new BrowserTabBar(this))
 {
+    // Set tab bar
+    setTabBar(m_tabBar);
+
     // Set tab widget UI properties
     setDocumentMode(true);
     setElideMode(Qt::ElideRight);
-    setMovable(true);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    setTabsClosable(true);
-
-    tabBar()->setExpanding(false);
 
     connect(this, &BrowserTabWidget::tabCloseRequested, this, &BrowserTabWidget::closeTab);
     connect(this, &BrowserTabWidget::currentChanged, this, &BrowserTabWidget::onCurrentChanged);

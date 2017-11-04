@@ -419,6 +419,7 @@ void MainWindow::updateTabIcon(QIcon icon, int tabIndex)
 void MainWindow::updateTabTitle(const QString &title, int tabIndex)
 {
      m_tabWidget->setTabText(tabIndex, title);
+     m_tabWidget->setTabToolTip(tabIndex, title);
 }
 
 void MainWindow::goToURL()

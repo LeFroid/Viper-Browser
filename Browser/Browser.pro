@@ -89,7 +89,8 @@ SOURCES += \
     Network/CertificateGeneralTab.cpp \
     Preferences/ContentTab.cpp \
     Web/HTMLHighlighter.cpp \
-    Widgets/AddBookmarkDialog.cpp
+    Widgets/AddBookmarkDialog.cpp \
+    Widgets/BrowserTabBar.cpp
 
 HEADERS += \
     History/HistoryTableModel.h \
@@ -143,7 +144,8 @@ HEADERS += \
     Network/CertificateGeneralTab.h \
     Preferences/ContentTab.h \
     Web/HTMLHighlighter.h \
-    Widgets/AddBookmarkDialog.h
+    Widgets/AddBookmarkDialog.h \
+    Widgets/BrowserTabBar.h
 
 FORMS += \
         mainwindow.ui \
