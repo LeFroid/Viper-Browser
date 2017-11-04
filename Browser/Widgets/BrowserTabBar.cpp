@@ -16,6 +16,10 @@ QSize BrowserTabBar::tabSizeHint(int index) const
 {
     // Get the QTabBar size hint and keep width within an upper bound
     QSize hint = QTabBar::tabSizeHint(index);
-    QFontMetrics fMetric = fontMetrics();
-    return hint.boundedTo(QSize(fMetric.width("R") * 20, hint.height()));
+    if (count() > 3)
+    {
+        QFontMetrics fMetric = fontMetrics();
+        return hint.boundedTo(QSize(fMetric.width("R") * 20, hint.height()));
+    }
+    return hint;
 }
