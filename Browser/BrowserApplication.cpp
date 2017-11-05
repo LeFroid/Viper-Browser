@@ -16,8 +16,6 @@
 #include <QDir>
 #include <QDebug>
 
-//TODO: Make sure cookies set in private browsing are removed when the private window is closed
-
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
 {
@@ -304,4 +302,7 @@ void BrowserApplication::setWebSettings()
     settings->setAttribute(QWebSettings::AutoLoadImages, m_settings->getValue("AutoLoadImages").toBool());
     settings->setAttribute(QWebSettings::PluginsEnabled, m_settings->getValue("EnablePlugins").toBool());
     settings->setAttribute(QWebSettings::XSSAuditingEnabled, m_settings->getValue("EnableXSSAudit").toBool());
+
+    settings->setFontFamily(QWebSettings::StandardFont, m_settings->getValue("StandardFont").toString());
+    settings->setFontSize(QWebSettings::DefaultFontSize, m_settings->getValue("StandardFontSize").toInt());
 }

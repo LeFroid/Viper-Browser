@@ -1,9 +1,9 @@
 #include "Preferences.h"
 #include "ui_Preferences.h"
 
+#include "BrowserApplication.h"
 #include "Settings.h"
 #include <QDir>
-#include <QWebSettings>
 
 Preferences::Preferences(std::shared_ptr<Settings> settings, QWidget *parent) :
     QWidget(parent),
@@ -56,21 +56,16 @@ void Preferences::onCloseWithSave()
     m_settings->setValue("StartupMode", ui->tabGeneral->getStartupIndex());
     m_settings->setValue("NewTabsLoadHomePage", ui->tabGeneral->doNewTabsLoadHomePage());
 
-    // Fetch preferences in Content tab
+    // Save preferences in Content tab
     m_settings->setValue("AutoLoadImages", ui->tabContent->isAutoLoadImagesEnabled());
     m_settings->setValue("EnableJavascriptPopups", ui->tabContent->arePopupsEnabled());
     m_settings->setValue("EnableJavascript", ui->tabContent->isJavaScriptEnabled());
 
     // Save font choices, and also set them in the global web settings
-    QWebSettings *webSettings = QWebSettings::globalSettings();
-    QString standardFont = ui->tabContent->getStandardFont();
-    int standardFontSize = ui->tabContent->getStandardFontSize();
+    m_settings->setValue("StandardFont", ui->tabContent->getStandardFont());
+    m_settings->setValue("StandardFontSize", ui->tabContent->getStandardFontSize());
 
-    m_settings->setValue("StandardFont", standardFont);
-    m_settings->setValue("StandardFontSize", standardFontSize);
-
-    webSettings->setFontFamily(QWebSettings::StandardFont, standardFont);
-    webSettings->setFontSize(QWebSettings::DefaultFontSize, standardFontSize);
+    sBrowserApplication->setWebSettings();
 
     close();
 }

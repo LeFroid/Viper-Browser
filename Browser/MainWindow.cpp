@@ -250,6 +250,9 @@ void MainWindow::setupMenuBar()
     });
     connect(ui->actionNew_Window, &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewWindow);
     connect(ui->actionNew_Private_Window, &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewPrivateWindow);
+    connect(ui->actionClose_Tab, &QAction::triggered, [=](){
+        m_tabWidget->closeTab(m_tabWidget->currentIndex());
+    });
 
     // Find action
     connect(ui->action_Find, &QAction::triggered, this, &MainWindow::onFindTextAction);
@@ -263,6 +266,9 @@ void MainWindow::setupMenuBar()
 
     // Add proxy for reload action in menu bar
     addWebProxyAction(QWebPage::Reload, ui->actionReload);
+
+    // Full screen view mode
+    connect(ui->action_Full_Screen, &QAction::triggered, this, &MainWindow::onToggleFullScreen);
 
     // Preferences window
     connect(ui->actionPreferences, &QAction::triggered, [=](){
@@ -660,4 +666,20 @@ void MainWindow::onRequestViewSource()
     view->setMinimumHeight(geometry().height() / 2);
     view->setAttribute(Qt::WA_DeleteOnClose);
     view->show();
+}
+
+void MainWindow::onToggleFullScreen(bool enable)
+{
+    if (enable)
+        showFullScreen();
+    else
+    {
+        auto state = windowState();
+        if (state & Qt::WindowMinimized)
+            showMinimized();
+        else if (state & Qt::WindowMaximized)
+            showMaximized();
+        else
+            showNormal();
+    }
 }

@@ -50,7 +50,8 @@ void BrowserTabWidget::setPrivateMode(bool value)
 
 void BrowserTabWidget::closeTab(int index)
 {
-    if (index < 0 || index >= count())
+    int numTabs = count();
+    if (index < 0 || numTabs == 1 || index >= numTabs)
         return;
 
     WebView *view = getWebView(index);

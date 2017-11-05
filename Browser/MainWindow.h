@@ -147,6 +147,12 @@ private slots:
     /// Called when the user wants to view the source code of the current web page
     void onRequestViewSource();
 
+    /**
+     * @brief onToggleFullScreen Toggles the full screen view mode of the browser window
+     * @param enable If true, will activate the full screen view. Otherwise, will return to normal view mode
+     */
+    void onToggleFullScreen(bool enable);
+
 private:
     /// UI items from .ui file
     Ui::MainWindow *ui;

@@ -94,6 +94,9 @@ public slots:
     /// Updates all browser windows' bookmark menus / toolbars
     void updateBookmarkMenus();
 
+    /// Sets the global web settings of the application - called during initialization and on settings update
+    void setWebSettings();
+
 protected:
     /// Clears the given history type(s) from the browser's storage, beginning with the start time until the present.
     /// If no start time is given, all history will be cleared
@@ -105,9 +108,6 @@ private:
 
     /// Resets each browser's user agent menu after a new agent has been added
     void resetUserAgentMenus();
-
-    /// Sets the global web settings of the application - called during initialization
-    void setWebSettings();
 
 private:
     /// Application settings
