@@ -11,7 +11,7 @@ HTMLHighlighter::HTMLHighlighter(QTextDocument *parent) :
     m_commentEndExpr("-->")
 {
     // Set highlighting rule for tags
-    m_tagRule.pattern = QRegularExpression("<(/?)([A-Za-z0-9]+)");
+    m_tagRule.pattern = QRegularExpression("<(/?)([A-Za-z0-9-]+)");
     m_tagRule.format.setForeground(QBrush(QColor(136, 18, 128)));
 
     // Attribute highlighting rule
