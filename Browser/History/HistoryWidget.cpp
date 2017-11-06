@@ -20,10 +20,6 @@ HistoryWidget::HistoryWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // Set icons for UI elements
-    ui->buttonBack->setIcon(style()->standardIcon(QStyle::SP_ArrowBack, 0, this));
-    ui->buttonForward->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
-
     // Set properties of proxy model used for bookmark searches
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     m_proxyModel->setFilterKeyColumn(-1); // -1 applies search terms to all columns
