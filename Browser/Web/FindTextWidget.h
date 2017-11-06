@@ -46,6 +46,10 @@ private:
     /// If searchForNext = true, will increment the position counter. Otherwise, the counter will decrement.
     void setMatchCountLabel(bool searchForNext);
 
+protected:
+    /// Paints the widget onto its parent. This method is overrided in order to draw a border around the widget
+    virtual void paintEvent(QPaintEvent *event) override;
+
 private:
     /// Find text UI
     Ui::FindTextWidget *ui;

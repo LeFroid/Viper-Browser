@@ -48,9 +48,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
         {
             QPointer<MainWindow> m = m_browserWindows.at(i);
             if (!m.isNull())
-            {
                 m->addHistoryItem(itemUrl, title, favicon);
-            }
         }
     });
 
@@ -177,10 +175,7 @@ MainWindow *BrowserApplication::getNewWindow()
     m_browserWindows.append(w);
 
     // Add recent history to main window
-    const QList<WebHistoryItem> &historyItems = m_historyMgr->getRecentItems();
-    for (auto it : historyItems)
-        w->addHistoryItem(it.URL, it.Title, m_faviconStorage->getFavicon(it.URL.toString()));
-
+    setHistoryForWindow(w);
     w->show();
 
     // Check if this is the first window since the application has started - if so, handle
@@ -211,10 +206,7 @@ MainWindow *BrowserApplication::getNewPrivateWindow()
 {
     MainWindow *w = new MainWindow(m_settings, m_bookmarks);
     m_browserWindows.append(w);
-    // Add recent history to main window
-    const QList<WebHistoryItem> &historyItems = m_historyMgr->getRecentItems();
-    for (auto it : historyItems)
-        w->addHistoryItem(it.URL, it.Title, m_faviconStorage->getFavicon(it.URL.toString()));
+    setHistoryForWindow(w);
 
     // Set to private, show window and return pointer
     w->setPrivate(true);
@@ -259,8 +251,6 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
 
 void BrowserApplication::resetHistoryMenus()
 {
-    const QList<WebHistoryItem> &historyItems = m_historyMgr->getRecentItems();
-
     for (int i = 0; i < m_browserWindows.size(); ++i)
     {
         QPointer<MainWindow> m = m_browserWindows.at(i);
@@ -268,8 +258,7 @@ void BrowserApplication::resetHistoryMenus()
         {
             // Remove current history and set items to updated content in history manager
             m->clearHistoryItems();
-            for (auto it : historyItems)
-                m->addHistoryItem(it.URL, it.Title, m_faviconStorage->getFavicon(it.URL.toString()));
+            setHistoryForWindow(m);
         }
     }
 }
@@ -281,6 +270,20 @@ void BrowserApplication::resetUserAgentMenus()
         QPointer<MainWindow> m = m_browserWindows.at(i);
         if (!m.isNull())
             m->resetUserAgentMenu();
+    }
+}
+
+void BrowserApplication::setHistoryForWindow(MainWindow *w)
+{
+    if (!w)
+        return;
+
+    // Add recent history to window
+    const QList<WebHistoryItem> &historyItems = m_historyMgr->getRecentItems();
+    for (auto it : historyItems)
+    {
+        if (!it.Title.isEmpty())
+            w->addHistoryItem(it.URL, it.Title, m_faviconStorage->getFavicon(it.URL.toString()));
     }
 }
 

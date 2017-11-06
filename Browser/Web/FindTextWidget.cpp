@@ -2,6 +2,7 @@
 #include "ui_findtextwidget.h"
 #include "WebView.h"
 
+#include <QPaintEvent>
 #include <QWebFrame>
 
 FindTextWidget::FindTextWidget(QWidget *parent) :
@@ -140,5 +141,17 @@ void FindTextWidget::setMatchCountLabel(bool searchForNext)
 
     // Update the label
     ui->labelMatches->setText(QString("%1 of %2 matches").arg(m_occurrenceCounter).arg(m_numOccurrences));
+}
+
+void FindTextWidget::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    QPen pen(QColor(102, 102, 102));
+    pen.setWidth(2);
+    painter.drawLine(0, 0, width(), 0);
+
+    QWidget::paintEvent(event);
 }
 

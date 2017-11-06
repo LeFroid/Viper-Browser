@@ -109,6 +109,9 @@ private:
     /// Resets each browser's user agent menu after a new agent has been added
     void resetUserAgentMenus();
 
+    /// Populates the "Recent History" menu items for the given window
+    void setHistoryForWindow(MainWindow *w);
+
 private:
     /// Application settings
     std::shared_ptr<Settings> m_settings;

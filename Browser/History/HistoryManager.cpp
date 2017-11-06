@@ -112,6 +112,11 @@ void HistoryManager::setTitleForURL(const QString &url, const QString &title)
         if (it->Title.isEmpty())
         {
             it->Title = title;
+
+            int recentVisitIdx = m_recentItems.indexOf(*it);
+            if (recentVisitIdx >= 0)
+                m_recentItems[recentVisitIdx].Title = title;
+
             emit pageVisited(lowerUrl, title);
         }
     }
@@ -221,7 +226,7 @@ void HistoryManager::load()
                  << query.lastError().text();
 
     // Load most recent visits
-    if (query.exec("SELECT Visits.Date, History.URL FROM Visits INNER JOIN History ON Visits.VisitID = History.VisitID ORDER BY Visits.Date DESC LIMIT 30"))
+    if (query.exec("SELECT Visits.Date, History.URL FROM Visits INNER JOIN History ON Visits.VisitID = History.VisitID ORDER BY Visits.Date DESC LIMIT 15"))
     {
         QSqlRecord rec = query.record();
         int idDate = rec.indexOf("Date");

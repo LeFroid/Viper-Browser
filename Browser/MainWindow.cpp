@@ -578,6 +578,47 @@ void MainWindow::onLoadProgress(int value)
     }
 }
 
+void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
+{
+    if (!view)
+        return;
+
+    const QString pageTitle = view->title();
+    updateTabIcon(QWebSettings::iconForUrl(view->url()), m_tabWidget->indexOf(view));
+    updateTabTitle(pageTitle, m_tabWidget->indexOf(view));
+
+    if (m_tabWidget->currentWebView() == view)
+    {
+        m_urlInput->setText(view->url().toString());
+        SecurityIcon secureIcon = SecurityIcon::Standard;
+        if (m_urlInput->text().startsWith("https"))
+            secureIcon = SecurityManager::instance().isInsecure(view->url().host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
+        m_urlInput->setSecurityIcon(secureIcon);
+        checkPageForBookmark();
+    }
+
+    // Get favicon and inform HistoryManager of the title and favicon associated with the page's url, if not in private mode
+    if (!m_privateWindow)
+    {
+        BrowserApplication *browserApp = sBrowserApplication;
+
+        QString pageUrl = view->url().toString();
+        QWebElement faviconElement = view->page()->mainFrame()->findFirstElement("link[rel*='icon']");
+        if (!faviconElement.isNull())
+        {
+            QString iconRef = faviconElement.attribute("href");
+            if (!iconRef.isNull())
+            {
+                if (iconRef.startsWith('/'))
+                    iconRef.prepend(view->url().toString(QUrl::RemovePath));
+                browserApp->getFaviconStorage()->updateIcon(iconRef, pageUrl);
+            }
+        }
+        if (!pageTitle.isEmpty())
+            browserApp->getHistoryManager()->setTitleForURL(pageUrl, pageTitle);
+    }
+}
+
 void MainWindow::onShowAllHistory()
 {
     HistoryWidget *histWidget = sBrowserApplication->getHistoryWidget();
@@ -598,39 +639,8 @@ void MainWindow::onShowAllHistory()
 void MainWindow::onNewTabCreated(WebView *view)
 {
     // Connect signals to slots for UI updates (page title, icon changes)
-    connect(view, &WebView::loadFinished, [=]() {
-        updateTabIcon(QWebSettings::iconForUrl(view->url()), m_tabWidget->indexOf(view));
-        updateTabTitle(view->title(), m_tabWidget->indexOf(view));
-
-        if (m_tabWidget->currentWebView() == view)
-        {
-            m_urlInput->setText(view->url().toString());
-            SecurityIcon secureIcon = SecurityIcon::Standard;
-            if (m_urlInput->text().startsWith("https"))
-                secureIcon = SecurityManager::instance().isInsecure(view->url().host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
-            m_urlInput->setSecurityIcon(secureIcon);
-            checkPageForBookmark();
-        }
-
-        // Get favicon and inform HistoryManager of the title and favicon associated with the page's url, if not in private mode
-        if (!m_privateWindow)
-        {
-            BrowserApplication *browserApp = sBrowserApplication;
-
-            QString pageUrl = view->url().toString();
-            QWebElement faviconElement = view->page()->mainFrame()->findFirstElement("link[rel*='icon']");
-            if (!faviconElement.isNull())
-            {
-                QString iconRef = faviconElement.attribute("href");
-                if (!iconRef.isNull())
-                {
-                    if (iconRef.startsWith('/'))
-                        iconRef.prepend(view->url().toString(QUrl::RemovePath));
-                    browserApp->getFaviconStorage()->updateIcon(iconRef, pageUrl);
-                }
-            }
-            browserApp->getHistoryManager()->setTitleForURL(pageUrl, view->title());
-        }
+    connect(view, &WebView::loadFinished, [=](bool ok) {
+        onLoadFinished(view, ok);
     });
     connect(view, &WebView::inspectElement, [=]() {
         QWebInspector *inspector = new QWebInspector(this->ui->dockWidget);

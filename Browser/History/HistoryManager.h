@@ -28,6 +28,12 @@ struct WebHistoryItem
 
     /// List of recent visits to this history item
     QList<QDateTime> Visits;
+
+    /// Returns true if the two WebHistoryItem objects are the same, false if else
+    bool operator ==(const WebHistoryItem &other) const
+    {
+        return (this->URL.toString().compare(other.URL.toString(), Qt::CaseInsensitive) == 0);
+    }
 };
 
 /**

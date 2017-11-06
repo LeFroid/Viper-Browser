@@ -135,6 +135,9 @@ private slots:
     /// Called when the tab widget signals a page has progressed in loading its content
     void onLoadProgress(int value);
 
+    /// Called when a page is finished loading. If 'ok' is false, there was an error while loading the page
+    void onLoadFinished(WebView *view, bool ok);
+
     /// Called when the user requests to open the history view widget
     void onShowAllHistory();
 
