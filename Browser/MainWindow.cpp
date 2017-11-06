@@ -560,7 +560,9 @@ void MainWindow::toggleBookmarkBar(bool enabled)
 void MainWindow::onFindTextAction()
 {
     ui->widgetFindText->show();
-    ui->widgetFindText->getLineEdit()->setFocus();
+    auto lineEdit = ui->widgetFindText->getLineEdit();
+    lineEdit->setFocus();
+    lineEdit->selectAll();
 }
 
 void MainWindow::onLoadProgress(int value)
