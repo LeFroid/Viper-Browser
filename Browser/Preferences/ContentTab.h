@@ -23,6 +23,9 @@ public:
     /// Destructor
     ~ContentTab();
 
+    /// Returns true if plugins are enabled, false if disabled
+    bool arePluginsEnabled() const;
+
     /// Returns true if popups are enabled, false if disabled
     bool arePopupsEnabled() const;
 
@@ -50,6 +53,12 @@ public slots:
      * @param value If true, images will be loaded automatically. If false, they will not be loaded automatically
      */
     void toggleAutoLoadImages(bool value);
+
+    /**
+     * @brief togglePlugins Toggles the setting for allowing plugins (ex: flash) to be loaded
+     * @param value If true, plugins will be loaded. Otherwise, they will be disabled
+     */
+    void togglePlugins(bool value);
 
     /**
      * @brief togglePopupBlock Toggles the setting for allowing popup windows

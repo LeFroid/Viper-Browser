@@ -13,6 +13,11 @@ ContentTab::~ContentTab()
     delete ui;
 }
 
+bool ContentTab::arePluginsEnabled() const
+{
+    return ui->checkBoxEnablePlugins->isChecked();
+}
+
 bool ContentTab::arePopupsEnabled() const
 {
     return !ui->checkBoxBlockPopups->isChecked();
@@ -52,6 +57,11 @@ bool ContentTab::isJavaScriptEnabled() const
 void ContentTab::toggleAutoLoadImages(bool value)
 {
     ui->checkBoxAutoLoadImages->setChecked(value);
+}
+
+void ContentTab::togglePlugins(bool value)
+{
+    ui->checkBoxEnablePlugins->setChecked(value);
 }
 
 void ContentTab::togglePopupBlock(bool value)

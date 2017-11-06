@@ -30,6 +30,7 @@ void Preferences::loadSettings()
     ui->tabGeneral->setNewTabsLoadHomePage(m_settings->getValue("NewTabsLoadHomePage").toBool());
 
     ui->tabContent->toggleAutoLoadImages(m_settings->getValue("AutoLoadImages").toBool());
+    ui->tabContent->togglePlugins(m_settings->getValue("EnablePlugins").toBool());
     ui->tabContent->togglePopupBlock(!m_settings->getValue("EnableJavascriptPopups").toBool());
     ui->tabContent->toggleJavaScript(m_settings->getValue("EnableJavascript").toBool());
     ui->tabContent->setStandardFont(m_settings->getValue("StandardFont").toString());
@@ -58,6 +59,7 @@ void Preferences::onCloseWithSave()
 
     // Save preferences in Content tab
     m_settings->setValue("AutoLoadImages", ui->tabContent->isAutoLoadImagesEnabled());
+    m_settings->setValue("EnablePlugins", ui->tabContent->arePluginsEnabled());
     m_settings->setValue("EnableJavascriptPopups", ui->tabContent->arePopupsEnabled());
     m_settings->setValue("EnableJavascript", ui->tabContent->isJavaScriptEnabled());
 
