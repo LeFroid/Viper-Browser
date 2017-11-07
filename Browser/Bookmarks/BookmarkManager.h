@@ -2,8 +2,8 @@
 #define BOOKMARKMANAGER_H
 
 #include "DatabaseWorker.h"
-#include <QList>
 #include <QString>
+#include <list>
 
 /// Individual bookmark structure
 struct Bookmark
@@ -34,10 +34,10 @@ struct BookmarkFolder
     int treePosition;
 
     /// List of sub-folders
-    QList<BookmarkFolder*> folders;
+    std::list<BookmarkFolder*> folders;
 
     /// List of bookmarks belonging to the folder
-    QList<Bookmark*> bookmarks;
+    std::list<Bookmark*> bookmarks;
 
     /// Pointer to the folder's parent
     BookmarkFolder *parent;

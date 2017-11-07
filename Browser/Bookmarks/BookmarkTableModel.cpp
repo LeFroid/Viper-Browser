@@ -49,9 +49,11 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || !m_folder)
         return QVariant();
 
-    if (index.row() < m_folder->bookmarks.size())
+    if (uint64_t(index.row()) < m_folder->bookmarks.size())
     {
-        Bookmark *b = m_folder->bookmarks[index.row()];
+        auto it = m_folder->bookmarks.begin();
+        std::advance(it, index.row());
+        Bookmark *b = *it;
         switch (index.column())
         {
             case 0:
@@ -74,9 +76,11 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
 
 bool BookmarkTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (index.isValid() && role == Qt::EditRole && m_folder->bookmarks.size() > index.row())
+    if (index.isValid() && role == Qt::EditRole && m_folder->bookmarks.size() > uint64_t(index.row()))
     {
-        Bookmark *b = m_folder->bookmarks[index.row()];
+        auto it = m_folder->bookmarks.begin();
+        std::advance(it, index.row());
+        Bookmark *b = *it;
         if (!b)
             return false;
 
@@ -123,12 +127,13 @@ bool BookmarkTableModel::removeRows(int row, int count, const QModelIndex &paren
     if (!m_folder)
         return false;
 
-    Bookmark *item = nullptr;
+    std::list<Bookmark*>::iterator it;
     beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
     {
-        item = m_folder->bookmarks.at(row + i);
-        m_bookmarkMgr->removeBookmark(item, m_folder);
+        it = m_folder->bookmarks.begin();
+        std::advance(it, row + i);
+        m_bookmarkMgr->removeBookmark(*it, m_folder);
     }
     endRemoveRows();
     return true;
@@ -153,7 +158,7 @@ QMimeData *BookmarkTableModel::mimeData(const QModelIndexList &indexes) const
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
     for (const QModelIndex &index : indexes)
     {
-        if (index.isValid() && m_folder->bookmarks.size() > index.row())
+        if (index.isValid() && m_folder->bookmarks.size() > uint64_t(index.row()))
             stream << index.row();
     }
     mimeData->setData("application/x-bookmark-data", encodedData);
@@ -185,13 +190,14 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     beginResetModel();
     for (int r : rowNums)
     {
-        if (r >= m_folder->bookmarks.size())
+        if (uint64_t(r) >= m_folder->bookmarks.size())
             continue;
 
         qDebug() << "Moving bookmark from row " << r << " to row " << parent.row();
 
-        Bookmark *b = m_folder->bookmarks.at(r);
-        m_bookmarkMgr->setBookmarkPosition(b, m_folder, currentRow++);
+        auto it = m_folder->bookmarks.begin();
+        std::advance(it, r);
+        m_bookmarkMgr->setBookmarkPosition(*it, m_folder, currentRow++);
     }
     endResetModel();
 

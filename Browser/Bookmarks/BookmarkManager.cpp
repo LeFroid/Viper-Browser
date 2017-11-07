@@ -1,5 +1,7 @@
 #include "BookmarkManager.h"
 
+#include <iterator>
+#include <cstdint>
 #include <QQueue>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -74,13 +76,13 @@ int BookmarkManager::addFolder(const QString &name, int parentID)
     if (query.exec() && query.next())
         newFolderID = query.value(0).toInt();
 
-    // Append bookmark folder to parent's folder list
+    // Append bookmark folder to parent's folder container
     BookmarkFolder *f = new BookmarkFolder;
     f->id = newFolderID;
     f->treePosition = parent->folders.size();
     f->name = name;
     f->parent = parent;
-    parent->folders.append(f);
+    parent->folders.push_back(f);
 
     return f->id;
 }
@@ -104,8 +106,8 @@ void BookmarkManager::addBookmark(const QString &name, const QString &url, int f
     if (position < 0)
         position = parent->bookmarks.size() + parent->folders.size();
 
-    // Add bookmark to list and then update the database
-    parent->bookmarks.append(b);
+    // Add bookmark and then update the database
+    parent->bookmarks.push_back(b);
 
     if (!addBookmarkToDB(b, parent, position))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
@@ -120,7 +122,7 @@ void BookmarkManager::addBookmark(const QString &name, const QString &url, Bookm
     Bookmark *b = new Bookmark(name, url);
 
     // Calculate default position of new bookmark
-    bool isCustomPos = (position > -1 && position < folder->bookmarks.size());
+    bool isCustomPos = (position > -1 && uint64_t(position) < folder->bookmarks.size());
     int defaultPos = getNextBookmarkPos(folder);
     if (defaultPos < 0)
         defaultPos = folder->bookmarks.size() + folder->folders.size();
@@ -128,7 +130,7 @@ void BookmarkManager::addBookmark(const QString &name, const QString &url, Bookm
     if (!addBookmarkToDB(b, folder, defaultPos))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
 
-    folder->bookmarks.append(b);
+    folder->bookmarks.push_back(b);
 
     if (isCustomPos && position >= 0)
         setBookmarkPosition(b, folder, position);
@@ -166,7 +168,7 @@ bool BookmarkManager::removeBookmark(const QString &url)
         if (b->URL.compare(url, Qt::CaseInsensitive) == 0)
         {
             bookmark = b;
-            folder->bookmarks.removeOne(b);
+            folder->bookmarks.remove(b);
             break;
         }
     }
@@ -187,7 +189,10 @@ void BookmarkManager::removeBookmark(Bookmark *item, BookmarkFolder *parent)
         return;
 
     // Search for index of bookmark
-    int itemIdx = parent->bookmarks.indexOf(item);
+    int itemIdx = -1;
+    auto it = std::find(parent->bookmarks.begin(), parent->bookmarks.end(), item);
+    if (it != parent->bookmarks.end())
+        itemIdx = std::distance(parent->bookmarks.begin(), it);
     if (itemIdx < 0)
     {
         qDebug() << "[Warning]: Invalid bookmark given in BookmarkManager::removeBookmark. Does not belong to parent folder.";
@@ -204,7 +209,7 @@ void BookmarkManager::removeBookmark(Bookmark *item, BookmarkFolder *parent)
                  << query.lastError().text();
     }
 
-    parent->bookmarks.removeAt(itemIdx);
+    parent->bookmarks.erase(it);
     delete item;
 }
 
@@ -242,7 +247,7 @@ void BookmarkManager::removeFolder(BookmarkFolder *folder)
 
     // Remove folder from parent
     if (folder->parent)
-        folder->parent->folders.removeOne(folder);
+        folder->parent->folders.remove(folder);
 
     // Remove folder from memory
     delete folder;
@@ -254,12 +259,16 @@ void BookmarkManager::setBookmarkPosition(Bookmark *item, BookmarkFolder *parent
         return;
 
     // Make sure the position is valid
-    if (position < 0 || position >= parent->bookmarks.size() + parent->folders.size())
+    if (position < 0 || uint64_t(position) >= parent->bookmarks.size() + parent->folders.size())
         return;
 
     // Ensure bookmark belongs to the folder
-    int bookmarkIdx = parent->bookmarks.indexOf(item);
-    if (bookmarkIdx == -1)
+    int bookmarkIdx = -1;
+    auto it = std::find(parent->bookmarks.begin(), parent->bookmarks.end(), item);
+    if (it != parent->bookmarks.end())
+        bookmarkIdx = std::distance(parent->bookmarks.begin(), it);
+
+    if (bookmarkIdx < 0)
         return;
 
     // Update database
@@ -293,7 +302,14 @@ void BookmarkManager::setBookmarkPosition(Bookmark *item, BookmarkFolder *parent
 
     // Only adjust position if required
     if (bookmarkListsPos < bookmarkIdx)
-        parent->bookmarks.move(bookmarkIdx, bookmarkListsPos);
+    {
+        auto newPosItr = it;
+        for (int i = 0;
+             (i < (bookmarkIdx - bookmarkListsPos) && newPosItr != parent->bookmarks.begin());
+             ++i, --newPosItr);
+        parent->bookmarks.insert(newPosItr, 1, *it);
+        parent->bookmarks.erase(it);
+    }
 }
 
 void BookmarkManager::updatedBookmark(Bookmark *bookmark, Bookmark oldValue, int folderID)
@@ -396,7 +412,7 @@ void BookmarkManager::loadFolder(BookmarkFolder *folder)
             // Load folders belonging to sub-folder, followed by bookmarks
             loadFolder(subFolder);
 
-            folder->folders.append(subFolder);
+            folder->folders.push_back(subFolder);
         }
     }
 
@@ -413,7 +429,7 @@ void BookmarkManager::loadFolder(BookmarkFolder *folder)
             Bookmark *bookmark = new Bookmark;
             bookmark->URL = queryBookmark.value(idBUrl).toString();
             bookmark->name = queryBookmark.value(idBName).toString();
-            folder->bookmarks.append(bookmark);
+            folder->bookmarks.push_back(bookmark);
         }
     }
 }

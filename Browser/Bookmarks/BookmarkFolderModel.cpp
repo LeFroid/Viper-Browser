@@ -1,4 +1,5 @@
 #include "BookmarkFolderModel.h"
+#include <cstdint>
 
 BookmarkFolderModel::BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
     QAbstractItemModel(parent),
@@ -8,7 +9,7 @@ BookmarkFolderModel::BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookma
     // Create a false root for proper tree display
     m_root->id = -1;
     m_root->parent = nullptr;
-    m_root->folders.append(m_bookmarkMgr->getRoot());
+    m_root->folders.push_back(m_bookmarkMgr->getRoot());
 
     m_bookmarkMgr->m_root.parent = m_root;
 }
@@ -27,8 +28,12 @@ QModelIndex BookmarkFolderModel::index(int row, int column, const QModelIndex &p
     // Attempt to find child
     BookmarkFolder *parentFolder = getItem(parent);
     BookmarkFolder *child = nullptr;
-    if (row < parentFolder->folders.size())
-        child = parentFolder->folders[row];
+    if (uint64_t(row) < parentFolder->folders.size())
+    {
+        auto it = parentFolder->folders.begin();
+        std::advance(it, row);
+        child = *it;
+    }
 
     // Create index if found, otherwise return empty index
     if (child)
