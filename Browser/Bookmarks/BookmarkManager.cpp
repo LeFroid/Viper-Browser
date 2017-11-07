@@ -263,52 +263,63 @@ void BookmarkManager::setBookmarkPosition(Bookmark *item, BookmarkFolder *parent
         return;
 
     // Ensure bookmark belongs to the folder
-    int bookmarkIdx = -1;
     auto it = std::find(parent->bookmarks.begin(), parent->bookmarks.end(), item);
-    if (it != parent->bookmarks.end())
-        bookmarkIdx = std::distance(parent->bookmarks.begin(), it);
-
-    if (bookmarkIdx < 0)
+    if (it == parent->bookmarks.end() || item->position == position)
         return;
 
     // Update database
-    QSqlQuery query(m_database);
-    query.prepare("UPDATE Bookmarks SET Position = Position + 1 WHERE FolderID = (:folderId) AND Position >= (:pos)");
-    query.bindValue(":folderId", parent->id);
-    query.bindValue(":pos", position);
-    if (!query.exec())
-        qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update positions of bookmarks. "
-                 << "Message: " << query.lastError().text();
-    query.prepare("UPDATE BookmarkFolders SET Position = Position + 1 WHERE ParentID = (:folderId) AND Position >= (:pos)");
-    query.bindValue(":folderId", parent->id);
-    query.bindValue(":pos", position);
-    if (!query.exec())
-        qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update positions of folders. "
-                 << "Message: " << query.lastError().text();
-    query.prepare("UPDATE Bookmarks SET Position = (:newPos) WHERE URL = (:url)");
-    query.bindValue(":newPos", position);
-    query.bindValue(":url", item->URL);
-    if (!query.exec())
-        qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update position of bookmark. "
-                 << "Message: " << query.lastError().text();
+    QSqlQuery queryBookmarks(m_database), queryFolders(m_database);
 
-    // Adjust position in bookmark list
-    int bookmarkListsPos = bookmarkIdx;
-    query.prepare("SELECT COUNT(FolderID) FROM Bookmarks WHERE FolderID = (:folderId) AND POSITION < (:pos)");
-    query.bindValue(":folderId", parent->id);
-    query.bindValue(":pos", position);
-    if (query.exec() && query.next())
-        bookmarkListsPos = query.value(0).toInt();
-
-    // Only adjust position if required
-    if (bookmarkListsPos < bookmarkIdx)
+    // If position is being shifted up (ie new index less than current), increment position of items between old and new positions.
+    if (item->position > position)
     {
-        auto newPosItr = it;
-        for (int i = 0;
-             (i < (bookmarkIdx - bookmarkListsPos) && newPosItr != parent->bookmarks.begin());
-             ++i, --newPosItr);
-        parent->bookmarks.insert(newPosItr, 1, *it);
-        parent->bookmarks.erase(it);
+        queryBookmarks.prepare("UPDATE Bookmarks SET Position = Position + 1 WHERE FolderID = (:folderId) AND Position >= (:posNew) AND Position < (:posOld)");
+        queryFolders.prepare("UPDATE BookmarkFolders SET Position = Position + 1 WHERE ParentID = (:folderId) AND Position >= (:posNew) AND Position < (:posOld)");
+    }
+    else // If position is being shifted down, decrement position of items between old and new positions
+    {
+        queryBookmarks.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE FolderID = (:folderId) AND Position <= (:posNew) AND Position > (:posOld)");
+        queryFolders.prepare("UPDATE BookmarkFolders SET Position = Position - 1 WHERE ParentID = (:folderId) AND Position <= (:posNew) AND Position > (:posOld)");
+    }
+    queryBookmarks.bindValue(":folderId", parent->id);
+    queryBookmarks.bindValue(":posNew", position);
+    queryBookmarks.bindValue(":posOld", item->position);
+    if (!queryBookmarks.exec())
+        qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update positions of bookmarks. "
+                 << "Message: " << queryBookmarks.lastError().text();
+    queryFolders.bindValue(":folderId", parent->id);
+    queryFolders.bindValue(":posNew", position);
+    queryFolders.bindValue(":posOld", item->position);
+    if (!queryFolders.exec())
+        qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update positions of folders. "
+                 << "Message: " << queryFolders.lastError().text();
+
+    // Adjust position of bookmark itself
+    queryBookmarks.prepare("UPDATE Bookmarks SET Position = (:newPos) WHERE URL = (:url)");
+    queryBookmarks.bindValue(":newPos", position);
+    queryBookmarks.bindValue(":url", item->URL);
+    if (!queryBookmarks.exec())
+        qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update position of bookmark. "
+                 << "Message: " << queryBookmarks.lastError().text();
+
+    // Adjust bookmark list for new positions
+    queryBookmarks.prepare("SELECT * FROM Bookmarks WHERE FolderID = (:id) ORDER BY POSITION ASC");
+    queryBookmarks.bindValue(":id", parent->id);
+    if (queryBookmarks.exec())
+    {
+        QSqlRecord bRec = queryBookmarks.record();
+        int idBUrl = bRec.indexOf("URL");
+        int idBName = bRec.indexOf("Name");
+        int idBPos = bRec.indexOf("Position");
+        it = parent->bookmarks.begin();
+        while (queryBookmarks.next() && it != parent->bookmarks.end())
+        {
+            Bookmark *bookmark = *it;
+            bookmark->URL = queryBookmarks.value(idBUrl).toString();
+            bookmark->name = queryBookmarks.value(idBName).toString();
+            bookmark->position = queryBookmarks.value(idBPos).toInt();
+            ++it;
+        }
     }
 }
 
@@ -424,11 +435,13 @@ void BookmarkManager::loadFolder(BookmarkFolder *folder)
         QSqlRecord bRec = queryBookmark.record();
         int idBUrl = bRec.indexOf("URL");
         int idBName = bRec.indexOf("Name");
+        int idBPos = bRec.indexOf("Position");
         while (queryBookmark.next())
         {
             Bookmark *bookmark = new Bookmark;
             bookmark->URL = queryBookmark.value(idBUrl).toString();
             bookmark->name = queryBookmark.value(idBName).toString();
+            bookmark->position = queryBookmark.value(idBPos).toInt();
             folder->bookmarks.push_back(bookmark);
         }
     }

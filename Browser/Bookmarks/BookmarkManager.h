@@ -14,6 +14,9 @@ struct Bookmark
     /// Location of the bookmark
     QString URL;
 
+    /// Position of the bookmark
+    int position;
+
     /// Default constructor
     Bookmark() = default;
 

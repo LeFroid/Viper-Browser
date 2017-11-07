@@ -186,18 +186,21 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     }
 
     // Shift row positions
-    int currentRow = parent.row();
+    int newRow = parent.row();
     beginResetModel();
     for (int r : rowNums)
     {
         if (uint64_t(r) >= m_folder->bookmarks.size())
             continue;
 
-        qDebug() << "Moving bookmark from row " << r << " to row " << parent.row();
-
-        auto it = m_folder->bookmarks.begin();
-        std::advance(it, r);
-        m_bookmarkMgr->setBookmarkPosition(*it, m_folder, currentRow++);
+        auto itCurrent = m_folder->bookmarks.begin(), itNew = m_folder->bookmarks.begin();
+        std::advance(itCurrent, r);
+        std::advance(itNew, newRow);
+        if (itNew != m_folder->bookmarks.end())
+        {
+            Bookmark *otherBookmark = *itNew;
+            m_bookmarkMgr->setBookmarkPosition(*itCurrent, m_folder, otherBookmark->position);
+        }
     }
     endResetModel();
 
