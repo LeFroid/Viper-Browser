@@ -136,10 +136,17 @@ private:
      * @brief addBookmarkToDB Inserts a new bookmark into the database
      * @param bookmark Pointer to the bookmark
      * @param folder Folder the bookmark will belong to
-     * @param position Position of the bookmark relative to folder contents
      * @return True on successful insertion, false if otherwise
      */
-    bool addBookmarkToDB(Bookmark *bookmark, BookmarkFolder *folder, int position);
+    bool addBookmarkToDB(Bookmark *bookmark, BookmarkFolder *folder);
+
+    /**
+     * @brief removeBookmarkFromDB Removes an existing bookmark from the database
+     * @param bookmark Pointer to the bookmark
+     * @param folderId Unique Identifier of the bookmark's parent folder
+     * @return True on success, false on failure
+     */
+    bool removeBookmarkFromDB(Bookmark *bookmark, int folderId);
 
     /**
      * @brief getNextBookmarkPos Calculates the next logical bookmark position for the folder

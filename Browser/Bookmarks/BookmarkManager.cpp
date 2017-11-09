@@ -1,8 +1,8 @@
 #include "BookmarkManager.h"
 
+#include <deque>
 #include <iterator>
 #include <cstdint>
-#include <QQueue>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
@@ -19,21 +19,22 @@ BookmarkManager::BookmarkManager(const QString &databaseFile) :
 BookmarkManager::~BookmarkManager()
 {
     // remove folders and bookmarks from heap
-    QQueue<BookmarkFolder*> folderQ;
+    std::deque<BookmarkFolder*> folderQ;
 
     for (BookmarkFolder *b : m_root.folders)
-        folderQ.enqueue(b);
+        folderQ.push_back(b);
 
     for (Bookmark *b : m_root.bookmarks)
         delete b;
 
     while(!folderQ.empty())
     {
-        BookmarkFolder *folder = folderQ.dequeue();
+        BookmarkFolder *folder = folderQ.front();
         for (BookmarkFolder *b : folder->folders)
-            folderQ.enqueue(b);
+            folderQ.push_back(b);
         for (Bookmark *b : folder->bookmarks)
             delete b;
+        folderQ.pop_front();
         delete folder;
     }
 }
@@ -102,14 +103,14 @@ void BookmarkManager::addBookmark(const QString &name, const QString &url, int f
     }
 
     // Calculate position of new bookmark
-    int position = getNextBookmarkPos(parent);
-    if (position < 0)
-        position = parent->bookmarks.size() + parent->folders.size();
+    b->position = getNextBookmarkPos(parent);
+    if (b->position < 0)
+        b->position = parent->bookmarks.size() + parent->folders.size();
 
     // Add bookmark and then update the database
     parent->bookmarks.push_back(b);
 
-    if (!addBookmarkToDB(b, parent, position))
+    if (!addBookmarkToDB(b, parent))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
 }
 
@@ -123,11 +124,11 @@ void BookmarkManager::addBookmark(const QString &name, const QString &url, Bookm
 
     // Calculate default position of new bookmark
     bool isCustomPos = (position > -1 && uint64_t(position) < folder->bookmarks.size());
-    int defaultPos = getNextBookmarkPos(folder);
-    if (defaultPos < 0)
-        defaultPos = folder->bookmarks.size() + folder->folders.size();
+    b->position = getNextBookmarkPos(folder);
+    if (b->position < 0)
+        b->position = folder->bookmarks.size() + folder->folders.size();
 
-    if (!addBookmarkToDB(b, folder, defaultPos))
+    if (!addBookmarkToDB(b, folder))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
 
     folder->bookmarks.push_back(b);
@@ -175,10 +176,9 @@ bool BookmarkManager::removeBookmark(const QString &url)
     if (!bookmark)
         return false;
 
-    query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
-    query.bindValue(":url", url);
-    if (!query.exec())
-        qDebug() << "[Warning]: In BookmarkManager::removeBookmark(..) - could not remove bookmark from database";
+    if (!removeBookmarkFromDB(bookmark, folderId))
+        qDebug() << "Could not remove bookmark from DB";
+
     delete bookmark;
     return true;
 }
@@ -188,26 +188,17 @@ void BookmarkManager::removeBookmark(Bookmark *item, BookmarkFolder *parent)
     if (!item || !parent)
         return;
 
-    // Search for index of bookmark
-    int itemIdx = -1;
+    // Search for bookmark
     auto it = std::find(parent->bookmarks.begin(), parent->bookmarks.end(), item);
-    if (it != parent->bookmarks.end())
-        itemIdx = std::distance(parent->bookmarks.begin(), it);
-    if (itemIdx < 0)
+    if (it == parent->bookmarks.end())
     {
         qDebug() << "[Warning]: Invalid bookmark given in BookmarkManager::removeBookmark. Does not belong to parent folder.";
         return;
     }
 
     // Remove from DB, then from memory
-    QSqlQuery query(m_database);
-    query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
-    query.bindValue(":url", item->URL);
-    if (!query.exec())
-    {
-        qDebug() << "[Warning]: Could not remove bookmark from database in BookmarkManager::removeBookmark. Message: "
-                 << query.lastError().text();
-    }
+    if (!removeBookmarkFromDB(item, parent->id))
+        qDebug() << "Could not remove bookmark from DB";
 
     parent->bookmarks.erase(it);
     delete item;
@@ -454,35 +445,76 @@ BookmarkFolder *BookmarkManager::findFolder(int id)
         return nullptr;
 
     BookmarkFolder *currNode = nullptr;
-    QQueue<BookmarkFolder*> queue;
-    queue.enqueue(&m_root);
+    std::deque<BookmarkFolder*> queue;
+    queue.push_back(&m_root);
 
     // BFS until the folder with given ID is found, or all folders are searched
     while (!queue.empty())
     {
-        currNode = queue.dequeue();
+        currNode = queue.front();
         if (!currNode)
+        {
+            queue.pop_front();
             continue;
+        }
 
         if (currNode->id == id)
             return currNode;
 
         for (BookmarkFolder *b : currNode->folders)
-            queue.enqueue(b);
+            queue.push_back(b);
+
+        queue.pop_front();
     }
 
     return nullptr;
 }
 
-bool BookmarkManager::addBookmarkToDB(Bookmark *bookmark, BookmarkFolder *folder, int position)
+bool BookmarkManager::addBookmarkToDB(Bookmark *bookmark, BookmarkFolder *folder)
 {
     QSqlQuery query(m_database);
     query.prepare("INSERT OR REPLACE INTO Bookmarks(URL, FolderID, Name, Position) VALUES(:url, :folderID, :name, :position)");
     query.bindValue(":url", bookmark->URL);
     query.bindValue(":folderID", folder->id);
     query.bindValue(":name", bookmark->name);
-    query.bindValue(":position", position);
+    query.bindValue(":position", bookmark->position);
     return query.exec();
+}
+
+bool BookmarkManager::removeBookmarkFromDB(Bookmark *bookmark, int folderId)
+{
+    bool ok = true;
+
+    QSqlQuery query(m_database);
+    // Remove from DB
+    query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
+    query.bindValue(":url", bookmark->URL);
+    if (!query.exec())
+    {
+        qDebug() << "[Warning]: In BookmarkManager::removeBookmarkFromDB(..) - DB Error: " << query.lastError().text();
+        ok = false;
+    }
+    // Update bookmark positions
+    query.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE FolderID = (:folderId) AND Position > (:position)");
+    query.bindValue(":folderId", folderId);
+    query.bindValue(":position", bookmark->position);
+    if (!query.exec())
+    {
+        qDebug() << "[Warning]: In BookmarkManager::removeBookmarkFromDB(..) - could not update position of bookmarks. DB Error: "
+                 << query.lastError().text();
+        ok = false;
+    }
+    // Update folder positions
+    query.prepare("UPDATE BookmarkFolders SET Position = Position - 1 WHERE ParentID = (:folderId) AND Position > (:position)");
+    query.bindValue(":folderId", folderId);
+    query.bindValue(":position", bookmark->position);
+    if (!query.exec())
+    {
+        qDebug() << "[Warning]: In BookmarkManager::removeBookmarkFromDB(..) - could not update position of folders. DB Error: "
+                 << query.lastError().text();
+        ok = false;
+    }
+    return ok;
 }
 
 int BookmarkManager::getNextBookmarkPos(BookmarkFolder *folder)
