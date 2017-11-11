@@ -73,7 +73,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
                     QString url = folderElem.attribute("HREF");
                     if (!url.isNull())
                     {
-                        m_bookmarkManager->addBookmark(folderElem.toPlainText(), url, folder, -1);
+                        m_bookmarkManager->appendBookmark(folderElem.toPlainText(), url, folder);
                     }
                 }
                 folderElem = folderElem.parent().nextSibling();

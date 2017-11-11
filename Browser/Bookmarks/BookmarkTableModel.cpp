@@ -104,7 +104,7 @@ Qt::ItemFlags BookmarkTableModel::flags(const QModelIndex &index) const
 
     Qt::ItemFlags flags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | QAbstractItemModel::flags(index);
     BookmarkNode *b = m_folder->getNode(index.row());
-    if (b->getType() == BookmarkNode::Bookmark)
+    if (b->getType() == BookmarkNode::Bookmark) //|| (b->getType() == BookmarkNode::Folder && index.column() == 0))
         flags |= Qt::ItemIsEditable;
     return flags;
 }
@@ -117,7 +117,7 @@ bool BookmarkTableModel::insertRows(int row, int count, const QModelIndex &paren
     QString name("New Bookmark");
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
-        m_bookmarkMgr->addBookmark(name, QString("Location %1").arg(i), m_folder, row + i);
+        m_bookmarkMgr->insertBookmark(name, QString("Location %1").arg(i), m_folder, row + i);
     endInsertRows();
     return true;
 }
@@ -172,7 +172,7 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     if (!data->hasFormat("application/x-bookmark-data"))
         return false;
 
-    // retrieve rows from serialized data       and call m_bookmarkMgr->setBookmarkPosition(bookmark*, bookmark_folder*, new_position)
+    // retrieve rows from serialized data
     QByteArray encodedData = data->data("application/x-bookmark-data");
     QDataStream stream(&encodedData, QIODevice::ReadOnly);
 
@@ -186,6 +186,8 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
 
     // Shift row positions
     int newRow = parent.row();
+    bool needUpdateModel = false;
+
     beginResetModel();
     for (int r : rowNums)
     {
@@ -193,9 +195,15 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
             continue;
 
         BookmarkNode *n = m_folder->getNode(r);
-        m_bookmarkMgr->setBookmarkPosition(n, m_folder, newRow);
+        if (n->getType() == BookmarkNode::Folder)
+            needUpdateModel = true;
+        m_bookmarkMgr->setNodePosition(n, newRow);
+        ++newRow;
     }
     endResetModel();
+
+    if (needUpdateModel)
+        emit movedFolder();
 
     return true;
 }

@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include <QIcon>
 #include <QMetaType>
 #include <QString>
 
@@ -76,12 +77,21 @@ public:
     /// Sets the URL of the node
     void setURL(const QString &url);
 
+    /// Returns the icon associated with the node
+    const QIcon &getIcon() const;
+
+    /// Sets the icon associated with the node
+    void setIcon(const QIcon &icon);
+
 protected:
     /// Name of the bookmark node
     QString m_name;
 
     /// URL associated with the node. Will be empty if the node type is Folder
     QString m_url;
+
+    /// Icon associated with the node. For folders, will be standard folder icon. For bookmarks, will be favicon
+    QIcon m_icon;
 
     /// Type of node
     NodeType m_type;

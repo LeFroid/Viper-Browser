@@ -35,6 +35,10 @@ public:
     /// Sets the pointer to the user's bookmark manager
     void setBookmarkManager(std::shared_ptr<BookmarkManager> bookmarkManager);
 
+public slots:
+    /// Reloads bookmark data into tree and table models
+    void reloadBookmarks();
+
 protected:
     /// Called when the bookmarks manager is closed
     virtual void closeEvent(QCloseEvent *event) override;

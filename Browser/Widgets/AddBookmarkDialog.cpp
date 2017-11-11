@@ -71,7 +71,7 @@ void AddBookmarkDialog::saveAndClose()
     // Remove bookmark and re-add it with current name, url and parent folder values
     m_bookmarkManager->removeBookmark(m_currentUrl);
     BookmarkNode *parentNode = (BookmarkNode*) ui->comboBoxFolder->currentData().value<void*>();
-    m_bookmarkManager->addBookmark(ui->lineEditName->text(), m_currentUrl, parentNode, -1);
+    m_bookmarkManager->appendBookmark(ui->lineEditName->text(), m_currentUrl, parentNode);
     emit updateBookmarkMenu();
     close();
 }

@@ -229,7 +229,7 @@ void MainWindow::setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu)
         BookmarkNode *n = folder->getNode(i);
         if (n->getType() == BookmarkNode::Folder)
         {
-            QMenu *subMenu = folderMenu->addMenu(n->getName());
+            QMenu *subMenu = folderMenu->addMenu(n->getIcon(), n->getName());
             setupBookmarkFolder(n, subMenu);
         }
         else
@@ -508,6 +508,10 @@ void MainWindow::refreshBookmarkMenu()
 
     // Bookmark bar
     ui->bookmarkBar->refresh();
+
+    // Bookmark widget
+    if (m_bookmarkUI)
+        m_bookmarkUI->reloadBookmarks();
 }
 
 void MainWindow::addPageToBookmarks()
@@ -520,7 +524,7 @@ void MainWindow::addPageToBookmarks()
     const QString bookmarkUrl = view->url().toString();
     if (m_bookmarkManager->isBookmarked(bookmarkUrl))
         return;
-    m_bookmarkManager->addBookmark(bookmarkName, bookmarkUrl);
+    m_bookmarkManager->appendBookmark(bookmarkName, bookmarkUrl);
 
     if (!m_addBookmarkDialog)
     {

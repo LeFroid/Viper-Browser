@@ -55,7 +55,7 @@ QIcon FaviconStorage::getFavicon(const QString &url) const
         if (it != m_favicons.end())
             return it->icon;
     }
-    return QIcon();
+    return QWebSettings::iconForUrl(url);
 }
 
 void FaviconStorage::updateIcon(const QString &iconHRef, const QString &pageUrl)
@@ -103,6 +103,8 @@ void FaviconStorage::onReplyFinished()
     if (it != m_favicons.end())
     {
         QString format = QFileInfo(m_reply->url().toString()).suffix();
+        if (format.contains("?"))
+            format = format.left(format.indexOf("?"));
         QByteArray data = m_reply->readAll();
 
         // Handle compressed data

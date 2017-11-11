@@ -24,7 +24,7 @@ public:
     /// Bookmark constructor - loads database information into memory
     explicit BookmarkManager(const QString &databaseFile);
 
-    /// Returns the root bookmark folder
+    /// Returns the root bookmark container
     BookmarkNode *getRoot();
 
     /**
@@ -36,21 +36,21 @@ public:
     BookmarkNode *addFolder(const QString &name, BookmarkNode *parent);
 
     /**
-     * @brief addBookmark Adds a bookmark to the collection
+     * @brief appendBookmark Adds a bookmark to the collection, at the end of its parent folder
      * @param name Name to display as a reference to the bookmark
      * @param url Location of the bookmark (ex: http://xyz.co/page123)
-     * @param folder Optional pointer to the parent folder which the bookmark will be placed into. Defaults to root folder
+     * @param folder Optional pointer to the parent folder. Defaults to root folder if not given.
      */
-    void addBookmark(const QString &name, const QString &url, BookmarkNode *folder = nullptr);
+    void appendBookmark(const QString &name, const QString &url, BookmarkNode *folder = nullptr);
 
     /**
-     * @brief addBookmark Adds a bookmark to the collection
+     * @brief insertBookmark Adds a bookmark to the collection at a specific position
      * @param name Name to display as a reference to the bookmark
      * @param url Location of the bookmark
-     * @param folder Pointer to the folder the bookmark will belong to
-     * @param position Optional position specification of the new bookmark
+     * @param folder Pointer to the parent folder that the bookmark will belong to
+     * @param position Relative position of the new bookmark
      */
-    void addBookmark(const QString &name, const QString &url, BookmarkNode *folder, int position = -1);
+    void insertBookmark(const QString &name, const QString &url, BookmarkNode *folder, int position);
 
     /// Checks if the given url is bookmarked, returning true if it is
     bool isBookmarked(const QString &url);
@@ -64,11 +64,8 @@ public:
     /// Removes the given folder from storage, along with the bookmarks and sub-folders belonging to it
     void removeFolder(BookmarkNode *folder);
 
-    /// Sets the relative position of the given bookmark item in relation to the other bookmarks of its folder
-    void setBookmarkPosition(BookmarkNode *item, BookmarkNode *parent, int position);
-
-    //todo: following method
-    //void setFolderPosition(int folderID, int position);
+    /// Sets the position of the given node, relative to other child nodes of the same parent
+    void setNodePosition(BookmarkNode *node, int position);
 
 protected:
     /// Called by the BookmarkTableModel when the URL and/or name of a bookmark has been modified

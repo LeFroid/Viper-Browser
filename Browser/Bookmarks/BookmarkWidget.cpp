@@ -98,6 +98,25 @@ void BookmarkWidget::setBookmarkManager(std::shared_ptr<BookmarkManager> bookmar
 
     // Connect change in selection in tree view to a change in data display in table view
     connect(ui->treeView, &QTreeView::clicked, this, &BookmarkWidget::onChangeFolderSelection);
+
+    // Connect change in folder data via table model to an update in the folder model
+    connect(tableModel, &BookmarkTableModel::movedFolder, [=]() {
+        QAbstractItemModel *oldModel = ui->treeView->model();
+        BookmarkFolderModel *updatedModel = new BookmarkFolderModel(m_bookmarkManager, this);
+        ui->treeView->setModel(updatedModel);
+        oldModel->deleteLater();
+        ui->treeView->setExpanded(updatedModel->index(0, 0), true);
+    });
+}
+
+void BookmarkWidget::reloadBookmarks()
+{
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    model->setCurrentFolder(m_bookmarkManager->getRoot());
+
+    BookmarkFolderModel *folderModel =  static_cast<BookmarkFolderModel*>(ui->treeView->model());
+    folderModel->dataChanged(folderModel->index(0, 0),
+                             folderModel->index(folderModel->rowCount() - 1, 0));
 }
 
 void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)

@@ -5,6 +5,7 @@
 BookmarkNode::BookmarkNode() :
     m_name(),
     m_url(),
+    m_icon(),
     m_type(BookmarkNode::Bookmark),
     m_folderId(0),
     m_parent(nullptr),
@@ -15,6 +16,7 @@ BookmarkNode::BookmarkNode() :
 BookmarkNode::BookmarkNode(BookmarkNode::NodeType type, const QString &name) :
     m_name(name),
     m_url(),
+    m_icon(),
     m_type(type),
     m_folderId(0),
     m_parent(nullptr),
@@ -26,8 +28,10 @@ BookmarkNode::BookmarkNode(BookmarkNode &&other)
 {
     m_name = other.m_name;
     m_url = other.m_url;
+    m_type = other.m_type;
     m_folderId = other.m_folderId;
     m_parent = other.m_parent;
+    m_icon = std::move(other.m_icon);
     m_children = std::move(other.m_children);
 }
 
@@ -42,12 +46,16 @@ BookmarkNode *BookmarkNode::appendNode(std::unique_ptr<BookmarkNode> node)
 
 BookmarkNode *BookmarkNode::insertNode(std::unique_ptr<BookmarkNode> node, int index)
 {
-    if (index < 0 || index > static_cast<int>(m_children.size()))
-        index = m_children.size();
-
     node->m_parent = this;
     node->m_folderId = m_folderId;
     BookmarkNode *nodePtr = node.get();
+
+    if (index < 0 || index > static_cast<int>(m_children.size()))
+    {
+        m_children.push_back(std::move(node));
+        return nodePtr;
+    }
+
     m_children.insert(m_children.begin() + index, std::move(node));
     return nodePtr;
 }
@@ -134,4 +142,14 @@ const QString &BookmarkNode::getURL() const
 void BookmarkNode::setURL(const QString &url)
 {
     m_url = url;
+}
+
+const QIcon &BookmarkNode::getIcon() const
+{
+    return m_icon;
+}
+
+void BookmarkNode::setIcon(const QIcon &icon)
+{
+    m_icon = icon;
 }

@@ -50,6 +50,10 @@ public:
     /// Sets the current folder to display in the table
     void setCurrentFolder(BookmarkNode *folder);
 
+signals:
+    /// Emitted when a folder has been moved. Used so that the BookmarkFolderModel can update itself appropriately
+    void movedFolder();
+
 private:
     /// Bookmark manager
     std::shared_ptr<BookmarkManager> m_bookmarkMgr;

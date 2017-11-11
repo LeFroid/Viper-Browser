@@ -39,12 +39,13 @@ void BookmarkBar::refresh()
             button->setPopupMode(QToolButton::InstantPopup);
             button->setArrowType(Qt::DownArrow);
             button->setText(child->getName());
+            button->setIcon(child->getIcon());
 
             QMenu *menu = new QMenu(this);
             addFolderItems(menu, child, iconStorage);
 
             button->setMenu(menu);
-            button->setToolButtonStyle(Qt::ToolButtonTextOnly);
+            button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
             addWidget(button);
         }
         else
@@ -70,7 +71,7 @@ void BookmarkBar::addFolderItems(QMenu *menu, BookmarkNode *folder, FaviconStora
         BookmarkNode *child = folder->getNode(i);
         if (child->getType() == BookmarkNode::Folder)
         {
-            QMenu *subMenu = menu->addMenu(child->getName());
+            QMenu *subMenu = menu->addMenu(child->getIcon(), child->getName());
             addFolderItems(subMenu, child, iconStorage);
         }
         else
