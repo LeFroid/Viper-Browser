@@ -290,9 +290,14 @@ void BookmarkManager::updatedFolderName(BookmarkNode *folder)
 
     // Update database
     QSqlQuery query(m_database);
-    query.prepare("UPDATE Bookmarks SET Name = (:name) WHERE FolderID = (:id)");
+    query.prepare("UPDATE Bookmarks SET Name = (:name) WHERE FolderID = (:folderId) and ParentID = (:parentId)");
     query.bindValue(":name", folder->getName());
-    query.bindValue(":id", folder->getFolderId());
+    query.bindValue(":folderId", folder->getFolderId());
+    int parentId = -1;
+    BookmarkNode *parent = folder->getParent();
+    if (parent != nullptr)
+        parentId = parent->getFolderId();
+    query.bindValue(":parentId", parentId);
     if (!query.exec())
         qDebug() << "Error updating name of bookmark folder in database. Message: " << query.lastError().text();
 }
