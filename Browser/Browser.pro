@@ -90,7 +90,8 @@ SOURCES += \
     Preferences/ContentTab.cpp \
     Web/HTMLHighlighter.cpp \
     Widgets/AddBookmarkDialog.cpp \
-    Widgets/BrowserTabBar.cpp
+    Widgets/BrowserTabBar.cpp \
+    Bookmarks/BookmarkNode.cpp
 
 HEADERS += \
     History/HistoryTableModel.h \
@@ -145,7 +146,8 @@ HEADERS += \
     Preferences/ContentTab.h \
     Web/HTMLHighlighter.h \
     Widgets/AddBookmarkDialog.h \
-    Widgets/BrowserTabBar.h
+    Widgets/BrowserTabBar.h \
+    Bookmarks/BookmarkNode.h
 
 FORMS += \
         mainwindow.ui \

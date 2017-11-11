@@ -35,7 +35,7 @@ signals:
 
 private:
     /// Adds items belonging to the given folder into the menu
-    void addFolderItems(QMenu *menu, BookmarkFolder *folder, FaviconStorage *iconStorage);
+    void addFolderItems(QMenu *menu, BookmarkNode *folder, FaviconStorage *iconStorage);
 
 private:
     /// Bookmark manager

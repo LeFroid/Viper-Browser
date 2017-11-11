@@ -1,5 +1,6 @@
 #include "AddBookmarkDialog.h"
 #include "ui_AddBookmarkDialog.h"
+#include "BookmarkNode.h"
 
 #include <QQueue>
 
@@ -14,15 +15,20 @@ AddBookmarkDialog::AddBookmarkDialog(std::shared_ptr<BookmarkManager> bookmarkMg
 
     // Populate combo box with up to 15 folders, by performing a BFS from the root folder
     int foldersAdded = 0;
-    BookmarkFolder *f = nullptr;
-    QQueue<BookmarkFolder*> q;
+    BookmarkNode *f = nullptr;
+    QQueue<BookmarkNode*> q;
     q.enqueue(m_bookmarkManager->getRoot());
     while (!q.empty() && foldersAdded < 16)
     {
         f = q.dequeue();
-        ui->comboBoxFolder->addItem(f->name, QVariant(f->id));
-        for (BookmarkFolder *subF : f->folders)
-            q.enqueue(subF);
+        ui->comboBoxFolder->addItem(f->getName(), qVariantFromValue((void *)f));
+        int numChildren = f->getNumChildren();
+        for (int i = 0; i < numChildren; ++i)
+        {
+            BookmarkNode *n = f->getNode(i);
+            if (n->getType() == BookmarkNode::Folder)
+                q.enqueue(n);
+        }
         ++foldersAdded;
     }
 
@@ -64,7 +70,8 @@ void AddBookmarkDialog::saveAndClose()
 
     // Remove bookmark and re-add it with current name, url and parent folder values
     m_bookmarkManager->removeBookmark(m_currentUrl);
-    m_bookmarkManager->addBookmark(ui->lineEditName->text(), m_currentUrl, ui->comboBoxFolder->currentData().toInt());
+    BookmarkNode *parentNode = (BookmarkNode*) ui->comboBoxFolder->currentData().value<void*>();
+    m_bookmarkManager->addBookmark(ui->lineEditName->text(), m_currentUrl, parentNode, -1);
     emit updateBookmarkMenu();
     close();
 }

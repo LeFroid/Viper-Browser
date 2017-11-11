@@ -1,4 +1,5 @@
 #include "BookmarkBar.h"
+#include "BookmarkNode.h"
 #include "BrowserApplication.h"
 #include "FaviconStorage.h"
 #include <QMenu>
@@ -27,48 +28,56 @@ void BookmarkBar::refresh()
 
     FaviconStorage *iconStorage = sBrowserApplication->getFaviconStorage();
 
-    BookmarkFolder *folder = m_bookmarkManager->getRoot();
-    for (BookmarkFolder *subFolder : folder->folders)
+    BookmarkNode *folder = m_bookmarkManager->getRoot();
+    int numChildren = folder->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
     {
-        QToolButton *button = new QToolButton(this);
-        button->setPopupMode(QToolButton::InstantPopup);
-        button->setArrowType(Qt::DownArrow);
-        button->setText(subFolder->name);
+        BookmarkNode *child = folder->getNode(i);
+        if (child->getType() == BookmarkNode::Folder)
+        {
+            QToolButton *button = new QToolButton(this);
+            button->setPopupMode(QToolButton::InstantPopup);
+            button->setArrowType(Qt::DownArrow);
+            button->setText(child->getName());
 
-        QMenu *menu = new QMenu(this);
-        addFolderItems(menu, subFolder, iconStorage);
+            QMenu *menu = new QMenu(this);
+            addFolderItems(menu, child, iconStorage);
 
-        button->setMenu(menu);
-        button->setToolButtonStyle(Qt::ToolButtonTextOnly);
-        addWidget(button);
-    }
-    for (Bookmark *bookmark : folder->bookmarks)
-    {
-        QToolButton *button = new QToolButton(this);
-        button->setText(bookmark->name);
-        button->setIcon(iconStorage->getFavicon(bookmark->URL));
-        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        connect(button, &QToolButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(bookmark->URL)); });
-        addWidget(button);
-        //QAction *a = addAction(iconStorage->getFavicon(bookmark->URL), bookmark->name, [=](){ emit loadBookmark(QUrl::fromUserInput(bookmark->URL)); });
+            button->setMenu(menu);
+            button->setToolButtonStyle(Qt::ToolButtonTextOnly);
+            addWidget(button);
+        }
+        else
+        {
+            QToolButton *button = new QToolButton(this);
+            button->setText(child->getName());
+            button->setIcon(iconStorage->getFavicon(child->getURL()));
+            button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+            connect(button, &QToolButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(child->getURL())); });
+            addWidget(button);
+        }
     }
 }
 
-void BookmarkBar::addFolderItems(QMenu *menu, BookmarkFolder *folder, FaviconStorage *iconStorage)
+void BookmarkBar::addFolderItems(QMenu *menu, BookmarkNode *folder, FaviconStorage *iconStorage)
 {
     if (!folder)
         return;
 
-    for (BookmarkFolder *subFolder : folder->folders)
+    int numChildren = folder->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
     {
-        QMenu *subMenu = menu->addMenu(subFolder->name);
-        addFolderItems(subMenu, subFolder, iconStorage);
-    }
-
-    for (Bookmark *bookmark : folder->bookmarks)
-    {
-        menu->addAction(iconStorage->getFavicon(bookmark->URL), bookmark->name, this, [=](){
-            emit loadBookmark(QUrl::fromUserInput(bookmark->URL));
-        });
+        BookmarkNode *child = folder->getNode(i);
+        if (child->getType() == BookmarkNode::Folder)
+        {
+            QMenu *subMenu = menu->addMenu(child->getName());
+            addFolderItems(subMenu, child, iconStorage);
+        }
+        else
+        {
+            menu->addAction(iconStorage->getFavicon(child->getURL()), child->getName(), this, [=](){
+                emit loadBookmark(QUrl::fromUserInput(child->getURL()));
+            });
+        }
     }
 }

@@ -1,4 +1,5 @@
 #include "BookmarkManager.h"
+#include "BookmarkNode.h"
 
 #include <deque>
 #include <iterator>
@@ -9,131 +10,89 @@
 #include <QDebug>
 
 BookmarkManager::BookmarkManager(const QString &databaseFile) :
-    DatabaseWorker(databaseFile, "Bookmarks")
+    DatabaseWorker(databaseFile, "Bookmarks"),
+    m_rootNode(new BookmarkNode(BookmarkNode::Folder, QString("Bookmarks")))
 {
-    m_root.id = 0;
-    m_root.parent = nullptr;
-    m_root.name = "Bookmarks";
 }
 
-BookmarkManager::~BookmarkManager()
+BookmarkNode *BookmarkManager::getRoot()
 {
-    // remove folders and bookmarks from heap
-    std::deque<BookmarkFolder*> folderQ;
-
-    for (BookmarkFolder *b : m_root.folders)
-        folderQ.push_back(b);
-
-    for (Bookmark *b : m_root.bookmarks)
-        delete b;
-
-    while(!folderQ.empty())
-    {
-        BookmarkFolder *folder = folderQ.front();
-        for (BookmarkFolder *b : folder->folders)
-            folderQ.push_back(b);
-        for (Bookmark *b : folder->bookmarks)
-            delete b;
-        folderQ.pop_front();
-        delete folder;
-    }
+    return m_rootNode.get();
 }
 
-BookmarkFolder *BookmarkManager::getRoot()
+BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *parent)
 {
-    return &m_root;
-}
-
-int BookmarkManager::addFolder(const QString &name, int parentID)
-{
-    // Search for folder with given parent ID
-    BookmarkFolder *parent = findFolder(parentID);
-
     // If parent cannot be found then attach the new folder directly to the root folder
     if (!parent)
     {
         qDebug() << "[Warning]: BookmarkManager::addFolder(..) - Could not find parent folder for new folder \"" << name
                  << "\", setting parent folder to root. ";
-        parent = &m_root;
+        parent = m_rootNode.get();
     }
 
     // Set position of folder to the bottom of its parent folder
-    int position = parent->bookmarks.size() + parent->folders.size();
+    int position = parent->getNumChildren();
 
-    // Insert folder into DB then append to parent folder's list of subfolders
+    // Determine which ID the folder will be assigned to
+    int folderId = 0;
     QSqlQuery query(m_database);
-    query.prepare("INSERT OR IGNORE INTO BookmarkFolders(ParentID, Name, Position) VALUES (:parentID, :name, :position)");
-    query.bindValue(":parentID", parent->id);
+    query.prepare("SELECT MAX(FolderID) FROM Bookmarks");
+    if (!query.exec() || !query.first())
+        qDebug() << "[Error]: In BookmarkManager::addFolder(..) - could not fetch max folder id value from database";
+    else
+        folderId = query.value(0).toInt();
+
+    query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, Position) VALUES (:folderId, :parentID, :type, :name, :position)");
+    query.bindValue(":folderID", folderId);
+    query.bindValue(":parentID", parent->getFolderId());
+    query.bindValue(":type", QVariant::fromValue(BookmarkNode::Folder));
     query.bindValue(":name", name);
     query.bindValue(":position", position);
     if (!query.exec())
         qDebug() << "[Error]: In BookmarkManager::addFolder(..) - error inserting new bookmark folder into database. Message: " << query.lastError().text();
 
-    // Fetch new folder's id from DB
-    int newFolderID = -1;
-    query.prepare("SELECT FolderID from BookmarkFolders WHERE ParentID = (:id) AND Name = (:name)");
-    query.bindValue(":id", parent->id);
-    query.bindValue(":name", name);
-    if (query.exec() && query.next())
-        newFolderID = query.value(0).toInt();
-
-    // Append bookmark folder to parent's folder container
-    BookmarkFolder *f = new BookmarkFolder;
-    f->id = newFolderID;
-    f->treePosition = parent->folders.size();
-    f->name = name;
-    f->parent = parent;
-    parent->folders.push_back(f);
-
-    return f->id;
+    // Append bookmark folder to parent
+    BookmarkNode *f = parent->appendNode(
+                std::unique_ptr<BookmarkNode>(new BookmarkNode(BookmarkNode::Folder, name)));
+    f->setFolderId(folderId);
+    return f;
 }
 
-void BookmarkManager::addBookmark(const QString &name, const QString &url, int folderID)
+void BookmarkManager::addBookmark(const QString &name, const QString &url, BookmarkNode *folder)
 {
+    // If parent folder not specified, set to root folder
+    if (!folder)
+        folder = m_rootNode.get();
+
     // Create new bookmark
-    Bookmark *b = new Bookmark(name, url);
+    BookmarkNode *b = folder->appendNode(
+                std::unique_ptr<BookmarkNode>(new BookmarkNode(BookmarkNode::Bookmark, name)));
+    b->setURL(url);
 
-    // Find parent folder, and if cannot be found, set to root folder
-    BookmarkFolder *parent = findFolder(folderID);
-    if (!parent)
-    {
-        qDebug() << "[Warning]: BookmarkManager::addBookmark(..) - Could not find parent folder for new bookmark \"" << name
-                 << "\", setting parent folder to root. ";
-        parent = &m_root;
-    }
-
-    // Calculate position of new bookmark
-    b->position = getNextBookmarkPos(parent);
-    if (b->position < 0)
-        b->position = parent->bookmarks.size() + parent->folders.size();
-
-    // Add bookmark and then update the database
-    parent->bookmarks.push_back(b);
-
-    if (!addBookmarkToDB(b, parent))
+    // Add bookmark to the database
+    if (!addBookmarkToDB(b, b->getParent()))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
 }
 
-void BookmarkManager::addBookmark(const QString &name, const QString &url, BookmarkFolder *folder, int position)
+void BookmarkManager::addBookmark(const QString &name, const QString &url, BookmarkNode *folder, int position)
 {
     if (!folder)
+    {
+        folder = m_rootNode.get();
         return;
+    }
 
     // Create new bookmark
-    Bookmark *b = new Bookmark(name, url);
+    BookmarkNode *b = folder->appendNode(
+                std::unique_ptr<BookmarkNode>(new BookmarkNode(BookmarkNode::Bookmark, name)));
+    b->setURL(url);
 
-    // Calculate default position of new bookmark
-    bool isCustomPos = (position > -1 && uint64_t(position) < folder->bookmarks.size());
-    b->position = getNextBookmarkPos(folder);
-    if (b->position < 0)
-        b->position = folder->bookmarks.size() + folder->folders.size();
-
+    // Add bookmark to the database
     if (!addBookmarkToDB(b, folder))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
 
-    folder->bookmarks.push_back(b);
-
-    if (isCustomPos && position >= 0)
+    // If position parameter was given, call setBookmarkPosition()
+    if (position >= 0 && position < folder->getNumChildren())
         setBookmarkPosition(b, folder, position);
 }
 
@@ -145,117 +104,90 @@ bool BookmarkManager::isBookmarked(const QString &url)
     return (query.exec() && query.next());
 }
 
-bool BookmarkManager::removeBookmark(const QString &url)
+void BookmarkManager::removeBookmark(const QString &url)
 {
     // Search DB rather than traverse tree
     QSqlQuery query(m_database);
     query.prepare("SELECT FolderID FROM Bookmarks WHERE URL = (:url)");
     query.bindValue(":url", url);
     if (!query.exec() || !query.first())
-    {
         qDebug() << "[Warning]: In BookmarkManager::removeBookmark(..) - could not search database for bookmark with url " << url;
-        return false;
-    }
+
     int folderId = query.value(0).toInt();
-    BookmarkFolder *folder = findFolder(folderId);
+    BookmarkNode *folder = findFolder(folderId);
     if (!folder)
-    {
         qDebug() << "[Warning]: In BookmarkManager::removeBookmark(..) - found bookmark, could not find folder it belongs to";
-        return false;
-    }
-    Bookmark *bookmark = nullptr;
-    for (Bookmark *b : folder->bookmarks)
+
+    for (auto &node : folder->m_children)
     {
-        if (b->URL.compare(url, Qt::CaseInsensitive) == 0)
+        BookmarkNode *b = node.get();
+        if (b->m_url.compare(url, Qt::CaseInsensitive) == 0)
         {
-            bookmark = b;
-            folder->bookmarks.remove(b);
+            if (!removeBookmarkFromDB(b))
+                qDebug() << "Could not remove bookmark from DB";
+
+            folder->removeNode(b);
             break;
         }
     }
-    if (!bookmark)
-        return false;
-
-    if (!removeBookmarkFromDB(bookmark, folderId))
-        qDebug() << "Could not remove bookmark from DB";
-
-    delete bookmark;
-    return true;
 }
 
-void BookmarkManager::removeBookmark(Bookmark *item, BookmarkFolder *parent)
+void BookmarkManager::removeBookmark(BookmarkNode *item)
 {
-    if (!item || !parent)
+    if (!item)
         return;
 
-    // Search for bookmark
-    auto it = std::find(parent->bookmarks.begin(), parent->bookmarks.end(), item);
-    if (it == parent->bookmarks.end())
-    {
-        qDebug() << "[Warning]: Invalid bookmark given in BookmarkManager::removeBookmark. Does not belong to parent folder.";
-        return;
-    }
-
-    // Remove from DB, then from memory
-    if (!removeBookmarkFromDB(item, parent->id))
+    // Remove from DB, then from mparent
+    if (!removeBookmarkFromDB(item))
         qDebug() << "Could not remove bookmark from DB";
 
-    parent->bookmarks.erase(it);
-    delete item;
+    if (BookmarkNode *parent = item->getParent())
+        parent->removeNode(item);
 }
 
-void BookmarkManager::removeFolder(BookmarkFolder *folder)
+void BookmarkManager::removeFolder(BookmarkNode *folder)
 {
-    if (!folder || folder->id == 0)
+    if (!folder || folder == m_rootNode.get())
         return;
 
-    // Delete all bookmarks belonging to folder from the database
+    // Delete all sub nodes from the database
     QSqlQuery query(m_database);
-    query.prepare("DELETE FROM Bookmarks WHERE FolderID = (:id)");
-    query.bindValue(":id", folder->id);
+    query.prepare("DELETE FROM Bookmarks WHERE FolderID = (:id) OR ParentID = (:parentId)");
+
+    int folderId = folder->getFolderId();
+    query.bindValue(":id", folderId);
+    query.bindValue(":parentId", folderId);
     if (!query.exec())
     {
         qDebug() << "[Warning]: Could not remove bookmarks from database in BookmarkManager::removeFolder. Message: "
                  << query.lastError().text();
     }
 
-    // Remove folder's bookmarks from memory
-    for (Bookmark *bookmark : folder->bookmarks)
-        delete bookmark;
-
-    // Delete folder from database
-    query.prepare("DELETE FROM BookmarkFolders WHERE FolderID = (:id)");
-    query.bindValue(":id", folder->id);
-    if (!query.exec())
-    {
-        qDebug() << "[Warning]: In BookmarkManager::removeFolder - could not remove bookmark folder "
-                 << folder->name << " from database. Message: " << query.lastError().text();
-    }
-
-    // Recursively remove sub-folder data
-    for (BookmarkFolder *subFolder : folder->folders)
-        removeFolder(subFolder);
-
     // Remove folder from parent
-    if (folder->parent)
-        folder->parent->folders.remove(folder);
-
-    // Remove folder from memory
-    delete folder;
+    if (BookmarkNode *parent = folder->getParent())
+        parent->removeNode(folder);
 }
 
-void BookmarkManager::setBookmarkPosition(Bookmark *item, BookmarkFolder *parent, int position)
+void BookmarkManager::setBookmarkPosition(BookmarkNode *item, BookmarkNode *parent, int position)
 {
+    /*
     if (!item || !parent)
         return;
 
     // Make sure the position is valid
-    if (position < 0 || uint64_t(position) >= parent->bookmarks.size() + parent->folders.size())
+    if (position < 0 || position >= parent->getNumChildren())
         return;
 
     // Ensure bookmark belongs to the folder
-    auto it = std::find(parent->bookmarks.begin(), parent->bookmarks.end(), item);
-    if (it == parent->bookmarks.end() || item->position == position)
+    int oldPos = 0;
+    auto it = parent->m_children.begin();
+    for (; it != parent->m_children.end(); ++it)
+    {
+        if (it->get() == item)
+            break;
+        ++oldPos;
+    }
+    if (it == parent->m_children.end())
         return;
 
     // Update database
@@ -272,15 +204,15 @@ void BookmarkManager::setBookmarkPosition(Bookmark *item, BookmarkFolder *parent
         queryBookmarks.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE FolderID = (:folderId) AND Position <= (:posNew) AND Position > (:posOld)");
         queryFolders.prepare("UPDATE BookmarkFolders SET Position = Position - 1 WHERE ParentID = (:folderId) AND Position <= (:posNew) AND Position > (:posOld)");
     }
-    queryBookmarks.bindValue(":folderId", parent->id);
+    queryBookmarks.bindValue(":folderId", parent->m_folderId);
     queryBookmarks.bindValue(":posNew", position);
-    queryBookmarks.bindValue(":posOld", item->position);
+    queryBookmarks.bindValue(":posOld", oldPos);
     if (!queryBookmarks.exec())
         qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update positions of bookmarks. "
                  << "Message: " << queryBookmarks.lastError().text();
-    queryFolders.bindValue(":folderId", parent->id);
+    queryFolders.bindValue(":folderId", parent->m_folderId);
     queryFolders.bindValue(":posNew", position);
-    queryFolders.bindValue(":posOld", item->position);
+    queryFolders.bindValue(":posOld", oldPos);
     if (!queryFolders.exec())
         qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update positions of folders. "
                  << "Message: " << queryFolders.lastError().text();
@@ -288,68 +220,58 @@ void BookmarkManager::setBookmarkPosition(Bookmark *item, BookmarkFolder *parent
     // Adjust position of bookmark itself
     queryBookmarks.prepare("UPDATE Bookmarks SET Position = (:newPos) WHERE URL = (:url)");
     queryBookmarks.bindValue(":newPos", position);
-    queryBookmarks.bindValue(":url", item->URL);
+    queryBookmarks.bindValue(":url", item->getURL());
     if (!queryBookmarks.exec())
         qDebug() << "[Warning]: In BookmarkManager::setBookmarkPosition - could not update position of bookmark. "
                  << "Message: " << queryBookmarks.lastError().text();
 
-    // Adjust bookmark list for new positions
-    queryBookmarks.prepare("SELECT * FROM Bookmarks WHERE FolderID = (:id) ORDER BY POSITION ASC");
-    queryBookmarks.bindValue(":id", parent->id);
-    if (queryBookmarks.exec())
-    {
-        QSqlRecord bRec = queryBookmarks.record();
-        int idBUrl = bRec.indexOf("URL");
-        int idBName = bRec.indexOf("Name");
-        int idBPos = bRec.indexOf("Position");
-        it = parent->bookmarks.begin();
-        while (queryBookmarks.next() && it != parent->bookmarks.end())
-        {
-            Bookmark *bookmark = *it;
-            bookmark->URL = queryBookmarks.value(idBUrl).toString();
-            bookmark->name = queryBookmarks.value(idBName).toString();
-            bookmark->position = queryBookmarks.value(idBPos).toInt();
-            ++it;
-        }
-    }
+    // Adjust bookmark vector for new positions
+    // Insert an empty bookmark into the desired position, call std::swap on it with the bookmark being moved, and
+    // then remove the swapped bookmark
+    BookmarkNode *tmpNode = parent->insertNode(std::unique_ptr<BookmarkNode>(new BookmarkNode), position);
+    auto &tmpIt = parent->m_children.at(position);
+    tmpIt.swap(*it);
+    parent->m_children.erase(it);*/
 }
 
-void BookmarkManager::updatedBookmark(Bookmark *bookmark, Bookmark oldValue, int folderID)
+void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID)
 {
     if (!bookmark)
         return;
 
     // Update database
     QSqlQuery query(m_database);
-    if (oldValue.URL == bookmark->URL)
+    if (oldValue.m_url == bookmark->m_url)
     {
         query.prepare("UPDATE Bookmarks SET Name = (:newName) WHERE URL = (:url)");
-        query.bindValue(":newName", bookmark->name);
-        query.bindValue(":url", bookmark->URL);
+        query.bindValue(":newName", bookmark->getName());
+        query.bindValue(":url", bookmark->getURL());
         if (!query.exec())
             qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not modify bookmark name. Error message: "
                      << query.lastError().text();
     }
     else
     {
-        // If primary key has changed, remove the old record and insert the bookmark as a new one
+        // If URL has changed, remove the old record and insert the bookmark as a new one
         int position = 0;
         query.prepare("SELECT Position FROM Bookmarks WHERE URL = (:url)");
-        query.bindValue(":url", oldValue.URL);
+        query.bindValue(":url", oldValue.getURL());
         if (query.exec() && query.next())
         {
             position = query.value(0).toInt();
         }
         else
             qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not fetch position of bookmark with "
-                        "URL " << oldValue.URL << ". Error message: " << query.lastError().text();
+                        "URL " << oldValue.getURL() << ". Error message: " << query.lastError().text();
         query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
-        query.bindValue(":url", oldValue.URL);
+        query.bindValue(":url", oldValue.getURL());
         query.exec();
-        query.prepare("INSERT INTO Bookmarks(URL, FolderID, Name, Position) VALUES(:url, :folderID, :name, :position)");
-        query.bindValue(":url", bookmark->URL);
+        query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderID, :parentId, :type, :name, :url, :position)");
         query.bindValue(":folderID", folderID);
-        query.bindValue(":name", bookmark->name);
+        query.bindValue(":parentID", folderID);
+        query.bindValue(":type", folderID);
+        query.bindValue(":name", bookmark->getName());
+        query.bindValue(":url", bookmark->getURL());
         query.bindValue(":position", position);
         if (!query.exec())
             qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not insert updated bookmark to database. "
@@ -357,18 +279,18 @@ void BookmarkManager::updatedBookmark(Bookmark *bookmark, Bookmark oldValue, int
     }
 }
 
-void BookmarkManager::updatedFolderName(BookmarkFolder *folder)
+void BookmarkManager::updatedFolderName(BookmarkNode *folder)
 {
     if (!folder)
         return;
-    if (folder->id < 0)
+    if (folder->getFolderId() < 0)
         return;
 
     // Update database
     QSqlQuery query(m_database);
-    query.prepare("UPDATE BookmarkFolders SET Name = (:name) WHERE FolderID = (:id)");
-    query.bindValue(":name", folder->name);
-    query.bindValue(":id", folder->id);
+    query.prepare("UPDATE Bookmarks SET Name = (:name) WHERE FolderID = (:id)");
+    query.bindValue(":name", folder->getName());
+    query.bindValue(":id", folder->getFolderId());
     if (!query.exec())
         qDebug() << "Error updating name of bookmark folder in database. Message: " << query.lastError().text();
 }
@@ -376,12 +298,12 @@ void BookmarkManager::updatedFolderName(BookmarkFolder *folder)
 bool BookmarkManager::isValidFolderID(int id)
 {
     QSqlQuery query(m_database);
-    query.prepare("SELECT ParentID FROM BookmarkFolders WHERE FolderID = (:id)");
+    query.prepare("SELECT ParentID FROM Bookmarks WHERE FolderID = (:id)");
     query.bindValue(":id", id);
     return (query.exec() && query.last());
 }
 
-void BookmarkManager::loadFolder(BookmarkFolder *folder)
+void BookmarkManager::loadFolder(BookmarkNode *folder)
 {
     if (!folder)
     {
@@ -389,64 +311,44 @@ void BookmarkManager::loadFolder(BookmarkFolder *folder)
         return;
     }
 
-    QSqlQuery queryBookmark(m_database);
-    queryBookmark.prepare("SELECT * FROM Bookmarks WHERE FolderID = (:id) ORDER BY POSITION ASC");
-
-    // Load subfolders
-    QSqlQuery queryFolder(m_database);
-    queryFolder.prepare("SELECT FolderID, Name, Position FROM BookmarkFolders WHERE ParentID = (:id) ORDER BY Position ASC");
-    queryFolder.bindValue(":id", folder->id);
-    if (!queryFolder.exec())
-        qDebug() << "Error fetching bookmark folders. Message: " << queryFolder.lastError().text();
+    QSqlQuery query(m_database);
+    query.prepare("SELECT FolderID, Type, Name, URL FROM Bookmarks WHERE ParentID = (:id) ORDER BY Position ASC");
+    query.bindValue(":id", folder->getFolderId());
+    if (!query.exec())
+        qDebug() << "Error loading bookmarks for folder " << folder->getName() << ". Message: " << query.lastError().text();
     else
     {
-        QSqlRecord rec = queryFolder.record();
-        int idFolder = rec.indexOf("FolderID");
-        int idName = rec.indexOf("Name");
-        while (queryFolder.next())
+        while (query.next())
         {
-            BookmarkFolder *subFolder = new BookmarkFolder;
-            subFolder->id = queryFolder.value(idFolder).toInt();
-            subFolder->name = queryFolder.value(idName).toString();
-            subFolder->treePosition = folder->folders.size();
-            subFolder->parent = folder;
-
-            // Load folders belonging to sub-folder, followed by bookmarks
-            loadFolder(subFolder);
-
-            folder->folders.push_back(subFolder);
-        }
-    }
-
-    // Load bookmarks
-    //queryBookmark.prepare("SELECT * FROM Bookmarks WHERE FolderID = (:id) ORDER BY POSITION ASC");
-    queryBookmark.bindValue(":id", folder->id);
-    if (queryBookmark.exec())
-    {
-        QSqlRecord bRec = queryBookmark.record();
-        int idBUrl = bRec.indexOf("URL");
-        int idBName = bRec.indexOf("Name");
-        int idBPos = bRec.indexOf("Position");
-        while (queryBookmark.next())
-        {
-            Bookmark *bookmark = new Bookmark;
-            bookmark->URL = queryBookmark.value(idBUrl).toString();
-            bookmark->name = queryBookmark.value(idBName).toString();
-            bookmark->position = queryBookmark.value(idBPos).toInt();
-            folder->bookmarks.push_back(bookmark);
+            BookmarkNode::NodeType nodeType = static_cast<BookmarkNode::NodeType>(query.value(1).toInt());
+            BookmarkNode *subNode = folder->appendNode(
+                        std::unique_ptr<BookmarkNode>(
+                            new BookmarkNode(nodeType, query.value(2).toString())));
+            switch (nodeType)
+            {
+                // Load folder data
+                case BookmarkNode::Folder:
+                    subNode->setFolderId(query.value(0).toInt());
+                    loadFolder(subNode);
+                    break;
+                // Load bookmark data
+                case BookmarkNode::Bookmark:
+                    subNode->setURL(query.value(3).toString());
+                    break;
+            }
         }
     }
 }
 
-BookmarkFolder *BookmarkManager::findFolder(int id)
+BookmarkNode *BookmarkManager::findFolder(int id)
 {
     // Check database to ensure folder id is valid before performing a BFS
     if (!isValidFolderID(id))
         return nullptr;
 
-    BookmarkFolder *currNode = nullptr;
-    std::deque<BookmarkFolder*> queue;
-    queue.push_back(&m_root);
+    BookmarkNode *currNode = nullptr;
+    std::deque<BookmarkNode*> queue;
+    queue.push_back(m_rootNode.get());
 
     // BFS until the folder with given ID is found, or all folders are searched
     while (!queue.empty())
@@ -458,11 +360,15 @@ BookmarkFolder *BookmarkManager::findFolder(int id)
             continue;
         }
 
-        if (currNode->id == id)
+        if (currNode->getFolderId() == id)
             return currNode;
 
-        for (BookmarkFolder *b : currNode->folders)
-            queue.push_back(b);
+        for (auto &node : currNode->m_children)
+        {
+            BookmarkNode *nodePtr = node.get();
+            if (nodePtr->getType() == BookmarkNode::Folder)
+                queue.push_back(nodePtr);
+        }
 
         queue.pop_front();
     }
@@ -470,97 +376,72 @@ BookmarkFolder *BookmarkManager::findFolder(int id)
     return nullptr;
 }
 
-bool BookmarkManager::addBookmarkToDB(Bookmark *bookmark, BookmarkFolder *folder)
+bool BookmarkManager::addBookmarkToDB(BookmarkNode *bookmark, BookmarkNode *folder)
 {
     QSqlQuery query(m_database);
-    query.prepare("INSERT OR REPLACE INTO Bookmarks(URL, FolderID, Name, Position) VALUES(:url, :folderID, :name, :position)");
-    query.bindValue(":url", bookmark->URL);
-    query.bindValue(":folderID", folder->id);
-    query.bindValue(":name", bookmark->name);
-    query.bindValue(":position", bookmark->position);
+    query.prepare("INSERT OR REPLACE INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) "
+                  "VALUES(:folderID, :parentId, :type, :name, :url, :position)");
+    int folderId = bookmark->getFolderId();
+    query.bindValue(":parentID", folderId);
+    query.bindValue(":folderID", folderId);
+    query.bindValue(":type", QVariant::fromValue(bookmark->getType()));
+    query.bindValue(":name", bookmark->getName());
+    query.bindValue(":url", bookmark->getURL());
+    query.bindValue(":position", folder->getNumChildren());
     return query.exec();
 }
 
-bool BookmarkManager::removeBookmarkFromDB(Bookmark *bookmark, int folderId)
+bool BookmarkManager::removeBookmarkFromDB(BookmarkNode *bookmark)
 {
     bool ok = true;
 
     QSqlQuery query(m_database);
-    // Remove from DB
-    query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
-    query.bindValue(":url", bookmark->URL);
-    if (!query.exec())
-    {
-        qDebug() << "[Warning]: In BookmarkManager::removeBookmarkFromDB(..) - DB Error: " << query.lastError().text();
-        ok = false;
-    }
-    // Update bookmark positions
-    query.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE FolderID = (:folderId) AND Position > (:position)");
-    query.bindValue(":folderId", folderId);
-    query.bindValue(":position", bookmark->position);
+    // Remove bookmark and update positions of other nodes in same folder
+    query.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE FolderID = (:folderId) AND Position > "
+                  "SELECT Position FROM Bookmarks WHERE URL = (:url)");
+    query.bindValue(":folderId", bookmark->getFolderId());
     if (!query.exec())
     {
         qDebug() << "[Warning]: In BookmarkManager::removeBookmarkFromDB(..) - could not update position of bookmarks. DB Error: "
                  << query.lastError().text();
         ok = false;
     }
-    // Update folder positions
-    query.prepare("UPDATE BookmarkFolders SET Position = Position - 1 WHERE ParentID = (:folderId) AND Position > (:position)");
-    query.bindValue(":folderId", folderId);
-    query.bindValue(":position", bookmark->position);
+    query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
+    query.bindValue(":url", bookmark->getURL());
     if (!query.exec())
     {
-        qDebug() << "[Warning]: In BookmarkManager::removeBookmarkFromDB(..) - could not update position of folders. DB Error: "
-                 << query.lastError().text();
+        qDebug() << "[Warning]: In BookmarkManager::removeBookmarkFromDB(..) - DB Error: " << query.lastError().text();
         ok = false;
     }
+
     return ok;
-}
-
-int BookmarkManager::getNextBookmarkPos(BookmarkFolder *folder)
-{
-    if (!folder)
-        return -1;
-
-    QSqlQuery query(m_database);
-    query.prepare("SELECT MAX(Position) FROM Bookmarks WHERE FolderID = (:id)");
-    query.bindValue(":id", folder->id);
-    if (!query.exec() || !query.next())
-        return -1;
-    int maxBookmarkPos = query.value(0).toInt();
-    query.prepare("SELECT Max(Position) FROM BookmarkFolders WHERE ParentID = (:id)");
-    query.bindValue(":id", folder->id);
-    if (!query.exec() || !query.next())
-        return maxBookmarkPos + 1;
-    return std::max(query.value(0).toInt(), maxBookmarkPos) + 1;
 }
 
 void BookmarkManager::setup()
 {
     // Setup table structures
     QSqlQuery query(m_database);
-    query.prepare("CREATE TABLE IF NOT EXISTS BookmarkFolders(FolderID INTEGER PRIMARY KEY, "
-                  "ParentID INTEGER, Name TEXT, Position INTEGER, FOREIGN KEY(ParentID) REFERENCES BookmarkFolders(FolderID))");
-    if (!query.exec())
-        qDebug() << "Error creating table BookmarkFolders. Message: " << query.lastError().text();
-
-    query.prepare("CREATE TABLE IF NOT EXISTS Bookmarks(URL TEXT PRIMARY KEY, FolderID INTEGER, Name TEXT, Position INTEGER, "
-                  "FOREIGN KEY(FolderID) REFERENCES BookmarkFolders(FolderID))");
-    if (!query.exec())
-        qDebug() << "Error creating table Bookmarks. Message: " << query.lastError().text();
+    if (!query.exec("CREATE TABLE Bookmarks(ID INTEGER PRIMARY KEY, FolderID INTEGER, ParentID INTEGER DEFAULT 0, "
+               "Type INTEGER DEFAULT 0, Name TEXT, URL TEXT UNIQUE, Position INTEGER DEFAULT 0)"))
+            qDebug() << "Error creating table Bookmarks. Message: " << query.lastError().text();
 
     // Insert root bookmark folder
-    query.prepare("INSERT OR IGNORE INTO BookmarkFolders(FolderID, Name) VALUES(:id, :name)");
-    query.bindValue(":id", 0);
+    int rootFolderId = 0;
+    query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name) VALUES (:folderId, :parentID, :type, :name)");
+    query.bindValue(":folderID", rootFolderId);
+    query.bindValue(":parentID", -1);
+    query.bindValue(":type", QVariant::fromValue(BookmarkNode::Folder));
     query.bindValue(":name", "Bookmarks");
     if (!query.exec())
-        qDebug() << "Error inserting root bookmark folder. Message: " << query.lastError().text();
+            qDebug() << "Error inserting root bookmark folder. Message: " << query.lastError().text();
 
-    // Insert bookmark for ixquick.com
-    query.prepare("INSERT OR IGNORE INTO Bookmarks(URL, FolderID, Name, Position) VALUES(:url, :folderID, :name, :position)");
-    query.bindValue(":url", "https://www.ixquick.com/");
-    query.bindValue(":folderID", 0);
+    // Insert bookmark for search engine
+    query.prepare("INSERT OR IGNORE INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderId, :parentID, :type, :name, :url, :position)");
+    query.bindValue(":folderID", rootFolderId);
+    query.bindValue(":parentID", rootFolderId);
+    query.bindValue(":type", QVariant::fromValue(BookmarkNode::Bookmark));
     query.bindValue(":name", "Search Engine");
+    query.bindValue(":url", "https://www.ixquick.com/");
     query.bindValue(":position", 0);
     if (!query.exec())
         qDebug() << "Error inserting bookmark. Message: " << query.lastError().text();
@@ -568,5 +449,5 @@ void BookmarkManager::setup()
 
 void BookmarkManager::load()
 {
-    loadFolder(&m_root);
+    loadFolder(m_rootNode.get());
 }

@@ -30,7 +30,7 @@ private:
      * @param folder Parent folder
      * @param stream Bookmark file text stream
      */
-    void exportFolder(BookmarkFolder* folder, QTextStream &stream);
+    void exportFolder(BookmarkNode *folder, QTextStream &stream);
 
 private:
     /// Netscape bookmark file header

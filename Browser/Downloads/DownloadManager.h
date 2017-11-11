@@ -12,7 +12,7 @@ class DownloadManager;
 
 class DownloadItem;
 class DownloadListModel;
-class QNetworkAccessManager;
+class NetworkAccessManager;
 class QNetworkReply;
 
 /**
@@ -36,7 +36,7 @@ public:
     void setDownloadDir(const QString &path);
 
     /// Sets the network access manager used for downloading content
-    void setNetworkAccessManager(QNetworkAccessManager *manager);
+    void setNetworkAccessManager(NetworkAccessManager *manager);
 
 public slots:
     /// Called when a download request is initiated
@@ -53,7 +53,7 @@ private:
     QString m_downloadDir;
 
     /// Network access manager
-    QNetworkAccessManager *m_accessMgr;
+    NetworkAccessManager *m_accessMgr;
 
     /// List view model
     DownloadListModel *m_model;

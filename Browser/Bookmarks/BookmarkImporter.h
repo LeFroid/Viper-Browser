@@ -21,7 +21,7 @@ public:
      * @param importFolder Root folder to import bookmarks into
      * @return True on successful import, false on failure
      */
-    bool import(const QString &fileName, BookmarkFolder *importFolder);
+    bool import(const QString &fileName, BookmarkNode *importFolder);
 
 private:
     /// Bookmark manager

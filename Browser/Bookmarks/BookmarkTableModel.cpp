@@ -35,7 +35,7 @@ QVariant BookmarkTableModel::headerData(int section, Qt::Orientation orientation
 
 int BookmarkTableModel::rowCount(const QModelIndex &/*parent*/) const
 {
-    return (m_folder) ? m_folder->bookmarks.size() : 0;
+    return (m_folder) ? m_folder->getNumChildren() : 0;
 }
 
 int BookmarkTableModel::columnCount(const QModelIndex &/*parent*/) const
@@ -49,26 +49,24 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || !m_folder)
         return QVariant();
 
-    if (uint64_t(index.row()) < m_folder->bookmarks.size())
+    if (index.row() < m_folder->getNumChildren())
     {
-        auto it = m_folder->bookmarks.begin();
-        std::advance(it, index.row());
-        Bookmark *b = *it;
+        BookmarkNode *b = m_folder->getNode(index.row());
         switch (index.column())
         {
             case 0:
             {
                 if (role == Qt::EditRole || role == Qt::DisplayRole)
-                    return b->name;
+                    return b->getName();
 
                 // Try to display favicon next to name
-                QIcon favicon = sBrowserApplication->getFaviconStorage()->getFavicon(b->URL);
+                QIcon favicon = sBrowserApplication->getFaviconStorage()->getFavicon(b->getURL());
                 if (role == Qt::DecorationRole)
                     return favicon.pixmap(16, 16);
                 if (role == Qt::SizeHintRole)
                     return QSize(16, 16);
             }
-            case 1: if (role == Qt::DisplayRole || role == Qt::EditRole) return b->URL;
+            case 1: if (role == Qt::DisplayRole || role == Qt::EditRole) return b->getURL();
         }
     }
     return QVariant();
@@ -76,25 +74,23 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
 
 bool BookmarkTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (index.isValid() && role == Qt::EditRole && m_folder->bookmarks.size() > uint64_t(index.row()))
+    if (index.isValid() && role == Qt::EditRole && m_folder->getNumChildren() > index.row())
     {
-        auto it = m_folder->bookmarks.begin();
-        std::advance(it, index.row());
-        Bookmark *b = *it;
+        BookmarkNode *b = m_folder->getNode(index.row());
         if (!b)
             return false;
 
         // Copy contents of bookmark before modifying, so the old record can be found in the DB
-        Bookmark oldValue;
-        oldValue.name = b->name;
-        oldValue.URL = b->URL;
+        BookmarkNode oldValue;
+        oldValue.setName(b->getName());
+        oldValue.setURL(b->getURL());
         switch (index.column())
         {
-            case 0: b->name = value.toString(); break;
-            case 1: b->URL = value.toString(); break;
+            case 0: b->setName(value.toString()); break;
+            case 1: b->setURL(value.toString()); break;
         }
 
-        m_bookmarkMgr->updatedBookmark(b, oldValue, m_folder->id);
+        m_bookmarkMgr->updatedBookmark(b, oldValue, m_folder->getFolderId());
         emit dataChanged(index, index);
         return true;
     }
@@ -106,7 +102,11 @@ Qt::ItemFlags BookmarkTableModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return Qt::NoItemFlags;
 
-    return Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | QAbstractItemModel::flags(index);
+    Qt::ItemFlags flags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | QAbstractItemModel::flags(index);
+    BookmarkNode *b = m_folder->getNode(index.row());
+    if (b->getType() == BookmarkNode::Bookmark)
+        flags |= Qt::ItemIsEditable;
+    return flags;
 }
 
 bool BookmarkTableModel::insertRows(int row, int count, const QModelIndex &parent)
@@ -127,13 +127,12 @@ bool BookmarkTableModel::removeRows(int row, int count, const QModelIndex &paren
     if (!m_folder)
         return false;
 
-    std::list<Bookmark*>::iterator it;
+    BookmarkNode *n = nullptr;
     beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
     {
-        it = m_folder->bookmarks.begin();
-        std::advance(it, row + i);
-        m_bookmarkMgr->removeBookmark(*it, m_folder);
+        n = m_folder->getNode(row + i);
+        m_bookmarkMgr->removeBookmark(n);
     }
     endRemoveRows();
     return true;
@@ -158,7 +157,7 @@ QMimeData *BookmarkTableModel::mimeData(const QModelIndexList &indexes) const
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
     for (const QModelIndex &index : indexes)
     {
-        if (index.isValid() && m_folder->bookmarks.size() > uint64_t(index.row()))
+        if (index.isValid() && m_folder->getNumChildren() > index.row())
             stream << index.row();
     }
     mimeData->setData("application/x-bookmark-data", encodedData);
@@ -190,24 +189,18 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     beginResetModel();
     for (int r : rowNums)
     {
-        if (uint64_t(r) >= m_folder->bookmarks.size())
+        if (r >= m_folder->getNumChildren())
             continue;
 
-        auto itCurrent = m_folder->bookmarks.begin(), itNew = m_folder->bookmarks.begin();
-        std::advance(itCurrent, r);
-        std::advance(itNew, newRow);
-        if (itNew != m_folder->bookmarks.end())
-        {
-            Bookmark *otherBookmark = *itNew;
-            m_bookmarkMgr->setBookmarkPosition(*itCurrent, m_folder, otherBookmark->position);
-        }
+        BookmarkNode *n = m_folder->getNode(r);
+        m_bookmarkMgr->setBookmarkPosition(n, m_folder, newRow);
     }
     endResetModel();
 
     return true;
 }
 
-void BookmarkTableModel::setCurrentFolder(BookmarkFolder *folder)
+void BookmarkTableModel::setCurrentFolder(BookmarkNode *folder)
 {
     beginResetModel();
     m_folder = folder;

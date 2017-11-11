@@ -1,5 +1,6 @@
 #include "BrowserApplication.h"
 #include "BookmarkManager.h"
+#include "BookmarkNode.h"
 #include "HistoryManager.h"
 #include "URLSuggestionModel.h"
 
@@ -50,17 +51,21 @@ QSet<QString> URLSuggestionModel::loadBookmarkURLs()
     if (!bookmarkMgr.get())
         return urls;
 
-    BookmarkFolder *f = nullptr;
-    QQueue<BookmarkFolder*> folders;
+    BookmarkNode *f = nullptr;
+    QQueue<BookmarkNode*> folders;
     folders.enqueue(bookmarkMgr->getRoot());
     while (!folders.empty())
     {
         f = folders.dequeue();
-        for (BookmarkFolder *folder : f->folders)
-            folders.enqueue(folder);
-
-        for (Bookmark *b : f->bookmarks)
-            urls.insert(b->URL);
+        int numChildren = f->getNumChildren();
+        for (int i = 0; i < numChildren; ++i)
+        {
+            BookmarkNode *n = f->getNode(i);
+            if (n->getType() == BookmarkNode::Folder)
+                folders.enqueue(n);
+            else
+                urls.insert(n->getURL());
+        }
     }
 
     return urls;

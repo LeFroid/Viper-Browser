@@ -4,6 +4,7 @@
 #include "BookmarkFolderModel.h"
 #include "BookmarkImporter.h"
 #include "BookmarkTableModel.h"
+#include "BookmarkNode.h"
 
 #include <algorithm>
 #include <QCloseEvent>
@@ -136,11 +137,11 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
     if (!index.isValid())
         return;
 
-    BookmarkFolder *f = static_cast<BookmarkFolder*>(index.internalPointer());
+    BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
     QMenu menu(this);
 
     // Allow user to open all bookmark items if there are > 0 within the folder
-    if (!f->bookmarks.empty())
+    if (f->getNumChildren() > 0)
     {
         menu.addAction(tr("Open all items in tabs"));
         menu.addSeparator();
@@ -150,18 +151,18 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
     menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
 
     // Allow deletion of folder if not root bookmark folder
-    if (f->id > 0)
-    {
+    //if (f->id > 0)
+    //{
         menu.addSeparator();
         menu.addAction(tr("Delete"), this, &BookmarkWidget::deleteFolderSelection);
-    }
+    //}
     menu.exec(mapToGlobal(pos));
 }
 
 void BookmarkWidget::onChangeFolderSelection(const QModelIndex &index)
 {
     // Get the pointer to the new folder and update the tabel model
-    BookmarkFolder *f = static_cast<BookmarkFolder*>(index.internalPointer());
+    BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
     model->setCurrentFolder(f);
 }
@@ -189,7 +190,7 @@ void BookmarkWidget::onImportExportBoxChanged(int index)
             QModelIndex importedIndex = model->index(importFolderIdx, 0, rootIndex);
             model->setData(importedIndex, QString("Imported Bookmarks"), Qt::EditRole);
 
-            BookmarkFolder *importFolder = static_cast<BookmarkFolder*>(importedIndex.internalPointer());
+            BookmarkNode *importFolder = static_cast<BookmarkNode*>(importedIndex.internalPointer());
             BookmarkImporter importer(m_bookmarkManager);
             if (!importer.import(fileName, importFolder))
                 qDebug() << "Error: In BookmarkWidget, could not import bookmarks from file " << fileName;

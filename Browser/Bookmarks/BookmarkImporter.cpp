@@ -1,5 +1,7 @@
 #include "BookmarkImporter.h"
+#include "BookmarkNode.h"
 
+#include <utility>
 #include <QFile>
 #include <QQueue>
 #include <QWebElement>
@@ -13,7 +15,7 @@ BookmarkImporter::BookmarkImporter(std::shared_ptr<BookmarkManager> bookmarkMgr)
 {
 }
 
-bool BookmarkImporter::import(const QString &fileName, BookmarkFolder *importFolder)
+bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolder)
 {
     if (!importFolder)
         return false;
@@ -36,16 +38,16 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkFolder *importFol
     // Fetch root folder in bookmark page, add its first child to queue, and traverse the bookmark tree
     QWebElement folderElem = pageFrame->findFirstElement("DL");
     QWebElement subFolder = folderElem.firstChild();
-    subFolder.setAttribute("FolderID", QString::number(importFolder->id));
-    int folderId = -1;
+    BookmarkNode *folder = nullptr;
 
-    QQueue<QWebElement> q;
-    q.enqueue(subFolder);
+    QQueue< std::pair<QWebElement, BookmarkNode*> > q;
+    q.enqueue(std::make_pair(subFolder, importFolder));
     while (!q.empty())
     {
         // Currently in the first child node of a bookmark folder.
-        folderElem = q.dequeue();
-        folderId = folderElem.attribute("FolderID").toInt();
+        auto p = q.dequeue();
+        folderElem = p.first;
+        folder = p.second;
 
         // Check each sibling if it matches the signature of a bookmark or a folder.
         // If the current node is a bookmark, add it to the folder. If it is a folder,
@@ -60,19 +62,18 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkFolder *importFol
                 if (name.compare("h3") == 0)
                 {
                     // Create a subfolder
-                    int subFolderId = m_bookmarkManager->addFolder(folderElem.toPlainText(), folderId);
+                    BookmarkNode *newFolder = m_bookmarkManager->addFolder(folderElem.toPlainText(), folder);
                     folderElem = folderElem.nextSibling();
 
                     subFolder = folderElem.firstChild();
-                    subFolder.setAttribute("FolderID", QString::number(subFolderId));
-                    q.enqueue(subFolder);
+                    q.enqueue(std::make_pair(subFolder, newFolder));
                 }
                 else if (name.compare("a") == 0)
                 {
                     QString url = folderElem.attribute("HREF");
                     if (!url.isNull())
                     {
-                        m_bookmarkManager->addBookmark(folderElem.toPlainText(), url, folderId);
+                        m_bookmarkManager->addBookmark(folderElem.toPlainText(), url, folder, -1);
                     }
                 }
                 folderElem = folderElem.parent().nextSibling();

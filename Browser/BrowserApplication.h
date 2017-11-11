@@ -7,7 +7,8 @@
 #include <QList>
 #include <QPointer>
 
-#include "History/ClearHistoryOptions.h"
+#include "BookmarkNode.h"
+#include "ClearHistoryOptions.h"
 
 class BookmarkManager;
 class CookieJar;

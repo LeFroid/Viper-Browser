@@ -48,14 +48,14 @@ public:
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
     /// Sets the current folder to display in the table
-    void setCurrentFolder(BookmarkFolder *folder);
+    void setCurrentFolder(BookmarkNode *folder);
 
 private:
     /// Bookmark manager
     std::shared_ptr<BookmarkManager> m_bookmarkMgr;
 
     /// Current folder
-    BookmarkFolder *m_folder;
+    BookmarkNode *m_folder;
 };
 
 #endif // BOOKMARKTABLEMODEL_H

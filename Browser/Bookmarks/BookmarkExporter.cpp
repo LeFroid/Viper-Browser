@@ -1,4 +1,5 @@
 #include "BookmarkExporter.h"
+#include "BookmarkNode.h"
 
 const QString BookmarkExporter::NetscapeHeader = QString("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n"
                                        "<!-- This is an automatically generated file.\n"
@@ -34,7 +35,7 @@ bool BookmarkExporter::saveTo(const QString &fileName)
     return true;
 }
 
-void BookmarkExporter::exportFolder(BookmarkFolder* folder, QTextStream &stream)
+void BookmarkExporter::exportFolder(BookmarkNode* folder, QTextStream &stream)
 {
     if (!folder)
         return;
@@ -45,17 +46,20 @@ void BookmarkExporter::exportFolder(BookmarkFolder* folder, QTextStream &stream)
 
     stream << spacing << "<DL><p>\n";
 
-    // Export sub-folders
+    // Export child items
     ++m_recursionLevel;
-    for (BookmarkFolder *f : folder->folders)
+    int numChildren = folder->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
     {
-        stream << spacing << "    <DT><H3>" << f->name << "</H3>\n";
-        exportFolder(f, stream);
+        BookmarkNode *n = folder->getNode(i);
+        if (n->getType() == BookmarkNode::Folder)
+        {
+            stream << spacing << "    <DT><H3>" << n->getName() << "</H3>\n";
+            exportFolder(n, stream);
+        }
+        else
+            stream << spacing << "    <DT><A HREF=\"" << n->getURL() << "\">" << n->getName() << "</A>\n";
     }
-
-    // Export bookmarks belonging to current folder
-    for (Bookmark *b : folder->bookmarks)
-        stream << spacing << "    <DT><A HREF=\"" << b->URL << "\">" << b->name << "</A>\n";
 
     stream << spacing << "</DL><p>\n";
 }

@@ -2,6 +2,7 @@
 #include "DownloadItem.h"
 #include "ui_downloaditem.h"
 #include "DownloadManager.h"
+#include "NetworkAccessManager.h"
 
 #include <QFileDialog>
 #include <QFile>
@@ -40,6 +41,10 @@ void DownloadItem::setupItem()
     m_inProgress = false;
     m_finished = false;
     m_reply->setParent(this);
+
+    ui->labelDownloadName->setText(QString());
+    ui->labelDownloadSize->setText(QString());
+    ui->progressBarDownload->show();
 
     // Setup network slots
     connect(m_reply, &QNetworkReply::readyRead, this, &DownloadItem::onReadyRead);
@@ -131,6 +136,7 @@ void DownloadItem::onReadyRead()
         {
             ui->labelDownloadSize->setText("Error opening output file");
             //stop();
+            m_reply->abort();
             return;
         }
     }
@@ -138,6 +144,7 @@ void DownloadItem::onReadyRead()
     if (m_file.write(m_reply->readAll()) == -1)
     {
         ui->labelDownloadSize->setText("Error saving file");
+        m_reply->abort();
     }
     else
     {
@@ -171,6 +178,17 @@ void DownloadItem::onFinished()
 void DownloadItem::onError(QNetworkReply::NetworkError /*errorCode*/)
 {
     ui->labelDownloadSize->setText(QString("Network error: %1").arg(m_reply->errorString()));
+}
+
+void DownloadItem::onMetaDataChanged()
+{
+    QVariant locHeader = m_reply->header(QNetworkRequest::LocationHeader);
+    if (!locHeader.isValid())
+        return;
+
+    m_reply->deleteLater();
+    m_reply = sBrowserApplication->getNetworkAccessManager()->get(QNetworkRequest(locHeader.toUrl()));
+    setupItem();
 }
 
 QString DownloadItem::getDefaultFileName(const QString &pathWithoutSuffix, const QString &completeSuffix) const

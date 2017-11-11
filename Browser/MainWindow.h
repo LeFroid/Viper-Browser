@@ -61,7 +61,7 @@ private:
     void setupBookmarks();
 
     /// Recursively initializes the items belonging to the given bookmark folder, placing them into the menu
-    void setupBookmarkFolder(BookmarkFolder *folder, QMenu *folderMenu);
+    void setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu);
 
     /// Initializes the actions belonging to the menu bar (except bookmarks, history and plugins)
     void setupMenuBar();

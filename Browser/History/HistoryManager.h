@@ -64,7 +64,7 @@ public:
 
     /// Returns true if the history contains the given url, false if else. Will return
     /// false if private browsing mode is enabled
-    bool historyContains(const QString &url) const;
+    bool historyContains(const QString &url) const override;
 
     /// Sets the title and associated with the given url
     void setTitleForURL(const QString &url, const QString &title);

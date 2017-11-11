@@ -1,23 +1,20 @@
 #include "BookmarkFolderModel.h"
+#include "BookmarkNode.h"
 #include <cstdint>
 
 BookmarkFolderModel::BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
     QAbstractItemModel(parent),
-    m_root(new BookmarkFolder),
+    m_root(bookmarkMgr->getRoot()),
     m_bookmarkMgr(bookmarkMgr)
 {
     // Create a false root for proper tree display
-    m_root->id = -1;
-    m_root->parent = nullptr;
-    m_root->folders.push_back(m_bookmarkMgr->getRoot());
-
-    m_bookmarkMgr->m_root.parent = m_root;
+    //m_root->appendNode(m_bookmarkMgr->getRoot());
 }
 
 BookmarkFolderModel::~BookmarkFolderModel()
 {
-    m_bookmarkMgr->m_root.parent = nullptr;
-    delete m_root;
+    //m_bookmarkMgr->m_root.parent = nullptr;
+    //delete m_root;
 }
 
 QModelIndex BookmarkFolderModel::index(int row, int column, const QModelIndex &parent) const
@@ -26,13 +23,25 @@ QModelIndex BookmarkFolderModel::index(int row, int column, const QModelIndex &p
         return QModelIndex();
 
     // Attempt to find child
-    BookmarkFolder *parentFolder = getItem(parent);
-    BookmarkFolder *child = nullptr;
-    if (uint64_t(row) < parentFolder->folders.size())
+    BookmarkNode *parentFolder = getItem(parent);
+    BookmarkNode *child = nullptr;
+    int numChildren = parentFolder->getNumChildren();
+    if (row >= numChildren)
+        return QModelIndex();
+
+    int folderIdx = 0;
+    for (int i = 0; i < numChildren; ++i)
     {
-        auto it = parentFolder->folders.begin();
-        std::advance(it, row);
-        child = *it;
+        BookmarkNode *n = parentFolder->getNode(i);
+        if (n->getType() == BookmarkNode::Folder)
+        {
+            if (folderIdx == row)
+            {
+                child = n;
+                break;
+            }
+            ++folderIdx;
+        }
     }
 
     // Create index if found, otherwise return empty index
@@ -47,17 +56,37 @@ QModelIndex BookmarkFolderModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    BookmarkFolder *child = getItem(index);
-    BookmarkFolder *parent = child->parent;
+    BookmarkNode *child = getItem(index);
+    BookmarkNode *parent = child->getParent();
     if (parent == nullptr)
         return QModelIndex();
 
-    return createIndex(parent->treePosition, 0, parent);
+    int parentPos = 0;
+    int numChildren = parent->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
+    {
+        BookmarkNode *n = parent->getNode(i);
+        if (n->getType() == BookmarkNode::Folder)
+        {
+            if (n == child)
+                break;
+            ++parentPos;
+        }
+    }
+    return createIndex(parentPos, 0, parent);
 }
 
 int BookmarkFolderModel::rowCount(const QModelIndex &parent) const
 {
-    return getItem(parent)->folders.size();
+    BookmarkNode *f = getItem(parent);
+    if (!f)
+        return 0;
+    int rows = 0;
+    int numChildren = f->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
+        if (f->getNode(i)->getType() == BookmarkNode::Folder)
+            ++rows;
+    return rows;
 }
 
 int BookmarkFolderModel::columnCount(const QModelIndex &/*parent*/) const
@@ -73,8 +102,8 @@ QVariant BookmarkFolderModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        BookmarkFolder *folder = getItem(index);
-        return folder->name;
+        BookmarkNode *folder = getItem(index);
+        return folder->getName();
     }
     return QVariant();
 }
@@ -83,8 +112,8 @@ bool BookmarkFolderModel::setData(const QModelIndex &index, const QVariant &valu
 {
     if (index.isValid() && role == Qt::EditRole)
     {
-        BookmarkFolder *folder = getItem(index);
-        folder->name = value.toString();
+        BookmarkNode *folder = getItem(index);
+        folder->setName(value.toString());
         m_bookmarkMgr->updatedFolderName(folder);
         emit dataChanged(index, index);
         return true;
@@ -103,22 +132,14 @@ Qt::ItemFlags BookmarkFolderModel::flags(const QModelIndex &index) const
 
 bool BookmarkFolderModel::insertRows(int row, int count, const QModelIndex &parent)
 {
-    BookmarkFolder *parentFolder = getItem(parent);
+    BookmarkNode *parentFolder = getItem(parent);
     if (!parentFolder)
         return false;
     //TODO: implement ability to move position of folder to row + i
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
-        m_bookmarkMgr->addFolder(QString("New Folder %1").arg(i), parentFolder->id);
+        m_bookmarkMgr->addFolder(QString("New Folder %1").arg(i), parentFolder);
     endInsertRows();
-    return true;
-}
-
-bool BookmarkFolderModel::insertColumns(int column, int count, const QModelIndex &parent)
-{
-    beginInsertColumns(parent, column, column + count - 1);
-    // FIXME: Implement me!
-    endInsertColumns();
     return true;
 }
 
@@ -131,19 +152,11 @@ bool BookmarkFolderModel::removeRows(int row, int count, const QModelIndex &pare
     return true;
 }
 
-bool BookmarkFolderModel::removeColumns(int column, int count, const QModelIndex &parent)
-{
-    beginRemoveColumns(parent, column, column + count - 1);
-    // FIXME: Implement me!
-    endRemoveColumns();
-    return true;
-}
-
-BookmarkFolder *BookmarkFolderModel::getItem(const QModelIndex &index) const
+BookmarkNode *BookmarkFolderModel::getItem(const QModelIndex &index) const
 {
     if (index.isValid())
     {
-        if (BookmarkFolder *folder = static_cast<BookmarkFolder*>(index.internalPointer()))
+        if (BookmarkNode *folder = static_cast<BookmarkNode*>(index.internalPointer()))
             return folder;
     }
     return m_root;

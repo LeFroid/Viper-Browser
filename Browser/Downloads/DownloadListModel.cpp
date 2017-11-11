@@ -28,5 +28,6 @@ Qt::ItemFlags DownloadListModel::flags(const QModelIndex &index) const
     if (index.row() < 0 || index.row() >= m_manager->m_downloads.size())
         return 0;
 
-    return Qt::ItemIsSelectable | Qt::ItemIsEnabled | QAbstractListModel::flags(index);
+    //return Qt::ItemIsSelectable | Qt::ItemIsEnabled | QAbstractListModel::flags(index);
+    return QAbstractListModel::flags(index);
 }

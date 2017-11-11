@@ -41,6 +41,9 @@ private slots:
     /// Called when a network error has occurred
     void onError(QNetworkReply::NetworkError errorCode);
 
+    /// Called if the metadata in the network reply associated with the download has changed
+    void onMetaDataChanged();
+
 private:
     /// Connects the interface items to network activity
     void setupItem();

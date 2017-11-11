@@ -4,6 +4,7 @@
 #include "ui_mainwindow.h"
 #include "AddBookmarkDialog.h"
 #include "BookmarkBar.h"
+#include "BookmarkNode.h"
 #include "BookmarkWidget.h"
 #include "CookieWidget.h"
 #include "DownloadManager.h"
@@ -216,29 +217,34 @@ void MainWindow::setupBookmarks()
     connect(ui->bookmarkBar, &BookmarkBar::loadBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
 }
 
-void MainWindow::setupBookmarkFolder(BookmarkFolder *folder, QMenu *folderMenu)
+void MainWindow::setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu)
 {
     if (!folderMenu)
         return;
 
     FaviconStorage *iconStorage = sBrowserApplication->getFaviconStorage();
-    for (BookmarkFolder *f : folder->folders)
+    int numChildren = folder->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
     {
-        QMenu *subMenu = folderMenu->addMenu(f->name);
-        setupBookmarkFolder(f, subMenu);
-    }
-    for (Bookmark *b : folder->bookmarks)
-    {
-        QUrl link = QUrl::fromUserInput(b->URL);
-        QAction *item = folderMenu->addAction(iconStorage->getFavicon(b->URL), b->name);
-        item->setIconVisibleInMenu(true);
-        folderMenu->addAction(item);
-        connect(item, &QAction::triggered, [=]() {
-            // Load URL into current webview
-            WebView *view = m_tabWidget->currentWebView();
-            if (view)
-                view->load(link);
-        });
+        BookmarkNode *n = folder->getNode(i);
+        if (n->getType() == BookmarkNode::Folder)
+        {
+            QMenu *subMenu = folderMenu->addMenu(n->getName());
+            setupBookmarkFolder(n, subMenu);
+        }
+        else
+        {
+            QUrl link = QUrl::fromUserInput(n->getURL());
+            QAction *item = folderMenu->addAction(iconStorage->getFavicon(n->getURL()), n->getName());
+            item->setIconVisibleInMenu(true);
+            folderMenu->addAction(item);
+            connect(item, &QAction::triggered, [=]() {
+                // Load URL into current webview
+                WebView *view = m_tabWidget->currentWebView();
+                if (view)
+                    view->load(link);
+            });
+        }
     }
 }
 

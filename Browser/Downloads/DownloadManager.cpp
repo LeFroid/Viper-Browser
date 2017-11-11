@@ -2,9 +2,9 @@
 #include "ui_downloadmanager.h"
 #include "DownloadItem.h"
 #include "DownloadListModel.h"
+#include "NetworkAccessManager.h"
 
 #include <QDir>
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
 
 DownloadManager::DownloadManager(QWidget *parent) :
@@ -30,7 +30,7 @@ void DownloadManager::setDownloadDir(const QString &path)
     m_downloadDir = path + QDir::separator();
 }
 
-void DownloadManager::setNetworkAccessManager(QNetworkAccessManager *manager)
+void DownloadManager::setNetworkAccessManager(NetworkAccessManager *manager)
 {
     m_accessMgr = manager;
 }
