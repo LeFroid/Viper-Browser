@@ -20,12 +20,20 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::BookmarkWidget),
     m_bookmarkManager(nullptr),
-    m_proxyModel(new QSortFilterProxyModel(this))
+    m_proxyModel(new QSortFilterProxyModel(this)),
+    m_folderBackHistory(),
+    m_folderForwardHistory()
 {
     ui->setupUi(this);
 
+    // Setup history buttons
     ui->buttonBack->setIcon(style()->standardIcon(QStyle::SP_ArrowBack, 0, this));
+    ui->buttonBack->setEnabled(false);
+    connect(ui->buttonBack, &QPushButton::clicked, this, &BookmarkWidget::onClickBackButton);
+
     ui->buttonForward->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
+    ui->buttonForward->setEnabled(false);
+    connect(ui->buttonForward, &QPushButton::clicked, this, &BookmarkWidget::onClickForwardButton);
 
     // Setup combo box items for importing / exporting bookmarks
     ui->comboBoxOptions->addItem(tr("Import or Export"),
@@ -174,6 +182,13 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
 
 void BookmarkWidget::onChangeFolderSelection(const QModelIndex &index)
 {
+    // Store the currently selected index at the front of the history queue
+    if (m_folderBackHistory.empty())
+        ui->buttonBack->setEnabled(true);
+    m_folderBackHistory.push_back(ui->treeView->currentIndex());
+    m_folderForwardHistory.clear();
+    ui->buttonForward->setEnabled(false);
+
     // Get the pointer to the new folder and update the tabel model
     BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
@@ -290,6 +305,60 @@ void BookmarkWidget::resetFolderModel()
     ui->treeView->setModel(updatedModel);
     oldModel->deleteLater();
     ui->treeView->setExpanded(updatedModel->index(0, 0), true);
+
+    // Clear history items
+    m_folderBackHistory.clear();
+    m_folderForwardHistory.clear();
+    ui->buttonBack->setEnabled(false);
+    ui->buttonForward->setEnabled(false);
+}
+
+void BookmarkWidget::onClickBackButton()
+{
+    if (m_folderBackHistory.empty())
+        return;
+
+    // Store current index in the forward history queue
+    if (m_folderForwardHistory.empty())
+        ui->buttonForward->setEnabled(true);
+    m_folderForwardHistory.push_back(ui->treeView->currentIndex());
+
+    const QModelIndex &idx = m_folderBackHistory.back();
+
+    // Get the pointer to the folder and update the tabel model
+    BookmarkNode *f = static_cast<BookmarkNode*>(idx.internalPointer());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    model->setCurrentFolder(f);
+
+    ui->treeView->setCurrentIndex(idx);
+    m_folderBackHistory.pop_back();
+
+    if (m_folderBackHistory.empty())
+        ui->buttonBack->setEnabled(false);
+}
+
+void BookmarkWidget::onClickForwardButton()
+{
+    if (m_folderForwardHistory.empty())
+        return;
+
+    // Store current index in the backwards history queue
+    if (m_folderBackHistory.empty())
+        ui->buttonBack->setEnabled(true);
+    m_folderBackHistory.push_back(ui->treeView->currentIndex());
+
+    const QModelIndex &idx = m_folderForwardHistory.back();
+    ui->treeView->setCurrentIndex(idx);
+
+    // Get the pointer to the folder and update the tabel model
+    BookmarkNode *f = static_cast<BookmarkNode*>(idx.internalPointer());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    model->setCurrentFolder(f);
+
+    m_folderForwardHistory.pop_back();
+
+    if (m_folderForwardHistory.empty())
+        ui->buttonForward->setEnabled(false);
 }
 
 QUrl BookmarkWidget::getUrlForSelection()

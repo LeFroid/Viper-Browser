@@ -2,6 +2,7 @@
 #define BookmarkWidget_H
 
 #include "BookmarkManager.h"
+#include <deque>
 #include <memory>
 #include <QUrl>
 #include <QWidget>
@@ -99,6 +100,12 @@ private slots:
     /// Resets the bookmark folder model
     void resetFolderModel();
 
+    /// Called when the user wants to go back by one selection in the folder view
+    void onClickBackButton();
+
+    /// Called when the user wants to go forward by one selection in the folder view
+    void onClickForwardButton();
+
 private:
     /// Returns a QUrl containing the location of the bookmark that the user has selected in the table view
     QUrl getUrlForSelection();
@@ -112,6 +119,12 @@ private:
 
     /// Proxy model used for searching bookmarks
     QSortFilterProxyModel *m_proxyModel;
+
+    /// Stores the indices of previous selections made in the folder view. Used for the back button feature
+    std::deque<QModelIndex> m_folderBackHistory;
+
+    /// Stores the indices of active selections in the folder view when the "Back" button is clicked. Used for forward button feature
+    std::deque<QModelIndex> m_folderForwardHistory;
 };
 
 #endif // BookmarkWidget_H

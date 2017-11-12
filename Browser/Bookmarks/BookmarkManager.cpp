@@ -42,8 +42,8 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
     else if (query.first())
         folderId = query.value(0).toInt() + 1;
 
-    query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, Position) VALUES (:folderId, :parentID, :type, :name, :position)");
-    query.bindValue(":folderId", folderId);
+    query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, Position) VALUES (:folderID, :parentID, :type, :name, :position)");
+    query.bindValue(":folderID", folderId);
     query.bindValue(":parentID", parent->getFolderId());
     query.bindValue(":type", static_cast<int>(BookmarkNode::Folder));
     query.bindValue(":name", name);
@@ -149,11 +149,11 @@ void BookmarkManager::removeFolder(BookmarkNode *folder)
 
     // Delete node and all sub nodes from the database
     QSqlQuery query(m_database);
-    query.prepare("DELETE FROM Bookmarks WHERE FolderID = (:id) OR ParentID = (:parentId)");
+    query.prepare("DELETE FROM Bookmarks WHERE FolderID = (:id) OR ParentID = (:parentID)");
 
     int folderId = folder->getFolderId();
     query.bindValue(":id", folderId);
-    query.bindValue(":parentId", folderId);
+    query.bindValue(":parentID", folderId);
     if (!query.exec())
     {
         qDebug() << "[Warning]: Could not remove bookmarks from database in BookmarkManager::removeFolder. Message: "
@@ -205,14 +205,14 @@ void BookmarkManager::setNodePosition(BookmarkNode *node, int position)
     // If position is being shifted closer to the root (ie new index < old index), increment position of items between old and new positions.
     if (position < oldPos)
     {
-        query.prepare("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentId) AND Position >= (:posNew) AND Position < (:posOld)");
+        query.prepare("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentID) AND Position >= (:posNew) AND Position < (:posOld)");
     }
     // If position is being shifted further down, decrement position of items between old and new positions
     else
     {
-        query.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE ParentID = (:parentId) AND Position <= (:posNew) AND Position > (:posOld)");
+        query.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE ParentID = (:parentID) AND Position <= (:posNew) AND Position > (:posOld)");
     }
-    query.bindValue(":parentId", parent->getFolderId());
+    query.bindValue(":parentID", parent->getFolderId());
     query.bindValue(":posNew", position);
     query.bindValue(":posOld", oldPos);
     if (!query.exec())
@@ -223,10 +223,10 @@ void BookmarkManager::setNodePosition(BookmarkNode *node, int position)
     switch (node->getType())
     {
         case BookmarkNode::Folder:
-            query.prepare("UPDATE Bookmarks SET Position = (:posNew) WHERE FolderID = (:folderId) AND ParentID = (:parentId)");
+            query.prepare("UPDATE Bookmarks SET Position = (:posNew) WHERE FolderID = (:folderID) AND ParentID = (:parentID)");
             query.bindValue(":posNew", position);
-            query.bindValue(":folderId", node->getFolderId());
-            query.bindValue(":parentId", parent->getFolderId());
+            query.bindValue(":folderID", node->getFolderId());
+            query.bindValue(":parentID", parent->getFolderId());
             break;
         case BookmarkNode::Bookmark:
             query.prepare("UPDATE Bookmarks SET Position = (:posNew) WHERE URL = (:url)");
@@ -299,14 +299,14 @@ void BookmarkManager::updatedFolderName(BookmarkNode *folder)
 
     // Update database
     QSqlQuery query(m_database);
-    query.prepare("UPDATE Bookmarks SET Name = (:name) WHERE FolderID = (:folderId) AND ParentID = (:parentId)");
+    query.prepare("UPDATE Bookmarks SET Name = (:name) WHERE FolderID = (:folderID) AND ParentID = (:parentID)");
     query.bindValue(":name", folder->getName());
-    query.bindValue(":folderId", folder->getFolderId());
+    query.bindValue(":folderID", folder->getFolderId());
     int parentId = -1;
     BookmarkNode *parent = folder->getParent();
     if (parent != nullptr)
         parentId = parent->getFolderId();
-    query.bindValue(":parentId", parentId);
+    query.bindValue(":parentID", parentId);
     if (!query.exec())
         qDebug() << "Error updating name of bookmark folder in database. Message: " << query.lastError().text();
 }
