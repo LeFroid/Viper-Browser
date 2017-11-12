@@ -277,7 +277,7 @@ void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldV
         query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
         query.bindValue(":url", oldValue.getURL());
         query.exec();
-        query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderID, :parentId, :type, :name, :url, :position)");
+        query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderID, :parentID, :type, :name, :url, :position)");
         query.bindValue(":folderID", folderID);
         query.bindValue(":parentID", folderID);
         query.bindValue(":type", static_cast<int>(bookmark->getType()));
