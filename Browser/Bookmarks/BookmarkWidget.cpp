@@ -100,13 +100,7 @@ void BookmarkWidget::setBookmarkManager(std::shared_ptr<BookmarkManager> bookmar
     connect(ui->treeView, &QTreeView::clicked, this, &BookmarkWidget::onChangeFolderSelection);
 
     // Connect change in folder data via table model to an update in the folder model
-    connect(tableModel, &BookmarkTableModel::movedFolder, [=]() {
-        QAbstractItemModel *oldModel = ui->treeView->model();
-        BookmarkFolderModel *updatedModel = new BookmarkFolderModel(m_bookmarkManager, this);
-        ui->treeView->setModel(updatedModel);
-        oldModel->deleteLater();
-        ui->treeView->setExpanded(updatedModel->index(0, 0), true);
-    });
+    connect(tableModel, &BookmarkTableModel::movedFolder, this, &BookmarkWidget::resetFolderModel);
 }
 
 void BookmarkWidget::reloadBookmarks()
@@ -201,15 +195,9 @@ void BookmarkWidget::onImportExportBoxChanged(int index)
                 return;
 
             // Create an "Imported Bookmarks" folder
-            BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
-            QModelIndex rootIndex = model->index(0, 0);
+            BookmarkNode *importFolder = m_bookmarkManager->addFolder("Imported Bookmarks", m_bookmarkManager->getRoot());
+            resetFolderModel();
 
-            int importFolderIdx = model->rowCount(rootIndex);
-            model->insertRow(importFolderIdx, rootIndex);
-            QModelIndex importedIndex = model->index(importFolderIdx, 0, rootIndex);
-            model->setData(importedIndex, QString("Imported Bookmarks"), Qt::EditRole);
-
-            BookmarkNode *importFolder = static_cast<BookmarkNode*>(importedIndex.internalPointer());
             BookmarkImporter importer(m_bookmarkManager);
             if (!importer.import(fileName, importFolder))
                 qDebug() << "Error: In BookmarkWidget, could not import bookmarks from file " << fileName;
@@ -293,6 +281,15 @@ void BookmarkWidget::deleteFolderSelection()
 void BookmarkWidget::searchBookmarks()
 {
     m_proxyModel->setFilterRegExp(ui->lineEditSearch->text());
+}
+
+void BookmarkWidget::resetFolderModel()
+{
+    QAbstractItemModel *oldModel = ui->treeView->model();
+    BookmarkFolderModel *updatedModel = new BookmarkFolderModel(m_bookmarkManager, this);
+    ui->treeView->setModel(updatedModel);
+    oldModel->deleteLater();
+    ui->treeView->setExpanded(updatedModel->index(0, 0), true);
 }
 
 QUrl BookmarkWidget::getUrlForSelection()

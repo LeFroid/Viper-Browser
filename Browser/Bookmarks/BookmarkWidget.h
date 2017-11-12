@@ -96,6 +96,9 @@ private slots:
     /// Called when the search bar is activated
     void searchBookmarks();
 
+    /// Resets the bookmark folder model
+    void resetFolderModel();
+
 private:
     /// Returns a QUrl containing the location of the bookmark that the user has selected in the table view
     QUrl getUrlForSelection();

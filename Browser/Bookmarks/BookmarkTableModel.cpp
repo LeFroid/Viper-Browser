@@ -59,7 +59,10 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
                 if (role == Qt::EditRole || role == Qt::DisplayRole)
                     return b->getName();
 
-                // Try to display favicon next to name
+                // Try to display favicon next to name, if node is of type bookmark
+                if (b->getType() != BookmarkNode::Bookmark)
+                    return QVariant();
+
                 QIcon favicon = sBrowserApplication->getFaviconStorage()->getFavicon(b->getURL());
                 if (role == Qt::DecorationRole)
                     return favicon.pixmap(16, 16);

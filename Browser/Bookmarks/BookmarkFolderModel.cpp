@@ -138,7 +138,7 @@ bool BookmarkFolderModel::insertRows(int row, int count, const QModelIndex &pare
     //TODO: implement ability to move position of folder to row + i
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
-        m_bookmarkMgr->addFolder(QString("New Folder %1").arg(i), parentFolder->getParent());
+        static_cast<void>(m_bookmarkMgr->addFolder(QString("New Folder %1").arg(i), parentFolder));
     endInsertRows();
     return true;
 }

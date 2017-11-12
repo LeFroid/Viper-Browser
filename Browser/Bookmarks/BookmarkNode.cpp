@@ -38,7 +38,8 @@ BookmarkNode::BookmarkNode(BookmarkNode &&other)
 BookmarkNode *BookmarkNode::appendNode(std::unique_ptr<BookmarkNode> node)
 {
     node->m_parent = this;
-    node->m_folderId = m_folderId;
+    if (node->getType() != BookmarkNode::Folder)
+        node->m_folderId = m_folderId;
     BookmarkNode *nodePtr = node.get();
     m_children.push_back(std::move(node));
     return nodePtr;
@@ -47,7 +48,8 @@ BookmarkNode *BookmarkNode::appendNode(std::unique_ptr<BookmarkNode> node)
 BookmarkNode *BookmarkNode::insertNode(std::unique_ptr<BookmarkNode> node, int index)
 {
     node->m_parent = this;
-    node->m_folderId = m_folderId;
+    if (node->getType() != BookmarkNode::Folder)
+        node->m_folderId = m_folderId;
     BookmarkNode *nodePtr = node.get();
 
     if (index < 0 || index > static_cast<int>(m_children.size()))
