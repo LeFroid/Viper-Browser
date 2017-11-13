@@ -3,6 +3,7 @@
 
 #include <QWebView>
 
+class WebLinkLabel;
 class WebPage;
 class QLabel;
 class QMenu;
@@ -31,9 +32,6 @@ public:
 private slots:
     /// Called when a download is requested
     void requestDownload(const QNetworkRequest &request);
-
-    /// Called when the user hovers over a link, in order to display its location
-    void showLinkRef(const QString &link, const QString &title, const QString &context);
 
 protected:
     /// Event handler for context menu displays
@@ -67,7 +65,7 @@ private:
 
 private:
     /// Label used to display the url of a link being hovered on by the user
-    QLabel *m_labelLinkRef;
+    WebLinkLabel *m_labelLinkRef;
 
     /// Web page
     WebPage *m_page;

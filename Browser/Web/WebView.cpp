@@ -12,6 +12,7 @@
 #include "Settings.h"
 #include "WebDialog.h"
 #include "WebView.h"
+#include "WebLinkLabel.h"
 #include "WebPage.h"
 
 WebView::WebView(QWidget *parent) :
@@ -22,24 +23,13 @@ WebView::WebView(QWidget *parent) :
     setPage(m_page);
 
     // Setup link hover label
-    m_labelLinkRef = new QLabel(this);
-    m_labelLinkRef->hide();
-    m_labelLinkRef->setStyleSheet("QLabel { background-color: #FFFFFF; border: 1px solid #CCCCCC; }");
-    m_labelLinkRef->setMinimumSize(QSize(0, 0));
-    m_labelLinkRef->setAutoFillBackground(false);
-    m_labelLinkRef->setFrameShape(QLabel::Box);
-    m_labelLinkRef->setTextInteractionFlags(Qt::NoTextInteraction);
-    m_labelLinkRef->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-
-    QPoint labelPos(0, std::max(parent->geometry().height() - 17, 0));
-    m_labelLinkRef->move(labelPos);
+    m_labelLinkRef = new WebLinkLabel(this, m_page);
 
     connect(this, &WebView::loadProgress, [=](int value){
        m_progress = value;
     });
 
     // Connect QWebPage signals to slots in the web view
-    connect(m_page, &WebPage::linkHovered, this, &WebView::showLinkRef);
     connect(m_page, &WebPage::downloadRequested, this, &WebView::requestDownload);
 }
 
@@ -68,20 +58,6 @@ void WebView::requestDownload(const QNetworkRequest &request)
     BrowserApplication *app = sBrowserApplication;
     bool askWhereToSave = app->getSettings()->getValue("AskWhereToSaveDownloads").toBool();
     app->getDownloadManager()->download(request, askWhereToSave);
-}
-
-void WebView::showLinkRef(const QString &link, const QString &/*title*/, const QString &/*context*/)
-{
-    // Hide tooltip if parameter is empty
-    if (link.isEmpty())
-    {
-        m_labelLinkRef->hide();
-        return;
-    }
-
-    m_labelLinkRef->setText(link);
-    m_labelLinkRef->setMaximumWidth(m_labelLinkRef->fontMetrics().boundingRect(link).width() + 15);
-    m_labelLinkRef->show();
 }
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
