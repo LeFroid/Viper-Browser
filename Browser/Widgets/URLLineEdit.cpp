@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "SecurityManager.h"
 #include "URLLineEdit.h"
 #include "URLSuggestionModel.h"
 
@@ -54,6 +55,16 @@ void URLLineEdit::setSecurityIcon(SecurityIcon iconType)
             m_securityButton->setToolTip(tr("Insecure connection"));
             return;
     }
+}
+
+void URLLineEdit::setURL(const QUrl &url)
+{
+    setText(url.toString());
+
+    SecurityIcon secureIcon = SecurityIcon::Standard;
+    if (url.scheme().compare("https") == 0)
+        secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
+    setSecurityIcon(secureIcon);
 }
 
 void URLLineEdit::resizeEvent(QResizeEvent *event)

@@ -2,6 +2,7 @@
 #define URLLINEEDIT_H
 
 #include <QLineEdit>
+#include <QUrl>
 
 class QToolButton;
 
@@ -30,6 +31,9 @@ public:
 
     /// Sets the security icon at the left side of the line edit widget
     void setSecurityIcon(SecurityIcon iconType);
+
+    /// Sets the URL to be displayed with a security status icon in the line edit widget
+    void setURL(const QUrl &url);
 
 signals:
     /// Called when the user requests to view the security information regarding the current page

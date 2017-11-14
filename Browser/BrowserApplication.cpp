@@ -198,6 +198,15 @@ MainWindow *BrowserApplication::getNewWindow()
                 break;
         }
     }
+    else
+    {
+        // Treat new window as a new tab, and check if new tab behavior is set to
+        // open a blank page or load a home page URL
+        if (m_settings->getValue("NewTabsLoadHomePage").toBool())
+            w->loadUrl(QUrl::fromUserInput(m_settings->getValue("HomePage").toString()));
+        else
+            w->loadBlankPage();
+    }
 
     return w;
 }

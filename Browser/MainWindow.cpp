@@ -394,11 +394,7 @@ void MainWindow::onTabChanged(int index)
 
     // Update UI elements to reflect current view
     ui->widgetFindText->setWebView(view);
-    m_urlInput->setText(view->url().toString());
-    SecurityIcon secureIcon = SecurityIcon::Standard;
-    if (m_urlInput->text().startsWith("https"))
-        secureIcon = SecurityManager::instance().isInsecure(view->url().host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
-    m_urlInput->setSecurityIcon(secureIcon);
+    m_urlInput->setURL(view->url());
 
     checkPageForBookmark();
 
@@ -406,6 +402,9 @@ void MainWindow::onTabChanged(int index)
     QWebPage *page = view->page();
     for (WebActionProxy *proxy : m_webActions)
         proxy->setPage(page);
+
+    // Give focus to the url line edit widget when changing tabs
+    m_urlInput->setFocus();
 }
 
 void MainWindow::openBookmarkWidget()
@@ -601,11 +600,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
 
     if (m_tabWidget->currentWebView() == view)
     {
-        m_urlInput->setText(view->url().toString());
-        SecurityIcon secureIcon = SecurityIcon::Standard;
-        if (m_urlInput->text().startsWith("https"))
-            secureIcon = SecurityManager::instance().isInsecure(view->url().host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
-        m_urlInput->setSecurityIcon(secureIcon);
+        m_urlInput->setURL(view->url());
         checkPageForBookmark();
     }
 
@@ -655,7 +650,7 @@ void MainWindow::onNewTabCreated(WebView *view)
         onLoadFinished(view, ok);
     });
     connect(view, &WebView::inspectElement, [=]() {
-        QWebInspector *inspector = new QWebInspector(this->ui->dockWidget);
+        QWebInspector *inspector = new QWebInspector(ui->dockWidget);
         inspector->setPage(view->page());
         ui->dockWidget->setWidget(inspector);
         ui->dockWidget->show();
@@ -667,7 +662,7 @@ void MainWindow::onClickSecurityInfo()
     WebView *currentView = m_tabWidget->currentWebView();
     if (!currentView)
         return;
-    SecurityManager::instance().showSecurityInfo(currentView->url().host().remove(QRegExp("(www.)")));
+    SecurityManager::instance().showSecurityInfo(currentView->url().host());
 }
 
 void MainWindow::onRequestViewSource()

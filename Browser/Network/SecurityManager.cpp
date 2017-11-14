@@ -47,6 +47,9 @@ bool SecurityManager::isInsecure(const QString &host)
 
 void SecurityManager::showSecurityInfo(const QString &host)
 {
+    if (host.isEmpty())
+        return;
+
     if (!m_securityDialog)
         m_securityDialog = new SecurityInfoDialog;
 
@@ -90,7 +93,8 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
     {
         if (errCode.error() != QSslError::NoError)
         {
-            qDebug() << "Adding host " << host << " (url " << reply->url() << " , scheme " << reply->url().scheme() << ") to insecure host list";
+            qDebug() << "Adding host " << host << " (url " << reply->url() << " , scheme " << reply->url().scheme() << ") to insecure host list, "
+                        "for SSL Error: " << errCode.errorString();
             m_insecureHosts.append(host);
             return;
         }

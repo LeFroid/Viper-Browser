@@ -25,25 +25,13 @@ bool CookieJar::hasCookiesFor(const QString &host) const
     if (host.isEmpty())
         return false;
 
-    // Get substring of host such that the hostname = the string
-    // between the second-to-last dot (not including said dot), and
-    // the end of the string
-    int endSearchPos = host.size() - 4;
-    if (endSearchPos <= 0)
-        return false;
-    QString hostLeft = host.left(endSearchPos);
-    int startPos = 0, currentPos = 0;
-    while (currentPos >= 0)
-    {
-        currentPos = hostLeft.indexOf('.', startPos);
-        if (currentPos >= 0)
-            startPos = currentPos;
-    }
-
+    // If host string of format "xxx.yyy.zzz", must check for any cookies ending
+    // in ".yyy.zzz"
     QString hostSearch = host;
-    if (startPos > 0)
-        hostSearch = host.mid(startPos + 1);
-
+    int numDots = host.count(QChar('.'));
+    if (numDots > 1)
+        hostSearch = host.right(host.size() - host.indexOf(QChar('.'), 0));
+qDebug() << "Checking if host " << hostSearch << " has any cookies stored in browser";
     auto cookies = allCookies();
     for (const QNetworkCookie &cookie : cookies)
         if (cookie.domain().endsWith(hostSearch))
