@@ -46,8 +46,8 @@ FaviconStorage::~FaviconStorage()
 QIcon FaviconStorage::getFavicon(const QString &url) const
 {
     QSqlQuery query(m_database);
-    query.prepare("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL = (:url))");
-    query.bindValue(":url", url);
+    query.prepare("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))");
+    query.bindValue(":url", QString("%%1%").arg(url));
     if (query.exec() && query.first())
     {
         QString iconURL = query.value(0).toString();
