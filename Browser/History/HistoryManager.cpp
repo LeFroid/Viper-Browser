@@ -173,7 +173,7 @@ int HistoryManager::getTimesVisited(const QString &host)
     int timesVisited = 0;
     for (const WebHistoryItem &item : m_historyItems)
     {
-        if (item.URL.host().remove(QRegExp("(http(s)?:\\/\\/)?(www.)")).compare(host) == 0)
+        if (host.endsWith(item.URL.host().remove(QRegExp("(http(s)?://)?(www.)"))))
         {
             query.bindValue(":id", item.VisitID);
             if (query.exec() && query.next())

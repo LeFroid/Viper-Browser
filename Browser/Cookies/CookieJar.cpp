@@ -31,7 +31,7 @@ bool CookieJar::hasCookiesFor(const QString &host) const
     int numDots = host.count(QChar('.'));
     if (numDots > 1)
         hostSearch = host.right(host.size() - host.indexOf(QChar('.'), 0));
-qDebug() << "Checking if host " << hostSearch << " has any cookies stored in browser";
+
     auto cookies = allCookies();
     for (const QNetworkCookie &cookie : cookies)
         if (cookie.domain().endsWith(hostSearch))
