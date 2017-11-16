@@ -132,6 +132,9 @@ public slots:
     void onFindTextAction();
 
 private slots:
+    /// Spawns a file chooser dialog so the user can open a file into the web browser
+    void openFileInBrowser();
+
     /// Called when the tab widget signals a page has progressed in loading its content
     void onLoadProgress(int value);
 

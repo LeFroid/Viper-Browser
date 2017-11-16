@@ -25,6 +25,7 @@
 #include <functional>
 #include <QActionGroup>
 #include <QDir>
+#include <QFileDialog>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRegExp>
@@ -256,6 +257,7 @@ void MainWindow::setupMenuBar()
     });
     connect(ui->actionClose_Window, &QAction::triggered, this, &MainWindow::close);
     connect(ui->action_Quit, &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
+    connect(ui->actionOpen_File, &QAction::triggered, this, &MainWindow::openFileInBrowser);
 
     // Find action
     connect(ui->action_Find, &QAction::triggered, this, &MainWindow::onFindTextAction);
@@ -569,6 +571,13 @@ void MainWindow::onFindTextAction()
     auto lineEdit = ui->widgetFindText->getLineEdit();
     lineEdit->setFocus();
     lineEdit->selectAll();
+}
+
+void MainWindow::openFileInBrowser()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::homePath());
+    if (!fileName.isEmpty())
+        loadUrl(QUrl(QString("file://%1").arg(fileName)));
 }
 
 void MainWindow::onLoadProgress(int value)
