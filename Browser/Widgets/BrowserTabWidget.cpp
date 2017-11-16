@@ -22,6 +22,8 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *
 
     connect(this, &BrowserTabWidget::tabCloseRequested, this, &BrowserTabWidget::closeTab);
     connect(this, &BrowserTabWidget::currentChanged, this, &BrowserTabWidget::onCurrentChanged);
+
+    connect(m_tabBar, &BrowserTabBar::newTabRequest, [=](){ newTab(); });
 }
 
 WebView *BrowserTabWidget::currentWebView() const

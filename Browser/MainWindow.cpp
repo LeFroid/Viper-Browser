@@ -321,7 +321,7 @@ void MainWindow::setupTabWidget()
     // Page load progress handler
     connect(m_tabWidget, &BrowserTabWidget::loadProgress, this, &MainWindow::onLoadProgress);
 
-    m_tabWidget->newTab();
+    m_tabWidget->newTab(true);
 }
 
 void MainWindow::setupToolBar()
