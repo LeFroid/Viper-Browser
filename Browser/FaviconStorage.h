@@ -7,6 +7,7 @@
 #include <QIcon>
 #include <QSet>
 #include <QString>
+#include <QUrl>
 
 class NetworkAccessManager;
 class QNetworkReply;
@@ -15,13 +16,13 @@ class QSqlQuery;
 /// Stores information about a favicon
 struct FaviconInfo
 {
-    /// Value of the icon's FaviconID key from the Favicons table
+    /// The icon's FaviconID from the Favicons table (which stores the URL of the favicon on the host server)
     int iconID;
 
-    /// Value of the icon's DataID key from the FaviconData table
+    /// The icon's DataID from the FaviconData table (used to access the icon)
     int dataID;
 
-    /// The actual icon
+    /// The favicon
     QIcon icon;
 
     /// Set of URLs the user has visited in the most recent session that use the favicon
@@ -49,7 +50,7 @@ public:
 
     /// Returns the favicon associated with the given URL if found in the database, otherwise
     /// returns an empty icon
-    QIcon getFavicon(const QString &url) const;
+    QIcon getFavicon(const QUrl &url) const;
 
     /// Updates the database (if applicable) about a favicon existing at the given location and being
     /// referred to by the page URL

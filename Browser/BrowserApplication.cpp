@@ -14,6 +14,7 @@
 #include "WebPage.h"
 
 #include <QDir>
+#include <QUrl>
 #include <QDebug>
 
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
@@ -39,11 +40,12 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Instantiate the history manager
     m_historyMgr = new HistoryManager(m_settings->firstRun(), m_settings->getPathValue("HistoryPath"));
-    connect(m_historyMgr, &HistoryManager::pageVisited, [=](const QString &url, const QString &title){
-        QIcon favicon = m_faviconStorage->getFavicon(url);
+    connect(m_historyMgr, &HistoryManager::pageVisited, [=](const QString &url, const QString &title) {
+        QUrl itemUrl(url);
+        QIcon favicon = m_faviconStorage->getFavicon(itemUrl);
 
         // update the History menu in each MainWindow
-        QUrl itemUrl = QUrl::fromUserInput(url);
+        //QUrl itemUrl = QUrl::fromUserInput(url);
         for (int i = 0; i < m_browserWindows.size(); ++i)
         {
             QPointer<MainWindow> m = m_browserWindows.at(i);
@@ -292,7 +294,7 @@ void BrowserApplication::setHistoryForWindow(MainWindow *w)
     for (auto it : historyItems)
     {
         if (!it.Title.isEmpty())
-            w->addHistoryItem(it.URL, it.Title, m_faviconStorage->getFavicon(it.URL.toString()));
+            w->addHistoryItem(it.URL, it.Title, m_faviconStorage->getFavicon(it.URL));
     }
 }
 

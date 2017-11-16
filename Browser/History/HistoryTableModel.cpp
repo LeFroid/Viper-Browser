@@ -109,7 +109,7 @@ void HistoryTableModel::loadFromDate(const QDateTime &date)
         HistoryTableItem tableItem;
         tableItem.Title = it.Title;
         tableItem.URL = it.URL.toString();
-        tableItem.Favicon = favicons->getFavicon(tableItem.URL).pixmap(16, 16);
+        tableItem.Favicon = favicons->getFavicon(it.URL).pixmap(16, 16);
         m_commonData.append(tableItem);
 
         int itemIndex = m_commonData.size() - 1;

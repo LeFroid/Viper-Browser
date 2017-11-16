@@ -43,11 +43,11 @@ FaviconStorage::~FaviconStorage()
     save();
 }
 
-QIcon FaviconStorage::getFavicon(const QString &url) const
+QIcon FaviconStorage::getFavicon(const QUrl &url) const
 {
     QSqlQuery query(m_database);
     query.prepare("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))");
-    query.bindValue(":url", QString("%%1%").arg(url));
+    query.bindValue(":url", QString("%%1%").arg(url.host()));
     if (query.exec() && query.first())
     {
         QString iconURL = query.value(0).toString();

@@ -47,7 +47,8 @@ void HistoryManager::addHistoryEntry(const QString &url)
         m_recentItems.prepend(*it);
         while (m_recentItems.size() > 15)
             m_recentItems.removeLast();
-        emit pageVisited(lowerUrl, it->Title);
+        if (!it->Title.isEmpty())
+            emit pageVisited(lowerUrl, it->Title);
         return;
     }
 

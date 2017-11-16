@@ -52,7 +52,7 @@ void BookmarkBar::refresh()
         {
             QToolButton *button = new QToolButton(this);
             button->setText(child->getName());
-            button->setIcon(iconStorage->getFavicon(child->getURL()));
+            button->setIcon(iconStorage->getFavicon(QUrl(child->getURL())));
             button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
             connect(button, &QToolButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(child->getURL())); });
             addWidget(button);
@@ -76,8 +76,9 @@ void BookmarkBar::addFolderItems(QMenu *menu, BookmarkNode *folder, FaviconStora
         }
         else
         {
-            menu->addAction(iconStorage->getFavicon(child->getURL()), child->getName(), this, [=](){
-                emit loadBookmark(QUrl::fromUserInput(child->getURL()));
+            QUrl nodeUrl(child->getURL());
+            menu->addAction(iconStorage->getFavicon(nodeUrl), child->getName(), this, [=](){
+                emit loadBookmark(nodeUrl);
             });
         }
     }

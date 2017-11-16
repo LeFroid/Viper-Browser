@@ -7,6 +7,7 @@
 #include <QIODevice>
 #include <QMimeData>
 #include <QSet>
+#include <QUrl>
 #include <QDebug>
 
 BookmarkTableModel::BookmarkTableModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
@@ -59,13 +60,19 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
                 if (role == Qt::EditRole || role == Qt::DisplayRole)
                     return b->getName();
 
-                // Try to display favicon next to name, if node is of type bookmark
-                if (b->getType() != BookmarkNode::Bookmark)
-                    return QVariant();
-
-                QIcon favicon = sBrowserApplication->getFaviconStorage()->getFavicon(b->getURL());
+                // Try to display icon next to name
+                QIcon nodeIcon;
+                switch (b->getType())
+                {
+                    case BookmarkNode::Folder:
+                        nodeIcon = b->getIcon();
+                        break;
+                    case BookmarkNode::Bookmark:
+                        nodeIcon = sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(b->getURL()));
+                        break;
+                }
                 if (role == Qt::DecorationRole)
-                    return favicon.pixmap(16, 16);
+                    return nodeIcon.pixmap(16, 16);
                 if (role == Qt::SizeHintRole)
                     return QSize(16, 16);
             }

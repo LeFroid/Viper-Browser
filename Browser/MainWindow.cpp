@@ -234,16 +234,11 @@ void MainWindow::setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu)
         }
         else
         {
-            QUrl link = QUrl::fromUserInput(n->getURL());
-            QAction *item = folderMenu->addAction(iconStorage->getFavicon(n->getURL()), n->getName());
+            QUrl link(n->getURL());
+            QAction *item = folderMenu->addAction(iconStorage->getFavicon(QUrl(n->getURL())), n->getName());
             item->setIconVisibleInMenu(true);
             folderMenu->addAction(item);
-            connect(item, &QAction::triggered, [=]() {
-                // Load URL into current webview
-                WebView *view = m_tabWidget->currentWebView();
-                if (view)
-                    view->load(link);
-            });
+            connect(item, &QAction::triggered, [=]() { loadUrl(link); });
         }
     }
 }
