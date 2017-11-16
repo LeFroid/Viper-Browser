@@ -254,6 +254,8 @@ void MainWindow::setupMenuBar()
     connect(ui->actionClose_Tab, &QAction::triggered, [=](){
         m_tabWidget->closeTab(m_tabWidget->currentIndex());
     });
+    connect(ui->actionClose_Window, &QAction::triggered, this, &MainWindow::close);
+    connect(ui->action_Quit, &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
 
     // Find action
     connect(ui->action_Find, &QAction::triggered, this, &MainWindow::onFindTextAction);
