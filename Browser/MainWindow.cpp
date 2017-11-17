@@ -31,6 +31,7 @@
 #include <QPrintDialog>
 #include <QPushButton>
 #include <QRegExp>
+#include <QSplitter>
 #include <QTextEdit>
 #include <QTimer>
 #include <QWebElement>
@@ -356,7 +357,7 @@ void MainWindow::setupToolBar()
     });
 
     // URL Bar
-    m_urlInput = new URLLineEdit(ui->toolBar);
+    m_urlInput = new URLLineEdit(this);//ui->toolBar);
     connect(m_urlInput, &URLLineEdit::returnPressed, this, &MainWindow::goToURL);
     connect(m_urlInput, &URLLineEdit::viewSecurityInfo, this, &MainWindow::onClickSecurityInfo);
 
@@ -364,11 +365,29 @@ void MainWindow::setupToolBar()
     m_searchEngineLineEdit = new SearchEngineLineEdit(this);
     connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoad, this, &MainWindow::loadUrl);
 
+    // Splitter for resizing URL bar and quick search bar
+    QSplitter *splitter = new QSplitter(ui->toolBar);
+    splitter->addWidget(m_urlInput);
+    splitter->addWidget(m_searchEngineLineEdit);
+
+    // Reduce height of URL bar and quick search
+    int lineEditHeight = ui->toolBar->height() * 2 / 3 + 1;
+    m_urlInput->setMaximumHeight(lineEditHeight);
+    m_searchEngineLineEdit->setMaximumHeight(lineEditHeight);
+
+    // Set width of URL bar to be larger than quick search
+    QList<int> splitterSizes;
+    int totalWidth = splitter->size().width();
+    splitterSizes.push_back(totalWidth * 3 / 4);
+    splitterSizes.push_back(totalWidth / 4);
+    splitter->setSizes(splitterSizes);
+    splitter->setStretchFactor(0, 1);
+    splitter->setStretchFactor(1, 0);
+
     ui->toolBar->addAction(m_prevPage);
     ui->toolBar->addAction(m_nextPage);
     ui->toolBar->addAction(m_stopRefresh);
-    ui->toolBar->addWidget(m_urlInput);
-    ui->toolBar->addWidget(m_searchEngineLineEdit);
+    ui->toolBar->addWidget(splitter);
 }
 
 void MainWindow::checkPageForBookmark()
