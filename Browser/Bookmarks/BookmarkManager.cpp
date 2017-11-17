@@ -67,8 +67,7 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
         qDebug() << "[Error]: In BookmarkManager::addFolder(..) - error inserting new bookmark folder into database. Message: " << query.lastError().text();
 
     // Append bookmark folder to parent
-    BookmarkNode *f = parent->appendNode(
-                std::unique_ptr<BookmarkNode>(new BookmarkNode(BookmarkNode::Folder, name)));
+    BookmarkNode *f = parent->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, name));
     f->setFolderId(folderId);
     f->setIcon(QIcon::fromTheme("folder"));
     return f;
@@ -78,11 +77,10 @@ void BookmarkManager::appendBookmark(const QString &name, const QString &url, Bo
 {
     // If parent folder not specified, set to root folder
     if (!folder)
-        folder = m_rootNode.get();
+        folder = getBookmarksBar();
 
     // Create new bookmark
-    BookmarkNode *b = folder->appendNode(
-                std::unique_ptr<BookmarkNode>(new BookmarkNode(BookmarkNode::Bookmark, name)));
+    BookmarkNode *b = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
     b->setURL(url);
 
     // Add bookmark to the database
@@ -93,15 +91,25 @@ void BookmarkManager::appendBookmark(const QString &name, const QString &url, Bo
 void BookmarkManager::insertBookmark(const QString &name, const QString &url, BookmarkNode *folder, int position)
 {
     if (!folder)
+        folder = getBookmarksBar();
+
+    if (position < 0 || position > folder->getNumChildren())
     {
-        folder = m_rootNode.get();
+        appendBookmark(name, url, folder);
         return;
     }
 
-    // Create new bookmark
-    BookmarkNode *b = folder->insertNode(
-                std::unique_ptr<BookmarkNode>(new BookmarkNode(BookmarkNode::Bookmark, name)), position);
+    // Create new bookmark        
+    BookmarkNode *b = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
     b->setURL(url);
+
+    // Update positions of items in same folder
+    QSqlQuery query(m_database);
+    query.prepare("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentID) AND Position >= (:position)");
+    query.bindValue(":parentID", folder->getFolderId());
+    query.bindValue(":position", position);
+    if (!query.exec())
+        qDebug() << "[Warning]: Could not update bookmark positions when calling insertBookmark()";
 
     // Add bookmark to the database
     if (!addBookmarkToDB(b, folder))
@@ -410,7 +418,7 @@ BookmarkNode *BookmarkManager::findFolder(int id)
 
 bool BookmarkManager::addBookmarkToDB(BookmarkNode *bookmark, BookmarkNode *folder)
 {
-    QSqlQuery query(m_database);
+    QSqlQuery query(m_database);    
     query.prepare("INSERT OR REPLACE INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) "
                   "VALUES(:folderID, :parentID, :type, :name, :url, :position)");
     int folderId = folder->getFolderId();
