@@ -47,7 +47,10 @@ void BrowserTabWidget::setPrivateMode(bool value)
 
     int numViews = count();
     for (int i = 0; i < numViews; ++i)
-        getWebView(i)->setPrivate(value);
+    {
+        if (m_tabBar->isTabEnabled(i))
+            getWebView(i)->setPrivate(value);
+    }
 }
 
 void BrowserTabWidget::closeTab(int index)
