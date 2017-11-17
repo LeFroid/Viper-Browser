@@ -7,14 +7,10 @@ BookmarkFolderModel::BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookma
     m_root(bookmarkMgr->getRoot()),
     m_bookmarkMgr(bookmarkMgr)
 {
-    // Create a false root for proper tree display
-    //m_root->appendNode(m_bookmarkMgr->getRoot());
 }
 
 BookmarkFolderModel::~BookmarkFolderModel()
 {
-    //m_bookmarkMgr->m_root.parent = nullptr;
-    //delete m_root;
 }
 
 QModelIndex BookmarkFolderModel::index(int row, int column, const QModelIndex &parent) const

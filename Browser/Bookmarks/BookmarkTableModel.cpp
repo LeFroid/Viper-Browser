@@ -13,7 +13,7 @@
 BookmarkTableModel::BookmarkTableModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
     QAbstractTableModel(parent),
     m_bookmarkMgr(bookmarkMgr),
-    m_folder(bookmarkMgr->getRoot())
+    m_folder(bookmarkMgr->getBookmarksBar())
 {
 }
 

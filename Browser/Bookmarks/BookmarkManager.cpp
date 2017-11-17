@@ -20,6 +20,21 @@ BookmarkNode *BookmarkManager::getRoot()
     return m_rootNode.get();
 }
 
+BookmarkNode *BookmarkManager::getBookmarksBar()
+{
+    BookmarkNode *child = nullptr;
+    int numChildren = m_rootNode->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
+    {
+        child = m_rootNode->getNode(i);
+        if (child->getType() == BookmarkNode::Folder && child->getName().compare("Bookmarks Bar") == 0)
+            return child;
+    }
+
+    // Settle for root node if could not find bookmarks bar
+    return m_rootNode.get();
+}
+
 BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *parent)
 {
     // If parent cannot be found then attach the new folder directly to the root folder
@@ -448,10 +463,13 @@ void BookmarkManager::setup()
     if (!query.exec())
             qDebug() << "Error inserting root bookmark folder. Message: " << query.lastError().text();
 
+    // Insert bookmarks bar folder
+    BookmarkNode *bookmarkBar = addFolder("Bookmarks Bar", m_rootNode.get());
+
     // Insert bookmark for search engine
     query.prepare("INSERT OR IGNORE INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderId, :parentID, :type, :name, :url, :position)");
-    query.bindValue(":folderID", rootFolderId);
-    query.bindValue(":parentID", rootFolderId);
+    query.bindValue(":folderID", bookmarkBar->getFolderId());
+    query.bindValue(":parentID", bookmarkBar->getFolderId());
     query.bindValue(":type", QVariant::fromValue(BookmarkNode::Bookmark));
     query.bindValue(":name", "Search Engine");
     query.bindValue(":url", "https://www.ixquick.com/");

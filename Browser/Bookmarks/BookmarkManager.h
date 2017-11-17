@@ -27,6 +27,9 @@ public:
     /// Returns the root bookmark container
     BookmarkNode *getRoot();
 
+    /// Returns the bookmarks bar
+    BookmarkNode *getBookmarksBar();
+
     /**
      * @brief addFolder Adds a folder to the bookmark collection, given a folder name and parent identifier
      * @param name Name of the folder to be created

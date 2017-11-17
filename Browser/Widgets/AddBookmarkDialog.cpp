@@ -15,13 +15,17 @@ AddBookmarkDialog::AddBookmarkDialog(std::shared_ptr<BookmarkManager> bookmarkMg
 
     // Populate combo box with up to 15 folders, by performing a BFS from the root folder
     int foldersAdded = 0;
+    bool isRoot = true;
     BookmarkNode *f = nullptr;
     QQueue<BookmarkNode*> q;
     q.enqueue(m_bookmarkManager->getRoot());
     while (!q.empty() && foldersAdded < 16)
     {
         f = q.dequeue();
-        ui->comboBoxFolder->addItem(f->getName(), qVariantFromValue((void *)f));
+        if (isRoot)
+            isRoot = false;
+        else
+            ui->comboBoxFolder->addItem(f->getName(), qVariantFromValue((void *)f));
         int numChildren = f->getNumChildren();
         for (int i = 0; i < numChildren; ++i)
         {

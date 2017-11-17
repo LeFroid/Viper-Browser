@@ -88,6 +88,9 @@ private slots:
     /// Called by the add new folder action
     void addFolder();
 
+    /// Adds a top-level folder (ie direct descendant of the root folder)
+    void addTopLevelFolder();
+
     /// Deletes the current bookmark selection
     void deleteBookmarkSelection();
 

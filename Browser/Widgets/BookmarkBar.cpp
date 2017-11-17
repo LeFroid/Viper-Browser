@@ -28,8 +28,10 @@ void BookmarkBar::refresh()
 
     FaviconStorage *iconStorage = sBrowserApplication->getFaviconStorage();
 
-    BookmarkNode *folder = m_bookmarkManager->getRoot();
+    BookmarkNode *folder = m_bookmarkManager->getBookmarksBar();
     int numChildren = folder->getNumChildren();
+
+    // Show contents of bookmarks bar
     for (int i = 0; i < numChildren; ++i)
     {
         BookmarkNode *child = folder->getNode(i);

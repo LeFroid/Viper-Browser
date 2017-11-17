@@ -99,6 +99,7 @@ void BookmarkWidget::setBookmarkManager(std::shared_ptr<BookmarkManager> bookmar
     QModelIndex root = treeViewModel->index(0, 0);
     ui->treeView->setCurrentIndex(root);
     ui->treeView->setExpanded(root, true);
+    m_folderBackHistory.push_back(root);
 
     // Add context menu to folder view (for adding or removing folders)
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -144,8 +145,14 @@ void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
 
     if (index.isValid())
     {
-        menu.addSeparator();
-        menu.addAction(tr("Delete"), this, &BookmarkWidget::deleteBookmarkSelection);
+        // Check if URL column is empty. If so, do not allow delete operation, as this must be done in tree view
+        BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+        QModelIndex urlIdx = model->index(index.row(), 1, index.parent());
+        if (!model->data(urlIdx).isNull())
+        {
+            menu.addSeparator();
+            menu.addAction(tr("Delete"), this, &BookmarkWidget::deleteBookmarkSelection);
+        }
     }
 
     menu.exec(ui->tableView->mapToGlobal(pos));
@@ -155,37 +162,37 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
 {
     //TODO: Implement "Open all items in tabs" action
     QModelIndex index = ui->treeView->indexAt(pos);
-    if (!index.isValid())
-        return;
-
-    BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
     QMenu menu(this);
 
-    // Allow user to open all bookmark items if there are > 0 within the folder
-    if (f->getNumChildren() > 0)
+    if (index.isValid())
     {
-        menu.addAction(tr("Open all items in tabs"));
-        menu.addSeparator();
-    }
+        BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
 
-    menu.addAction(tr("New bookmark..."), this, &BookmarkWidget::addBookmark);
-    menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
+        // Allow user to open all bookmark items if there are > 0 within the folder
+        if (f->getNumChildren() > 0)
+        {
+            menu.addAction(tr("Open all items in tabs"));
+            menu.addSeparator();
+        }
 
-    // Allow deletion of folder if not root bookmark folder
-    //if (f->id > 0)
-    //{
+        menu.addAction(tr("New bookmark..."), this, &BookmarkWidget::addBookmark);
+        menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
         menu.addSeparator();
         menu.addAction(tr("Delete"), this, &BookmarkWidget::deleteFolderSelection);
-    //}
+    }
+    else
+    {
+        menu.addAction(tr("New folder..."), this, &BookmarkWidget::addTopLevelFolder);
+    }
+
     menu.exec(mapToGlobal(pos));
 }
 
 void BookmarkWidget::onChangeFolderSelection(const QModelIndex &index)
 {
     // Store the currently selected index at the front of the history queue
-    if (m_folderBackHistory.empty())
+    if (m_folderBackHistory.size() < 2)
         ui->buttonBack->setEnabled(true);
-    m_folderBackHistory.push_back(ui->treeView->currentIndex());
     m_folderForwardHistory.clear();
     ui->buttonForward->setEnabled(false);
 
@@ -193,6 +200,8 @@ void BookmarkWidget::onChangeFolderSelection(const QModelIndex &index)
     BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
     model->setCurrentFolder(f);
+
+    m_folderBackHistory.push_back(ui->treeView->currentIndex());
 }
 
 void BookmarkWidget::onImportExportBoxChanged(int index)
@@ -267,6 +276,12 @@ void BookmarkWidget::addFolder()
     model->insertRow(0, ui->treeView->currentIndex());
 }
 
+void BookmarkWidget::addTopLevelFolder()
+{
+    BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
+    model->insertRow(model->rowCount());
+}
+
 void BookmarkWidget::deleteBookmarkSelection()
 {
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
@@ -285,7 +300,7 @@ void BookmarkWidget::deleteFolderSelection()
 {
     // Make sure the table model is not using the any of the folder selections
     BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
-    tableModel->setCurrentFolder(m_bookmarkManager->getRoot());
+    tableModel->setCurrentFolder(m_bookmarkManager->getBookmarksBar());
 
     BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
     QModelIndexList items = ui->treeView->selectionModel()->selectedIndexes();
@@ -323,7 +338,12 @@ void BookmarkWidget::onClickBackButton()
         ui->buttonForward->setEnabled(true);
     m_folderForwardHistory.push_back(ui->treeView->currentIndex());
 
-    const QModelIndex &idx = m_folderBackHistory.back();
+    QModelIndex idx = m_folderBackHistory.back();
+    if (idx == ui->treeView->currentIndex() && m_folderBackHistory.size() > 1)
+    {
+        m_folderBackHistory.pop_back();
+        idx = m_folderBackHistory.back();
+    }
 
     // Get the pointer to the folder and update the tabel model
     BookmarkNode *f = static_cast<BookmarkNode*>(idx.internalPointer());
