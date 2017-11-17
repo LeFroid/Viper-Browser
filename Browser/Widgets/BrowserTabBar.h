@@ -24,6 +24,9 @@ protected:
     /// Returns a size hint of the tab with the given index
     QSize tabSizeHint(int index) const override;
 
+    /// Handles mouse move events, ensuring that a tab isn't moved to the right of the "New tab" pseudo tab
+    void mouseMoveEvent(QMouseEvent *event) override;
+
 private:
     /// The "New Tab" button to the right of the last tab in the tab bar
     QToolButton *m_buttonNewTab;

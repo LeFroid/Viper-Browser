@@ -2,6 +2,7 @@
 
 #include <QIcon>
 #include <QLabel>
+#include <QMouseEvent>
 #include <QToolButton>
 
 //TODO: Context menu for tabBar
@@ -47,4 +48,16 @@ QSize BrowserTabBar::tabSizeHint(int index) const
         return hint.boundedTo(QSize(fMetric.width("R") * 20, hint.height()));
     }
     return hint;
+}
+
+void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
+{
+    // Do not move tab further if it is being moved towards the "New Tab" pseudo tab
+    int xPos = event->pos().x();
+    int index = tabAt(event->pos());
+    if (index + 2 == count()
+            && xPos + tabSizeHint(index).width() >= m_buttonNewTab->frameGeometry().x())
+        return;
+
+    QTabBar::mouseMoveEvent(event);
 }
