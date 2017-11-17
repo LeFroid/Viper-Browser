@@ -50,7 +50,8 @@ HistoryType ClearHistoryDialog::getHistoryTypes() const
     for (int i = 0; i < ui->listWidgetDetails->count(); ++i)
     {
         item = ui->listWidgetDetails->item(i);
-        histTypes = histTypes | item->data(Qt::UserRole).value<HistoryType>();
+        if (item->checkState() == Qt::Checked)
+            histTypes = histTypes | item->data(Qt::UserRole).value<HistoryType>();
     }
 
     return histTypes;
