@@ -27,6 +27,8 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPrinter>
+#include <QPrintDialog>
 #include <QPushButton>
 #include <QRegExp>
 #include <QTextEdit>
@@ -258,6 +260,7 @@ void MainWindow::setupMenuBar()
     connect(ui->actionClose_Window, &QAction::triggered, this, &MainWindow::close);
     connect(ui->action_Quit, &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
     connect(ui->actionOpen_File, &QAction::triggered, this, &MainWindow::openFileInBrowser);
+    connect(ui->action_Print, &QAction::triggered, this, &MainWindow::printTabContents);
 
     // Find action
     connect(ui->action_Find, &QAction::triggered, this, &MainWindow::onFindTextAction);
@@ -705,4 +708,23 @@ void MainWindow::onToggleFullScreen(bool enable)
         else
             showNormal();
     }
+}
+
+void MainWindow::printTabContents()
+{
+    WebView *currentView = m_tabWidget->currentWebView();
+    if (!currentView)
+        return;
+
+    QString pageSource = currentView->page()->mainFrame()->toHtml();
+    QTextDocument *document = new QTextDocument();
+    document->setHtml(pageSource);
+
+    QPrinter printer;
+    QPrintDialog dialog(&printer, this);
+    dialog.setWindowTitle(tr("Print Document"));
+    if (dialog.exec() == QDialog::Accepted)
+        document->print(&printer);
+
+    delete document;
 }

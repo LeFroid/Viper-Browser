@@ -159,6 +159,9 @@ private slots:
      */
     void onToggleFullScreen(bool enable);
 
+    /// Called when the user requests that the contents of the current browser tab be printed
+    void printTabContents();
+
 private:
     /// UI items from .ui file
     Ui::MainWindow *ui;
