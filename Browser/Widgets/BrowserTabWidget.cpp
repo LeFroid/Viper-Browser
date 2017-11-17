@@ -66,15 +66,18 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     WebView *view = new WebView(parentWidget());
     view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+    QString tabLabel;
     if (!skipHomePage)
     {
         switch (m_newTabPage)
         {
             case HomePage:
                 view->load(QUrl::fromUserInput(m_settings->getValue("HomePage").toString()));
+                tabLabel = tr("Home Page");
                 break;
             case BlankPage:
                 view->loadBlankPage();
+                tabLabel = tr("New Tab");
                 break;
         }
     }
@@ -85,7 +88,7 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     connect(view, &WebView::openInNewTabRequest, this, &BrowserTabWidget::openLinkInNewTab);
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
 
-    addTab(view, tr("Home Page"));
+    addTab(view, tabLabel);
     if (makeCurrent)
     {
         m_activeView = view;
