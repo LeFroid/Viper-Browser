@@ -11,7 +11,7 @@
 
 BookmarkManager::BookmarkManager(const QString &databaseFile) :
     DatabaseWorker(databaseFile, "Bookmarks"),
-    m_rootNode(new BookmarkNode(BookmarkNode::Folder, QString("Bookmarks")))
+    m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QString("Bookmarks")))
 {
 }
 
@@ -264,7 +264,7 @@ void BookmarkManager::setNodePosition(BookmarkNode *node, int position)
     // Adjust position of node in bookmark tree
     if (position > oldPos)
         ++position;
-    static_cast<void>(parent->insertNode(std::unique_ptr<BookmarkNode>(new BookmarkNode(std::move(*node))), position));
+    static_cast<void>(parent->insertNode(std::make_unique<BookmarkNode>(std::move(*node)), position));
     parent->removeNode(node);
 }
 
@@ -360,9 +360,7 @@ void BookmarkManager::loadFolder(BookmarkNode *folder)
         while (query.next())
         {
             BookmarkNode::NodeType nodeType = static_cast<BookmarkNode::NodeType>(query.value(1).toInt());
-            BookmarkNode *subNode = folder->appendNode(
-                        std::unique_ptr<BookmarkNode>(
-                            new BookmarkNode(nodeType, query.value(2).toString())));
+            BookmarkNode *subNode = folder->appendNode(std::make_unique<BookmarkNode>(nodeType, query.value(2).toString()));
             switch (nodeType)
             {
                 // Load folder data
