@@ -17,6 +17,7 @@ class NetworkAccessManager : public QNetworkAccessManager
     Q_OBJECT
 
 public:
+    /// Constructs the network access manager, optionally setting a parent object
     NetworkAccessManager(QObject *parent = nullptr);
 
 protected:

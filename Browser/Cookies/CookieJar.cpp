@@ -9,15 +9,17 @@
 
 #include <QDebug>
 
-CookieJar::CookieJar(const QString &databaseFile, QObject *parent) :
+CookieJar::CookieJar(const QString &databaseFile, QString name, bool privateJar, QObject *parent) :
     QNetworkCookieJar(parent),
-    DatabaseWorker(databaseFile, "Cookies")
+    DatabaseWorker(databaseFile, name),
+    m_privateJar(privateJar)
 {
 }
 
 CookieJar::~CookieJar()
 {
-    save();
+    if (!m_privateJar)
+        save();
 }
 
 bool CookieJar::hasCookiesFor(const QString &host) const
@@ -41,7 +43,7 @@ bool CookieJar::hasCookiesFor(const QString &host) const
 
 void CookieJar::clearCookiesFrom(const QDateTime &start)
 {
-    if (!start.isValid() || start.isNull())
+    if (m_privateJar || !start.isValid() || start.isNull())
         return;
 
     QSqlQuery query(m_database);
@@ -56,7 +58,7 @@ bool CookieJar::insertCookie(const QNetworkCookie &cookie)
 {
     if (QNetworkCookieJar::insertCookie(cookie))
     {
-        if (!cookie.isSessionCookie())
+        if (!cookie.isSessionCookie() && !m_privateJar)
         {
             QSqlQuery query(m_database);
             query.prepare("INSERT OR REPLACE INTO Cookies(Domain, Name, Path, EncryptedOnly, HttpOnly, "
@@ -83,6 +85,9 @@ bool CookieJar::deleteCookie(const QNetworkCookie &cookie)
 {
     if (QNetworkCookieJar::deleteCookie(cookie))
     {
+        if (m_privateJar)
+            return true;
+
         QSqlQuery query(m_database);
         query.prepare("DELETE FROM Cookies WHERE Domain = (:domain) AND Name = (:name)");
         query.bindValue(":domain", cookie.domain());
@@ -98,8 +103,11 @@ void CookieJar::eraseAllCookies()
     QList<QNetworkCookie> noCookies;
     setAllCookies(noCookies);
 
-    if (!exec("DELETE FROM Cookies"))
-        qDebug() << "[Warning]: In CookieJar::eraseAllCookies() - could not delete cookies.";
+    if (!m_privateJar)
+    {
+        if (!exec("DELETE FROM Cookies"))
+            qDebug() << "[Warning]: In CookieJar::eraseAllCookies() - could not delete cookies from database.";
+    }
 
     emit cookiesRemoved();
 }
@@ -118,38 +126,13 @@ void CookieJar::setup()
 void CookieJar::save()
 {
     removeExpired();
-    /*
-     * No need to insert cookies into DB here, as CookieJar::insertCookie(..) handles this as soon as the cookie is created
-    QList<QNetworkCookie> cookies = allCookies();
-    if (cookies.empty())
-        return;
-
-    QSqlQuery query(m_database);
-    query.prepare("INSERT OR REPLACE INTO Cookies(Domain, Name, Path, EncryptedOnly, HttpOnly, ExpirationDate, Value, DateCreated) "
-                  "VALUES(:domain, :name, :path, :encryptedOnly, :httpOnly, :expireDate, :value, (SELECT DateCreated FROM Cookies "
-                  "WHERE Domain=(:domain2) AND Name=(:name2)))");
-    for (const QNetworkCookie &cookie : cookies)
-    {
-        // Ignore session cookies
-        if (cookie.isSessionCookie())
-            continue;
-
-        query.bindValue(":domain", cookie.domain());
-        query.bindValue(":name", cookie.name());
-        query.bindValue(":path", cookie.path());
-        query.bindValue(":encryptedOnly", cookie.isSecure() ? 1 : 0);
-        query.bindValue(":httpOnly", cookie.isHttpOnly() ? 1 : 0);
-        query.bindValue(":expireDate", cookie.expirationDate().toString());
-        query.bindValue(":value", cookie.value());
-        query.bindValue(":domain2", cookie.domain());
-        query.bindValue(":name2", cookie.name());
-        if (!query.exec())
-            qDebug() << "[Error]: In CookieJar::save - unable to insert cookie into database. Message: " << query.lastError().text();
-    }*/
 }
 
 void CookieJar::load()
 {
+    if (m_privateJar)
+        return;
+
     QList<QNetworkCookie> cookies;
 
     // Load cookies and remove any that have expired
@@ -185,6 +168,9 @@ void CookieJar::load()
 
 void CookieJar::removeExpired()
 {
+    if (m_privateJar)
+        return;
+
     QList<QNetworkCookie> cookies = allCookies();
     if (cookies.empty())
         return;

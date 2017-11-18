@@ -17,8 +17,8 @@ class CookieJar : public QNetworkCookieJar, private DatabaseWorker
     Q_OBJECT
 
 public:
-    /// Constructs a cookie jar, loading information from the cookie database file as specified by its path
-    explicit CookieJar(const QString &databaseFile, QObject *parent = 0);
+    /// Constructs a cookie jar, loading information from the given cookie database file if private mode is false
+    explicit CookieJar(const QString &databaseFile, QString name = QString("Cookies"), bool privateJar = false, QObject *parent = 0);
 
     /// Saves cookies to database before calling ~QNetworkCookieJar
     ~CookieJar();
@@ -58,6 +58,10 @@ protected:
 private:
     /// Removes expired cookies from both the database and the list in memory
     void removeExpired();
+
+private:
+    /// True if private browsing cookie jar (e.g., no persistence), false if standard cookie jar
+    bool m_privateJar;
 };
 
 #endif // COOKIEJAR_H

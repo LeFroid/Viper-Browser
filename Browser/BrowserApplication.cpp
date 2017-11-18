@@ -66,7 +66,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_downloadMgr->setNetworkAccessManager(m_networkAccessMgr);
 
     m_privateNetworkAccessMgr = new NetworkAccessManager;
-    m_privateNetworkAccessMgr->setCookieJar(new QNetworkCookieJar(this));
+    CookieJar *privateJar = new CookieJar(QString("%1.fake").arg(m_settings->getPathValue("CookiePath")), QString("FakeCookies"), true);
+    m_privateNetworkAccessMgr->setCookieJar(privateJar);
 
     // Setup user agent manager
     m_userAgentMgr = new UserAgentManager(m_settings);
