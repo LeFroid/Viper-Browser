@@ -50,6 +50,9 @@ private:
     /// Root bookmark folder
     BookmarkNode *m_root;
 
+    /// Bookmarks Bar node - stored as a member because it cannot have editable flag when flags(...) is called
+    BookmarkNode *m_bookmarksBar;
+
     /// Bookmark manager
     std::shared_ptr<BookmarkManager> m_bookmarkMgr;
 };

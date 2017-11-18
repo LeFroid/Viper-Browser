@@ -5,6 +5,7 @@
 BookmarkFolderModel::BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
     QAbstractItemModel(parent),
     m_root(bookmarkMgr->getRoot()),
+    m_bookmarksBar(bookmarkMgr->getBookmarksBar()),
     m_bookmarkMgr(bookmarkMgr)
 {
 }
@@ -26,9 +27,10 @@ QModelIndex BookmarkFolderModel::index(int row, int column, const QModelIndex &p
         return QModelIndex();
 
     int folderIdx = 0;
+    BookmarkNode *n;
     for (int i = 0; i < numChildren; ++i)
     {
-        BookmarkNode *n = parentFolder->getNode(i);
+        n = parentFolder->getNode(i);
         if (n->getType() == BookmarkNode::Folder)
         {
             if (folderIdx == row)
@@ -123,7 +125,13 @@ Qt::ItemFlags BookmarkFolderModel::flags(const QModelIndex &index) const
         return Qt::NoItemFlags;
 
     //TODO: Allow drag and drop events, tie to an event handler to change the relative position or order of folders
-    return Qt::ItemIsEditable | QAbstractItemModel::flags(index);
+    Qt::ItemFlags itemFlags = QAbstractItemModel::flags(index);
+    if (BookmarkNode *n = getItem(index))
+    {
+        if (n != m_bookmarksBar)
+            itemFlags |= Qt::ItemIsEditable;
+    }
+    return itemFlags;
 }
 
 bool BookmarkFolderModel::insertRows(int row, int count, const QModelIndex &parent)

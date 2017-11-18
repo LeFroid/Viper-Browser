@@ -55,7 +55,7 @@ void BrowserTabWidget::setPrivateMode(bool value)
 
 void BrowserTabWidget::closeTab(int index)
 {
-    int numTabs = count();
+    int numTabs = count() - 1;
     if (index < 0 || numTabs == 1 || index >= numTabs)
         return;
 
@@ -146,8 +146,8 @@ void BrowserTabWidget::onCurrentChanged(int index)
         return;
 
     // Disconnect loadProgress signal from previously active web view if applicable
-    if (m_activeView && count() > 1)
-        disconnect(m_activeView, &WebView::loadProgress, this, &BrowserTabWidget::loadProgress);
+    //if (m_activeView && count() > 2)
+    //    disconnect(m_activeView, &WebView::loadProgress, this, &BrowserTabWidget::loadProgress);
 
     m_activeView = view;
     connect(view, &WebView::loadProgress, this, &BrowserTabWidget::loadProgress);
