@@ -53,7 +53,9 @@ void SecurityManager::showSecurityInfo(const QString &host)
     if (!m_securityDialog)
         m_securityDialog = new SecurityInfoDialog;
 
-    auto certIt = m_certChains.find(host);
+    QString hostStripped = host;
+    hostStripped = hostStripped.remove(QRegExp("(www.)"));
+    auto certIt = m_certChains.find(hostStripped);
     if (certIt != m_certChains.end())
     {
         m_securityDialog->setWebsite(host, certIt.value());

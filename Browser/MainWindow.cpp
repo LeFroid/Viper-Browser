@@ -26,11 +26,13 @@
 #include <QActionGroup>
 #include <QDir>
 #include <QFileDialog>
+#include <QKeySequence>
 #include <QMessageBox>
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QPushButton>
 #include <QRegExp>
+#include <QShortcut>
 #include <QSplitter>
 #include <QTextEdit>
 #include <QTimer>
@@ -329,6 +331,7 @@ void MainWindow::setupTabWidget()
     // Page load progress handler
     connect(m_tabWidget, &BrowserTabWidget::loadProgress, this, &MainWindow::onLoadProgress);
 
+    // Add first tab
     m_tabWidget->newTab(true);
 }
 
@@ -424,8 +427,9 @@ void MainWindow::onTabChanged(int index)
     for (WebActionProxy *proxy : m_webActions)
         proxy->setPage(page);
 
-    // Give focus to the url line edit widget when changing tabs
-    m_urlInput->setFocus();
+    // Give focus to the url line edit widget when changing to a blank tab
+    if (m_urlInput->text().isEmpty())
+        m_urlInput->setFocus();
 }
 
 void MainWindow::openBookmarkWidget()

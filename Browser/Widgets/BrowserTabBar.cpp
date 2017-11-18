@@ -1,8 +1,10 @@
 #include "BrowserTabBar.h"
 
 #include <QIcon>
+#include <QKeySequence>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QShortcut>
 #include <QToolButton>
 
 //TODO: Context menu for tabBar
@@ -26,8 +28,25 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     setTabEnabled(addTabIdx, false);
 
     setStyleSheet("QTabBar::tab:disabled { background-color: rgba(0, 0, 0, 0); }");
-
     connect(m_buttonNewTab, &QToolButton::clicked, this, &BrowserTabBar::newTabRequest);
+
+    // Add shortcut (Ctrl+Tab) to switch between tabs
+    QShortcut *tabShortcut = new QShortcut(QKeySequence(QKeySequence::NextChild), this);
+    connect(tabShortcut, &QShortcut::activated, this, &BrowserTabBar::onNextTabShortcut);
+}
+
+void BrowserTabBar::onNextTabShortcut()
+{
+    int nextIdx = currentIndex() + 1;
+    int numTabs = count();
+
+    if (numTabs == 1)
+        return;
+
+    if (nextIdx >= count())
+        setCurrentIndex(0);
+    else
+        setCurrentIndex(nextIdx);
 }
 
 QSize BrowserTabBar::tabSizeHint(int index) const

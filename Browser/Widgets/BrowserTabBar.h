@@ -20,6 +20,10 @@ signals:
     /// Emitted when the "New Tab" button is activated
     void newTabRequest();
 
+private slots:
+    /// Called when the next tab shortcut is activated. Switches to the next tab, or cycles back to the first tab if already at the last tab
+    void onNextTabShortcut();
+
 protected:
     /// Returns a size hint of the tab with the given index
     QSize tabSizeHint(int index) const override;
