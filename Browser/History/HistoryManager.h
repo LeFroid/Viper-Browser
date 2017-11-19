@@ -72,6 +72,12 @@ public:
     /// Returns a list of recently visited items
     const QList<WebHistoryItem> &getRecentItems() const { return m_recentItems; }
 
+    /// Returns a const_iterator to the first element in the history hash map
+    QHash<QString, WebHistoryItem>::const_iterator getHistIterBegin() const { return m_historyItems.cbegin(); }
+
+    /// Returns a const_iterator to the end of the history hash map
+    QHash<QString, WebHistoryItem>::const_iterator getHistIterEnd() const { return m_historyItems.cend(); }
+
     /// Returns a list of all visited URLs
     QList<QString> getVisitedURLs() const { return m_historyItems.keys(); }
 

@@ -26,6 +26,16 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     urlCompleter->setCompletionMode(QCompleter::PopupCompletion);
     setCompleter(urlCompleter);
 
+    // URL results are in format "url - title", so a slot must be added to extract the URL
+    // from the rest of the model's results
+    connect(this, &URLLineEdit::textChanged, [=](const QString &text){
+        int completedIdx = text.indexOf(" - ");
+        if (completedIdx >= 0)
+        {
+            setText(text.left(completedIdx));
+        }
+    });
+
     // Setup tool button
     m_securityButton = new QToolButton(this);
     m_securityButton->setCursor(Qt::ArrowCursor);

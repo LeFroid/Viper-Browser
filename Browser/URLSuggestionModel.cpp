@@ -40,7 +40,7 @@ void URLSuggestionModel::loadURLs()
 {
     QSet<QString> foundURLs = loadBookmarkURLs().unite(loadHistoryURLs());
     for (const QString &url : foundURLs)
-        m_urls.append(url);
+        m_urls.push_back(url);
 }
 
 QSet<QString> URLSuggestionModel::loadBookmarkURLs()
@@ -64,7 +64,7 @@ QSet<QString> URLSuggestionModel::loadBookmarkURLs()
             if (n->getType() == BookmarkNode::Folder)
                 folders.enqueue(n);
             else
-                urls.insert(n->getURL());
+                urls.insert(QString("%1 - %2").arg(n->getURL()).arg(n->getName()));
         }
     }
 
@@ -75,8 +75,11 @@ QSet<QString> URLSuggestionModel::loadHistoryURLs()
 {
     QSet<QString> urls;
 
-    auto urlList = sBrowserApplication->getHistoryManager()->getVisitedURLs();
-    for (auto url : urlList)
-        urls.insert(url);
+    HistoryManager *histMgr = sBrowserApplication->getHistoryManager();
+    for (auto it = histMgr->getHistIterBegin(); it != histMgr->getHistIterEnd(); ++it)
+    {
+        urls.insert(QString("%1 - %2").arg(it.key()).arg(it->Title));
+    }
+
     return urls;
 }
