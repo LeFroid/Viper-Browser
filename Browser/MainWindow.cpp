@@ -759,3 +759,8 @@ void MainWindow::printTabContents()
 
     delete document;
 }
+
+WebView *MainWindow::getNewTabWebView()
+{
+    return m_tabWidget->newTab();
+}

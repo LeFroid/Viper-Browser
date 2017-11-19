@@ -8,12 +8,15 @@
 
 #include "BrowserApplication.h"
 #include "DownloadManager.h"
+#include "MainWindow.h"
 #include "SearchEngineManager.h"
 #include "Settings.h"
 #include "WebDialog.h"
 #include "WebView.h"
 #include "WebLinkLabel.h"
 #include "WebPage.h"
+
+#include <QDebug>
 
 WebView::WebView(QWidget *parent) :
     QWebView(parent),
@@ -143,13 +146,31 @@ void WebView::wheelEvent(QWheelEvent *event)
     QWebView::wheelEvent(event);
 }
 
-QWebView *WebView::createWindow(QWebPage::WebWindowType /*type*/)
+QWebView *WebView::createWindow(QWebPage::WebWindowType type)
 {
-    WebDialog *dialog = new WebDialog;
-    dialog->show();
-    return dialog->getView();
-    //todo: create another mainwindow via browserapplication, get the tab widget's active widget, cast to a webview and return
-    //return QWebView::createWindow(type);
+    switch (type)
+    {
+        case QWebPage::WebBrowserWindow:    // Open a new tab
+        {
+            // Get main window
+            QObject *obj = parent();
+            while (obj->parent() != nullptr)
+                obj = obj->parent();
+
+            if (MainWindow *mw = static_cast<MainWindow*>(obj))
+            {
+                return mw->getNewTabWebView();
+            }
+            break;
+        }
+        case QWebPage::WebModalDialog:     // Open a web dialog
+        {
+            WebDialog *dialog = new WebDialog;
+            dialog->show();
+            return dialog->getView();
+        }
+    }
+    return QWebView::createWindow(type);
 }
 
 void WebView::addInspectorIfEnabled(QMenu *menu)

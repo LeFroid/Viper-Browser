@@ -36,6 +36,8 @@ class WebView;
  */
 class MainWindow : public QMainWindow
 {
+    friend class WebView;
+
     Q_OBJECT
 
 public:
@@ -162,6 +164,10 @@ private slots:
 
     /// Called when the user requests that the contents of the current browser tab be printed
     void printTabContents();
+
+protected slots:
+    /// Called by a \ref WebView when it is requested that some content be opened in a new window. This opens it in a new tab and returns the tab's WebView
+    WebView *getNewTabWebView();
 
 private:
     /// UI items from .ui file
