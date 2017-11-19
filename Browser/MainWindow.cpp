@@ -36,6 +36,7 @@
 #include <QSplitter>
 #include <QTextEdit>
 #include <QTimer>
+#include <QToolButton>
 #include <QWebElement>
 #include <QWebFrame>
 #include <QWebHistory>
@@ -111,7 +112,7 @@ void MainWindow::addHistoryItem(const QUrl &url, const QString &title, const QIc
     if (menuActions.size() > 3)
         beforeItem = menuActions[3];
 
-    QAction *historyItem = new QAction(title, this);
+    QAction *historyItem = new QAction(title, menu);
     historyItem->setIcon(favicon);
     connect(historyItem, &QAction::triggered, [=](){
         m_tabWidget->loadUrl(url);
@@ -331,25 +332,34 @@ void MainWindow::setupTabWidget()
     // Page load progress handler
     connect(m_tabWidget, &BrowserTabWidget::loadProgress, this, &MainWindow::onLoadProgress);
 
+    // Set back/forward button history menus
+    m_tabWidget->setNavHistoryMenus(m_prevPage->menu(), m_nextPage->menu());
+
     // Add first tab
     m_tabWidget->newTab(true);
 }
 
 void MainWindow::setupToolBar()
 {
-    ui->toolBar->setStyleSheet("QToolBar { spacing: 3px; }");
+    ui->toolBar->setStyleSheet("QToolBar { spacing: 3px; } QToolButton::menu-indicator { subcontrol-position: bottom right; subcontrol-origin: content; }");
 
     // Previous Page Button
-    m_prevPage = new QAction(this);
+    m_prevPage = new QToolButton(ui->toolBar);
+    QAction *prevPageAction = ui->toolBar->addWidget(m_prevPage);
     m_prevPage->setIcon(style()->standardIcon(QStyle::SP_ArrowBack, 0, this));
     m_prevPage->setToolTip(tr("Go back one page"));
-    addWebProxyAction(QWebPage::Back, m_prevPage);
+    QMenu *buttonHistMenu = new QMenu(this);
+    m_prevPage->setMenu(buttonHistMenu);
+    addWebProxyAction(QWebPage::Back, prevPageAction);
 
     // Next Page Button
-    m_nextPage = new QAction(this);
+    m_nextPage = new QToolButton(ui->toolBar);
+    QAction *nextPageAction = ui->toolBar->addWidget(m_nextPage);
     m_nextPage->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
     m_nextPage->setToolTip(tr("Go forward one page"));
-    addWebProxyAction(QWebPage::Forward, m_nextPage);
+    buttonHistMenu = new QMenu(this);
+    m_nextPage->setMenu(buttonHistMenu);
+    addWebProxyAction(QWebPage::Forward, nextPageAction);
 
     // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
@@ -387,8 +397,6 @@ void MainWindow::setupToolBar()
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 0);
 
-    ui->toolBar->addAction(m_prevPage);
-    ui->toolBar->addAction(m_nextPage);
     ui->toolBar->addAction(m_stopRefresh);
     ui->toolBar->addWidget(splitter);
 }

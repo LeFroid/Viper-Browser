@@ -8,6 +8,7 @@
 #include <QUrl>
 
 class BrowserTabBar;
+class QMenu;
 class WebView;
 
 /**
@@ -65,9 +66,15 @@ public slots:
     /// Loads the given URL in the active tab
     void loadUrl(const QUrl &url);
 
+    /// Sets the back button and forward button history menus when a tab is changed
+    void setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu);
+
 private slots:
     /// Called when the current tab has been changed
     void onCurrentChanged(int index);
+
+    /// Resets the items in the back and forward button menus, populating them with the current tab's history
+    void resetHistoryButtonMenus(bool ok);
 
 private:
     /// Browser settings
@@ -84,6 +91,12 @@ private:
 
     /// Custom tab bar
     BrowserTabBar *m_tabBar;
+
+    /// Back button menu, from the \ref MainWindow toolbar
+    QMenu *m_backMenu;
+
+    /// Forward button menu, from the \ref MainWindow toolbar
+    QMenu *m_forwardMenu;
 };
 
 #endif // BROWSERTABWIDGET_H

@@ -1,8 +1,13 @@
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "BrowserTabBar.h"
+#include "FaviconStorage.h"
 #include "MainWindow.h"
 #include "WebView.h"
+
+#include <QMenu>
+#include <QWebHistory>
+#include <QWebHistoryItem>
 
 BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *parent) :
     QTabWidget(parent),
@@ -10,7 +15,9 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *
     m_privateBrowsing(false),
     m_newTabPage(settings->getValue("NewTabsLoadHomePage").toBool() ? HomePage : BlankPage),
     m_activeView(nullptr),
-    m_tabBar(new BrowserTabBar(this))
+    m_tabBar(new BrowserTabBar(this)),
+    m_backMenu(nullptr),
+    m_forwardMenu(nullptr)
 {
     // Set tab bar
     setTabBar(m_tabBar);
@@ -90,6 +97,7 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     connect(view, &WebView::openRequest, this, &BrowserTabWidget::loadUrl);
     connect(view, &WebView::openInNewTabRequest, this, &BrowserTabWidget::openLinkInNewTab);
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
+    connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
 
     addTab(view, tabLabel);
     if (makeCurrent)
@@ -139,6 +147,15 @@ void BrowserTabWidget::loadUrl(const QUrl &url)
     currentWebView()->load(url);
 }
 
+void BrowserTabWidget::setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu)
+{
+    if (!backMenu || !forwardMenu)
+        return;
+
+    m_backMenu = backMenu;
+    m_forwardMenu = forwardMenu;
+}
+
 void BrowserTabWidget::onCurrentChanged(int index)
 {
     WebView *view = getWebView(index);
@@ -152,6 +169,59 @@ void BrowserTabWidget::onCurrentChanged(int index)
     m_activeView = view;
     connect(view, &WebView::loadProgress, this, &BrowserTabWidget::loadProgress);
 
+    resetHistoryButtonMenus(true);
+
     emit loadProgress(view->getProgress());
     emit viewChanged(index);
+}
+
+void BrowserTabWidget::resetHistoryButtonMenus(bool /*ok*/)
+{
+    m_backMenu->clear();
+    m_forwardMenu->clear();
+
+    int maxMenuSize = 10;
+    QWebHistory *hist = m_activeView->page()->history();
+    QAction *histAction = nullptr, *prevAction = nullptr;
+    FaviconStorage *faviconStorage = sBrowserApplication->getFaviconStorage();
+
+    // Setup back button history menu
+    QList<QWebHistoryItem> histItems = hist->backItems(maxMenuSize);
+    for (const QWebHistoryItem &item : histItems)
+    {
+        QIcon icon = faviconStorage->getFavicon(item.url());
+
+        if (prevAction == nullptr)
+            histAction = m_backMenu->addAction(icon, item.title());
+        else
+        {
+            histAction = new QAction(icon, item.title(), m_backMenu);
+            m_backMenu->insertAction(prevAction, histAction);
+        }
+
+        connect(histAction, &QAction::triggered, [=](){
+            hist->goToItem(item);
+        });
+        prevAction = histAction;
+    }
+
+    // Setup forward button history menu
+    histItems = hist->forwardItems(maxMenuSize);
+    histAction = nullptr, prevAction = nullptr;
+    for (const QWebHistoryItem &item : histItems)
+    {
+        QIcon icon = faviconStorage->getFavicon(item.url());
+        if (prevAction == nullptr)
+            histAction = m_forwardMenu->addAction(icon, item.title());
+        else
+        {
+            histAction = new QAction(icon, item.title(), m_forwardMenu);
+            m_forwardMenu->insertAction(prevAction, histAction);
+        }
+
+        connect(histAction, &QAction::triggered, [=](){
+            hist->goToItem(item);
+        });
+        prevAction = histAction;
+    }
 }

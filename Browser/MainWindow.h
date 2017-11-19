@@ -18,6 +18,7 @@ class MainWindow;
 class QActionGroup;
 class QNetworkReply;
 class QSslError;
+class QToolButton;
 class QWebInspector;
 class AddBookmarkDialog;
 class BookmarkWidget;
@@ -196,11 +197,11 @@ private:
     /// Action to remove the current page from the bookmarks
     QAction *m_removePageBookmarks;
 
-    /// Action to go to the previously visited page
-    QAction *m_prevPage;
+    /// Button to go to the previously visited page
+    QToolButton *m_prevPage;
 
     /// Action to return to the next page after visiting a previous page
-    QAction *m_nextPage;
+    QToolButton *m_nextPage;
 
     /// Action to either stop the loading progress of a page, or to refresh the loaded page
     QAction *m_stopRefresh;
