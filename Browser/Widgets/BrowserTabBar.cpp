@@ -4,6 +4,7 @@
 #include <QKeySequence>
 #include <QLabel>
 #include <QMouseEvent>
+#include <QResizeEvent>
 #include <QShortcut>
 #include <QToolButton>
 
@@ -22,10 +23,13 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     m_buttonNewTab = new QToolButton(this);
     m_buttonNewTab->setIcon(QIcon::fromTheme("folder-new"));
     m_buttonNewTab->setStyleSheet("QToolButton:hover { border: 1px solid #666666; border-radius: 2px; } ");
-    int addTabIdx = addTab(QString());
+    m_buttonNewTab->setToolTip(tr("New Tab"));
+    //m_buttonNewTab->setFixedHeight(height() - 2);
+    m_buttonNewTab->setFixedSize(28, height() - 2);
+    /*int addTabIdx = addTab(QString());
     setTabButton(addTabIdx, QTabBar::RightSide, m_buttonNewTab);
     setTabToolTip(addTabIdx, tr("New Tab"));
-    setTabEnabled(addTabIdx, false);
+    setTabEnabled(addTabIdx, false);*/
 
     setStyleSheet("QTabBar::tab:disabled { background-color: rgba(0, 0, 0, 0); }");
     connect(m_buttonNewTab, &QToolButton::clicked, this, &BrowserTabBar::newTabRequest);
@@ -38,10 +42,6 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
 void BrowserTabBar::onNextTabShortcut()
 {
     int nextIdx = currentIndex() + 1;
-    int numTabs = count();
-
-    if (numTabs == 1)
-        return;
 
     if (nextIdx >= count())
         setCurrentIndex(0);
@@ -49,16 +49,21 @@ void BrowserTabBar::onNextTabShortcut()
         setCurrentIndex(nextIdx);
 }
 
+QSize BrowserTabBar::sizeHint() const
+{
+    QSize hint = QTabBar::sizeHint();
+    hint.setWidth(hint.width() - 2 - m_buttonNewTab->width());
+    return hint;
+}
+
+void BrowserTabBar::tabLayoutChange()
+{
+    QTabBar::tabLayoutChange();
+    moveNewTabButton();
+}
+
 QSize BrowserTabBar::tabSizeHint(int index) const
 {
-    // Special size for "New Tab" pseudo tab
-    if (index + 1 == count())
-    {
-        QSize newTabHint = m_buttonNewTab->sizeHint();
-        newTabHint.setWidth(newTabHint.width() * 3 / 2);
-        return newTabHint;
-    }
-
     // Get the QTabBar size hint and keep width within an upper bound
     QSize hint = QTabBar::tabSizeHint(index);
     if (count() > 3)
@@ -69,14 +74,28 @@ QSize BrowserTabBar::tabSizeHint(int index) const
     return hint;
 }
 
-void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
+void BrowserTabBar::resizeEvent(QResizeEvent *event)
 {
-    // Do not move tab further if it is being moved towards the "New Tab" pseudo tab
-    int xPos = event->pos().x();
-    int index = tabAt(event->pos());
-    if (index + 2 == count()
-            && xPos + tabSizeHint(index).width() >= m_buttonNewTab->frameGeometry().x())
+    QTabBar::resizeEvent(event);
+    moveNewTabButton();
+}
+
+void BrowserTabBar::moveNewTabButton()
+{
+    int numTabs = count();
+    if (numTabs == 0)
         return;
 
-    QTabBar::mouseMoveEvent(event);
+    int tabWidth = 2;
+    for (int i = 0; i < numTabs; ++i)
+        tabWidth += tabRect(i).width();
+
+    QRect barRect = rect();
+    if (tabWidth > width())
+        m_buttonNewTab->hide();//move(barRect.right() - m_buttonNewTab->width(), barRect.y());
+    else
+    {
+        m_buttonNewTab->move(barRect.left() + tabWidth, barRect.y());
+        m_buttonNewTab->show();
+    }
 }

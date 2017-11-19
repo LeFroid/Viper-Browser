@@ -25,11 +25,21 @@ private slots:
     void onNextTabShortcut();
 
 protected:
+    /// Returns the suggested size of the browser tab bar
+    QSize sizeHint() const override;
+
+    /// Called when the tab layout is changed
+    void tabLayoutChange() override;
+
     /// Returns a size hint of the tab with the given index
     QSize tabSizeHint(int index) const override;
 
-    /// Handles mouse move events, ensuring that a tab isn't moved to the right of the "New tab" pseudo tab
-    void mouseMoveEvent(QMouseEvent *event) override;
+    /// Resizes elements and shifts positions in the tab bar on resize events
+    void resizeEvent(QResizeEvent *event) override;
+
+private:
+    /// Moves the "New Tab" button so that it is aligned to the right of the last tab in the tab bar
+    void moveNewTabButton();
 
 private:
     /// The "New Tab" button to the right of the last tab in the tab bar

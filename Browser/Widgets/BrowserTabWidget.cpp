@@ -62,7 +62,7 @@ void BrowserTabWidget::setPrivateMode(bool value)
 
 void BrowserTabWidget::closeTab(int index)
 {
-    int numTabs = count() - 1;
+    int numTabs = count();
     if (index < 0 || numTabs == 1 || index >= numTabs)
         return;
 
