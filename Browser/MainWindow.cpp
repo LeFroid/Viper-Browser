@@ -370,7 +370,7 @@ void MainWindow::setupToolBar()
     });
 
     // URL Bar
-    m_urlInput = new URLLineEdit(this);//ui->toolBar);
+    m_urlInput = new URLLineEdit(this);
     connect(m_urlInput, &URLLineEdit::returnPressed, this, &MainWindow::goToURL);
     connect(m_urlInput, &URLLineEdit::viewSecurityInfo, this, &MainWindow::onClickSecurityInfo);
 
@@ -427,6 +427,9 @@ void MainWindow::onTabChanged(int index)
     // Update UI elements to reflect current view
     ui->widgetFindText->setWebView(view);
     m_urlInput->setURL(view->url());
+
+    if (ui->dockWidget->isVisible())
+        view->inspectElement();
 
     checkPageForBookmark();
 

@@ -7,7 +7,8 @@
 
 Settings::Settings() :
     m_firstRun(false),
-    m_settings("Vaccarelli", "Browser"),
+    //m_settings("Vaccarelli", "Browser"),
+    m_settings(),
     m_storagePath()
 {
     // Check if defaults need to be set
