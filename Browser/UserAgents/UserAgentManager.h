@@ -5,6 +5,7 @@
 
 #include <QMap>
 #include <QObject>
+#include <vector>
 
 class AddUserAgentDialog;
 class Settings;
@@ -43,10 +44,10 @@ public:
     void setActiveAgent(const QString &category, const UserAgent &agent);
 
     /// Returns a const_iterator to the first item in the custom user agent map
-    QMap< QString, QList<UserAgent> >::const_iterator getAgentIterBegin() const { return m_userAgents.cbegin(); }
+    QMap< QString, std::vector<UserAgent> >::const_iterator getAgentIterBegin() const { return m_userAgents.cbegin(); }
 
     /// Returns a const_iterator to the end of the custom user agent map
-    QMap< QString, QList<UserAgent> >::const_iterator getAgentIterEnd() const { return m_userAgents.cend(); }
+    QMap< QString, std::vector<UserAgent> >::const_iterator getAgentIterEnd() const { return m_userAgents.cend(); }
 
 signals:
     /// Emitted when the map of user agents has changed, so that any UI elements using user agent information may be updated
@@ -78,7 +79,7 @@ private:
     std::shared_ptr<Settings> m_settings;
 
     /// Map of custom user agents. Key is the category name, value is a list of user agents
-    QMap< QString, QList<UserAgent> > m_userAgents;
+    QMap< QString, std::vector<UserAgent> > m_userAgents;
 
     /// Category of the active user agent string. Empty if default user agent is in use
     QString m_activeAgentCategory;

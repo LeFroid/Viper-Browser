@@ -7,7 +7,6 @@
 
 Settings::Settings() :
     m_firstRun(false),
-    //m_settings("Vaccarelli", "Browser"),
     m_settings(),
     m_storagePath()
 {

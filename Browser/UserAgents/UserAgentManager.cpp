@@ -90,12 +90,12 @@ void UserAgentManager::onUserAgentAdded()
     QString category = m_addAgentDialog->getCategory();
     auto it = m_userAgents.find(category);
     if (it != m_userAgents.end())
-        it->append(newAgent);
+        it->push_back(newAgent);
     else
     {
-        QList<UserAgent> agentList;
-        agentList.append(newAgent);
-        m_userAgents.insert(category, agentList);
+        std::vector<UserAgent> agentList;
+        agentList.push_back(newAgent);
+        m_userAgents.insert(category, std::move(agentList));
     }
 
     emit updateUserAgents();
@@ -135,7 +135,7 @@ void UserAgentManager::load()
             continue;
 
         categoryName = it.key();
-        QList<UserAgent> agents;
+        std::vector<UserAgent> agents;
         QJsonArray uaArray = itVal.toArray();
         for (auto agentIt = uaArray.begin(); agentIt != uaArray.end(); ++agentIt)
         {
@@ -152,10 +152,10 @@ void UserAgentManager::load()
                 m_activeAgent = currentAgent;
             }
 
-            agents.append(currentAgent);
+            agents.push_back(currentAgent);
         }
 
-        m_userAgents.insert(categoryName, agents);
+        m_userAgents.insert(categoryName, std::move(agents));
     }
 }
 
@@ -172,7 +172,7 @@ void UserAgentManager::save()
     {
         bool activeAgentCategory = (hasActiveAgent && m_activeAgentCategory.compare(it.key()) == 0);
         QJsonArray agentArray;
-        const QList<UserAgent> &agentList = it.value();
+        const std::vector<UserAgent> &agentList = it.value();
         for (auto uaIt = agentList.cbegin(); uaIt != agentList.cend(); ++uaIt)
         {
             QJsonObject agent;
