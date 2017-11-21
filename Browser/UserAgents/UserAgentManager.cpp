@@ -1,6 +1,7 @@
 #include "UserAgentManager.h"
 #include "AddUserAgentDialog.h"
 #include "Settings.h"
+#include "UserAgentsWindow.h"
 #include "WebPage.h"
 
 #include <QByteArray>
@@ -16,7 +17,8 @@ UserAgentManager::UserAgentManager(std::shared_ptr<Settings> settings, QObject *
     m_userAgents(),
     m_activeAgentCategory(),
     m_activeAgent(),
-    m_addAgentDialog(nullptr)
+    m_addAgentDialog(nullptr),
+    m_userAgentsWindow(nullptr)
 {
     load();
 }
@@ -27,6 +29,8 @@ UserAgentManager::~UserAgentManager()
 
     if (m_addAgentDialog)
         delete m_addAgentDialog;
+    if (m_userAgentsWindow)
+        delete m_userAgentsWindow;
 }
 
 const QString &UserAgentManager::getUserAgentCategory() const
@@ -43,6 +47,23 @@ void UserAgentManager::setActiveAgent(const QString &category, const UserAgent &
 {
     m_activeAgentCategory = category;
     m_activeAgent = agent;
+    m_settings->setValue("CustomUserAgent", true);
+    WebPage::setUserAgent(m_activeAgent.Value);
+}
+
+void UserAgentManager::clearUserAgents()
+{
+    m_userAgents.clear();
+}
+
+void UserAgentManager::addUserAgents(const QString &category, std::vector<UserAgent> &&userAgents)
+{
+    m_userAgents[category] = std::move(userAgents);
+}
+
+void UserAgentManager::modifyWindowFinished()
+{
+    emit updateUserAgents();
 }
 
 void UserAgentManager::disableActiveAgent()
@@ -72,13 +93,10 @@ void UserAgentManager::addUserAgent()
 
 void UserAgentManager::modifyUserAgents()
 {
-    //todo:
-    /*
-     * TODO: spawn window for addition, modification and deletion of user agents
-     * if (!m_modifyAgentsWidget)
-     *     m_modifyAgentsWidget = new ModifyUserAgentWidget;
-     * m_modifyAgentsWidget->show();
-     */
+    if (!m_userAgentsWindow)
+        m_userAgentsWindow = new UserAgentsWindow(this);
+    m_userAgentsWindow->loadUserAgents();
+    m_userAgentsWindow->show();
 }
 
 void UserAgentManager::onUserAgentAdded()
@@ -161,7 +179,7 @@ void UserAgentManager::load()
 
 void UserAgentManager::save()
 {
-    QFile dataFile(m_settings->getValue("UserAgentsFile").toString());
+    QFile dataFile(m_settings->getPathValue("UserAgentsFile"));
     if (!dataFile.open(QIODevice::WriteOnly))
         return;
 

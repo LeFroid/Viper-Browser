@@ -33,6 +33,12 @@ public:
     /// Returns the value of the new user agent string
     QString getAgentValue() const;
 
+    /// Hides the UI elements that allow the user to add a new category for user agents
+    void hideNewCategoryOption();
+
+    /// Clears the items in the user agent category combo box
+    void clearAgentCategories();
+
 signals:
     /// Emitted when the user hits the "Ok" button to confirm the addition of a new user agent
     void userAgentAdded();

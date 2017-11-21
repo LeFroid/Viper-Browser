@@ -33,6 +33,17 @@ QString AddUserAgentDialog::getAgentValue() const
     return ui->lineEditAgentValue->text();
 }
 
+void AddUserAgentDialog::hideNewCategoryOption()
+{
+    ui->labelAddCategory->hide();
+    ui->pushButtonAddCategory->hide();
+}
+
+void AddUserAgentDialog::clearAgentCategories()
+{
+    ui->comboBoxCategory->clear();
+}
+
 void AddUserAgentDialog::addAgentCategory(const QString &name)
 {
     ui->comboBoxCategory->addItem(name);

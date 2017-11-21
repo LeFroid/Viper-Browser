@@ -9,6 +9,7 @@
 
 class AddUserAgentDialog;
 class Settings;
+class UserAgentsWindow;
 
 /// Represents a custom user agent
 struct UserAgent
@@ -27,6 +28,9 @@ struct UserAgent
 class UserAgentManager : public QObject
 {
     Q_OBJECT
+
+    friend class UserAgentsWindow;
+
 public:
     /// Constructs the user agent manager, which will load custom user agents from a JSON data file
     explicit UserAgentManager(std::shared_ptr<Settings> settings, QObject *parent = nullptr);
@@ -48,6 +52,16 @@ public:
 
     /// Returns a const_iterator to the end of the custom user agent map
     QMap< QString, std::vector<UserAgent> >::const_iterator getAgentIterEnd() const { return m_userAgents.cend(); }
+
+protected:
+    /// Clears all user agents from the map
+    void clearUserAgents();
+
+    /// Adds a category of user agents to the map with a given container of agents to be associated with the map
+    void addUserAgents(const QString &category, std::vector<UserAgent> &&userAgents);
+
+    /// Called when the \ref UserAgentsWindow is finished saving changes to user agent values, so that the updateUserAgents() signal may be emitted
+    void modifyWindowFinished();
 
 signals:
     /// Emitted when the map of user agents has changed, so that any UI elements using user agent information may be updated
@@ -89,6 +103,9 @@ private:
 
     /// Dialog used to add new user agents
     AddUserAgentDialog *m_addAgentDialog;
+
+    /// User agent management window
+    UserAgentsWindow *m_userAgentsWindow;
 };
 
 #endif // USERAGENTMANAGER_H

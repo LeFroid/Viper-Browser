@@ -92,7 +92,8 @@ SOURCES += \
     Widgets/AddBookmarkDialog.cpp \
     Widgets/BrowserTabBar.cpp \
     Bookmarks/BookmarkNode.cpp \
-    Widgets/WebLinkLabel.cpp
+    Widgets/WebLinkLabel.cpp \
+    UserAgents/UserAgentsWindow.cpp
 
 HEADERS += \
     History/HistoryTableModel.h \
@@ -149,7 +150,8 @@ HEADERS += \
     Widgets/AddBookmarkDialog.h \
     Widgets/BrowserTabBar.h \
     Bookmarks/BookmarkNode.h \
-    Widgets/WebLinkLabel.h
+    Widgets/WebLinkLabel.h \
+    UserAgents/UserAgentsWindow.h
 
 FORMS += \
         mainwindow.ui \
@@ -170,4 +172,5 @@ FORMS += \
     Preferences/AddSearchEngineDialog.ui \
     Network/CertificateGeneralTab.ui \
     Preferences/ContentTab.ui \
-    Widgets/AddBookmarkDialog.ui
+    Widgets/AddBookmarkDialog.ui \
+    UserAgents/UserAgentsWindow.ui

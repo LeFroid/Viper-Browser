@@ -179,9 +179,9 @@ void MainWindow::resetUserAgentMenu()
         connect(subMenu, &QMenu::triggered, [=](QAction *action){
             UserAgent agent;
             agent.Name = action->text();
+            // Remove first character from UA name, as it begins with a '&'
+            agent.Name = agent.Name.right(agent.Name.size() - 1);
             agent.Value = action->data().toString();
-            WebPage::setUserAgent(agent.Value);
-            m_settings->setValue("CustomUserAgent", true);
             uaManager->setActiveAgent(it.key(), agent);
             action->setChecked(true);
         });
