@@ -304,6 +304,7 @@ void MainWindow::setupMenuBar()
     connect(ui->actionBookmark_Bar, &QAction::toggled, this, &MainWindow::toggleBookmarkBar);
     toggleBookmarkBar(ui->actionBookmark_Bar->isChecked());
 
+    // History menu items
     connect(ui->actionShow_all_history, &QAction::triggered, this, &MainWindow::onShowAllHistory);
     connect(ui->actionClear_Recent_History, &QAction::triggered, [=]() {
         if (!m_clearHistoryDialog)

@@ -35,17 +35,53 @@ public:
     /// Returns true if JavaScript is enabled, false if disabled
     bool isJavaScriptEnabled() const;
 
-    /// Returns the browser's standard font
-    QString getStandardFont() const;
+    /// Returns the browser's default font family
+    QString getDefaultFont() const;
 
-    /// Sets the standard font of the web browser
-    void setStandardFont(const QString &fontFamily);
+    /// Sets the default font family of the web browser
+    void setDefaultFont(const QString &fontFamily);
+
+    /// Returns the browser's serif font family
+    QString getSerifFont() const;
+
+    /// Sets the web browser's serif font family
+    void setSerifFont(const QString &fontFamily);
+
+    /// Returns the browser's sans-serif font family
+    QString getSansSerifFont() const;
+
+    /// Sets the web browser's sans-serif font family
+    void setSansSerifFont(const QString &fontFamily);
+
+    /// Returns the browser's cursive font family
+    QString getCursiveFont() const;
+
+    /// Sets the web browser's serif font family
+    void setCursiveFont(const QString &fontFamily);
+
+    /// Returns the browser's fantasy font family
+    QString getFantasyFont() const;
+
+    /// Sets the web browser's serif font family
+    void setFantasyFont(const QString &fontFamily);
+
+    /// Returns the browser's fixed font family
+    QString getFixedFont() const;
+
+    /// Sets the web browser's serif font family
+    void setFixedFont(const QString &fontFamily);
 
     /// Returns the size of the web browser's standard font
     int getStandardFontSize() const;
 
     /// Sets the size of the browser's standard font
     void setStandardFontSize(int size);
+
+    /// Returns the size of the browser's fixed font
+    int getFixedFontSize() const;
+
+    /// Sets the size of the browser's fixed font
+    void setFixedFontSize(int size);
 
 public slots:
     /**

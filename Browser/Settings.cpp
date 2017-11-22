@@ -67,7 +67,14 @@ void Settings::setDefaults()
 
     QWebSettings *webSettings = QWebSettings::globalSettings();
     m_settings.setValue("StandardFont", webSettings->fontFamily(QWebSettings::StandardFont));
+    m_settings.setValue("SerifFont", webSettings->fontFamily(QWebSettings::SerifFont));
+    m_settings.setValue("SansSerifFont", webSettings->fontFamily(QWebSettings::SansSerifFont));
+    m_settings.setValue("CursiveFont", webSettings->fontFamily(QWebSettings::CursiveFont));
+    m_settings.setValue("FantasyFont", webSettings->fontFamily(QWebSettings::FantasyFont));
+    m_settings.setValue("FixedFont", webSettings->fontFamily(QWebSettings::FixedFont));
+
     m_settings.setValue("StandardFontSize", webSettings->fontSize(QWebSettings::DefaultFontSize));
+    m_settings.setValue("FixedFontSize", webSettings->fontSize(QWebSettings::DefaultFixedFontSize));
 
     // Todo: Store settings such as whether or not to store history
 }

@@ -324,5 +324,12 @@ void BrowserApplication::setWebSettings()
     settings->setAttribute(QWebSettings::MediaSourceEnabled, true);
 
     settings->setFontFamily(QWebSettings::StandardFont, m_settings->getValue("StandardFont").toString());
+    settings->setFontFamily(QWebSettings::SerifFont, m_settings->getValue("SerifFont").toString());
+    settings->setFontFamily(QWebSettings::SansSerifFont, m_settings->getValue("SansSerifFont").toString());
+    settings->setFontFamily(QWebSettings::CursiveFont, m_settings->getValue("CursiveFont").toString());
+    settings->setFontFamily(QWebSettings::FantasyFont, m_settings->getValue("FantasyFont").toString());
+    settings->setFontFamily(QWebSettings::FixedFont, m_settings->getValue("FixedFont").toString());
+
     settings->setFontSize(QWebSettings::DefaultFontSize, m_settings->getValue("StandardFontSize").toInt());
+    settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings->getValue("FixedFontSize").toInt());
 }

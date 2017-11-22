@@ -28,14 +28,76 @@ bool ContentTab::isAutoLoadImagesEnabled() const
     return ui->checkBoxAutoLoadImages->isChecked();
 }
 
-QString ContentTab::getStandardFont() const
+QString ContentTab::getDefaultFont() const
 {
-    return ui->fontComboBox->currentFont().family();
+    return ui->fontComboBoxDefault->currentFont().family();
 }
 
-void ContentTab::setStandardFont(const QString &fontFamily)
+void ContentTab::setDefaultFont(const QString &fontFamily)
 {
-    ui->fontComboBox->setFont(QFont(fontFamily));
+    QFont f(fontFamily);
+    ui->fontComboBoxDefault->setFont(f);
+    ui->fontComboBoxDefault->setCurrentFont(f);
+}
+
+QString ContentTab::getSerifFont() const
+{
+    return ui->fontComboBoxSerif->currentFont().family();
+}
+
+void ContentTab::setSerifFont(const QString &fontFamily)
+{
+    QFont f(fontFamily);
+    ui->fontComboBoxSerif->setFont(f);
+    ui->fontComboBoxSerif->setCurrentFont(f);
+}
+
+QString ContentTab::getSansSerifFont() const
+{
+    return ui->fontComboBoxSansSerif->currentFont().family();
+}
+
+void ContentTab::setSansSerifFont(const QString &fontFamily)
+{
+    QFont f(fontFamily);
+    ui->fontComboBoxSansSerif->setFont(f);
+    ui->fontComboBoxSansSerif->setCurrentFont(f);
+}
+
+QString ContentTab::getCursiveFont() const
+{
+    return ui->fontComboBoxCursive->currentFont().family();
+}
+
+void ContentTab::setCursiveFont(const QString &fontFamily)
+{
+    QFont f(fontFamily);
+    ui->fontComboBoxCursive->setFont(f);
+    ui->fontComboBoxCursive->setCurrentFont(f);
+}
+
+QString ContentTab::getFantasyFont() const
+{
+    return ui->fontComboBoxFantasy->currentFont().family();
+}
+
+void ContentTab::setFantasyFont(const QString &fontFamily)
+{
+    QFont f(fontFamily);
+    ui->fontComboBoxFantasy->setFont(f);
+    ui->fontComboBoxFantasy->setCurrentFont(f);
+}
+
+QString ContentTab::getFixedFont() const
+{
+    return ui->fontComboBoxFixed->currentFont().family();
+}
+
+void ContentTab::setFixedFont(const QString &fontFamily)
+{
+    QFont f(fontFamily);
+    ui->fontComboBoxFixed->setFont(f);
+    ui->fontComboBoxFixed->setCurrentFont(f);
 }
 
 int ContentTab::getStandardFontSize() const
@@ -47,6 +109,17 @@ void ContentTab::setStandardFontSize(int size)
 {
     if (size > 0)
         ui->spinBox->setValue(size);
+}
+
+int ContentTab::getFixedFontSize() const
+{
+    return ui->spinBoxFixedFontSize->value();
+}
+
+void ContentTab::setFixedFontSize(int size)
+{
+    if (size > 0)
+        ui->spinBoxFixedFontSize->setValue(size);
 }
 
 bool ContentTab::isJavaScriptEnabled() const

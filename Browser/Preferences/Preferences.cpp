@@ -33,8 +33,14 @@ void Preferences::loadSettings()
     ui->tabContent->togglePlugins(m_settings->getValue("EnablePlugins").toBool());
     ui->tabContent->togglePopupBlock(!m_settings->getValue("EnableJavascriptPopups").toBool());
     ui->tabContent->toggleJavaScript(m_settings->getValue("EnableJavascript").toBool());
-    ui->tabContent->setStandardFont(m_settings->getValue("StandardFont").toString());
+    ui->tabContent->setDefaultFont(m_settings->getValue("StandardFont").toString());
+    ui->tabContent->setSerifFont(m_settings->getValue("SerifFont").toString());
+    ui->tabContent->setSansSerifFont(m_settings->getValue("SansSerifFont").toString());
+    ui->tabContent->setCursiveFont(m_settings->getValue("CursiveFont").toString());
+    ui->tabContent->setFantasyFont(m_settings->getValue("FantasyFont").toString());
+    ui->tabContent->setFixedFont(m_settings->getValue("FixedFont").toString());
     ui->tabContent->setStandardFontSize(m_settings->getValue("StandardFontSize").toInt());
+    ui->tabContent->setFixedFontSize(m_settings->getValue("FixedFontSize").toInt());
 }
 
 void Preferences::onCloseWithSave()
@@ -64,8 +70,15 @@ void Preferences::onCloseWithSave()
     m_settings->setValue("EnableJavascript", ui->tabContent->isJavaScriptEnabled());
 
     // Save font choices, and also set them in the global web settings
-    m_settings->setValue("StandardFont", ui->tabContent->getStandardFont());
+    m_settings->setValue("StandardFont", ui->tabContent->getDefaultFont());
+    m_settings->setValue("SerifFont", ui->tabContent->getSerifFont());
+    m_settings->setValue("SansSerifFont", ui->tabContent->getSansSerifFont());
+    m_settings->setValue("CursiveFont", ui->tabContent->getCursiveFont());
+    m_settings->setValue("FantasyFont", ui->tabContent->getFantasyFont());
+    m_settings->setValue("FixedFont", ui->tabContent->getFixedFont());
+
     m_settings->setValue("StandardFontSize", ui->tabContent->getStandardFontSize());
+    m_settings->setValue("FixedFontSize", ui->tabContent->getFixedFontSize());
 
     sBrowserApplication->setWebSettings();
 
