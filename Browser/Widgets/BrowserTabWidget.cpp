@@ -156,6 +156,24 @@ void BrowserTabWidget::setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu)
     m_forwardMenu = forwardMenu;
 }
 
+void BrowserTabWidget::resetZoomCurrentView()
+{
+    if (WebView *view = currentWebView())
+        view->resetZoom();
+}
+
+void BrowserTabWidget::zoomInCurrentView()
+{
+    if (WebView *view = currentWebView())
+        view->zoomIn();
+}
+
+void BrowserTabWidget::zoomOutCurrentView()
+{
+    if (WebView *view = currentWebView())
+        view->zoomOut();
+}
+
 void BrowserTabWidget::onCurrentChanged(int index)
 {
     WebView *view = getWebView(index);

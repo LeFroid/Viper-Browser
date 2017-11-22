@@ -29,6 +29,16 @@ public:
     /// Loads the resource of the blank page into the view
     void loadBlankPage();
 
+public slots:
+    /// Resets the zoom factor to its base value
+    void resetZoom();
+
+    /// Increases the zoom factor of the view by 10% of the base value
+    void zoomIn();
+
+    /// Decreases the zoom factor of the view by 10% of the base value
+    void zoomOut();
+
 private slots:
     /// Called when a download is requested
     void requestDownload(const QNetworkRequest &request);

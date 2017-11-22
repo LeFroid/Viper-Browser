@@ -56,6 +56,22 @@ void WebView::loadBlankPage()
         setHtml(QString::fromUtf8(resource.readAll().constData()));
 }
 
+void WebView::resetZoom()
+{
+    setZoomFactor(1.0);
+}
+
+void WebView::zoomIn()
+{
+    setZoomFactor(zoomFactor() + 0.1);
+}
+
+void WebView::zoomOut()
+{
+    qreal currentZoom = zoomFactor();
+    setZoomFactor(std::max(currentZoom - 0.1, 0.1));
+}
+
 void WebView::requestDownload(const QNetworkRequest &request)
 {
     BrowserApplication *app = sBrowserApplication;

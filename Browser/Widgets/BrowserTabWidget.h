@@ -69,6 +69,15 @@ public slots:
     /// Sets the back button and forward button history menus when a tab is changed
     void setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu);
 
+    /// Resets the zoom factor of the active tab's \ref WebView to its base value
+    void resetZoomCurrentView();
+
+    /// Increases the zoom factor of the active tab's \ref WebView by 10% of the base value
+    void zoomInCurrentView();
+
+    /// Decreases the zoom factor of the active tab's \ref WebView by 10% of the base value
+    void zoomOutCurrentView();
+
 private slots:
     /// Called when the current tab has been changed
     void onCurrentChanged(int index);

@@ -279,6 +279,11 @@ void MainWindow::setupMenuBar()
     // Add proxy for reload action in menu bar
     addWebProxyAction(QWebPage::Reload, ui->actionReload);
 
+    // Zoom in / out / reset slots
+    connect(ui->actionZoom_In, &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomInCurrentView);
+    connect(ui->actionZoom_Out, &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomOutCurrentView);
+    connect(ui->actionReset_Zoom, &QAction::triggered, m_tabWidget, &BrowserTabWidget::resetZoomCurrentView);
+
     // Full screen view mode
     connect(ui->action_Full_Screen, &QAction::triggered, this, &MainWindow::onToggleFullScreen);
 
