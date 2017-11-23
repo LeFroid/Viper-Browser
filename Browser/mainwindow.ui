@@ -137,6 +137,7 @@
      <string>He&amp;lp</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionAbout_Qt"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -375,7 +376,7 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>&amp;About</string>
+    <string>&amp;About Viper Browser</string>
    </property>
   </action>
   <action name="actionShow_all_history">
@@ -421,6 +422,11 @@
   <action name="actionAdd_User_Agent">
    <property name="text">
     <string>&amp;Add User Agent</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
    </property>
   </action>
  </widget>

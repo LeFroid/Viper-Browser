@@ -321,6 +321,24 @@ void MainWindow::setupMenuBar()
 
     // User agent sub-menu
     resetUserAgentMenu();
+
+    // Help menu
+    connect(ui->actionAbout, &QAction::triggered, [=](){
+        QString appName = sBrowserApplication->applicationName();
+        QString appVersion = sBrowserApplication->applicationVersion();
+        QMessageBox::about(this, QString("About %1").arg(appName), QString("%1 - Version %2\nDeveloped by Timothy Vaccarelli").arg(appName).arg(appVersion));
+    });
+    connect(ui->actionAbout_Qt, &QAction::triggered, [=](){
+        QMessageBox::aboutQt(this, tr("About Qt"));
+    });
+
+    // Set web page for proxy actions (called automatically during onTabChanged event after all UI elements are set up)
+    if (WebView *view = m_tabWidget->getWebView(0))
+    {
+        QWebPage *page = view->page();
+        for (WebActionProxy *proxy : m_webActions)
+            proxy->setPage(page);
+    }
 }
 
 void MainWindow::setupTabWidget()
