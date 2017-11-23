@@ -50,6 +50,7 @@ void Settings::setDefaults()
     m_settings.setValue("AdBlockFile", "hosts_adblock.txt");
     m_settings.setValue("UserAgentsFile",  "user_agents.json");
     m_settings.setValue("SearchEnginesFile", "search_engines.json");
+    m_settings.setValue("SessionFile", "last_session.json");
 
     m_settings.setValue("HomePage", "https://www.ixquick.com/");
     m_settings.setValue("StartupMode", QVariant::fromValue(StartupMode::LoadHomePage));

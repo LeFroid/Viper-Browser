@@ -24,6 +24,7 @@
 
 #include <functional>
 #include <QActionGroup>
+#include <QCloseEvent>
 #include <QDir>
 #include <QFileDialog>
 #include <QKeySequence>
@@ -92,6 +93,11 @@ MainWindow::~MainWindow()
 
     if (m_addBookmarkDialog)
         delete m_addBookmarkDialog;
+}
+
+bool MainWindow::isPrivate() const
+{
+    return m_privateWindow;
 }
 
 void MainWindow::setPrivate(bool value)
@@ -790,4 +796,23 @@ void MainWindow::printTabContents()
 WebView *MainWindow::getNewTabWebView()
 {
     return m_tabWidget->newTab();
+}
+
+BrowserTabWidget *MainWindow::getTabWidget() const
+{
+    return m_tabWidget;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (!m_privateWindow)
+    {
+        StartupMode mode = m_settings->getValue("StartupMode").value<StartupMode>();
+        if (mode == StartupMode::RestoreSession)
+        {
+            emit aboutToClose();
+        }
+    }
+
+    QMainWindow::closeEvent(event);
 }

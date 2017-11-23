@@ -13,6 +13,7 @@
 #include "UserAgentManager.h"
 #include "WebPage.h"
 
+#include <vector>
 #include <QDir>
 #include <QUrl>
 #include <QDebug>
@@ -82,6 +83,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Set global web settings
     setWebSettings();
+
+    m_sessionMgr.setSessionFile(m_settings->getPathValue("SessionFile"));
+
+    // Connect aboutToQuit signal to browser's session management slot
+    connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
 
     // TODO: check if argument has been given (argc > 1) and load the resource into a new window
 }
@@ -180,6 +186,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
     MainWindow *w = new MainWindow(m_settings, m_bookmarks);
     m_browserWindows.append(w);
+    connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
 
     // Add recent history to main window
     setHistoryForWindow(w);
@@ -199,9 +206,7 @@ MainWindow *BrowserApplication::getNewWindow()
                 w->loadBlankPage();
                 break;
             case StartupMode::RestoreSession:
-                //todo: load previous session data from a JSON file which stores an array of urls,
-                //      the method to do this will be in this class (BrowserApplication),
-                //      and will require one parameter, the MainWindow pointer
+                m_sessionMgr.restoreSession(w);
                 break;
         }
     }
@@ -332,4 +337,47 @@ void BrowserApplication::setWebSettings()
 
     settings->setFontSize(QWebSettings::DefaultFontSize, m_settings->getValue("StandardFontSize").toInt());
     settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings->getValue("FixedFontSize").toInt());
+}
+
+void BrowserApplication::beforeBrowserQuit()
+{
+    StartupMode mode = m_settings->getValue("StartupMode").value<StartupMode>();
+    if (mode != StartupMode::RestoreSession && m_sessionMgr.alreadySaved())
+        return;
+
+    // Get all windows that can be saved
+    std::vector<MainWindow*> windows;
+    for (int i = 0; i < m_browserWindows.size(); ++i)
+    {
+        QPointer<MainWindow> m = m_browserWindows.at(i);
+        if (!m.isNull() && !m->isPrivate())
+        {
+            windows.push_back(m.data());
+        }
+    }
+
+    if (!windows.empty())
+        m_sessionMgr.saveState(windows);
+}
+
+void BrowserApplication::maybeSaveSession()
+{
+    // Note: don't need to check if startup mode is set to restore session, this slot will not be
+    //       activated unless that condition is already met
+    std::vector<MainWindow*> windows;
+    for (int i = 0; i < m_browserWindows.size(); ++i)
+    {
+        QPointer<MainWindow> m = m_browserWindows.at(i);
+        if (!m.isNull() && !m->isPrivate())
+        {
+            windows.push_back(m.data());
+        }
+    }
+
+    // Only save session in this method if there's one window left. Saving more than one window is
+    // handled by beforeBrowserQuit() method
+    if (windows.empty() || windows.size() > 1)
+        return;
+
+    m_sessionMgr.saveState(windows);
 }

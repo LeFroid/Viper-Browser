@@ -9,6 +9,7 @@
 
 #include "BookmarkNode.h"
 #include "ClearHistoryOptions.h"
+#include "SessionManager.h"
 
 class BookmarkManager;
 class CookieJar;
@@ -98,6 +99,15 @@ public slots:
     /// Sets the global web settings of the application - called during initialization and on settings update
     void setWebSettings();
 
+private slots:
+    /// Called when the aboutToQuit signal is emitted. If the user has enabled the session restore feature, their
+    /// current windows and tabs will be saved so they can be opened at the start of the next browsing session
+    void beforeBrowserQuit();
+
+    /// Called when a browser window is about to be closed. If it is the last window still open, is not private,
+    /// and the user enabled the session save feature, this will save the browsing session
+    void maybeSaveSession();
+
 protected:
     /// Clears the given history type(s) from the browser's storage, beginning with the start time until the present.
     /// If no start time is given, all history will be cleared
@@ -149,6 +159,9 @@ private:
 
     /// List of browser windows
     QList< QPointer<MainWindow> > m_browserWindows;
+
+    /// Browsing session manager
+    SessionManager m_sessionMgr;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

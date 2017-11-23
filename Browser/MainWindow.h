@@ -36,6 +36,7 @@ class WebView;
  */
 class MainWindow : public QMainWindow
 {
+    friend class SessionManager;
     friend class WebView;
 
     Q_OBJECT
@@ -46,6 +47,9 @@ public:
 
     /// MainWindow destructor
     ~MainWindow();
+
+    /// Returns true if this is a private browsing window, false if else
+    bool isPrivate() const;
 
     /// Sets the browsing mode to private if flag is true, otherwise disables private browsing mode
     void setPrivate(bool value);
@@ -58,6 +62,10 @@ public:
 
     /// Resets the contents of the user agent sub-menu of the tools menu
     void resetUserAgentMenu();
+
+signals:
+    /// Emitted when the window is about to be closed
+    void aboutToClose();
 
 private:
     /// Instantiates the items belonging to the bookmarks menu
@@ -168,6 +176,13 @@ private slots:
 protected slots:
     /// Called by a \ref WebView when it is requested that some content be opened in a new window. This opens it in a new tab and returns the tab's WebView
     WebView *getNewTabWebView();
+
+protected:
+    /// Returns a pointer to the tab widget. Used by \ref SessionManager to save the browsing session
+    BrowserTabWidget *getTabWidget() const;
+
+    /// Called when the window is being closed
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     /// UI items from .ui file

@@ -93,7 +93,8 @@ SOURCES += \
     Widgets/BrowserTabBar.cpp \
     Bookmarks/BookmarkNode.cpp \
     Widgets/WebLinkLabel.cpp \
-    UserAgents/UserAgentsWindow.cpp
+    UserAgents/UserAgentsWindow.cpp \
+    SessionManager.cpp
 
 HEADERS += \
     History/HistoryTableModel.h \
@@ -151,7 +152,8 @@ HEADERS += \
     Widgets/BrowserTabBar.h \
     Bookmarks/BookmarkNode.h \
     Widgets/WebLinkLabel.h \
-    UserAgents/UserAgentsWindow.h
+    UserAgents/UserAgentsWindow.h \
+    SessionManager.h
 
 FORMS += \
         mainwindow.ui \
