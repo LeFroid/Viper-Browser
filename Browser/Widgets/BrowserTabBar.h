@@ -20,9 +20,15 @@ signals:
     /// Emitted when the "New Tab" button is activated
     void newTabRequest();
 
+    /// Emitted when the user chooses the "Reload" option on a tab from the context menu
+    void reloadTabRequest(int index);
+
 private slots:
     /// Called when the next tab shortcut is activated. Switches to the next tab, or cycles back to the first tab if already at the last tab
     void onNextTabShortcut();
+
+    /// Creates a context menu at the given position on the tab bar
+    void onContextMenuRequest(const QPoint &pos);
 
 protected:
     /// Returns the suggested size of the browser tab bar

@@ -31,6 +31,10 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *
     connect(this, &BrowserTabWidget::currentChanged, this, &BrowserTabWidget::onCurrentChanged);
 
     connect(m_tabBar, &BrowserTabBar::newTabRequest, [=](){ newTab(); });
+    connect(m_tabBar, &BrowserTabBar::reloadTabRequest, [=](int index){
+        if (WebView *view = getWebView(index))
+            view->reload();
+    });
 }
 
 WebView *BrowserTabWidget::currentWebView() const

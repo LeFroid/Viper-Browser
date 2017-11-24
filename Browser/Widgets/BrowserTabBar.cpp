@@ -3,12 +3,11 @@
 #include <QIcon>
 #include <QKeySequence>
 #include <QLabel>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QResizeEvent>
 #include <QShortcut>
 #include <QToolButton>
-
-//TODO: Context menu for tabBar
 
 BrowserTabBar::BrowserTabBar(QWidget *parent) :
     QTabBar(parent)
@@ -31,12 +30,16 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     setTabToolTip(addTabIdx, tr("New Tab"));
     setTabEnabled(addTabIdx, false);*/
 
-    setStyleSheet("QTabBar::tab:disabled { background-color: rgba(0, 0, 0, 0); }");
+    //setStyleSheet("QTabBar::tab:disabled { background-color: rgba(0, 0, 0, 0); }");
     connect(m_buttonNewTab, &QToolButton::clicked, this, &BrowserTabBar::newTabRequest);
 
     // Add shortcut (Ctrl+Tab) to switch between tabs
     QShortcut *tabShortcut = new QShortcut(QKeySequence(QKeySequence::NextChild), this);
     connect(tabShortcut, &QShortcut::activated, this, &BrowserTabBar::onNextTabShortcut);
+
+    // Custom context menu
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &BrowserTabBar::customContextMenuRequested, this, &BrowserTabBar::onContextMenuRequest);
 }
 
 void BrowserTabBar::onNextTabShortcut()
@@ -47,6 +50,30 @@ void BrowserTabBar::onNextTabShortcut()
         setCurrentIndex(0);
     else
         setCurrentIndex(nextIdx);
+}
+
+void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
+{
+    QMenu menu(this);
+
+    // Add "New Tab" menu item, shown on every context menu request
+    menu.addAction(tr("New Tab"), this, &BrowserTabBar::newTabRequest);
+
+    // Check if the user right-clicked on a tab, or just some position on the tab bar
+    int tabIndex = tabAt(pos);
+    if (tabIndex >= 0)
+    {
+        menu.addSeparator();
+        menu.addAction(tr("Close Tab"), [=](){
+            removeTab(tabIndex);
+        });
+        menu.addSeparator();
+        menu.addAction(tr("Reload"), [=]() {
+            emit reloadTabRequest(tabIndex);
+        });
+    }
+
+    menu.exec(mapToGlobal(pos));
 }
 
 QSize BrowserTabBar::sizeHint() const
