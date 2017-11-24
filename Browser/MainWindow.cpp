@@ -380,6 +380,7 @@ void MainWindow::setupToolBar()
     m_prevPage->setToolTip(tr("Go back one page"));
     QMenu *buttonHistMenu = new QMenu(this);
     m_prevPage->setMenu(buttonHistMenu);
+    connect(m_prevPage, &QToolButton::clicked, prevPageAction, &QAction::trigger);
     addWebProxyAction(QWebPage::Back, prevPageAction);
 
     // Next Page Button
@@ -389,6 +390,7 @@ void MainWindow::setupToolBar()
     m_nextPage->setToolTip(tr("Go forward one page"));
     buttonHistMenu = new QMenu(this);
     m_nextPage->setMenu(buttonHistMenu);
+    connect(m_nextPage, &QToolButton::clicked, nextPageAction, &QAction::trigger);
     addWebProxyAction(QWebPage::Forward, nextPageAction);
 
     // Stop Loading / Refresh Page dual button
