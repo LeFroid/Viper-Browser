@@ -1,9 +1,381 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-    <file alias="plus_icon.png">Images/plus_icon.png</file>
-    <file alias="https_secure.png">Images/https_secure.png</file>
-    <file alias="https_insecure.png">Images/https_insecure.png</file>
-    <file alias="search_icon.png">Images/search_icon.png</file>
-    <file alias="blank.html">HTML/blank.html</file>
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file alias="plus_icon.png">Images/plus_icon.png</file>
+        <file alias="https_secure.png">Images/https_secure.png</file>
+        <file alias="https_insecure.png">Images/https_insecure.png</file>
+        <file alias="search_icon.png">Images/search_icon.png</file>
+        <file alias="blank.html">HTML/blank.html</file>
+        <file alias="viewer.html">HTML/viewer.html</file>
+        <file alias="viewer.css">HTML/viewer.css</file>
+        <file alias="pdf.js">JavaScript/pdf.js</file>
+        <file alias="pdf.js.map">JavaScript/pdf.js.map</file>
+        <file alias="pdf.worker.js">JavaScript/pdf.worker.js</file>
+        <file alias="pdf.worker.js/pdf.worker.js.map">JavaScript/pdf.worker.js.map</file>
+        <file alias="viewer.js">JavaScript/viewer.js</file>
+        <file alias="viewer.js/viewer.js.map">JavaScript/viewer.js.map</file>
+        <file alias="debugger.js">JavaScript/debugger.js</file>
+        <file>locale/locale.properties</file>
+        <file>locale/ach/viewer.properties</file>
+        <file>locale/af/viewer.properties</file>
+        <file>locale/ak/viewer.properties</file>
+        <file>locale/an/viewer.properties</file>
+        <file>locale/ar/viewer.properties</file>
+        <file>locale/as/viewer.properties</file>
+        <file>locale/ast/viewer.properties</file>
+        <file>locale/az/viewer.properties</file>
+        <file>locale/be/viewer.properties</file>
+        <file>locale/bg/viewer.properties</file>
+        <file>locale/bn-BD/viewer.properties</file>
+        <file>locale/bn-IN/viewer.properties</file>
+        <file>locale/br/viewer.properties</file>
+        <file>locale/bs/viewer.properties</file>
+        <file>locale/ca/viewer.properties</file>
+        <file>locale/cs/viewer.properties</file>
+        <file>locale/csb/viewer.properties</file>
+        <file>locale/cy/viewer.properties</file>
+        <file>locale/da/viewer.properties</file>
+        <file>locale/de/viewer.properties</file>
+        <file>locale/el/viewer.properties</file>
+        <file>locale/en-GB/viewer.properties</file>
+        <file>locale/en-US/viewer.properties</file>
+        <file>locale/en-ZA/viewer.properties</file>
+        <file>locale/eo/viewer.properties</file>
+        <file>locale/es-AR/viewer.properties</file>
+        <file>locale/es-CL/viewer.properties</file>
+        <file>locale/es-ES/viewer.properties</file>
+        <file>locale/es-MX/viewer.properties</file>
+        <file>locale/et/viewer.properties</file>
+        <file>locale/eu/viewer.properties</file>
+        <file>locale/fa/viewer.properties</file>
+        <file>locale/ff/viewer.properties</file>
+        <file>locale/fi/viewer.properties</file>
+        <file>locale/fr/viewer.properties</file>
+        <file>locale/fy-NL/viewer.properties</file>
+        <file>locale/ga-IE/viewer.properties</file>
+        <file>locale/gd/viewer.properties</file>
+        <file>locale/gl/viewer.properties</file>
+        <file>locale/gu-IN/viewer.properties</file>
+        <file>locale/he/viewer.properties</file>
+        <file>locale/hi-IN/viewer.properties</file>
+        <file>locale/hr/viewer.properties</file>
+        <file>locale/hu/viewer.properties</file>
+        <file>locale/hy-AM/viewer.properties</file>
+        <file>locale/id/viewer.properties</file>
+        <file>locale/is/viewer.properties</file>
+        <file>locale/it/viewer.properties</file>
+        <file>locale/ja/viewer.properties</file>
+        <file>locale/ka/viewer.properties</file>
+        <file>locale/kk/viewer.properties</file>
+        <file>locale/km/viewer.properties</file>
+        <file>locale/kn/viewer.properties</file>
+        <file>locale/ko/viewer.properties</file>
+        <file>locale/ku/viewer.properties</file>
+        <file>locale/lg/viewer.properties</file>
+        <file>locale/lij/viewer.properties</file>
+        <file>locale/lt/viewer.properties</file>
+        <file>locale/lv/viewer.properties</file>
+        <file>locale/mai/viewer.properties</file>
+        <file>locale/mk/viewer.properties</file>
+        <file>locale/ml/viewer.properties</file>
+        <file>locale/mn/viewer.properties</file>
+        <file>locale/mr/viewer.properties</file>
+        <file>locale/ms/viewer.properties</file>
+        <file>locale/my/viewer.properties</file>
+        <file>locale/nb-NO/viewer.properties</file>
+        <file>locale/nl/viewer.properties</file>
+        <file>locale/nn-NO/viewer.properties</file>
+        <file>locale/nso/viewer.properties</file>
+        <file>locale/oc/viewer.properties</file>
+        <file>locale/or/viewer.properties</file>
+        <file>locale/pa-IN/viewer.properties</file>
+        <file>locale/pl/viewer.properties</file>
+        <file>locale/pt-BR/viewer.properties</file>
+        <file>locale/pt-PT/viewer.properties</file>
+        <file>locale/rm/viewer.properties</file>
+        <file>locale/ro/viewer.properties</file>
+        <file>locale/ru/viewer.properties</file>
+        <file>locale/rw/viewer.properties</file>
+        <file>locale/sah/viewer.properties</file>
+        <file>locale/si/viewer.properties</file>
+        <file>locale/sk/viewer.properties</file>
+        <file>locale/sl/viewer.properties</file>
+        <file>locale/son/viewer.properties</file>
+        <file>locale/sq/viewer.properties</file>
+        <file>locale/sr/viewer.properties</file>
+        <file>locale/sv-SE/viewer.properties</file>
+        <file>locale/sw/viewer.properties</file>
+        <file>locale/ta/viewer.properties</file>
+        <file>locale/ta-LK/viewer.properties</file>
+        <file>locale/te/viewer.properties</file>
+        <file>locale/th/viewer.properties</file>
+        <file>locale/tl/viewer.properties</file>
+        <file>locale/tn/viewer.properties</file>
+        <file>locale/tr/viewer.properties</file>
+        <file>locale/uk/viewer.properties</file>
+        <file>locale/ur/viewer.properties</file>
+        <file>locale/vi/viewer.properties</file>
+        <file>locale/wo/viewer.properties</file>
+        <file>locale/xh/viewer.properties</file>
+        <file>locale/zh-CN/viewer.properties</file>
+        <file>locale/zh-TW/viewer.properties</file>
+        <file>locale/zu/viewer.properties</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file alias="annotation-check.svg">HTML/images/annotation-check.svg</file>
+        <file alias="annotation-help.svg">HTML/images/annotation-help.svg</file>
+        <file alias="annotation-insert.svg">HTML/images/annotation-insert.svg</file>
+        <file alias="annotation-key.svg">HTML/images/annotation-key.svg</file>
+        <file alias="annotation-note.svg">HTML/images/annotation-note.svg</file>
+        <file alias="annotation-comment.svg">HTML/images/annotation-comment.svg</file>
+        <file alias="annotation-newparagraph.svg">HTML/images/annotation-newparagraph.svg</file>
+        <file alias="annotation-noicon.svg">HTML/images/annotation-noicon.svg</file>
+        <file alias="annotation-paragraph.svg">HTML/images/annotation-paragraph.svg</file>
+        <file alias="findbarButton-next-rtl.png">HTML/images/findbarButton-next-rtl.png</file>
+        <file alias="findbarButton-next-rtl@2x.png">HTML/images/findbarButton-next-rtl@2x.png</file>
+        <file alias="findbarButton-next.png">HTML/images/findbarButton-next.png</file>
+        <file alias="findbarButton-next@2x.png">HTML/images/findbarButton-next@2x.png</file>
+        <file alias="findbarButton-previous-rtl.png">HTML/images/findbarButton-previous-rtl.png</file>
+        <file alias="findbarButton-previous-rtl@2x.png">HTML/images/findbarButton-previous-rtl@2x.png</file>
+        <file alias="findbarButton-previous.png">HTML/images/findbarButton-previous.png</file>
+        <file alias="findbarButton-previous@2x.png">HTML/images/findbarButton-previous@2x.png</file>
+        <file alias="grab.cur">HTML/images/grab.cur</file>
+        <file alias="grabbing.cur">HTML/images/grabbing.cur</file>
+        <file alias="loading-icon.gif">HTML/images/loading-icon.gif</file>
+        <file alias="loading-small.png">HTML/images/loading-small.png</file>
+        <file alias="loading-small@2x.png">HTML/images/loading-small@2x.png</file>
+        <file alias="secondaryToolbarButton-documentProperties.png">HTML/images/secondaryToolbarButton-documentProperties.png</file>
+        <file alias="secondaryToolbarButton-documentProperties@2x.png">HTML/images/secondaryToolbarButton-documentProperties@2x.png</file>
+        <file alias="secondaryToolbarButton-firstPage.png">HTML/images/secondaryToolbarButton-firstPage.png</file>
+        <file alias="secondaryToolbarButton-firstPage@2x.png">HTML/images/secondaryToolbarButton-firstPage@2x.png</file>
+        <file alias="secondaryToolbarButton-handTool.png">HTML/images/secondaryToolbarButton-handTool.png</file>
+        <file alias="secondaryToolbarButton-handTool@2x.png">HTML/images/secondaryToolbarButton-handTool@2x.png</file>
+        <file alias="secondaryToolbarButton-lastPage.png">HTML/images/secondaryToolbarButton-lastPage.png</file>
+        <file alias="secondaryToolbarButton-lastPage@2x.png">HTML/images/secondaryToolbarButton-lastPage@2x.png</file>
+        <file alias="secondaryToolbarButton-rotateCcw.png">HTML/images/secondaryToolbarButton-rotateCcw.png</file>
+        <file alias="secondaryToolbarButton-rotateCcw@2x.png">HTML/images/secondaryToolbarButton-rotateCcw@2x.png</file>
+        <file alias="secondaryToolbarButton-rotateCw.png">HTML/images/secondaryToolbarButton-rotateCw.png</file>
+        <file alias="secondaryToolbarButton-rotateCw@2x.png">HTML/images/secondaryToolbarButton-rotateCw@2x.png</file>
+        <file alias="secondaryToolbarButton-selectTool.png">HTML/images/secondaryToolbarButton-selectTool.png</file>
+        <file alias="secondaryToolbarButton-selectTool@2x.png">HTML/images/secondaryToolbarButton-selectTool@2x.png</file>
+        <file alias="shadow.png">HTML/images/shadow.png</file>
+        <file alias="texture.png">HTML/images/texture.png</file>
+        <file alias="toolbarButton-bookmark.png">HTML/images/toolbarButton-bookmark.png</file>
+        <file alias="toolbarButton-bookmark@2x.png">HTML/images/toolbarButton-bookmark@2x.png</file>
+        <file alias="toolbarButton-download.png">HTML/images/toolbarButton-download.png</file>
+        <file alias="toolbarButton-download@2x.png">HTML/images/toolbarButton-download@2x.png</file>
+        <file alias="toolbarButton-menuArrows.png">HTML/images/toolbarButton-menuArrows.png</file>
+        <file alias="toolbarButton-menuArrows@2x.png">HTML/images/toolbarButton-menuArrows@2x.png</file>
+        <file alias="toolbarButton-openFile.png">HTML/images/toolbarButton-openFile.png</file>
+        <file alias="toolbarButton-openFile@2x.png">HTML/images/toolbarButton-openFile@2x.png</file>
+        <file alias="toolbarButton-pageDown-rtl.png">HTML/images/toolbarButton-pageDown-rtl.png</file>
+        <file alias="toolbarButton-pageDown-rtl@2x.png">HTML/images/toolbarButton-pageDown-rtl@2x.png</file>
+        <file alias="toolbarButton-pageDown.png">HTML/images/toolbarButton-pageDown.png</file>
+        <file alias="toolbarButton-pageDown@2x.png">HTML/images/toolbarButton-pageDown@2x.png</file>
+        <file alias="toolbarButton-pageUp-rtl.png">HTML/images/toolbarButton-pageUp-rtl.png</file>
+        <file alias="toolbarButton-pageUp-rtl@2x.png">HTML/images/toolbarButton-pageUp-rtl@2x.png</file>
+        <file alias="toolbarButton-pageUp.png">HTML/images/toolbarButton-pageUp.png</file>
+        <file alias="toolbarButton-pageUp@2x.png">HTML/images/toolbarButton-pageUp@2x.png</file>
+        <file alias="toolbarButton-presentationMode.png">HTML/images/toolbarButton-presentationMode.png</file>
+        <file alias="toolbarButton-presentationMode@2x.png">HTML/images/toolbarButton-presentationMode@2x.png</file>
+        <file alias="toolbarButton-print.png">HTML/images/toolbarButton-print.png</file>
+        <file alias="toolbarButton-print@2x.png">HTML/images/toolbarButton-print@2x.png</file>
+        <file alias="toolbarButton-search.png">HTML/images/toolbarButton-search.png</file>
+        <file alias="toolbarButton-search@2x.png">HTML/images/toolbarButton-search@2x.png</file>
+        <file alias="toolbarButton-secondaryToolbarToggle-rtl.png">HTML/images/toolbarButton-secondaryToolbarToggle-rtl.png</file>
+        <file alias="toolbarButton-secondaryToolbarToggle-rtl@2x.png">HTML/images/toolbarButton-secondaryToolbarToggle-rtl@2x.png</file>
+        <file alias="toolbarButton-secondaryToolbarToggle.png">HTML/images/toolbarButton-secondaryToolbarToggle.png</file>
+        <file alias="toolbarButton-secondaryToolbarToggle@2x.png">HTML/images/toolbarButton-secondaryToolbarToggle@2x.png</file>
+        <file alias="toolbarButton-sidebarToggle-rtl.png">HTML/images/toolbarButton-sidebarToggle-rtl.png</file>
+        <file alias="toolbarButton-sidebarToggle-rtl@2x.png">HTML/images/toolbarButton-sidebarToggle-rtl@2x.png</file>
+        <file alias="toolbarButton-sidebarToggle.png">HTML/images/toolbarButton-sidebarToggle.png</file>
+        <file alias="toolbarButton-sidebarToggle@2x.png">HTML/images/toolbarButton-sidebarToggle@2x.png</file>
+        <file alias="toolbarButton-viewAttachments.png">HTML/images/toolbarButton-viewAttachments.png</file>
+        <file alias="toolbarButton-viewAttachments@2x.png">HTML/images/toolbarButton-viewAttachments@2x.png</file>
+        <file alias="toolbarButton-viewOutline-rtl.png">HTML/images/toolbarButton-viewOutline-rtl.png</file>
+        <file alias="toolbarButton-viewOutline-rtl@2x.png">HTML/images/toolbarButton-viewOutline-rtl@2x.png</file>
+        <file alias="toolbarButton-viewOutline.png">HTML/images/toolbarButton-viewOutline.png</file>
+        <file alias="toolbarButton-viewOutline@2x.png">HTML/images/toolbarButton-viewOutline@2x.png</file>
+        <file alias="toolbarButton-viewThumbnail.png">HTML/images/toolbarButton-viewThumbnail.png</file>
+        <file alias="toolbarButton-viewThumbnail@2x.png">HTML/images/toolbarButton-viewThumbnail@2x.png</file>
+        <file alias="toolbarButton-zoomIn.png">HTML/images/toolbarButton-zoomIn.png</file>
+        <file alias="toolbarButton-zoomIn@2x.png">HTML/images/toolbarButton-zoomIn@2x.png</file>
+        <file alias="toolbarButton-zoomOut.png">HTML/images/toolbarButton-zoomOut.png</file>
+        <file alias="toolbarButton-zoomOut@2x.png">HTML/images/toolbarButton-zoomOut@2x.png</file>
+        <file alias="treeitem-collapsed-rtl.png">HTML/images/treeitem-collapsed-rtl.png</file>
+        <file alias="treeitem-collapsed-rtl@2x.png">HTML/images/treeitem-collapsed-rtl@2x.png</file>
+        <file alias="treeitem-collapsed.png">HTML/images/treeitem-collapsed.png</file>
+        <file alias="treeitem-collapsed@2x.png">HTML/images/treeitem-collapsed@2x.png</file>
+        <file alias="treeitem-expanded.png">HTML/images/treeitem-expanded.png</file>
+        <file alias="treeitem-expanded@2x.png">HTML/images/treeitem-expanded@2x.png</file>
+    </qresource>
+    <qresource prefix="/cmaps">
+        <file alias="78-EUC-H.bcmap">HTML/cmaps/78-EUC-H.bcmap</file>
+        <file alias="78-EUC-V.bcmap">HTML/cmaps/78-EUC-V.bcmap</file>
+        <file alias="78-H.bcmap">HTML/cmaps/78-H.bcmap</file>
+        <file alias="78-RKSJ-V.bcmap">HTML/cmaps/78-RKSJ-V.bcmap</file>
+        <file alias="78-V.bcmap">HTML/cmaps/78-V.bcmap</file>
+        <file alias="78-RKSJ-H.bcmap">HTML/cmaps/78-RKSJ-H.bcmap</file>
+        <file alias="78ms-RKSJ-H.bcmap">HTML/cmaps/78ms-RKSJ-H.bcmap</file>
+        <file alias="78ms-RKSJ-V.bcmap">HTML/cmaps/78ms-RKSJ-V.bcmap</file>
+        <file alias="83pv-RKSJ-H.bcmap">HTML/cmaps/83pv-RKSJ-H.bcmap</file>
+        <file alias="90ms-RKSJ-H.bcmap">HTML/cmaps/90ms-RKSJ-H.bcmap</file>
+        <file alias="90ms-RKSJ-V.bcmap">HTML/cmaps/90ms-RKSJ-V.bcmap</file>
+        <file alias="90msp-RKSJ-H.bcmap">HTML/cmaps/90msp-RKSJ-H.bcmap</file>
+        <file alias="90msp-RKSJ-V.bcmap">HTML/cmaps/90msp-RKSJ-V.bcmap</file>
+        <file alias="90pv-RKSJ-H.bcmap">HTML/cmaps/90pv-RKSJ-H.bcmap</file>
+        <file alias="90pv-RKSJ-V.bcmap">HTML/cmaps/90pv-RKSJ-V.bcmap</file>
+        <file alias="Add-H.bcmap">HTML/cmaps/Add-H.bcmap</file>
+        <file alias="Add-RKSJ-H.bcmap">HTML/cmaps/Add-RKSJ-H.bcmap</file>
+        <file alias="Add-RKSJ-V.bcmap">HTML/cmaps/Add-RKSJ-V.bcmap</file>
+        <file alias="Add-V.bcmap">HTML/cmaps/Add-V.bcmap</file>
+        <file alias="Adobe-CNS1-0.bcmap">HTML/cmaps/Adobe-CNS1-0.bcmap</file>
+        <file alias="Adobe-CNS1-1.bcmap">HTML/cmaps/Adobe-CNS1-1.bcmap</file>
+        <file alias="Adobe-CNS1-2.bcmap">HTML/cmaps/Adobe-CNS1-2.bcmap</file>
+        <file alias="Adobe-CNS1-3.bcmap">HTML/cmaps/Adobe-CNS1-3.bcmap</file>
+        <file alias="Adobe-CNS1-4.bcmap">HTML/cmaps/Adobe-CNS1-4.bcmap</file>
+        <file alias="Adobe-CNS1-5.bcmap">HTML/cmaps/Adobe-CNS1-5.bcmap</file>
+        <file alias="Adobe-CNS1-6.bcmap">HTML/cmaps/Adobe-CNS1-6.bcmap</file>
+        <file alias="Adobe-CNS1-UCS2.bcmap">HTML/cmaps/Adobe-CNS1-UCS2.bcmap</file>
+        <file alias="Adobe-GB1-0.bcmap">HTML/cmaps/Adobe-GB1-0.bcmap</file>
+        <file alias="Adobe-GB1-1.bcmap">HTML/cmaps/Adobe-GB1-1.bcmap</file>
+        <file alias="Adobe-GB1-2.bcmap">HTML/cmaps/Adobe-GB1-2.bcmap</file>
+        <file alias="Adobe-GB1-3.bcmap">HTML/cmaps/Adobe-GB1-3.bcmap</file>
+        <file alias="Adobe-GB1-4.bcmap">HTML/cmaps/Adobe-GB1-4.bcmap</file>
+        <file alias="Adobe-GB1-5.bcmap">HTML/cmaps/Adobe-GB1-5.bcmap</file>
+        <file alias="Adobe-GB1-UCS2.bcmap">HTML/cmaps/Adobe-GB1-UCS2.bcmap</file>
+        <file alias="Adobe-Japan1-0.bcmap">HTML/cmaps/Adobe-Japan1-0.bcmap</file>
+        <file alias="Adobe-Japan1-1.bcmap">HTML/cmaps/Adobe-Japan1-1.bcmap</file>
+        <file alias="Adobe-Japan1-2.bcmap">HTML/cmaps/Adobe-Japan1-2.bcmap</file>
+        <file alias="Adobe-Japan1-3.bcmap">HTML/cmaps/Adobe-Japan1-3.bcmap</file>
+        <file alias="Adobe-Japan1-4.bcmap">HTML/cmaps/Adobe-Japan1-4.bcmap</file>
+        <file alias="Adobe-Japan1-5.bcmap">HTML/cmaps/Adobe-Japan1-5.bcmap</file>
+        <file alias="Adobe-Japan1-6.bcmap">HTML/cmaps/Adobe-Japan1-6.bcmap</file>
+        <file alias="Adobe-Japan1-UCS2.bcmap">HTML/cmaps/Adobe-Japan1-UCS2.bcmap</file>
+        <file alias="Adobe-Korea1-0.bcmap">HTML/cmaps/Adobe-Korea1-0.bcmap</file>
+        <file alias="Adobe-Korea1-1.bcmap">HTML/cmaps/Adobe-Korea1-1.bcmap</file>
+        <file alias="Adobe-Korea1-2.bcmap">HTML/cmaps/Adobe-Korea1-2.bcmap</file>
+        <file alias="Adobe-Korea1-UCS2.bcmap">HTML/cmaps/Adobe-Korea1-UCS2.bcmap</file>
+        <file alias="B5-H.bcmap">HTML/cmaps/B5-H.bcmap</file>
+        <file alias="B5-V.bcmap">HTML/cmaps/B5-V.bcmap</file>
+        <file alias="B5pc-H.bcmap">HTML/cmaps/B5pc-H.bcmap</file>
+        <file alias="B5pc-V.bcmap">HTML/cmaps/B5pc-V.bcmap</file>
+        <file alias="CNS-EUC-H.bcmap">HTML/cmaps/CNS-EUC-H.bcmap</file>
+        <file alias="CNS-EUC-V.bcmap">HTML/cmaps/CNS-EUC-V.bcmap</file>
+        <file alias="CNS1-H.bcmap">HTML/cmaps/CNS1-H.bcmap</file>
+        <file alias="CNS1-V.bcmap">HTML/cmaps/CNS1-V.bcmap</file>
+        <file alias="CNS2-H.bcmap">HTML/cmaps/CNS2-H.bcmap</file>
+        <file alias="CNS2-V.bcmap">HTML/cmaps/CNS2-V.bcmap</file>
+        <file alias="ETen-B5-H.bcmap">HTML/cmaps/ETen-B5-H.bcmap</file>
+        <file alias="ETen-B5-V.bcmap">HTML/cmaps/ETen-B5-V.bcmap</file>
+        <file alias="ETenms-B5-H.bcmap">HTML/cmaps/ETenms-B5-H.bcmap</file>
+        <file alias="ETenms-B5-V.bcmap">HTML/cmaps/ETenms-B5-V.bcmap</file>
+        <file alias="ETHK-B5-H.bcmap">HTML/cmaps/ETHK-B5-H.bcmap</file>
+        <file alias="ETHK-B5-V.bcmap">HTML/cmaps/ETHK-B5-V.bcmap</file>
+        <file alias="EUC-H.bcmap">HTML/cmaps/EUC-H.bcmap</file>
+        <file alias="EUC-V.bcmap">HTML/cmaps/EUC-V.bcmap</file>
+        <file alias="Ext-H.bcmap">HTML/cmaps/Ext-H.bcmap</file>
+        <file alias="Ext-RKSJ-H.bcmap">HTML/cmaps/Ext-RKSJ-H.bcmap</file>
+        <file alias="Ext-RKSJ-V.bcmap">HTML/cmaps/Ext-RKSJ-V.bcmap</file>
+        <file alias="Ext-V.bcmap">HTML/cmaps/Ext-V.bcmap</file>
+        <file alias="GB-EUC-H.bcmap">HTML/cmaps/GB-EUC-H.bcmap</file>
+        <file alias="GB-EUC-V.bcmap">HTML/cmaps/GB-EUC-V.bcmap</file>
+        <file alias="GB-H.bcmap">HTML/cmaps/GB-H.bcmap</file>
+        <file alias="GB-V.bcmap">HTML/cmaps/GB-V.bcmap</file>
+        <file alias="GBK-EUC-H.bcmap">HTML/cmaps/GBK-EUC-H.bcmap</file>
+        <file alias="GBK-EUC-V.bcmap">HTML/cmaps/GBK-EUC-V.bcmap</file>
+        <file alias="GBK2K-H.bcmap">HTML/cmaps/GBK2K-H.bcmap</file>
+        <file alias="GBK2K-V.bcmap">HTML/cmaps/GBK2K-V.bcmap</file>
+        <file alias="GBKp-EUC-H.bcmap">HTML/cmaps/GBKp-EUC-H.bcmap</file>
+        <file alias="GBKp-EUC-V.bcmap">HTML/cmaps/GBKp-EUC-V.bcmap</file>
+        <file alias="GBpc-EUC-H.bcmap">HTML/cmaps/GBpc-EUC-H.bcmap</file>
+        <file alias="GBpc-EUC-V.bcmap">HTML/cmaps/GBpc-EUC-V.bcmap</file>
+        <file alias="GBT-EUC-H.bcmap">HTML/cmaps/GBT-EUC-H.bcmap</file>
+        <file alias="GBT-EUC-V.bcmap">HTML/cmaps/GBT-EUC-V.bcmap</file>
+        <file alias="GBT-H.bcmap">HTML/cmaps/GBT-H.bcmap</file>
+        <file alias="GBT-V.bcmap">HTML/cmaps/GBT-V.bcmap</file>
+        <file alias="GBTpc-EUC-H.bcmap">HTML/cmaps/GBTpc-EUC-H.bcmap</file>
+        <file alias="GBTpc-EUC-V.bcmap">HTML/cmaps/GBTpc-EUC-V.bcmap</file>
+        <file alias="H.bcmap">HTML/cmaps/H.bcmap</file>
+        <file alias="Hankaku.bcmap">HTML/cmaps/Hankaku.bcmap</file>
+        <file alias="Hiragana.bcmap">HTML/cmaps/Hiragana.bcmap</file>
+        <file alias="HKdla-B5-H.bcmap">HTML/cmaps/HKdla-B5-H.bcmap</file>
+        <file alias="HKdla-B5-V.bcmap">HTML/cmaps/HKdla-B5-V.bcmap</file>
+        <file alias="HKdlb-B5-H.bcmap">HTML/cmaps/HKdlb-B5-H.bcmap</file>
+        <file alias="HKdlb-B5-V.bcmap">HTML/cmaps/HKdlb-B5-V.bcmap</file>
+        <file alias="HKgccs-B5-H.bcmap">HTML/cmaps/HKgccs-B5-H.bcmap</file>
+        <file alias="HKgccs-B5-V.bcmap">HTML/cmaps/HKgccs-B5-V.bcmap</file>
+        <file alias="HKm314-B5-H.bcmap">HTML/cmaps/HKm314-B5-H.bcmap</file>
+        <file alias="HKm314-B5-V.bcmap">HTML/cmaps/HKm314-B5-V.bcmap</file>
+        <file alias="HKm471-B5-H.bcmap">HTML/cmaps/HKm471-B5-H.bcmap</file>
+        <file alias="HKm471-B5-V.bcmap">HTML/cmaps/HKm471-B5-V.bcmap</file>
+        <file alias="HKscs-B5-H.bcmap">HTML/cmaps/HKscs-B5-H.bcmap</file>
+        <file alias="HKscs-B5-V.bcmap">HTML/cmaps/HKscs-B5-V.bcmap</file>
+        <file alias="Katakana.bcmap">HTML/cmaps/Katakana.bcmap</file>
+        <file alias="KSC-EUC-H.bcmap">HTML/cmaps/KSC-EUC-H.bcmap</file>
+        <file alias="KSC-EUC-V.bcmap">HTML/cmaps/KSC-EUC-V.bcmap</file>
+        <file alias="KSC-H.bcmap">HTML/cmaps/KSC-H.bcmap</file>
+        <file alias="KSC-Johab-H.bcmap">HTML/cmaps/KSC-Johab-H.bcmap</file>
+        <file alias="KSC-Johab-V.bcmap">HTML/cmaps/KSC-Johab-V.bcmap</file>
+        <file alias="KSC-V.bcmap">HTML/cmaps/KSC-V.bcmap</file>
+        <file alias="KSCms-UHC-H.bcmap">HTML/cmaps/KSCms-UHC-H.bcmap</file>
+        <file alias="KSCms-UHC-HW-H.bcmap">HTML/cmaps/KSCms-UHC-HW-H.bcmap</file>
+        <file alias="KSCms-UHC-HW-V.bcmap">HTML/cmaps/KSCms-UHC-HW-V.bcmap</file>
+        <file alias="KSCms-UHC-V.bcmap">HTML/cmaps/KSCms-UHC-V.bcmap</file>
+        <file alias="KSCpc-EUC-H.bcmap">HTML/cmaps/KSCpc-EUC-H.bcmap</file>
+        <file alias="KSCpc-EUC-V.bcmap">HTML/cmaps/KSCpc-EUC-V.bcmap</file>
+        <file alias="NWP-H.bcmap">HTML/cmaps/NWP-H.bcmap</file>
+        <file alias="NWP-V.bcmap">HTML/cmaps/NWP-V.bcmap</file>
+        <file alias="RKSJ-H.bcmap">HTML/cmaps/RKSJ-H.bcmap</file>
+        <file alias="RKSJ-V.bcmap">HTML/cmaps/RKSJ-V.bcmap</file>
+        <file alias="Roman.bcmap">HTML/cmaps/Roman.bcmap</file>
+        <file alias="UniCNS-UCS2-H.bcmap">HTML/cmaps/UniCNS-UCS2-H.bcmap</file>
+        <file alias="UniCNS-UCS2-V.bcmap">HTML/cmaps/UniCNS-UCS2-V.bcmap</file>
+        <file alias="UniCNS-UTF8-H.bcmap">HTML/cmaps/UniCNS-UTF8-H.bcmap</file>
+        <file alias="UniCNS-UTF8-V.bcmap">HTML/cmaps/UniCNS-UTF8-V.bcmap</file>
+        <file alias="UniCNS-UTF16-H.bcmap">HTML/cmaps/UniCNS-UTF16-H.bcmap</file>
+        <file alias="UniCNS-UTF16-V.bcmap">HTML/cmaps/UniCNS-UTF16-V.bcmap</file>
+        <file alias="UniCNS-UTF32-H.bcmap">HTML/cmaps/UniCNS-UTF32-H.bcmap</file>
+        <file alias="UniCNS-UTF32-V.bcmap">HTML/cmaps/UniCNS-UTF32-V.bcmap</file>
+        <file alias="UniGB-UCS2-H.bcmap">HTML/cmaps/UniGB-UCS2-H.bcmap</file>
+        <file alias="UniGB-UCS2-V.bcmap">HTML/cmaps/UniGB-UCS2-V.bcmap</file>
+        <file alias="UniGB-UTF8-H.bcmap">HTML/cmaps/UniGB-UTF8-H.bcmap</file>
+        <file alias="UniGB-UTF8-V.bcmap">HTML/cmaps/UniGB-UTF8-V.bcmap</file>
+        <file alias="UniGB-UTF16-H.bcmap">HTML/cmaps/UniGB-UTF16-H.bcmap</file>
+        <file alias="UniGB-UTF16-V.bcmap">HTML/cmaps/UniGB-UTF16-V.bcmap</file>
+        <file alias="UniGB-UTF32-H.bcmap">HTML/cmaps/UniGB-UTF32-H.bcmap</file>
+        <file alias="UniGB-UTF32-V.bcmap">HTML/cmaps/UniGB-UTF32-V.bcmap</file>
+        <file alias="UniJIS-UCS2-H.bcmap">HTML/cmaps/UniJIS-UCS2-H.bcmap</file>
+        <file alias="UniJIS-UCS2-HW-H.bcmap">HTML/cmaps/UniJIS-UCS2-HW-H.bcmap</file>
+        <file alias="UniJIS-UCS2-HW-V.bcmap">HTML/cmaps/UniJIS-UCS2-HW-V.bcmap</file>
+        <file alias="UniJIS-UCS2-V.bcmap">HTML/cmaps/UniJIS-UCS2-V.bcmap</file>
+        <file alias="UniJIS-UTF8-H.bcmap">HTML/cmaps/UniJIS-UTF8-H.bcmap</file>
+        <file alias="UniJIS-UTF8-V.bcmap">HTML/cmaps/UniJIS-UTF8-V.bcmap</file>
+        <file alias="UniJIS-UTF16-H.bcmap">HTML/cmaps/UniJIS-UTF16-H.bcmap</file>
+        <file alias="UniJIS-UTF16-V.bcmap">HTML/cmaps/UniJIS-UTF16-V.bcmap</file>
+        <file alias="UniJIS-UTF32-H.bcmap">HTML/cmaps/UniJIS-UTF32-H.bcmap</file>
+        <file alias="UniJIS-UTF32-V.bcmap">HTML/cmaps/UniJIS-UTF32-V.bcmap</file>
+        <file alias="UniJIS2004-UTF8-H.bcmap">HTML/cmaps/UniJIS2004-UTF8-H.bcmap</file>
+        <file alias="UniJIS2004-UTF8-V.bcmap">HTML/cmaps/UniJIS2004-UTF8-V.bcmap</file>
+        <file alias="UniJIS2004-UTF16-H.bcmap">HTML/cmaps/UniJIS2004-UTF16-H.bcmap</file>
+        <file alias="UniJIS2004-UTF16-V.bcmap">HTML/cmaps/UniJIS2004-UTF16-V.bcmap</file>
+        <file alias="UniJIS2004-UTF32-H.bcmap">HTML/cmaps/UniJIS2004-UTF32-H.bcmap</file>
+        <file alias="UniJIS2004-UTF32-V.bcmap">HTML/cmaps/UniJIS2004-UTF32-V.bcmap</file>
+        <file alias="UniJISPro-UCS2-HW-V.bcmap">HTML/cmaps/UniJISPro-UCS2-HW-V.bcmap</file>
+        <file alias="UniJISPro-UCS2-V.bcmap">HTML/cmaps/UniJISPro-UCS2-V.bcmap</file>
+        <file alias="UniJISPro-UTF8-V.bcmap">HTML/cmaps/UniJISPro-UTF8-V.bcmap</file>
+        <file alias="UniJISX0213-UTF32-H.bcmap">HTML/cmaps/UniJISX0213-UTF32-H.bcmap</file>
+        <file alias="UniJISX0213-UTF32-V.bcmap">HTML/cmaps/UniJISX0213-UTF32-V.bcmap</file>
+        <file alias="UniJISX02132004-UTF32-H.bcmap">HTML/cmaps/UniJISX02132004-UTF32-H.bcmap</file>
+        <file alias="UniJISX02132004-UTF32-V.bcmap">HTML/cmaps/UniJISX02132004-UTF32-V.bcmap</file>
+        <file alias="UniKS-UCS2-H.bcmap">HTML/cmaps/UniKS-UCS2-H.bcmap</file>
+        <file alias="UniKS-UCS2-V.bcmap">HTML/cmaps/UniKS-UCS2-V.bcmap</file>
+        <file alias="UniKS-UTF8-H.bcmap">HTML/cmaps/UniKS-UTF8-H.bcmap</file>
+        <file alias="UniKS-UTF8-V.bcmap">HTML/cmaps/UniKS-UTF8-V.bcmap</file>
+        <file alias="UniKS-UTF16-H.bcmap">HTML/cmaps/UniKS-UTF16-H.bcmap</file>
+        <file alias="UniKS-UTF16-V.bcmap">HTML/cmaps/UniKS-UTF16-V.bcmap</file>
+        <file alias="UniKS-UTF32-H.bcmap">HTML/cmaps/UniKS-UTF32-H.bcmap</file>
+        <file alias="UniKS-UTF32-V.bcmap">HTML/cmaps/UniKS-UTF32-V.bcmap</file>
+        <file alias="V.bcmap">HTML/cmaps/V.bcmap</file>
+        <file alias="WP-Symbol.bcmap">HTML/cmaps/WP-Symbol.bcmap</file>
+    </qresource>
 </RCC>

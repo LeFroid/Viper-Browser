@@ -94,7 +94,8 @@ SOURCES += \
     Bookmarks/BookmarkNode.cpp \
     Widgets/WebLinkLabel.cpp \
     UserAgents/UserAgentsWindow.cpp \
-    SessionManager.cpp
+    SessionManager.cpp \
+    Network/ViperNetworkReply.cpp
 
 HEADERS += \
     History/HistoryTableModel.h \
@@ -153,7 +154,8 @@ HEADERS += \
     Bookmarks/BookmarkNode.h \
     Widgets/WebLinkLabel.h \
     UserAgents/UserAgentsWindow.h \
-    SessionManager.h
+    SessionManager.h \
+    Network/ViperNetworkReply.h
 
 FORMS += \
         mainwindow.ui \

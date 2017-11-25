@@ -93,7 +93,7 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
 
     for (auto errCode : sslErrors)
     {
-        if (errCode.error() != QSslError::NoError)
+        if (errCode.error() != QSslError::NoError && errCode.error() != QSslError::UnspecifiedError)
         {
             qDebug() << "Adding host " << host << " (url " << reply->url() << " , scheme " << reply->url().scheme() << ") to insecure host list, "
                         "for SSL Error: " << errCode.errorString();

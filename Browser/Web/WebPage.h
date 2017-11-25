@@ -27,6 +27,10 @@ protected:
     /// Returns the user agent for a given url. If no user agent has been manually specified, the default agent will be sent
     QString userAgentForUrl(const QUrl &url) const override;
 
+private slots:
+    /// Attempts to handle unsupported network replies
+    void onUnsupportedContent(QNetworkReply *reply);
+
 protected:
     /// Custom user agent string. Empty if default UA is used
     static QString m_userAgent;

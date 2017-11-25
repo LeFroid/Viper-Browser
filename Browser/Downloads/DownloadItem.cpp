@@ -210,31 +210,31 @@ QString DownloadItem::getDefaultFileName(const QString &pathWithoutSuffix, const
 QString DownloadItem::getUserByteString(qint64 value) const
 {
     QString userStr;
-    double valDiv;
+    double valDiv = value;
 
     if (value >= 1099511627776)
     {
         // >= 1 TB
-        valDiv = value / 1099511627776;
-        userStr = QString::number(valDiv, 'g', 2) + " TB";
+        valDiv /= 1099511627776;
+        userStr = QString::number(valDiv, 'f', 2) + " TB";
     }
     else if (value >= 1073741824)
     {
         // >= 1 GB
-        valDiv = value / 1073741824;
-        userStr = QString::number(valDiv, 'g', 2) + " GB";
+        valDiv /= 1073741824;
+        userStr = QString::number(valDiv, 'f', 2) + " GB";
     }
     else if (value >= 1048576)
     {
         // >= 1 MB
-        valDiv = value / 1048576;
-        userStr = QString::number(valDiv, 'g', 2) + " MB";
+        valDiv /= 1048576;
+        userStr = QString::number(valDiv, 'f', 2) + " MB";
     }
     else if (value > 1024)
     {
         // >= 1 KB
-        valDiv = value / 1024;
-        userStr = QString::number(valDiv, 'g', 2) + " KB";
+        valDiv /= 1024;
+        userStr = QString::number(valDiv, 'f', 2) + " KB";
     }
     else
     {
