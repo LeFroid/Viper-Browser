@@ -105,8 +105,8 @@ private slots:
     /// Deletes the current folder selection (ignoring the root folder if root is included)
     void deleteFolderSelection();
 
-    /// Called when the search bar is activated
-    void searchBookmarks();
+    /// Called when the text in the search bar changes (note: only searches for items that are direct descendants of the current folder)
+    void searchBookmarks(const QString &term);
 
     /// Resets the bookmark folder model
     void resetFolderModel();

@@ -55,7 +55,7 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     m_proxyModel->setFilterKeyColumn(-1); // -1 applies search terms to all columns
 
     // Enable search for bookmarks
-    connect(ui->lineEditSearch, &QLineEdit::editingFinished, this, &BookmarkWidget::searchBookmarks);
+    connect(ui->lineEditSearch, &QLineEdit::textChanged, this, &BookmarkWidget::searchBookmarks);
 }
 
 BookmarkWidget::~BookmarkWidget()
@@ -300,7 +300,7 @@ void BookmarkWidget::addBookmark()
 
 void BookmarkWidget::addFolder()
 {
-    //TODO: allow user to modify the position of folders
+    //TODO: allow user to modify the position of folders in the tree view
     BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
     model->insertRow(0, ui->treeView->currentIndex());
 }
@@ -357,9 +357,9 @@ void BookmarkWidget::deleteFolderSelection()
         ui->buttonForward->setEnabled(false);
 }
 
-void BookmarkWidget::searchBookmarks()
+void BookmarkWidget::searchBookmarks(const QString &term)
 {
-    m_proxyModel->setFilterRegExp(ui->lineEditSearch->text());
+    m_proxyModel->setFilterRegExp(term);
 }
 
 void BookmarkWidget::resetFolderModel()
