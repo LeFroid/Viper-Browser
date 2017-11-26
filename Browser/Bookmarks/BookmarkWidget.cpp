@@ -333,23 +333,9 @@ void BookmarkWidget::deleteFolderSelection()
 
     BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
     QModelIndexList items = ui->treeView->selectionModel()->selectedIndexes();
+    ui->treeView->setCurrentIndex(model->index(0, 0));
     for (auto index : items)
-    {
-        // Remove history items if they contain the item to be deleted
-        for (auto histIt = m_folderBackHistory.cbegin(); histIt != m_folderBackHistory.cend(); ++histIt)
-        {
-            if (*histIt == index)
-                m_folderBackHistory.erase(histIt);
-        }
-        for (auto histIt = m_folderForwardHistory.cbegin(); histIt != m_folderForwardHistory.cend(); ++histIt)
-        {
-            if (*histIt == index)
-                m_folderForwardHistory.erase(histIt);
-        }
-
-        // Finally, remove the folder
         model->removeRow(index.row(), index.parent());
-    }
 
     if (m_folderBackHistory.empty())
         ui->buttonBack->setEnabled(false);
@@ -388,7 +374,7 @@ void BookmarkWidget::onClickBackButton()
     m_folderForwardHistory.push_back(ui->treeView->currentIndex());
 
     QModelIndex idx = m_folderBackHistory.back();
-    if (idx == ui->treeView->currentIndex() && m_folderBackHistory.size() > 1)
+    if (!idx.isValid() || (idx == ui->treeView->currentIndex() && m_folderBackHistory.size() > 1))
     {
         m_folderBackHistory.pop_back();
         idx = m_folderBackHistory.back();

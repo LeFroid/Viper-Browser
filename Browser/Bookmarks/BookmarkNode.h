@@ -108,5 +108,6 @@ protected:
 };
 
 Q_DECLARE_METATYPE(BookmarkNode::NodeType)
+Q_DECLARE_METATYPE(BookmarkNode*)
 
 #endif // BOOKMARKNODE_H

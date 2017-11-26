@@ -106,6 +106,9 @@ public slots:
     /// Attempts to load the URL into the active tab
     void loadUrl(const QUrl &url);
 
+    /// Attempts to load the URL into a new browsing tab
+    void openLinkNewTab(const QUrl &url);
+
     /// Attempts to load the URL into a new window
     void openLinkNewWindow(const QUrl &url);
 

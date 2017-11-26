@@ -208,6 +208,11 @@ void MainWindow::loadUrl(const QUrl &url)
     m_tabWidget->loadUrl(url);
 }
 
+void MainWindow::openLinkNewTab(const QUrl &url)
+{
+    m_tabWidget->openLinkInNewTab(url);
+}
+
 void MainWindow::openLinkNewWindow(const QUrl &url)
 {
     m_tabWidget->openLinkInNewWindow(url, m_privateWindow);
@@ -228,6 +233,10 @@ void MainWindow::setupBookmarks()
     // Setup bookmark bar
     ui->bookmarkBar->setBookmarkManager(m_bookmarkManager);
     connect(ui->bookmarkBar, &BookmarkBar::loadBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
+    connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
+    connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewWindow, [=](const QUrl &url){
+        m_tabWidget->openLinkInNewWindow(url, m_privateWindow);
+    });
 }
 
 void MainWindow::setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu)
