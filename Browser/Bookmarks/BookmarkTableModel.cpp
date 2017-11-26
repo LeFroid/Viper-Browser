@@ -224,3 +224,8 @@ void BookmarkTableModel::setCurrentFolder(BookmarkNode *folder)
     m_folder = folder;
     endResetModel();
 }
+
+BookmarkNode *BookmarkTableModel::getCurrentFolder() const
+{
+    return m_folder;
+}

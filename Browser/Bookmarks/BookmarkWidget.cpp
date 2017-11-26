@@ -125,9 +125,19 @@ void BookmarkWidget::reloadBookmarks()
 void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
 {
     QModelIndex index = ui->tableView->indexAt(pos);
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    bool isBookmarkNode = false;
 
     QMenu menu(this);
     if (index.isValid())
+    {
+        // Check if URL column is empty. If so, display context menu for a folder node instead of the bookmark
+        // context menu
+        QModelIndex urlIdx = model->index(index.row(), 1, index.parent());
+        isBookmarkNode = !model->data(urlIdx).isNull();
+    }
+
+    if (isBookmarkNode) // Display context menu items for bookmark nodes
     {
         // Add action to open bookmark, and make the font bold
         QAction *openAction = menu.addAction(tr("Open"), this, &BookmarkWidget::openInCurrentPage);
@@ -139,20 +149,25 @@ void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
         menu.addAction(tr("Open in a new window"), this, &BookmarkWidget::openInNewWindow);
         menu.addSeparator();
     }
+    else               // Display context menu items for folder nodes
+    {
+        BookmarkNode *currentFolder = model->getCurrentFolder();
+        if (currentFolder != nullptr)
+        {
+            int nodeIdx = index.row();
+            BookmarkNode *subFolder = currentFolder->getNode(nodeIdx);
+            menu.addAction(tr("Open all items in tabs"), [=](){ openAllBookmarksNewTabs(subFolder); });
+            menu.addSeparator();
+        }
+    }
 
     menu.addAction(tr("New bookmark..."), this, &BookmarkWidget::addBookmark);
     menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
 
-    if (index.isValid())
+    if (isBookmarkNode)
     {
-        // Check if URL column is empty. If so, do not allow delete operation, as this must be done in tree view
-        BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
-        QModelIndex urlIdx = model->index(index.row(), 1, index.parent());
-        if (!model->data(urlIdx).isNull())
-        {
-            menu.addSeparator();
-            menu.addAction(tr("Delete"), this, &BookmarkWidget::deleteBookmarkSelection);
-        }
+        menu.addSeparator();
+        menu.addAction(tr("Delete"), this, &BookmarkWidget::deleteBookmarkSelection);
     }
 
     menu.exec(ui->tableView->mapToGlobal(pos));
@@ -160,7 +175,6 @@ void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
 
 void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
 {
-    //TODO: Implement "Open all items in tabs" action
     QModelIndex index = ui->treeView->indexAt(pos);
     QMenu menu(this);
 
@@ -171,7 +185,7 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
         // Allow user to open all bookmark items if there are > 0 within the folder
         if (f->getNumChildren() > 0)
         {
-            menu.addAction(tr("Open all items in tabs"));
+            menu.addAction(tr("Open all items in tabs"), [=](){ openAllBookmarksNewTabs(f); });
             menu.addSeparator();
         }
 
@@ -256,6 +270,21 @@ void BookmarkWidget::openInCurrentPage()
 void BookmarkWidget::openInNewTab()
 {
     emit openBookmarkNewTab(getUrlForSelection());
+}
+
+void BookmarkWidget::openAllBookmarksNewTabs(BookmarkNode *folder)
+{
+    if (!folder)
+        return;
+
+    BookmarkNode *child = nullptr;
+    int numChildren = folder->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
+    {
+        child = folder->getNode(i);
+        if (child->getType() == BookmarkNode::Bookmark)
+            emit openBookmarkNewTab(child->getURL());
+    }
 }
 
 void BookmarkWidget::openInNewWindow()

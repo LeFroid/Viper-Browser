@@ -79,6 +79,14 @@ private slots:
     /// Emits the openBookmarkNewTab signal with the link parameter set to the URL of the bookmark requested to be opened
     void openInNewTab();
 
+    /// Emits the openBookmarkNewTab signal for each bookmark that has the given folder as its parent
+    /**
+     * @brief Opens each bookmark belonging to the given folder in a new browser tab. Does not open
+     *        bookmarks that belong to sub-folders of the parent folder
+     * @param folder Pointer to the parent folder
+     */
+    void openAllBookmarksNewTabs(BookmarkNode *folder);
+
     /// Emits the openBookmarkNewWindow signal with the link parameter set to the URL of the bookmark requested to be opened
     void openInNewWindow();
 
