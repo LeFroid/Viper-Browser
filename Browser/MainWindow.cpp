@@ -31,6 +31,7 @@
 #include <QMessageBox>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QPrintPreviewDialog>
 #include <QPushButton>
 #include <QRegExp>
 #include <QShortcut>
@@ -791,17 +792,13 @@ void MainWindow::printTabContents()
     if (!currentView)
         return;
 
-    QString pageSource = currentView->page()->mainFrame()->toHtml();
-    QTextDocument *document = new QTextDocument();
-    document->setHtml(pageSource);
-
-    QPrinter printer;
-    QPrintDialog dialog(&printer, this);
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setPaperSize(QPrinter::Letter);
+    printer.setFullPage(true);
+    QPrintPreviewDialog dialog(&printer, this);
     dialog.setWindowTitle(tr("Print Document"));
-    if (dialog.exec() == QDialog::Accepted)
-        document->print(&printer);
-
-    delete document;
+    connect(&dialog, &QPrintPreviewDialog::paintRequested, currentView->page()->mainFrame(), &QWebFrame::print);
+    dialog.exec();
 }
 
 WebView *MainWindow::getNewTabWebView()
