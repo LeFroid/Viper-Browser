@@ -30,7 +30,6 @@
 #include <QKeySequence>
 #include <QMessageBox>
 #include <QPrinter>
-#include <QPrintDialog>
 #include <QPrintPreviewDialog>
 #include <QPushButton>
 #include <QRegExp>
@@ -43,7 +42,6 @@
 #include <QWebFrame>
 #include <QWebHistory>
 #include <QWebInspector>
-#include <QDebug>
 
 MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<BookmarkManager> bookmarkManager, QWidget *parent) :
     QMainWindow(parent),

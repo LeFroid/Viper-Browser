@@ -245,8 +245,6 @@ void HistoryManager::load()
     }
     else
         qDebug() << "Could not load visit date info. Message: " << query.lastError().text();
-
-    qDebug() << "Loaded " << m_historyItems.size() << " uniquely visited URLs";
 }
 
 void HistoryManager::save()
