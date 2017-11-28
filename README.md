@@ -1,4 +1,4 @@
-# Qt Web Browser
+# Viper Browser
 
 A lightweight web browser built with the Qt framework and WebKit
 
