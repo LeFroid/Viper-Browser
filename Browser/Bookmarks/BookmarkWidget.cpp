@@ -111,8 +111,9 @@ void BookmarkWidget::setBookmarkManager(std::shared_ptr<BookmarkManager> bookmar
     // Connect change in folder data via table model to an update in the folder model
     connect(tableModel, &BookmarkTableModel::movedFolder, this, &BookmarkWidget::resetFolderModel);
 
-    // Connect change in bookmark data via folder model to an update in the table model
+    // Connect changes in bookmark data via folder model to an update in the table model
     connect(treeViewModel, &BookmarkFolderModel::movedBookmark, this, &BookmarkWidget::resetTableModel);
+    connect(treeViewModel, &BookmarkFolderModel::movedFolder, this, &BookmarkWidget::onFolderMoved);
 }
 
 void BookmarkWidget::reloadBookmarks()
@@ -370,7 +371,27 @@ void BookmarkWidget::resetTableModel()
 {
     // Tell the table model to load the bookmarks bar folder to avoid null pointer references
     BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
-    tableModel->setCurrentFolder(m_bookmarkManager->getBookmarksBar());
+    tableModel->setCurrentFolder(tableModel->getCurrentFolder());
+
+    // Clear history items
+    m_folderBackHistory.clear();
+    m_folderForwardHistory.clear();
+    ui->buttonBack->setEnabled(false);
+    ui->buttonForward->setEnabled(false);
+}
+
+void BookmarkWidget::onFolderMoved(BookmarkNode *folder, BookmarkNode *updatedPtr)
+{
+    // Check if the folder was being displayed in the table, and if so, update the pointer
+    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    if (tableModel->getCurrentFolder() == folder)
+        tableModel->setCurrentFolder(updatedPtr);
+
+    // Clear history items
+    m_folderBackHistory.clear();
+    m_folderForwardHistory.clear();
+    ui->buttonBack->setEnabled(false);
+    ui->buttonForward->setEnabled(false);
 }
 
 void BookmarkWidget::onClickBackButton()

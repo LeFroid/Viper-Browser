@@ -52,6 +52,9 @@ signals:
     /// Emitted when a bookmark was dropped from one folder into another, so that the \ref BookmarkTableModel can update its data
     void movedBookmark();
 
+    /// Emitted when a folder was moved to a new parent node, so the \ref BookmarkTableModel can update its data if necessary
+    void movedFolder(BookmarkNode *folder, BookmarkNode *updatedPtr);
+
 private:
     /// Returns the folder associated with the given model index, or the root folder if index is invalid
     BookmarkNode *getItem(const QModelIndex &index) const;

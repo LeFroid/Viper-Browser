@@ -146,7 +146,6 @@ bool BookmarkFolderModel::insertRows(int row, int count, const QModelIndex &pare
     BookmarkNode *parentFolder = getItem(parent);
     if (!parentFolder)
         return false;
-    //TODO: implement ability to move position of folder to row + i
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
         static_cast<void>(m_bookmarkMgr->addFolder(QString("New Folder %1").arg(i), parentFolder));
@@ -230,7 +229,8 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
         {
             case BookmarkNode::Folder:
             {
-                m_bookmarkMgr->setFolderParent(n, targetNode);
+                BookmarkNode *newPtr = m_bookmarkMgr->setFolderParent(n, targetNode);
+                emit movedFolder(n, newPtr);
                 break;
             }
             case BookmarkNode::Bookmark:

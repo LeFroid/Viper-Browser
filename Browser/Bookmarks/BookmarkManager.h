@@ -74,8 +74,9 @@ public:
      * @brief Changes the parent node of the given folder to the new parent
      * @param folder Folder that is being assigned to a new parent
      * @param newParent The folder that will become the new parent of the node
+     * @returns An updated pointer to the folder that was moved
      */
-    void setFolderParent(BookmarkNode *folder, BookmarkNode *newParent);
+    BookmarkNode *setFolderParent(BookmarkNode *folder, BookmarkNode *newParent);
 
 protected:
     /// Called by the BookmarkTableModel when the URL and/or name of a bookmark has been modified

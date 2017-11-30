@@ -172,7 +172,6 @@ QMimeData *BookmarkTableModel::mimeData(const QModelIndexList &indexes) const
         {
             BookmarkNode *n = m_folder->getNode(index.row());
             stream << n;
-            //stream << index.row();
         }
     }
     mimeData->setData("application/x-bookmark-data", encodedData);

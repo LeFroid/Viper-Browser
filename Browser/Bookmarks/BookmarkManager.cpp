@@ -268,20 +268,20 @@ void BookmarkManager::setNodePosition(BookmarkNode *node, int position)
     parent->removeNode(node);
 }
 
-void BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNode *newParent)
+BookmarkNode *BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNode *newParent)
 {
     // Do nothing if pointers are invalid, if they are the same node, or if this is an attempt to move the root node
     if (!folder || !newParent || folder == newParent || folder == m_rootNode.get())
-        return;
+        return folder;
 
     // Also ensure that the node being moved is in fact a folder
     if (folder->getType() != BookmarkNode::Folder)
-        return;
+        return folder;
 
     // Check that the new parent is not theold parent
     BookmarkNode *oldParent = folder->getParent();
     if (oldParent == newParent)
-        return;
+        return folder;
 
     // Determine old position of the folder
     int oldFolderPos = 0;
@@ -324,6 +324,7 @@ void BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNode *newPar
     folder->setFolderId(folderId);
     folder->setIcon(folderIcon);
     loadFolder(folder);
+    return folder;
 }
 
 void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID)

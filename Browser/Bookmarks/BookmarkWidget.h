@@ -114,6 +114,10 @@ private slots:
     /// Resets the bookmark table model
     void resetTableModel();
 
+    /// Called when a bookmark folder has moved from one parent folder to another. If it was being displayed in the table model, the
+    /// data must be updated
+    void onFolderMoved(BookmarkNode *folder, BookmarkNode *updatedPtr);
+
     /// Called when the user wants to go back by one selection in the folder view
     void onClickBackButton();
 
