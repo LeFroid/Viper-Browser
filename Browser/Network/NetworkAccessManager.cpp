@@ -18,8 +18,11 @@ QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operati
             return new ViperNetworkReply(request, this);
 
         AdBlocker &adBlock = AdBlocker::instance();
-        if (adBlock.isBlocked(request.url().host()))
-            return adBlock.getBlockedReply(request);
+        BlockedNetworkReply *blockedReply = adBlock.getBlockedReply(request);
+        if (blockedReply != nullptr)
+            return blockedReply;
+        //if (adBlock.isBlocked(request.url().host()))
+        //    return adBlock.getBlockedReply(request);
     }
     return QNetworkAccessManager::createRequest(op, request, outgoingData);
 }

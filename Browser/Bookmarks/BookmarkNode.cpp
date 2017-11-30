@@ -1,6 +1,9 @@
 #include "BookmarkNode.h"
 #include <algorithm>
 #include <utility>
+#include <cstdint>
+
+#include <QDebug>
 
 BookmarkNode::BookmarkNode() :
     m_name(),
@@ -154,4 +157,19 @@ const QIcon &BookmarkNode::getIcon() const
 void BookmarkNode::setIcon(const QIcon &icon)
 {
     m_icon = icon;
+}
+
+QDataStream& operator<<(QDataStream &out, BookmarkNode *&node)
+{
+    std::intptr_t ptr = reinterpret_cast<std::intptr_t>(node);
+    out.writeRawData((const char*)&ptr, sizeof(std::intptr_t));
+    return out;
+}
+
+QDataStream& operator>>(QDataStream &in, BookmarkNode *&node)
+{
+    std::intptr_t ptr;
+    in.readRawData((char*)&ptr, sizeof(std::intptr_t));
+    node = reinterpret_cast<BookmarkNode*>(ptr);
+    return in;
 }

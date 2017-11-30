@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include <QDataStream>
 #include <QIcon>
 #include <QMetaType>
 #include <QString>
@@ -109,5 +110,8 @@ protected:
 
 Q_DECLARE_METATYPE(BookmarkNode::NodeType)
 Q_DECLARE_METATYPE(BookmarkNode*)
+
+QDataStream& operator<<(QDataStream &out, BookmarkNode *&node);
+QDataStream& operator>>(QDataStream &in, BookmarkNode *&node);
 
 #endif // BOOKMARKNODE_H

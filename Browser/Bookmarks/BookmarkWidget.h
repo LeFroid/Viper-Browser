@@ -111,6 +111,9 @@ private slots:
     /// Resets the bookmark folder model
     void resetFolderModel();
 
+    /// Resets the bookmark table model
+    void resetTableModel();
+
     /// Called when the user wants to go back by one selection in the folder view
     void onClickBackButton();
 

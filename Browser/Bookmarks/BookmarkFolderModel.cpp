@@ -1,6 +1,14 @@
 #include "BookmarkFolderModel.h"
 #include "BookmarkNode.h"
+#include <vector>
 #include <cstdint>
+
+#include <QByteArray>
+#include <QDataStream>
+#include <QIODevice>
+#include <QMimeData>
+
+#include <QDebug>
 
 BookmarkFolderModel::BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
     QAbstractItemModel(parent),
@@ -124,12 +132,11 @@ Qt::ItemFlags BookmarkFolderModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return Qt::NoItemFlags;
 
-    //TODO: Allow drag and drop events, tie to an event handler to change the relative position or order of folders
-    Qt::ItemFlags itemFlags = QAbstractItemModel::flags(index);
+    Qt::ItemFlags itemFlags = Qt::ItemIsDropEnabled | QAbstractItemModel::flags(index);
     if (BookmarkNode *n = getItem(index))
     {
         if (n != m_bookmarksBar)
-            itemFlags |= Qt::ItemIsEditable;
+            itemFlags |= Qt::ItemIsEditable | Qt::ItemIsDragEnabled;
     }
     return itemFlags;
 }
@@ -153,6 +160,94 @@ bool BookmarkFolderModel::removeRows(int row, int count, const QModelIndex &pare
     for (int i = 0; i < count; ++i)
         m_bookmarkMgr->removeFolder(getItem(index(row + i, 0, parent)));
     endRemoveRows();
+    return true;
+}
+
+QStringList BookmarkFolderModel::mimeTypes() const
+{
+    QStringList types;
+    types << "application/x-bookmark-data";
+    return types;
+}
+
+Qt::DropActions BookmarkFolderModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+QMimeData *BookmarkFolderModel::mimeData(const QModelIndexList &indexes) const
+{
+    QMimeData *mimeData = new QMimeData();
+    QByteArray encodedData;
+    QDataStream stream(&encodedData, QIODevice::WriteOnly);
+    for (const QModelIndex &index : indexes)
+    {
+        if (index.isValid())
+        {
+            BookmarkNode *folder = static_cast<BookmarkNode*>(index.internalPointer());
+            stream << folder;
+            //stream << getItem(index);
+        }
+    }
+    mimeData->setData("application/x-bookmark-data", encodedData);
+    return mimeData;
+}
+
+bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex &parent)
+{
+    if (action == Qt::IgnoreAction)
+        return true;
+
+    if (!data || action != Qt::MoveAction)
+        return false;
+
+    if (!data->hasFormat("application/x-bookmark-data"))
+        return false;
+
+    // If given parent model index is not valid, the item was dropped onto the root folder
+    bool droppedInRoot = !parent.isValid();
+    BookmarkNode *targetNode = getItem(parent);
+
+    // Retrieve pointers to bookmark nodes from serialized data
+    QByteArray encodedData = data->data("application/x-bookmark-data");
+    QDataStream stream(&encodedData, QIODevice::ReadOnly);
+
+    std::vector<BookmarkNode*> droppedNodes;
+    while (!stream.atEnd())
+    {
+        BookmarkNode *node;
+        stream >> node;
+        droppedNodes.push_back(node);
+    }
+
+    // Handle each dropped node depending on its type
+    //  - For folders, adjust their parent and/or position.
+    //  - For bookmarks, if dropped onto root folder, ignore, otherwise change their parent folder
+    beginResetModel();
+    for (BookmarkNode *n : droppedNodes)
+    {
+        switch (n->getType())
+        {
+            case BookmarkNode::Folder:
+            {
+                m_bookmarkMgr->setFolderParent(n, targetNode);
+                break;
+            }
+            case BookmarkNode::Bookmark:
+            {
+                if (droppedInRoot)
+                    break;
+                QString name = n->getName(), url = n->getURL();
+                m_bookmarkMgr->removeBookmark(n);
+                m_bookmarkMgr->appendBookmark(name, url, targetNode);
+                break;
+            }
+        }
+    }
+    endResetModel();
+
+    emit movedBookmark();
+
     return true;
 }
 

@@ -268,6 +268,64 @@ void BookmarkManager::setNodePosition(BookmarkNode *node, int position)
     parent->removeNode(node);
 }
 
+void BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNode *newParent)
+{
+    // Do nothing if pointers are invalid, if they are the same node, or if this is an attempt to move the root node
+    if (!folder || !newParent || folder == newParent || folder == m_rootNode.get())
+        return;
+
+    // Also ensure that the node being moved is in fact a folder
+    if (folder->getType() != BookmarkNode::Folder)
+        return;
+
+    // Check that the new parent is not theold parent
+    BookmarkNode *oldParent = folder->getParent();
+    if (oldParent == newParent)
+        return;
+
+    // Determine old position of the folder
+    int oldFolderPos = 0;
+    for (auto &node : oldParent->m_children)
+    {
+        BookmarkNode *n = node.get();
+        if (n == folder)
+            break;
+        ++oldFolderPos;
+    }
+
+    // Update database
+    QSqlQuery query(m_database);
+
+    // Update parent folder in the database
+    query.prepare("UPDATE Bookmarks SET ParentID = (:newParentID), Position = (:newPos) WHERE FolderID = (:folderID) AND ParentID = (:oldParentID)");
+    query.bindValue(":newParentID", newParent->getFolderId());
+    query.bindValue(":newPos", newParent->getNumChildren());
+    query.bindValue(":folderID", folder->getFolderId());
+    query.bindValue(":oldParentID", oldParent->getFolderId());
+    if (!query.exec())
+        qDebug() << "[Warning]: In BookmarkManager::setFolderParent - could not change parent of folder that was to be moved. "
+                    "Error message: " << query.lastError().text();
+
+    // Update positions of nodes
+    query.prepare("UPDATE Bookmarks SET Position = Position - 1 WHERE ParentID = (:parentID) AND Position > (:position)");
+    query.bindValue(":parentID", oldParent->getFolderId());
+    query.bindValue(":position", oldFolderPos);
+    if (!query.exec())
+        qDebug() << "[Warning]: In BookmarkManager::setFolderParent - could not update positions of nodes in database. "
+                    "Error message: " << query.lastError().text();
+
+    // Remove folder from old parent, add to new parent and reload its sub-nodes from the DB
+    QString folderName = folder->getName();
+    QIcon folderIcon = folder->getIcon();
+    int folderId = folder->getFolderId();
+    oldParent->removeNode(folder);
+
+    folder = newParent->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, folderName));
+    folder->setFolderId(folderId);
+    folder->setIcon(folderIcon);
+    loadFolder(folder);
+}
+
 void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID)
 {
     if (!bookmark)

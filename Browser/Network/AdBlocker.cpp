@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QTimer>
+#include <QWebFrame>
 
 BlockedNetworkReply::BlockedNetworkReply(const QNetworkRequest &request, QObject *parent) :
     QNetworkReply(parent)
@@ -49,7 +50,14 @@ bool AdBlocker::isBlocked(const QString &host) const
 
 BlockedNetworkReply *AdBlocker::getBlockedReply(const QNetworkRequest &request)
 {
-    return new BlockedNetworkReply(request, this);
+    // todo: with adblockplus format, perform something like the following (for things like domain-specific blocking rules):
+    //QWebFrame *originFrame = qobject_cast<QWebFrame*>(request.originatingObject());
+    //if (originFrame && isRequestBlocked(request, originFrame->baseUrl())) { return BlockedNetworkReply(request, this); }
+    // keep a container of blacklisted domains and content types, etc., and another container of whitelisted sources for the ABP exception rules
+
+    if (m_blockedHosts.contains(request.url().host()))
+        return new BlockedNetworkReply(request, this);
+    return nullptr;
 }
 
 void AdBlocker::loadAdBlockList()

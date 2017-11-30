@@ -70,6 +70,13 @@ public:
     /// Sets the position of the given node, relative to other child nodes of the same parent
     void setNodePosition(BookmarkNode *node, int position);
 
+    /**
+     * @brief Changes the parent node of the given folder to the new parent
+     * @param folder Folder that is being assigned to a new parent
+     * @param newParent The folder that will become the new parent of the node
+     */
+    void setFolderParent(BookmarkNode *folder, BookmarkNode *newParent);
+
 protected:
     /// Called by the BookmarkTableModel when the URL and/or name of a bookmark has been modified
     void updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID);

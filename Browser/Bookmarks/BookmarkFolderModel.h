@@ -42,6 +42,16 @@ public:
     // Remove data:
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
+    // Drag and drop actions:
+    QStringList mimeTypes() const override;
+    Qt::DropActions supportedDropActions() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+
+signals:
+    /// Emitted when a bookmark was dropped from one folder into another, so that the \ref BookmarkTableModel can update its data
+    void movedBookmark();
+
 private:
     /// Returns the folder associated with the given model index, or the root folder if index is invalid
     BookmarkNode *getItem(const QModelIndex &index) const;

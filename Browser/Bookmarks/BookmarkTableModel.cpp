@@ -1,6 +1,7 @@
 #include "BookmarkTableModel.h"
 #include "BrowserApplication.h"
 #include "FaviconStorage.h"
+#include <vector>
 
 #include <QByteArray>
 #include <QDataStream>
@@ -168,7 +169,11 @@ QMimeData *BookmarkTableModel::mimeData(const QModelIndexList &indexes) const
     for (const QModelIndex &index : indexes)
     {
         if (index.isValid() && m_folder->getNumChildren() > index.row())
-            stream << index.row();
+        {
+            BookmarkNode *n = m_folder->getNode(index.row());
+            stream << n;
+            //stream << index.row();
+        }
     }
     mimeData->setData("application/x-bookmark-data", encodedData);
     return mimeData;
@@ -186,12 +191,12 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     QByteArray encodedData = data->data("application/x-bookmark-data");
     QDataStream stream(&encodedData, QIODevice::ReadOnly);
 
-    QSet<int> rowNums;
+    std::vector<BookmarkNode*> nodes;
     while (!stream.atEnd())
     {
-        int rowNum;
-        stream >> rowNum;
-        rowNums << rowNum;
+        BookmarkNode *node;
+        stream >> node;
+        nodes.push_back(node);
     }
 
     // Shift row positions
@@ -199,12 +204,8 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     bool needUpdateModel = false;
 
     beginResetModel();
-    for (int r : rowNums)
+    for (BookmarkNode *n : nodes)
     {
-        if (r >= m_folder->getNumChildren())
-            continue;
-
-        BookmarkNode *n = m_folder->getNode(r);
         if (n->getType() == BookmarkNode::Folder)
             needUpdateModel = true;
         m_bookmarkMgr->setNodePosition(n, newRow);
