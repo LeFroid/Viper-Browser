@@ -56,6 +56,12 @@ protected:
     /// Creates a new popup window on request
     virtual QWebView *createWindow(QWebPage::WebWindowType type) override;
 
+    /// Handles drag events
+    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+
+    /// Handles drop events
+    virtual void dropEvent(QDropEvent *event) override;
+
 signals:
     /// Called when the user requests to open a link in the current web view / tab
     void openRequest(const QUrl &url);

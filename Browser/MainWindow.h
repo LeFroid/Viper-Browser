@@ -36,6 +36,7 @@ class WebView;
  */
 class MainWindow : public QMainWindow
 {
+    friend class BrowserTabBar;
     friend class SessionManager;
     friend class WebView;
 

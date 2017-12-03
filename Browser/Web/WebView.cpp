@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <QContextMenuEvent>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QFile>
 #include <QLabel>
 #include <QMenu>
+#include <QMimeData>
 #include <QWebHitTestResult>
 #include <QWheelEvent>
 
@@ -16,13 +19,12 @@
 #include "WebLinkLabel.h"
 #include "WebPage.h"
 
-#include <QDebug>
-
 WebView::WebView(QWidget *parent) :
     QWebView(parent),
     m_page(new WebPage(this)),
     m_progress(0)
 {
+    setAcceptDrops(true);
     setPage(m_page);
 
     // Setup link hover label
@@ -187,6 +189,28 @@ QWebView *WebView::createWindow(QWebPage::WebWindowType type)
         }
     }
     return QWebView::createWindow(type);
+}
+
+void WebView::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat("application/x-browser-tab"))
+    {
+        event->acceptProposedAction();
+        return;
+    }
+
+    QWebView::dragEnterEvent(event);
+}
+
+void WebView::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasFormat("application/x-browser-tab"))
+    {
+        qobject_cast<MainWindow*>(window())->dropEvent(event);
+        return;
+    }
+
+    QWebView::dropEvent(event);
 }
 
 void WebView::addInspectorIfEnabled(QMenu *menu)

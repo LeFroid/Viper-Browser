@@ -1,5 +1,6 @@
 #include "BrowserTabBar.h"
 #include "BrowserTabWidget.h"
+#include "MainWindow.h"
 #include "WebView.h"
 
 #include <QApplication>
@@ -14,11 +15,10 @@
 #include <QShortcut>
 #include <QToolButton>
 
-#include <QDebug>
-
 BrowserTabBar::BrowserTabBar(QWidget *parent) :
     QTabBar(parent)
 {
+    setAcceptDrops(true);
     setExpanding(false);
     setTabsClosable(true);
     setSelectionBehaviorOnRemove(QTabBar::SelectPreviousTab);
@@ -117,17 +117,48 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
 
     int tabIdx = tabAt(m_dragStartPos);
     mimeData->setData("application/x-browser-tab", m_dragUrl.toEncoded());
+    mimeData->setProperty("tab-origin-window-id", window()->winId());
     drag->setMimeData(mimeData);
     drag->setPixmap(m_dragPixmap);
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
     if (dropAction == Qt::MoveAction)
     {
-        BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
-        tabWidget->removeTab(tabIdx);
+        // If the tab was moved, and it was the only tab, close the window
+        if (count() == 1)
+        {
+            window()->close();
+        }
+        else
+        {
+            BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+            tabWidget->removeTab(tabIdx);
+        }
     }
 
     QTabBar::mouseMoveEvent(event);
+}
+
+void BrowserTabBar::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat("application/x-browser-tab"))
+    {
+        event->acceptProposedAction();
+        return;
+    }
+
+    QTabBar::dragEnterEvent(event);
+}
+
+void BrowserTabBar::dropEvent(QDropEvent *event)
+{
+    if (event->mimeData()->hasFormat("application/x-browser-tab"))
+    {
+        qobject_cast<MainWindow*>(window())->dropEvent(event);
+        return;
+    }
+
+    QTabBar::dropEvent(event);
 }
 
 QSize BrowserTabBar::sizeHint() const

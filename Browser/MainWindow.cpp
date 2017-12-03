@@ -839,8 +839,15 @@ void MainWindow::dropEvent(QDropEvent *event)
     QByteArray encodedData = event->mimeData()->data("application/x-browser-tab");
     QUrl tabUrl = QUrl::fromEncoded(encodedData);
 
-    // Load tab in a new window
-    MainWindow *win = sBrowserApplication->getNewWindow();
-    win->loadUrl(tabUrl);
+    // Check window identifier of tab. If matches this window's id, load the tab
+    // in a new window. Otherwise, add the tab to this window
+    if ((qulonglong)winId() == event->mimeData()->property("tab-origin-window-id").toULongLong())
+    {
+        MainWindow *win = sBrowserApplication->getNewWindow();
+        win->loadUrl(tabUrl);
+    }
+    else
+        m_tabWidget->openLinkInNewTab(tabUrl);
+
     event->acceptProposedAction();
 }

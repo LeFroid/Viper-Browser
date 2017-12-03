@@ -33,10 +33,16 @@ private slots:
 
 protected:
     /// Called when the user presses the mouse over the tab bar. Initiates drag-and-drop events
-    void mousePressEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
 
     /// Called when the mouse is moved over the tab bar. Handles drag operations.
-    void mouseMoveEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    /// Handles drag events
+    void dragEnterEvent(QDragEnterEvent *event) override;
+
+    /// Handles drop events
+    void dropEvent(QDropEvent *event) override;
 
     /// Returns the suggested size of the browser tab bar
     QSize sizeHint() const override;
