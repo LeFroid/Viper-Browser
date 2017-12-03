@@ -26,9 +26,12 @@
 #include <QActionGroup>
 #include <QCloseEvent>
 #include <QDir>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QFileDialog>
 #include <QKeySequence>
 #include <QMessageBox>
+#include <QMimeData>
 #include <QPrinter>
 #include <QPrintPreviewDialog>
 #include <QPushButton>
@@ -61,6 +64,7 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<Bookm
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
+    setAcceptDrops(true);
 
     ui->setupUi(this);
 
@@ -466,6 +470,7 @@ void MainWindow::onTabChanged(int index)
 
     // Update UI elements to reflect current view
     ui->widgetFindText->setWebView(view);
+    ui->widgetFindText->hide();
     m_urlInput->setURL(view->url());
 
     if (ui->dockWidget->isVisible())
@@ -821,4 +826,21 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 
     QMainWindow::closeEvent(event);
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasFormat("application/x-browser-tab"))
+        event->acceptProposedAction();
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    QByteArray encodedData = event->mimeData()->data("application/x-browser-tab");
+    QUrl tabUrl = QUrl::fromEncoded(encodedData);
+
+    // Load tab in a new window
+    MainWindow *win = sBrowserApplication->getNewWindow();
+    win->loadUrl(tabUrl);
+    event->acceptProposedAction();
 }

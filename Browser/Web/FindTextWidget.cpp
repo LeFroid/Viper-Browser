@@ -41,8 +41,9 @@ FindTextWidget::~FindTextWidget()
 
 void FindTextWidget::setWebView(WebView *view)
 {
-    // Reset search term
+    // Reset search term and "matches found" label
     ui->lineEdit->setText(QString());
+    ui->labelMatches->setText(QString());
     m_searchTerm.clear();
 
     m_view = view;

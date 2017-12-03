@@ -304,7 +304,6 @@ void BookmarkWidget::addBookmark()
 
 void BookmarkWidget::addFolder()
 {
-    //TODO: allow user to modify the position of folders in the tree view
     BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
     model->insertRow(0, ui->treeView->currentIndex());
 }

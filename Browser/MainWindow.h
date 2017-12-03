@@ -187,6 +187,12 @@ protected:
     /// Called when the window is being closed
     void closeEvent(QCloseEvent *event) override;
 
+    /// Handles drag enter events (supports tab drags)
+    void dragEnterEvent(QDragEnterEvent *event);
+
+    /// Handles tab drop events
+    void dropEvent(QDropEvent *event);
+
 private:
     /// UI items from .ui file
     Ui::MainWindow *ui;

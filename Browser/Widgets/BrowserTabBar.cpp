@@ -1,13 +1,20 @@
 #include "BrowserTabBar.h"
+#include "BrowserTabWidget.h"
+#include "WebView.h"
 
+#include <QApplication>
+#include <QDrag>
 #include <QIcon>
 #include <QKeySequence>
 #include <QLabel>
 #include <QMenu>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QResizeEvent>
 #include <QShortcut>
 #include <QToolButton>
+
+#include <QDebug>
 
 BrowserTabBar::BrowserTabBar(QWidget *parent) :
     QTabBar(parent)
@@ -23,12 +30,7 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     m_buttonNewTab->setIcon(QIcon::fromTheme("folder-new"));
     m_buttonNewTab->setStyleSheet("QToolButton:hover { border: 1px solid #666666; border-radius: 2px; } ");
     m_buttonNewTab->setToolTip(tr("New Tab"));
-    //m_buttonNewTab->setFixedHeight(height() - 2);
     m_buttonNewTab->setFixedSize(28, height() - 2);
-    /*int addTabIdx = addTab(QString());
-    setTabButton(addTabIdx, QTabBar::RightSide, m_buttonNewTab);
-    setTabToolTip(addTabIdx, tr("New Tab"));
-    setTabEnabled(addTabIdx, false);*/
 
     //setStyleSheet("QTabBar::tab:disabled { background-color: rgba(0, 0, 0, 0); }");
     connect(m_buttonNewTab, &QToolButton::clicked, this, &BrowserTabBar::newTabRequest);
@@ -74,6 +76,58 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     }
 
     menu.exec(mapToGlobal(pos));
+}
+
+void BrowserTabBar::mousePressEvent(QMouseEvent *event)
+{
+    int tabIdx = tabAt(event->pos());
+    if (event->button() == Qt::LeftButton
+            && tabIdx >= 0)
+    {
+        if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
+        {
+            m_dragStartPos = event->pos();
+            m_dragUrl = tabWidget->getWebView(tabIdx)->url();
+
+            QRect dragTabRect = tabRect(tabIdx);
+            m_dragPixmap = QPixmap(dragTabRect.size());
+            render(&m_dragPixmap, QPoint(), QRegion(dragTabRect));
+        }
+    }
+
+    QTabBar::mousePressEvent(event);
+}
+
+void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
+{
+    if (!(event->buttons() & Qt::LeftButton))
+    {
+        QTabBar::mouseMoveEvent(event);
+        return;
+    }
+    if (std::abs(event->pos().y() - m_dragStartPos.y()) < height())
+    {
+        QTabBar::mouseMoveEvent(event);
+        return;
+    }
+
+    // Set mime data and initiate drag event
+    QDrag *drag = new QDrag(this);
+    QMimeData *mimeData = new QMimeData;
+
+    int tabIdx = tabAt(m_dragStartPos);
+    mimeData->setData("application/x-browser-tab", m_dragUrl.toEncoded());
+    drag->setMimeData(mimeData);
+    drag->setPixmap(m_dragPixmap);
+
+    Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+    if (dropAction == Qt::MoveAction)
+    {
+        BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+        tabWidget->removeTab(tabIdx);
+    }
+
+    QTabBar::mouseMoveEvent(event);
 }
 
 QSize BrowserTabBar::sizeHint() const
