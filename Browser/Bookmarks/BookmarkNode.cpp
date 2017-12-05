@@ -3,27 +3,23 @@
 #include <utility>
 #include <cstdint>
 
-#include <QDebug>
-
 BookmarkNode::BookmarkNode() :
+    TreeNode<BookmarkNode>(),
     m_name(),
     m_url(),
     m_icon(),
     m_type(BookmarkNode::Bookmark),
-    m_folderId(0),
-    m_parent(nullptr),
-    m_children()
+    m_folderId(0)
 {
 }
 
 BookmarkNode::BookmarkNode(BookmarkNode::NodeType type, const QString &name) :
+    TreeNode<BookmarkNode>(),
     m_name(name),
     m_url(),
     m_icon(),
     m_type(type),
-    m_folderId(0),
-    m_parent(nullptr),
-    m_children()
+    m_folderId(0)
 {
 }
 
@@ -40,73 +36,18 @@ BookmarkNode::BookmarkNode(BookmarkNode &&other)
 
 BookmarkNode *BookmarkNode::appendNode(std::unique_ptr<BookmarkNode> node)
 {
-    node->m_parent = this;
-    if (node->getType() != BookmarkNode::Folder)
-        node->m_folderId = m_folderId;
-    BookmarkNode *nodePtr = node.get();
-    m_children.push_back(std::move(node));
+    BookmarkNode *nodePtr = TreeNode<BookmarkNode>::appendNode(std::move(node));
+    if (nodePtr->getType() != BookmarkNode::Folder)
+        nodePtr->m_folderId = m_folderId;
     return nodePtr;
 }
 
 BookmarkNode *BookmarkNode::insertNode(std::unique_ptr<BookmarkNode> node, int index)
 {
-    node->m_parent = this;
-    if (node->getType() != BookmarkNode::Folder)
-        node->m_folderId = m_folderId;
-    BookmarkNode *nodePtr = node.get();
-
-    if (index < 0 || index > static_cast<int>(m_children.size()))
-    {
-        m_children.push_back(std::move(node));
-        return nodePtr;
-    }
-
-    m_children.insert(m_children.begin() + index, std::move(node));
+    BookmarkNode *nodePtr = TreeNode<BookmarkNode>::insertNode(std::move(node), index);
+    if (nodePtr->getType() != BookmarkNode::Folder)
+        nodePtr->m_folderId = m_folderId;
     return nodePtr;
-}
-
-bool BookmarkNode::removeNode(BookmarkNode *node)
-{
-    if (!node)
-        return false;
-
-    for (auto it = m_children.cbegin(); it != m_children.cend(); ++it)
-    {
-        if (it->get() == node)
-        {
-            m_children.erase(it);
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool BookmarkNode::removeNode(int index)
-{
-    if (index < 0 || index >= static_cast<int>(m_children.size()))
-        return false;
-    auto it = m_children.cbegin() + index;
-    m_children.erase(it);
-    return true;
-}
-
-int BookmarkNode::getNumChildren() const
-{
-    return static_cast<int>(m_children.size());
-}
-
-BookmarkNode *BookmarkNode::getParent()
-{
-    return m_parent;
-}
-
-BookmarkNode *BookmarkNode::getNode(int index)
-{
-    if (index < 0 || index >= static_cast<int>(m_children.size()))
-        return nullptr;
-
-    return m_children[index].get();
 }
 
 int BookmarkNode::getFolderId() const

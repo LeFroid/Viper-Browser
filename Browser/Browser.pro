@@ -27,6 +27,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 RESOURCES  = application.qrc
 
 INCLUDEPATH += \
+    $$PWD/AdBlock \
     $$PWD/Bookmarks \
     $$PWD/Cookies \
     $$PWD/Downloads \
@@ -95,9 +96,13 @@ SOURCES += \
     Widgets/WebLinkLabel.cpp \
     UserAgents/UserAgentsWindow.cpp \
     SessionManager.cpp \
-    Network/ViperNetworkReply.cpp
+    Network/ViperNetworkReply.cpp \
+    AdBlock/AdBlockFilter.cpp \
+    AdBlock/AdBlockSubscription.cpp
 
 HEADERS += \
+    Bitfield.h \
+    TreeNode.h \
     History/HistoryTableModel.h \
     Cookies/CookieJar.h \
     Cookies/CookieModifyDialog.h \
@@ -155,7 +160,9 @@ HEADERS += \
     Widgets/WebLinkLabel.h \
     UserAgents/UserAgentsWindow.h \
     SessionManager.h \
-    Network/ViperNetworkReply.h
+    Network/ViperNetworkReply.h \
+    AdBlock/AdBlockFilter.h \
+    AdBlock/AdBlockSubscription.h
 
 FORMS += \
         mainwindow.ui \

@@ -1,8 +1,7 @@
 #ifndef BOOKMARKNODE_H
 #define BOOKMARKNODE_H
 
-#include <memory>
-#include <vector>
+#include "TreeNode.h"
 
 #include <QDataStream>
 #include <QIcon>
@@ -14,7 +13,7 @@
  * @brief Individual node that is a part of the Bookmarks tree. Each node
  *        can be a bookmark or a folder containing bookmarks and other folders
  */
-class BookmarkNode
+class BookmarkNode : public TreeNode<BookmarkNode>
 {
     friend class BookmarkManager;
 
@@ -33,26 +32,11 @@ public:
     BookmarkNode(BookmarkNode &&other);
 
     /// Appends the given node to this node, returning a raw pointer to the child node
-    BookmarkNode *appendNode(std::unique_ptr<BookmarkNode> node);
+    BookmarkNode *appendNode(std::unique_ptr<BookmarkNode> node) override;
 
     /// Inserts the given node to this node at the given index, returning a raw pointer to the child node.
     /// If the index is invalid, this will simply append the node to the end
-    BookmarkNode *insertNode(std::unique_ptr<BookmarkNode> node, int index);
-
-    /// Attempts to remove the given node, returning true on success, false on failure
-    bool removeNode(BookmarkNode *node);
-
-    /// Attempts to remove the node at the given index, returning true on success, false on failure or invalid index.
-    bool removeNode(int index);
-
-    /// Returns the number of child nodes
-    int getNumChildren() const;
-
-    /// Returns a pointer to the node's parent, or a nullptr if this is the root node
-    BookmarkNode *getParent();
-
-    /// Returns a pointer to the child node at the given index, or a nullptr if index is out of bounds
-    BookmarkNode *getNode(int index);
+    BookmarkNode *insertNode(std::unique_ptr<BookmarkNode> node, int index) override;
 
     /// Returns the identifier of the node, if it is of type folder
     int getFolderId() const;
@@ -102,10 +86,10 @@ protected:
     int m_folderId;
 
     /// Pointer to the node's parent
-    BookmarkNode *m_parent;
+    //BookmarkNode *m_parent;
 
     /// Vector of child nodes belonging to this node
-    std::vector< std::unique_ptr<BookmarkNode> > m_children;
+    //std::vector< std::unique_ptr<BookmarkNode> > m_children;
 };
 
 Q_DECLARE_METATYPE(BookmarkNode::NodeType)
