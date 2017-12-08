@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QWebElement>
 #include <QWebFrame>
+#include <QWebSecurityOrigin>
 #include <QDebug>
 
 QString WebPage::m_userAgent = QString();
@@ -72,7 +73,13 @@ void WebPage::onUnsupportedContent(QNetworkReply *reply)
 
             QByteArray bytes;
             bytes.append(data);
-            mainFrame()->setContent(bytes, "text/html", reply->url());
+
+            // Make sure scheme is not https, PDF.JS will not load properly unless scheme is http
+            // Taken from https://github.com/qutebrowser/qutebrowser/issues/2525
+            QUrl nonSslUrl(reply->url());
+            nonSslUrl.setScheme("http");
+            mainFrame()->securityOrigin().addAccessWhitelistEntry(reply->url().scheme(), reply->url().host(), QWebSecurityOrigin::DisallowSubdomains);
+            mainFrame()->setContent(bytes, "text/html", nonSslUrl);
         }
     }
 
