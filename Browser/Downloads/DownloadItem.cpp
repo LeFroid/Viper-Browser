@@ -173,6 +173,9 @@ void DownloadItem::onFinished()
     ui->labelDownloadSize->setText(QString("%1 - %2").arg(getUserByteString(m_bytesReceived)).arg(urlString));
 
     m_file.close();
+
+    if (m_reply->error() != QNetworkReply::NoError)
+        emit downloadFinished(QFileInfo(m_file).absoluteFilePath());
 }
 
 void DownloadItem::onError(QNetworkReply::NetworkError /*errorCode*/)

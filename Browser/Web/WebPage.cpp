@@ -2,13 +2,13 @@
 #include "DownloadManager.h"
 #include "NetworkAccessManager.h"
 #include "Settings.h"
+#include "UserScriptManager.h"
 #include "WebPage.h"
 
 #include <QFile>
 #include <QWebElement>
 #include <QWebFrame>
 #include <QWebSecurityOrigin>
-#include <QDebug>
 
 QString WebPage::m_userAgent = QString();
 
@@ -19,6 +19,10 @@ WebPage::WebPage(QObject *parent) :
     setForwardUnsupportedContent(true);
 
     connect(this, &WebPage::unsupportedContent, this, &WebPage::onUnsupportedContent);
+    connect(mainFrame(), &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
+    connect(this, &WebPage::frameCreated, [=](QWebFrame *frame) {
+        connect(frame, &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
+    });
 }
 
 void WebPage::enablePrivateBrowsing()
@@ -84,4 +88,30 @@ void WebPage::onUnsupportedContent(QNetworkReply *reply)
     }
 
     reply->deleteLater();
+}
+
+void WebPage::onLoadFinished(bool ok)
+{
+    QWebFrame *frame = qobject_cast<QWebFrame*>(sender());
+    if (ok && (frame != nullptr))
+        injectUserJavaScript(frame);
+}
+
+void WebPage::injectUserJavaScript(QWebFrame *frame)
+{
+    // Attempt to get URL associated with frame
+    QUrl url = frame->url();
+    if (url.isEmpty())
+        url = frame->requestedUrl();
+
+    // If URL still not obtained, do nothing
+    if (url.isEmpty())
+        return;
+
+    bool isMainFrame = (frame == mainFrame());
+    QString userJS = sBrowserApplication->getUserScriptManager()->getScriptsFor(url, isMainFrame);
+    if (!userJS.isEmpty())
+    {
+        frame->evaluateJavaScript(userJS);
+    }
 }

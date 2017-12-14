@@ -35,6 +35,7 @@ INCLUDEPATH += \
     $$PWD/Network \
     $$PWD/Preferences \
     $$PWD/UserAgents \
+    $$PWD/UserScripts \
     $$PWD/Web \
     $$PWD/Widgets
 
@@ -98,7 +99,9 @@ SOURCES += \
     SessionManager.cpp \
     Network/ViperNetworkReply.cpp \
     AdBlock/AdBlockFilter.cpp \
-    AdBlock/AdBlockSubscription.cpp
+    AdBlock/AdBlockSubscription.cpp \
+    UserScripts/UserScript.cpp \
+    UserScripts/UserScriptManager.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -162,7 +165,10 @@ HEADERS += \
     SessionManager.h \
     Network/ViperNetworkReply.h \
     AdBlock/AdBlockFilter.h \
-    AdBlock/AdBlockSubscription.h
+    AdBlock/AdBlockSubscription.h \
+    AdBlock/AdBlockNode.h \
+    UserScripts/UserScript.h \
+    UserScripts/UserScriptManager.h
 
 FORMS += \
         mainwindow.ui \

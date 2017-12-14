@@ -35,6 +35,9 @@ public:
     /// Sets the path of the default download directory
     void setDownloadDir(const QString &path);
 
+    /// Returns the path of the download directory
+    const QString &getDownloadDir() const;
+
     /// Sets the network access manager used for downloading content
     void setNetworkAccessManager(NetworkAccessManager *manager);
 
@@ -42,8 +45,11 @@ public slots:
     /// Called when a download request is initiated
     void download(const QNetworkRequest &request, bool askForFileName = true);
 
+    /// Used for internal downloads (not explictly requested by the user)
+    DownloadItem *downloadInternal(const QNetworkRequest &request, bool askForFileName = false, bool showItem = false);
+
     /// Handles content that cannot directly be rendered by a web view
-    void handleUnsupportedContent(QNetworkReply *reply, bool askForFileName = true);
+    DownloadItem *handleUnsupportedContent(QNetworkReply *reply, bool askForFileName = true, bool showItem = true);
 
 private:
     /// User interface

@@ -11,6 +11,7 @@
 #include "NetworkAccessManager.h"
 #include "URLSuggestionModel.h"
 #include "UserAgentManager.h"
+#include "UserScriptManager.h"
 #include "WebPage.h"
 
 #include <vector>
@@ -78,6 +79,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_userAgentMgr = new UserAgentManager(m_settings);
     connect(m_userAgentMgr, &UserAgentManager::updateUserAgents, this, &BrowserApplication::resetUserAgentMenus);
 
+    // Setup user script manager
+    m_userScriptMgr = new UserScriptManager(m_settings);
+
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue("SearchEnginesFile"));
 
@@ -112,6 +116,7 @@ BrowserApplication::~BrowserApplication()
     delete m_privateNetworkAccessMgr;
     delete m_historyWidget;
     delete m_userAgentMgr;
+    delete m_userScriptMgr;
 }
 
 BrowserApplication *BrowserApplication::instance()
@@ -178,6 +183,11 @@ URLSuggestionModel *BrowserApplication::getURLSuggestionModel()
 UserAgentManager *BrowserApplication::getUserAgentManager()
 {
     return m_userAgentMgr;
+}
+
+UserScriptManager *BrowserApplication::getUserScriptManager()
+{
+    return m_userScriptMgr;
 }
 
 MainWindow *BrowserApplication::getNewWindow()

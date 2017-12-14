@@ -84,12 +84,6 @@ protected:
     /// Folder ID - If node is type folder, this refers to the node's own folder id.
     /// If the node is type bookmark, this refers to its parent folder id.
     int m_folderId;
-
-    /// Pointer to the node's parent
-    //BookmarkNode *m_parent;
-
-    /// Vector of child nodes belonging to this node
-    //std::vector< std::unique_ptr<BookmarkNode> > m_children;
 };
 
 Q_DECLARE_METATYPE(BookmarkNode::NodeType)

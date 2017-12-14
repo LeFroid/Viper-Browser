@@ -21,6 +21,7 @@ class MainWindow;
 class Settings;
 class URLSuggestionModel;
 class UserAgentManager;
+class UserScriptManager;
 class NetworkAccessManager;
 
 /// Potential modes of operation for the browser startup routine (ie load a home page, restore session, etc)
@@ -85,6 +86,9 @@ public:
 
     /// Returns a pointer to the user agent manager
     UserAgentManager *getUserAgentManager();
+
+    /// Returns a pointer to the user script manager
+    UserScriptManager *getUserScriptManager();
 
 public slots:
     /// Spawns and returns the pointer to a new browser window
@@ -156,6 +160,9 @@ private:
 
     /// User agent manager
     UserAgentManager *m_userAgentMgr;
+
+    /// User script manager
+    UserScriptManager *m_userScriptMgr;
 
     /// List of browser windows
     QList< QPointer<MainWindow> > m_browserWindows;

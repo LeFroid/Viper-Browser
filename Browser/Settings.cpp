@@ -51,6 +51,8 @@ void Settings::setDefaults()
     m_settings.setValue("UserAgentsFile",  "user_agents.json");
     m_settings.setValue("SearchEnginesFile", "search_engines.json");
     m_settings.setValue("SessionFile", "last_session.json");
+    m_settings.setValue("UserScriptsDir", "UserScripts");
+    m_settings.setValue("UserScriptsConfig", "user_scripts.json");
 
     m_settings.setValue("HomePage", "https://www.ixquick.com/");
     m_settings.setValue("StartupMode", QVariant::fromValue(StartupMode::LoadHomePage));
@@ -65,6 +67,7 @@ void Settings::setDefaults()
     m_settings.setValue("EnableXSSAudit", true);
     m_settings.setValue("EnableBookmarkBar", false);
     m_settings.setValue("CustomUserAgent", false);
+    m_settings.setValue("UserScriptsEnabled", true);
 
     QWebSettings *webSettings = QWebSettings::globalSettings();
     m_settings.setValue("StandardFont", webSettings->fontFamily(QWebSettings::StandardFont));

@@ -31,6 +31,12 @@ private slots:
     /// Attempts to handle unsupported network replies
     void onUnsupportedContent(QNetworkReply *reply);
 
+    /// Called when a frame is finished loading
+    void onLoadFinished(bool ok);
+
+    /// Injects any javascript into the frame, if applicable
+    void injectUserJavaScript(QWebFrame *frame);
+
 protected:
     /// Custom user agent string. Empty if default UA is used
     static QString m_userAgent;

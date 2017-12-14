@@ -21,8 +21,15 @@ QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operati
         BlockedNetworkReply *blockedReply = adBlock.getBlockedReply(request);
         if (blockedReply != nullptr)
             return blockedReply;
-        //if (adBlock.isBlocked(request.url().host()))
-        //    return adBlock.getBlockedReply(request);
+        /*
+         * AdBlockManager &adBlockMgr = AdBlockManager::instance();
+         * BlockedNetworkReply *blockedReply = adBlock.getBlockedReply(request);
+         * in getBlockedReply:
+         *     QUrl baseUrl = qobject_cast<QWebFrame*>(request.originatingObject())->baseUrl();
+         *     QUrl requestUrl = request.url();
+         *     ElementType elemType = getElementType(request.rawHeader(QByteArray("Accept")));
+         *     if (isBlocked(baseUrl, requestUrl, elemType) { return new BlockedNetworkReply(...); } else return nullptr;
+         */
     }
     return QNetworkAccessManager::createRequest(op, request, outgoingData);
 }

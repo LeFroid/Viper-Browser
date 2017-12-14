@@ -4,7 +4,6 @@
 #include "SecurityManager.h"
 
 #include <memory>
-#include <QDebug>
 
 int main(int argc, char *argv[])
 {

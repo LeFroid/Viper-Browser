@@ -30,6 +30,11 @@ void DownloadManager::setDownloadDir(const QString &path)
     m_downloadDir = path + QDir::separator();
 }
 
+const QString &DownloadManager::getDownloadDir() const
+{
+    return m_downloadDir;
+}
+
 void DownloadManager::setNetworkAccessManager(NetworkAccessManager *manager)
 {
     m_accessMgr = manager;
@@ -40,20 +45,31 @@ void DownloadManager::download(const QNetworkRequest &request, bool askForFileNa
     if (!m_accessMgr || request.url().isEmpty())
         return;
 
-    handleUnsupportedContent(m_accessMgr->get(request), askForFileName);
+    static_cast<void>(handleUnsupportedContent(m_accessMgr->get(request), askForFileName));
 }
 
-void DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askForFileName)
+DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, bool askForFileName, bool showItem)
+{
+    if (!m_accessMgr || request.url().isEmpty())
+        return nullptr;
+
+    return handleUnsupportedContent(m_accessMgr->get(request), askForFileName, showItem);
+}
+
+DownloadItem *DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askForFileName, bool showItem)
 {
     // Make sure content is not empty
     QVariant lenHeader = reply->header(QNetworkRequest::ContentLengthHeader);
     bool castOk;
     int contentLen = lenHeader.toInt(&castOk);
     if (castOk && !contentLen)
-        return;
+        return nullptr;
 
     // Add to model
     DownloadItem *item = new DownloadItem(reply, m_downloadDir, askForFileName, this);
+    if (!showItem)
+        return item;
+
     int downloadRow = m_downloads.size();
     m_model->beginInsertRows(QModelIndex(), downloadRow, downloadRow);
     m_downloads.append(item);
@@ -64,4 +80,6 @@ void DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askFor
     // Show download manager if hidden
     if (!isVisible())
         show();
+
+    return item;
 }

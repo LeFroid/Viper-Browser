@@ -28,6 +28,10 @@ public:
     explicit DownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, QWidget *parent = 0);
     ~DownloadItem();
 
+ signals:
+    /// Emitted when the download has successfully completed
+    void downloadFinished(const QString &filePath);
+
 private slots:
     /// Called when the download is ready to be read onto the disk
     void onReadyRead();
