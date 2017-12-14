@@ -5,6 +5,8 @@
 
 bool UserScript::load(const QString &file, const QString &templateData)
 {
+    m_noSubFrames = false;
+
     QFile f(file);
     if (!f.exists() || !f.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
