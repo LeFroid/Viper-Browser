@@ -5,6 +5,13 @@
 #include <QRegularExpression>
 #include <QString>
 
+/// List of time periods in which a user script may be injected onto a page
+enum class ScriptInjectionTime
+{
+    DocumentEnd,
+    DocumentStart
+};
+
 /**
  * @class UserScript
  * @brief An object storing a single GreaseMonkey-style user script, including
@@ -48,6 +55,9 @@ protected:
 
     /// When set to true, the script will run only in the top-level document, never in nested frames.
     bool m_noSubFrames;
+
+    /// When the script will be injected onto a page
+    ScriptInjectionTime m_injectionTime;
 
     /// Container of url include and matching rules, where the script will be injected
     std::vector<QRegularExpression> m_includes;

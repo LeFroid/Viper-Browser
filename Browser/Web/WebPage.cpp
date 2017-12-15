@@ -19,9 +19,14 @@ WebPage::WebPage(QObject *parent) :
     setForwardUnsupportedContent(true);
 
     connect(this, &WebPage::unsupportedContent, this, &WebPage::onUnsupportedContent);
-    connect(mainFrame(), &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
+
+    // Add frame event handlers for script injection
+    QWebFrame *pageMainFrame = mainFrame();
+    connect(pageMainFrame, &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
+    connect(pageMainFrame, &QWebFrame::javaScriptWindowObjectCleared, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::frameCreated, [=](QWebFrame *frame) {
         connect(frame, &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
+        connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &WebPage::onLoadStarted);
     });
 }
 
@@ -90,14 +95,20 @@ void WebPage::onUnsupportedContent(QNetworkReply *reply)
     reply->deleteLater();
 }
 
+void WebPage::onLoadStarted()
+{
+    if (QWebFrame *frame = qobject_cast<QWebFrame*>(sender()))
+        injectUserJavaScript(frame, ScriptInjectionTime::DocumentStart);
+}
+
 void WebPage::onLoadFinished(bool ok)
 {
     QWebFrame *frame = qobject_cast<QWebFrame*>(sender());
     if (ok && (frame != nullptr))
-        injectUserJavaScript(frame);
+        injectUserJavaScript(frame, ScriptInjectionTime::DocumentEnd);
 }
 
-void WebPage::injectUserJavaScript(QWebFrame *frame)
+void WebPage::injectUserJavaScript(QWebFrame *frame, ScriptInjectionTime injectionTime)
 {
     // Attempt to get URL associated with frame
     QUrl url = frame->url();
@@ -109,7 +120,7 @@ void WebPage::injectUserJavaScript(QWebFrame *frame)
         return;
 
     bool isMainFrame = (frame == mainFrame());
-    QString userJS = sBrowserApplication->getUserScriptManager()->getScriptsFor(url, isMainFrame);
+    QString userJS = sBrowserApplication->getUserScriptManager()->getScriptsFor(url, injectionTime, isMainFrame);
     if (!userJS.isEmpty())
     {
         frame->evaluateJavaScript(userJS);

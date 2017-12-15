@@ -23,14 +23,14 @@ UserScriptManager::UserScriptManager(std::shared_ptr<Settings> settings, QObject
         load();
 }
 
-QString UserScriptManager::getScriptsFor(const QUrl &url, bool isMainFrame)
+QString UserScriptManager::getScriptsFor(const QUrl &url, ScriptInjectionTime injectionTime, bool isMainFrame)
 {
     QByteArray resultBuffer;
     QString urlStr = url.toString(QUrl::FullyEncoded);
 
     for (const UserScript &script : m_scripts)
     {
-        if (script.m_noSubFrames && !isMainFrame)
+        if (injectionTime != script.m_injectionTime || (script.m_noSubFrames && !isMainFrame))
             continue;
 
         bool isExclude = false, isInclude = false;

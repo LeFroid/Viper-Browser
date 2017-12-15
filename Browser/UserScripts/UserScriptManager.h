@@ -23,7 +23,7 @@ public:
 
     /// Searches all user scripts for any that match the given url, returning the concatenated script data if
     /// any are found, or an empty QString if no scripts match
-    QString getScriptsFor(const QUrl &url, bool isMainFrame);
+    QString getScriptsFor(const QUrl &url, ScriptInjectionTime injectionTime, bool isMainFrame);
 
 private:
     /// Loads user script files from the user script directory, into the script container

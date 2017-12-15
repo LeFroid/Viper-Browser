@@ -1,6 +1,7 @@
 #ifndef WEBPAGE_H
 #define WEBPAGE_H
 
+#include "UserScript.h"
 #include <QString>
 #include <QWebPage>
 
@@ -31,11 +32,14 @@ private slots:
     /// Attempts to handle unsupported network replies
     void onUnsupportedContent(QNetworkReply *reply);
 
+    /// Called when a frame has started loading
+    void onLoadStarted();
+
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
 
     /// Injects any javascript into the frame, if applicable
-    void injectUserJavaScript(QWebFrame *frame);
+    void injectUserJavaScript(QWebFrame *frame, ScriptInjectionTime injectionTime);
 
 protected:
     /// Custom user agent string. Empty if default UA is used

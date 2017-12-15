@@ -6,6 +6,7 @@
 bool UserScript::load(const QString &file, const QString &templateData)
 {
     m_noSubFrames = false;
+    m_injectionTime = ScriptInjectionTime::DocumentEnd;
 
     QFile f(file);
     if (!f.exists() || !f.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -49,6 +50,13 @@ bool UserScript::load(const QString &file, const QString &templateData)
                     m_includes.push_back(getMatchRegExp(value));
                 else if (key.compare("require") == 0)
                     m_dependencies.push_back(value);
+                else if (key.compare("run-at") == 0)
+                {
+                    if (value.compare("document-end") == 0)
+                        m_injectionTime = ScriptInjectionTime::DocumentEnd;
+                    else if (value.compare("document-start") == 0)
+                        m_injectionTime = ScriptInjectionTime::DocumentStart;
+                }
 
                 metaData.append(line.replace("'", "\\'"));
             }
@@ -182,8 +190,9 @@ QString UserScript::getScriptJSON() const
     nameFix.replace("'", "\\'");
     QString namespaceFix = m_namespace;
     namespaceFix.replace("'", "\\'");
+    QString runTime = (m_injectionTime == ScriptInjectionTime::DocumentEnd ? QStringLiteral("document-end") : QStringLiteral("document-start"));
     return QString("{ 'description': '%1', 'excludes': [ %2 ], "
     "'includes': [ %3 ], 'matches': [], 'name': '%4', "
-    "'namespace': '%5', 'resources': {}, 'run-at': 'document-end', "
-    "'version': '%6' }").arg(descrFix).arg(excludes).arg(includes).arg(nameFix).arg(namespaceFix).arg(m_version);
+    "'namespace': '%5', 'resources': {}, 'run-at': '%6', "
+    "'version': '%7' }").arg(descrFix).arg(excludes).arg(includes).arg(nameFix).arg(namespaceFix).arg(runTime).arg(m_version);
 }
