@@ -328,6 +328,7 @@ void BrowserApplication::setWebSettings()
     if (!iconPath.exists())
         iconPath.mkpath(iconPath.absolutePath());
     QWebSettings::setIconDatabasePath(iconPath.absolutePath());
+    QWebSettings::enablePersistentStorage(iconPath.absolutePath());
 
     QWebSettings *settings = QWebSettings::globalSettings();
     settings->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
@@ -338,6 +339,8 @@ void BrowserApplication::setWebSettings()
     settings->setAttribute(QWebSettings::XSSAuditingEnabled, m_settings->getValue("EnableXSSAudit").toBool());
     settings->setAttribute(QWebSettings::MediaSourceEnabled, true);
     settings->setAttribute(QWebSettings::LocalStorageEnabled, true);
+    settings->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
+    settings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
 
     settings->setFontFamily(QWebSettings::StandardFont, m_settings->getValue("StandardFont").toString());
     settings->setFontFamily(QWebSettings::SerifFont, m_settings->getValue("SerifFont").toString());

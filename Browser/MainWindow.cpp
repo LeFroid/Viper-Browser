@@ -737,6 +737,7 @@ void MainWindow::onNewTabCreated(WebView *view)
     connect(view, &WebView::loadFinished, [=](bool ok) {
         onLoadFinished(view, ok);
     });
+    connect(view, &WebView::titleChanged, [=](const QString &title){ updateTabTitle(title, m_tabWidget->indexOf(view));} );
     connect(view, &WebView::inspectElement, [=]() {
         QWebInspector *inspector = new QWebInspector(ui->dockWidget);
         inspector->setPage(view->page());
