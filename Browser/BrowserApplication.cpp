@@ -337,6 +337,7 @@ void BrowserApplication::setWebSettings()
     settings->setAttribute(QWebSettings::PluginsEnabled, m_settings->getValue("EnablePlugins").toBool());
     settings->setAttribute(QWebSettings::XSSAuditingEnabled, m_settings->getValue("EnableXSSAudit").toBool());
     settings->setAttribute(QWebSettings::MediaSourceEnabled, true);
+    settings->setAttribute(QWebSettings::LocalStorageEnabled, true);
 
     settings->setFontFamily(QWebSettings::StandardFont, m_settings->getValue("StandardFont").toString());
     settings->setFontFamily(QWebSettings::SerifFont, m_settings->getValue("SerifFont").toString());
