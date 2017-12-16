@@ -19,6 +19,8 @@
 #include "URLLineEdit.h"
 #include "URLSuggestionModel.h"
 #include "UserAgentManager.h"
+#include "UserScriptManager.h"
+#include "UserScriptWidget.h"
 #include "WebPage.h"
 #include "WebView.h"
 
@@ -60,7 +62,8 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<Bookm
     m_removePageBookmarks(nullptr),
     m_userAgentGroup(new QActionGroup(this)),
     m_preferences(nullptr),
-    m_addBookmarkDialog(nullptr)
+    m_addBookmarkDialog(nullptr),
+    m_userScriptWidget(nullptr)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
@@ -96,6 +99,9 @@ MainWindow::~MainWindow()
 
     if (m_addBookmarkDialog)
         delete m_addBookmarkDialog;
+
+    if (m_userScriptWidget)
+        delete m_userScriptWidget;
 }
 
 bool MainWindow::isPrivate() const
@@ -335,6 +341,7 @@ void MainWindow::setupMenuBar()
 
     // Tools menu
     connect(ui->actionManage_Cookies, &QAction::triggered, this, &MainWindow::openCookieManager);
+    connect(ui->actionUser_Scripts, &QAction::triggered, this, &MainWindow::openUserScriptManager);
     connect(ui->actionView_Downloads, &QAction::triggered, this, &MainWindow::openDownloadManager);
 
     // User agent sub-menu
@@ -523,7 +530,7 @@ void MainWindow::goToURL()
         if (location.isValid())
         {
             view->load(location);
-            m_urlInput->setText(location.toString());
+            m_urlInput->setText(location.toString(QUrl::FullyEncoded));
         }
     }
 }
@@ -653,6 +660,20 @@ void MainWindow::onFindTextAction()
     auto lineEdit = ui->widgetFindText->getLineEdit();
     lineEdit->setFocus();
     lineEdit->selectAll();
+}
+
+void MainWindow::openUserScriptManager()
+{
+    if (!m_userScriptWidget)
+    {
+        m_userScriptWidget = new UserScriptWidget;
+        connect(m_userScriptWidget, &UserScriptWidget::destroyed, [=](){
+            m_userScriptWidget = nullptr;
+        });
+    }
+    m_userScriptWidget->show();
+    m_userScriptWidget->raise();
+    m_userScriptWidget->activateWindow();
 }
 
 void MainWindow::openFileInBrowser()

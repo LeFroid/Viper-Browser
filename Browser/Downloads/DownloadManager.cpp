@@ -45,20 +45,16 @@ void DownloadManager::download(const QNetworkRequest &request, bool askForFileNa
     if (!m_accessMgr || request.url().isEmpty())
         return;
 
-    static_cast<void>(handleUnsupportedContent(m_accessMgr->get(request), askForFileName));
+    handleUnsupportedContent(m_accessMgr->get(request), askForFileName);
 }
 
-DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, bool askForFileName, bool showItem)
+DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName)
 {
     if (!m_accessMgr || request.url().isEmpty())
         return nullptr;
 
-    return handleUnsupportedContent(m_accessMgr->get(request), askForFileName, showItem);
-}
-
-DownloadItem *DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askForFileName, bool showItem)
-{
     // Make sure content is not empty
+    QNetworkReply *reply = m_accessMgr->get(request);
     QVariant lenHeader = reply->header(QNetworkRequest::ContentLengthHeader);
     bool castOk;
     int contentLen = lenHeader.toInt(&castOk);
@@ -66,10 +62,21 @@ DownloadItem *DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bo
         return nullptr;
 
     // Add to model
-    DownloadItem *item = new DownloadItem(reply, m_downloadDir, askForFileName, this);
-    if (!showItem)
-        return item;
+    DownloadItem *item = new DownloadItem(reply, downloadDir, askForFileName, this);
+    return item;
+}
 
+void DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askForFileName)
+{
+    // Make sure content is not empty
+    QVariant lenHeader = reply->header(QNetworkRequest::ContentLengthHeader);
+    bool castOk;
+    int contentLen = lenHeader.toInt(&castOk);
+    if (castOk && !contentLen)
+        return;
+
+    // Add to model
+    DownloadItem *item = new DownloadItem(reply, m_downloadDir, askForFileName, this);
     int downloadRow = m_downloads.size();
     m_model->beginInsertRows(QModelIndex(), downloadRow, downloadRow);
     m_downloads.append(item);
@@ -80,6 +87,4 @@ DownloadItem *DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bo
     // Show download manager if hidden
     if (!isVisible())
         show();
-
-    return item;
 }

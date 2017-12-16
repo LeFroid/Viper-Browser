@@ -324,12 +324,6 @@ void BrowserApplication::setWebSettings()
     if (m_settings->getValue("CustomUserAgent").toBool())
         WebPage::setUserAgent(m_userAgentMgr->getUserAgent().Value);
 
-    QDir iconPath(QDir::homePath() + QDir::separator() + ".cache" + QDir::separator() + "Vaccarelli");
-    if (!iconPath.exists())
-        iconPath.mkpath(iconPath.absolutePath());
-    QWebSettings::setIconDatabasePath(iconPath.absolutePath());
-    QWebSettings::enablePersistentStorage(iconPath.absolutePath());
-
     QWebSettings *settings = QWebSettings::globalSettings();
     settings->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     settings->setAttribute(QWebSettings::JavascriptEnabled, m_settings->getValue("EnableJavascript").toBool());
@@ -351,6 +345,14 @@ void BrowserApplication::setWebSettings()
 
     settings->setFontSize(QWebSettings::DefaultFontSize, m_settings->getValue("StandardFontSize").toInt());
     settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings->getValue("FixedFontSize").toInt());
+
+    QDir cachePath(QDir::homePath() + QDir::separator() + ".cache" + QDir::separator() + "Vaccarelli");
+    if (!cachePath.exists())
+        cachePath.mkpath(cachePath.absolutePath());
+    QWebSettings::setIconDatabasePath(cachePath.absolutePath());
+    QWebSettings::enablePersistentStorage(cachePath.absolutePath());
+    settings->setLocalStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg("LocalStorage"));
+    settings->setOfflineStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg("OfflineStorage"));
 }
 
 void BrowserApplication::beforeBrowserQuit()

@@ -46,10 +46,10 @@ public slots:
     void download(const QNetworkRequest &request, bool askForFileName = true);
 
     /// Used for internal downloads (not explictly requested by the user)
-    DownloadItem *downloadInternal(const QNetworkRequest &request, bool askForFileName = false, bool showItem = false);
+    DownloadItem *downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName = false);
 
     /// Handles content that cannot directly be rendered by a web view
-    DownloadItem *handleUnsupportedContent(QNetworkReply *reply, bool askForFileName = true, bool showItem = true);
+    void handleUnsupportedContent(QNetworkReply *reply, bool askForFileName = true);
 
 private:
     /// User interface

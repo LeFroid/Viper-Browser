@@ -10,6 +10,8 @@
 #include <QString>
 #include <QUrl>
 
+class UserScriptModel;
+
 /**
  * @class UserScriptManager
  * @brief Manages a collection of GreaseMonkey-style user scripts
@@ -21,35 +23,31 @@ public:
     /// Constructs the user script manager, given a shared pointer to the application settings object and an optional parent object
     explicit UserScriptManager(std::shared_ptr<Settings>, QObject *parent = nullptr);
 
-    /// Searches all user scripts for any that match the given url, returning the concatenated script data if
-    /// any are found, or an empty QString if no scripts match
+    /// Saves user script information (i.e. which scripts are enabled) before destruction
+    virtual ~UserScriptManager();
+
+    /// Returns a pointer to the user script model
+    UserScriptModel *getModel();
+
+    /**
+     * @brief Searches all user scripts for any that match the given URL for injection
+     * @param url The URL of the resource being loaded
+     * @param injectionTime The time of script injection relative to the initial page load request
+     * @param isMainFrame True if the frame associated with the url is the main frame of the page, false if it is a sub-frame
+     * @return Concatenated user script data if one or more scripts are found, or an empty string if no scripts match the URL
+     */
     QString getScriptsFor(const QUrl &url, ScriptInjectionTime injectionTime, bool isMainFrame);
 
-private:
-    /// Loads user script files from the user script directory, into the script container
-    void load();
-
-    /// Loads dependencies for the user script in the container at the given index
-    void loadDependencies(int scriptIdx);
-
-    /// Saves user script information to a user script configuration file
-    void save();
+public slots:
+    /**
+     * @brief Attempts to download and install the user script from the given URL
+     * @param url The location of the user script to be installed
+     */
+    void installScript(const QUrl &url);
 
 private:
-    /// Application settings
-    std::shared_ptr<Settings> m_settings;
-
-    /// Container of user scripts
-    std::vector<UserScript> m_scripts;
-
-    /// True if user scripts are enabled, false if else
-    bool m_enabled;
-
-    /// User script template file contents
-    QString m_scriptTemplate;
-
-    /// Absolute path to user script dependency directory
-    QString m_scriptDepDir;
+    /// Pointer to the user scripts model
+    UserScriptModel *m_model;
 };
 
 #endif // USERSCRIPTMANAGER_H

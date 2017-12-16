@@ -129,7 +129,9 @@
      </property>
     </widget>
     <addaction name="actionManage_Cookies"/>
+    <addaction name="actionUser_Scripts"/>
     <addaction name="menuUser_Agents"/>
+    <addaction name="separator"/>
     <addaction name="actionView_Downloads"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -426,7 +428,12 @@
   </action>
   <action name="actionAbout_Qt">
    <property name="text">
-    <string>About Qt</string>
+    <string>About &amp;Qt</string>
+   </property>
+  </action>
+  <action name="actionUser_Scripts">
+   <property name="text">
+    <string>Manage User Scripts</string>
    </property>
   </action>
  </widget>

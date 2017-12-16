@@ -69,7 +69,7 @@ void URLLineEdit::setSecurityIcon(SecurityIcon iconType)
 
 void URLLineEdit::setURL(const QUrl &url)
 {
-    setText(url.toString());
+    setText(url.toString(QUrl::FullyEncoded));
 
     SecurityIcon secureIcon = SecurityIcon::Standard;
     if (url.scheme().compare("https") == 0)

@@ -101,7 +101,10 @@ SOURCES += \
     AdBlock/AdBlockFilter.cpp \
     AdBlock/AdBlockSubscription.cpp \
     UserScripts/UserScript.cpp \
-    UserScripts/UserScriptManager.cpp
+    UserScripts/UserScriptManager.cpp \
+    UserScripts/UserScriptWidget.cpp \
+    UserScripts/UserScriptTableView.cpp \
+    UserScripts/UserScriptModel.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -168,7 +171,10 @@ HEADERS += \
     AdBlock/AdBlockSubscription.h \
     AdBlock/AdBlockNode.h \
     UserScripts/UserScript.h \
-    UserScripts/UserScriptManager.h
+    UserScripts/UserScriptManager.h \
+    UserScripts/UserScriptWidget.h \
+    UserScripts/UserScriptTableView.h \
+    UserScripts/UserScriptModel.h
 
 FORMS += \
         mainwindow.ui \
@@ -190,4 +196,5 @@ FORMS += \
     Network/CertificateGeneralTab.ui \
     Preferences/ContentTab.ui \
     Widgets/AddBookmarkDialog.ui \
-    UserAgents/UserAgentsWindow.ui
+    UserAgents/UserAgentsWindow.ui \
+    UserScripts/UserScriptWidget.ui

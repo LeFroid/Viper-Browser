@@ -38,9 +38,12 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
         if (term.isNull() || term.isEmpty())
             return;
 
+        term.replace(QStringLiteral("+"), QStringLiteral("%2B"));
+
         QString searchUrl = m_currentEngineQuery;
         searchUrl.replace("=%s", QString("=%1").arg(term));
-        emit requestPageLoad(QUrl::fromUserInput(searchUrl));
+        QUrl userUrl = QUrl::fromUserInput(searchUrl);
+        emit requestPageLoad(userUrl.adjusted(QUrl::FullyEncoded));
     });
 
     // Connect search engine manager's signals for search engines being added or removed to appropriate slots

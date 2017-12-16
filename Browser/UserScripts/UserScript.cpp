@@ -3,14 +3,54 @@
 #include <QFile>
 #include <QTextStream>
 
+UserScript::UserScript() :
+    m_name(),
+    m_namespace(),
+    m_description(),
+    m_version(),
+    m_noSubFrames(false),
+    m_isEnabled(true),
+    m_injectionTime(ScriptInjectionTime::DocumentEnd),
+    m_includes(),
+    m_excludes(),
+    m_dependencies(),
+    m_scriptData(),
+    m_dependencyData()
+{
+}
+
+const QString &UserScript::getName() const
+{
+    return m_name;
+}
+
+const QString &UserScript::getDescription() const
+{
+    return m_description;
+}
+
+const QString &UserScript::getVersion() const
+{
+    return m_version;
+}
+
+bool UserScript::isEnabled() const
+{
+    return m_isEnabled;
+}
+
+void UserScript::setEnabled(bool value)
+{
+    m_isEnabled = value;
+}
+
 bool UserScript::load(const QString &file, const QString &templateData)
 {
-    m_noSubFrames = false;
-    m_injectionTime = ScriptInjectionTime::DocumentEnd;
-
     QFile f(file);
     if (!f.exists() || !f.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
+
+    m_fileName = file;
 
     // Read file line by line, adding contents to local data buffer and initially parsing the metadata block
     bool foundMetaDataStart = false, foundMetaDataEnd = false;

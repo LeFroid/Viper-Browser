@@ -45,7 +45,7 @@
     }
     
     function GM_getValue(name, defaultValue) {
-        checkKey(key, "GM_getValue");
+        checkKey(name, "GM_getValue");
         return localStorage.getItem(_uuid + name) || defaultValue;
     }
     

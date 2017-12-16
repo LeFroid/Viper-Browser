@@ -20,10 +20,26 @@ enum class ScriptInjectionTime
 class UserScript
 {
     friend class UserScriptManager;
+    friend class UserScriptModel;
 
 public:
     /// Default constructor
-    UserScript() = default;
+    UserScript();
+
+    /// Returns the name of the user script
+    const QString &getName() const;
+
+    /// Returns the description of the user script
+    const QString &getDescription() const;
+
+    /// Returns the version string of the user script
+    const QString &getVersion() const;
+
+    /// Returns true if the script is enabled, false if else
+    bool isEnabled() const;
+
+    /// Sets the state of the user script. If value is true, script will be enabled, otherwise script will be disabled
+    void setEnabled(bool value);
 
 protected:
     /// Attempts to load and parse the user script file, given the user script template.
@@ -53,8 +69,14 @@ protected:
     /// The version of the user script
     QString m_version;
 
+    /// Name of the locally stored file from which this script was loaded and/or saved into
+    QString m_fileName;
+
     /// When set to true, the script will run only in the top-level document, never in nested frames.
     bool m_noSubFrames;
+
+    /// When set to true, user script will be injected as per include/exclude rules. If false, script will not be used
+    bool m_isEnabled;
 
     /// When the script will be injected onto a page
     ScriptInjectionTime m_injectionTime;

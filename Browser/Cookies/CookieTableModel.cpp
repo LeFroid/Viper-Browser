@@ -5,8 +5,6 @@
 #include "CookieJar.h"
 #include "NetworkAccessManager.h"
 
-#include <QDebug>
-
 CookieTableModel::CookieTableModel(QObject *parent) :
     QAbstractTableModel(parent),
     m_cookieJar(sBrowserApplication->getCookieJar()),

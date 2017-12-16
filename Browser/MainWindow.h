@@ -28,6 +28,7 @@ class CookieWidget;
 class Preferences;
 class SearchEngineLineEdit;
 class URLLineEdit;
+class UserScriptWidget;
 class WebView;
 
 /**
@@ -147,6 +148,9 @@ public slots:
     void onFindTextAction();
 
 private slots:
+    /// Launches the user script manager UI
+    void openUserScriptManager();
+
     /// Spawns a file chooser dialog so the user can open a file into the web browser
     void openFileInBrowser();
 
@@ -251,6 +255,9 @@ private:
 
     /// Dialog that is shown when a bookmark is added through the bookmark menu option
     AddBookmarkDialog *m_addBookmarkDialog;
+
+    /// User script management widget
+    UserScriptWidget *m_userScriptWidget;
 };
 
 #endif // MAINWINDOW_H
