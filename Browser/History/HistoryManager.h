@@ -101,6 +101,9 @@ protected:
     /// Saves browsing history into the database
     void save() override;
 
+    /// Saves the record of the user visiting the history item at the given date-time.
+    void saveVisit(const WebHistoryItem &item, const QDateTime &visitTime);
+
 private:
     /// Stores the last visit ID that has been used to record browsing history. Auto increments for each new history item
     uint64_t m_lastVisitID;
@@ -110,6 +113,12 @@ private:
 
     /// Queue of recently visited items
     QList<WebHistoryItem> m_recentItems;
+
+    /// Prepared query for an individual WebHistoryItem entry
+    QSqlQuery *m_queryHistoryItem;
+
+    /// Prepared query for a visit entry regarding a WebHistoryItem
+    QSqlQuery *m_queryVisit;
 };
 
 #endif // HISTORYMANAGER_H

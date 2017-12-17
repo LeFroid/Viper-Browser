@@ -16,7 +16,9 @@ HistoryManager::HistoryManager(bool firstRun, const QString &databaseFile, QObje
     DatabaseWorker(databaseFile, "HistoryDB"),
     m_lastVisitID(0),
     m_historyItems(),
-    m_recentItems()
+    m_recentItems(),
+    m_queryHistoryItem(nullptr),
+    m_queryVisit(nullptr)
 {
     // Setup structure if first run
     if (firstRun)
@@ -29,7 +31,12 @@ HistoryManager::HistoryManager(bool firstRun, const QString &databaseFile, QObje
 
 HistoryManager::~HistoryManager()
 {
-    save();
+    //save();
+    if (m_queryHistoryItem != nullptr)
+    {
+        delete m_queryHistoryItem;
+        delete m_queryVisit;
+    }
 }
 
 void HistoryManager::addHistoryEntry(const QString &url)
@@ -40,22 +47,27 @@ void HistoryManager::addHistoryEntry(const QString &url)
     if (lowerUrl.startsWith("qrc:"))
         return;
 
+    QDateTime visitTime = QDateTime::currentDateTime();
+
     auto it = m_historyItems.find(lowerUrl);
     if (it != m_historyItems.end())
     {
-        it->Visits.prepend(QDateTime::currentDateTime());
+        it->Visits.prepend(visitTime);
         m_recentItems.prepend(*it);
         while (m_recentItems.size() > 15)
             m_recentItems.removeLast();
         if (!it->Title.isEmpty())
+        {
+            saveVisit(*it, visitTime);
             emit pageVisited(lowerUrl, it->Title);
+        }
         return;
     }
 
     WebHistoryItem item;
     item.URL = QUrl::fromUserInput(lowerUrl);
     item.VisitID = ++m_lastVisitID;
-    item.Visits.prepend(QDateTime::currentDateTime());
+    item.Visits.prepend(visitTime);
     m_historyItems.insert(lowerUrl, item);
     m_recentItems.prepend(item);
     while (m_recentItems.size() > 15)
@@ -118,6 +130,7 @@ void HistoryManager::setTitleForURL(const QString &url, const QString &title)
             if (recentVisitIdx >= 0)
                 m_recentItems[recentVisitIdx].Title = title;
 
+            saveVisit(*it, it->Visits.front());
             emit pageVisited(lowerUrl, title);
         }
     }
@@ -249,6 +262,7 @@ void HistoryManager::load()
 
 void HistoryManager::save()
 {
+    /*
     QSqlQuery query(m_database), queryVisits(m_database);
     query.prepare("INSERT OR REPLACE INTO History(URL, Title, VisitID) VALUES(:url, :title, :visitId)");
     queryVisits.prepare("INSERT OR REPLACE INTO Visits(VisitID, Date) VALUES(:visitId, :date)");
@@ -276,4 +290,29 @@ void HistoryManager::save()
             queryVisits.exec();
         }
     }
+    */
+}
+
+void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visitTime)
+{
+    if (m_queryHistoryItem == nullptr)
+    {
+        m_queryHistoryItem = new QSqlQuery(m_database);
+        m_queryHistoryItem->prepare("INSERT OR REPLACE INTO History(URL, Title, VisitID) VALUES(:url, :title, :visitId)");
+
+        m_queryVisit = new QSqlQuery(m_database);
+        m_queryVisit->prepare("INSERT OR REPLACE INTO Visits(VisitID, Date) VALUES(:visitId, :date)");
+    }
+
+    m_queryHistoryItem->bindValue(":url", item.URL.toString().toLower());
+    m_queryHistoryItem->bindValue(":title", item.Title);
+    m_queryHistoryItem->bindValue(":visitId", item.VisitID);
+    if (!m_queryHistoryItem->exec())
+        qDebug() << "[Error]: In HistoryManager::saveVisit - unable to save history item to database. Message: " << m_queryHistoryItem->lastError().text();
+
+    m_queryVisit->bindValue(":visitId", item.VisitID);
+    m_queryVisit->bindValue(":date", visitTime.toMSecsSinceEpoch());
+    if (!m_queryVisit->exec())
+        qDebug() << "[Error]: In HistoryManager::saveVisit - unable to save specific visit for URL " << item.URL.toString() << " at time " << visitTime.toString();
+
 }
