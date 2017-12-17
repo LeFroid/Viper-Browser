@@ -1,5 +1,5 @@
 #include "HTMLHighlighter.h"
-#include <QDebug>
+
 HTMLHighlighter::HTMLHighlighter(QTextDocument *parent) :
     QSyntaxHighlighter(parent),
     m_tagRule(),

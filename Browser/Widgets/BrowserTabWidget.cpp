@@ -130,10 +130,10 @@ void BrowserTabWidget::onIconChanged()
 }
 
 
-void BrowserTabWidget::openLinkInNewTab(const QUrl &url)
+void BrowserTabWidget::openLinkInNewTab(const QUrl &url, bool makeCurrent)
 {
     // Create view, load home page, add view to tab widget
-    WebView *view = newTab(false, true);
+    WebView *view = newTab(makeCurrent, true);
     view->load(url);
 }
 

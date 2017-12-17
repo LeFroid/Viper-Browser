@@ -52,7 +52,7 @@ signals:
     void openBookmark(const QUrl &link);
 
     /// Signal for the browser to open a bookmark into a new tab
-    void openBookmarkNewTab(const QUrl &link);
+    void openBookmarkNewTab(const QUrl &link, bool makeCurrent = false);
 
     /// Signal for the browser to open a bookmark into a new window
     void openBookmarkNewWindow(const QUrl &link);

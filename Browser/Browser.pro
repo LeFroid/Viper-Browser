@@ -32,6 +32,7 @@ INCLUDEPATH += \
     $$PWD/Cookies \
     $$PWD/Downloads \
     $$PWD/History \
+    $$PWD/Highlighters \
     $$PWD/Network \
     $$PWD/Preferences \
     $$PWD/UserAgents \
@@ -90,7 +91,7 @@ SOURCES += \
     Widgets/URLLineEdit.cpp \
     Network/CertificateGeneralTab.cpp \
     Preferences/ContentTab.cpp \
-    Web/HTMLHighlighter.cpp \
+    Highlighters/HTMLHighlighter.cpp \
     Widgets/AddBookmarkDialog.cpp \
     Widgets/BrowserTabBar.cpp \
     Bookmarks/BookmarkNode.cpp \
@@ -104,7 +105,9 @@ SOURCES += \
     UserScripts/UserScriptManager.cpp \
     UserScripts/UserScriptWidget.cpp \
     UserScripts/UserScriptTableView.cpp \
-    UserScripts/UserScriptModel.cpp
+    UserScripts/UserScriptModel.cpp \
+    Highlighters/JavaScriptHighlighter.cpp \
+    Widgets/CodeEditor.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -159,7 +162,7 @@ HEADERS += \
     Widgets/URLLineEdit.h \
     Network/CertificateGeneralTab.h \
     Preferences/ContentTab.h \
-    Web/HTMLHighlighter.h \
+    Highlighters/HTMLHighlighter.h \
     Widgets/AddBookmarkDialog.h \
     Widgets/BrowserTabBar.h \
     Bookmarks/BookmarkNode.h \
@@ -174,7 +177,9 @@ HEADERS += \
     UserScripts/UserScriptManager.h \
     UserScripts/UserScriptWidget.h \
     UserScripts/UserScriptTableView.h \
-    UserScripts/UserScriptModel.h
+    UserScripts/UserScriptModel.h \
+    Highlighters/JavaScriptHighlighter.h \
+    Widgets/CodeEditor.h
 
 FORMS += \
         mainwindow.ui \

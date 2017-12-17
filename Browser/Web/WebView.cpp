@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMimeData>
+#include <QUrl>
 #include <QWebHitTestResult>
 #include <QWheelEvent>
 
@@ -136,6 +137,17 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
             searchUrl.replace("=%s", QString("=%1").arg(page()->selectedText()));
             emit openInNewTabRequest(QUrl::fromUserInput(searchUrl));
         });
+
+        // Check if selection could be a URL
+        QString selection = page()->selectedText();
+        QUrl selectionUrl = QUrl::fromUserInput(selection);
+        if (selectionUrl.isValid())
+        {
+            menu.addAction(tr("Go to %1").arg(selection), [=](){
+                emit openInNewTabRequest(selectionUrl, true);
+            });
+        }
+
         addInspectorIfEnabled(&menu);
         menu.exec(mapToGlobal(event->pos()));
         return;

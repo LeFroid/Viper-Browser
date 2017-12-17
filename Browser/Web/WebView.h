@@ -67,7 +67,7 @@ signals:
     void openRequest(const QUrl &url);
 
     /// Called when the user requests to open a link in a new browser tab
-    void openInNewTabRequest(const QUrl &url);
+    void openInNewTabRequest(const QUrl &url, bool makeCurrent = false);
 
     /// Called when the user requests to open a link in a new browser window
     void openInNewWindowRequest(const QUrl &url, bool privateWindow);

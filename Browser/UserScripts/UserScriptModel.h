@@ -30,6 +30,9 @@ public:
     /// Adds the given user script to the collection
     void addScript(UserScript &&script);
 
+    /// Returns the source code of the user script at the given index. If index is invalid, an empty string is returned
+    QString getScriptSource(int indexRow);
+
     /// Displays header information for the given section, header orientation and the header role
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 

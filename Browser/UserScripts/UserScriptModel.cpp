@@ -51,6 +51,20 @@ void UserScriptModel::addScript(UserScript &&script)
     endInsertRows();
 }
 
+QString UserScriptModel::getScriptSource(int indexRow)
+{
+    if (indexRow < 0 || indexRow > rowCount())
+        return QString();
+
+    QFile f(m_scripts.at(indexRow).m_fileName);
+    if (!f.exists() || !f.open(QIODevice::ReadOnly))
+        return QString();
+
+    QByteArray data = f.readAll();
+    f.close();
+    return QString(data);
+}
+
 QVariant UserScriptModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation != Qt::Horizontal)
@@ -60,7 +74,7 @@ QVariant UserScriptModel::headerData(int section, Qt::Orientation orientation, i
     {
         switch (section)
         {
-            case 0: return QString("Enabled");
+            case 0: return QString("On");
             case 1: return QString("Name");
             case 2: return QString("Description");
             case 3: return QString("Version");
@@ -140,7 +154,14 @@ bool UserScriptModel::removeRows(int row, int count, const QModelIndex &parent)
     beginRemoveRows(parent, row, row + count - 1);
     if (row + count <= rowCount())
     {
-        m_scripts.erase(m_scripts.begin() + row, m_scripts.begin() + row + count);
+        for (auto it = m_scripts.begin() + row; it != m_scripts.begin() + row + count; ++it)
+        {
+            // Delete file and remove from script container
+            QFile f(it->m_fileName);
+            if (f.exists())
+                f.remove();
+            m_scripts.erase(it);
+        }
     }
     endRemoveRows();
     return true;

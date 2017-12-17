@@ -58,7 +58,7 @@ public slots:
     void onIconChanged();
 
     /// Spawns a new browser tab, loading the given URL
-    void openLinkInNewTab(const QUrl &url);
+    void openLinkInNewTab(const QUrl &url, bool makeCurrent = false);
 
     /// Opens the given link in a new browser window, and sets the window to private mode if requested
     void openLinkInNewWindow(const QUrl &url, bool privateWindow);
