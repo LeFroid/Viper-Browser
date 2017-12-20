@@ -50,6 +50,7 @@ bool UserScript::load(const QString &file, const QString &templateData)
     if (!f.exists() || !f.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
 
+    m_dependencyData.clear();
     m_fileName = file;
 
     // Read file line by line, adding contents to local data buffer and initially parsing the metadata block

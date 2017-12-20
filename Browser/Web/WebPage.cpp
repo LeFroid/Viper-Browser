@@ -98,7 +98,15 @@ void WebPage::onUnsupportedContent(QNetworkReply *reply)
 void WebPage::onLoadStarted()
 {
     if (QWebFrame *frame = qobject_cast<QWebFrame*>(sender()))
+    {
+        //bool isMainFrame = (frame == mainFrame());
+        //QString extensionJS = m_extensionMgr->getScriptsFor(frame->url(), isMainFrame);
+        //if (!extensionJS.isEmpty()) {
+        //    frame->addToJavaScriptWindowObject("chrome", m_extensionMgr);
+        //    frame->evaluateJavaScript(extensionJS);
+        //}
         injectUserJavaScript(frame, ScriptInjectionTime::DocumentStart);
+    }
 }
 
 void WebPage::onLoadFinished(bool ok)

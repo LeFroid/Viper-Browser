@@ -16,14 +16,23 @@ namespace AdBlock
     {
     public:
         /// Constructs the AdBlockSubscription object
-        AdBlockSubscription() = default;
+        AdBlockSubscription();
+
+        /// Returns true if the subscription is enabled, false if disabled
+        bool isEnabled() const;
+
+        /**
+         * @brief Toggles the state of the subscription
+         * @param value If true, enables the subscription. If false, disables the subscription
+         */
+        void setEnabled(bool value);
 
     private:
         /// True if subscription is enabled, false if else
         bool m_enabled;
 
         /// Container of AdBlock Filters that belong to the subscription
-        std::vector< std::unique_ptr<AdBlockFilter> > m_filters;
+        //std::vector<AdBlockFilter> m_filters;
     };
 }
 

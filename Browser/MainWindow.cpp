@@ -37,7 +37,6 @@
 #include <QPrinter>
 #include <QPrintPreviewDialog>
 #include <QPushButton>
-#include <QRegExp>
 #include <QShortcut>
 #include <QSplitter>
 #include <QTextEdit>
@@ -45,7 +44,6 @@
 #include <QToolButton>
 #include <QWebElement>
 #include <QWebFrame>
-#include <QWebHistory>
 #include <QWebInspector>
 
 MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<BookmarkManager> bookmarkManager, QWidget *parent) :

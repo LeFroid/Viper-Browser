@@ -30,6 +30,9 @@ public:
     /// Adds the given user script to the collection
     void addScript(UserScript &&script);
 
+    /// Returns the file name of the user script at the given index
+    QString getScriptFileName(int indexRow) const;
+
     /// Returns the source code of the user script at the given index. If index is invalid, an empty string is returned
     QString getScriptSource(int indexRow);
 
@@ -55,6 +58,10 @@ public:
 
     // Remove data:
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+
+public slots:
+    /// Reloads the script at the given index in the script container
+    void reloadScript(int indexRow);
 
 private:
     /// Loads user scripts from the script directory

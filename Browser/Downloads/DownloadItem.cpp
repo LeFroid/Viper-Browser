@@ -58,7 +58,7 @@ void DownloadItem::setupItem()
     QString externalName = info.baseName();
 
     // Request file name for download if needed
-    QString fileNameDefault = getDefaultFileName(m_downloadDir + (externalName.isEmpty() ? "unknown" : externalName), info.completeSuffix());
+    QString fileNameDefault = getDefaultFileName(m_downloadDir + '/' + (externalName.isEmpty() ? "unknown" : externalName), info.completeSuffix());
     QString fileName = fileNameDefault;
     if (m_askForFileName)
     {

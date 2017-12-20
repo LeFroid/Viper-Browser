@@ -17,7 +17,10 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *
     m_activeView(nullptr),
     m_tabBar(new BrowserTabBar(this)),
     m_backMenu(nullptr),
-    m_forwardMenu(nullptr)
+    m_forwardMenu(nullptr),
+    m_lastTabIndex(0),
+    m_currentTabIndex(0),
+    m_nextTabIndex(1)
 {
     // Set tab bar
     setTabBar(m_tabBar);
@@ -72,6 +75,27 @@ void BrowserTabWidget::closeTab(int index)
 
     WebView *view = getWebView(index);
     view->deleteLater();
+
+    // If closed tab was the active tab, set current to opposite direction of the last active tab (if possible)
+    if (index == m_currentTabIndex)
+    {
+        if (index == 0)
+            setCurrentIndex(1);
+        else if (index == count() - 1)
+            setCurrentIndex(count() - 2);
+        else
+        {
+            int nextIndex = (m_lastTabIndex > index ? index - 1 : index + 1);
+            setCurrentIndex(nextIndex);
+            if (nextIndex == index + 1)
+            {
+                m_lastTabIndex = index;
+                m_currentTabIndex = index;
+                m_nextTabIndex = nextIndex;
+            }
+        }
+    }
+
     removeTab(index);
 }
 
@@ -103,7 +127,8 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
 
-    addTab(view, tabLabel);
+    //addTab(view, tabLabel);
+    m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
     if (makeCurrent)
     {
         m_activeView = view;
@@ -184,14 +209,14 @@ void BrowserTabWidget::onCurrentChanged(int index)
     if (!view)
         return;
 
-    // Disconnect loadProgress signal from previously active web view if applicable
-    //if (m_activeView && count() > 2)
-    //    disconnect(m_activeView, &WebView::loadProgress, this, &BrowserTabWidget::loadProgress);
-
     m_activeView = view;
     connect(view, &WebView::loadProgress, this, &BrowserTabWidget::loadProgress);
 
     resetHistoryButtonMenus(true);
+
+    m_lastTabIndex = m_currentTabIndex;
+    m_currentTabIndex = index;
+    m_nextTabIndex = index + 1;
 
     emit loadProgress(view->getProgress());
     emit viewChanged(index);

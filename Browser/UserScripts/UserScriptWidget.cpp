@@ -3,9 +3,7 @@
 #include "BrowserApplication.h"
 #include "UserScriptManager.h"
 #include "UserScriptModel.h"
-
-#include "CodeEditor.h"
-#include "JavaScriptHighlighter.h"
+#include "UserScriptEditor.h"
 
 #include <QMessageBox>
 #include <QResizeEvent>
@@ -85,19 +83,13 @@ void UserScriptWidget::onEditButtonClicked()
     if (!idx.isValid())
         return;
 
-    //TODO: have dedicated widget for this, with a save and cancel button at the top or bottom
     UserScriptModel *model = qobject_cast<UserScriptModel*>(ui->tableViewScripts->model());
-    QModelIndex nameIdx = model->index(idx.row(), 1);
+    int rowIndex = idx.row();
+    QModelIndex nameIdx = model->index(rowIndex, 1);
     QString scriptName = model->data(nameIdx, Qt::DisplayRole).toString();
-    QString source = model->getScriptSource(idx.row());
 
-    CodeEditor *editor = new CodeEditor;
-    editor->setPlainText(source);
-    JavaScriptHighlighter *j = new JavaScriptHighlighter;
-    j->setDocument(editor->document());
-    editor->setWindowTitle(tr("Editing %1").arg(scriptName));
-    editor->setMinimumWidth(640);
-    editor->setMinimumHeight(geometry().height());
-    editor->setAttribute(Qt::WA_DeleteOnClose);
+    UserScriptEditor *editor = new UserScriptEditor;
+    connect(editor, &UserScriptEditor::scriptModified, model, &UserScriptModel::reloadScript);
+    editor->setScriptInfo(scriptName, model->getScriptSource(rowIndex), model->getScriptFileName(rowIndex), rowIndex);
     editor->show();
 }

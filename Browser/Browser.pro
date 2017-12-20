@@ -31,6 +31,7 @@ INCLUDEPATH += \
     $$PWD/Bookmarks \
     $$PWD/Cookies \
     $$PWD/Downloads \
+    $$PWD/Extensions \
     $$PWD/History \
     $$PWD/Highlighters \
     $$PWD/Network \
@@ -63,7 +64,7 @@ SOURCES += \
     Downloads/DownloadItem.cpp \
     Downloads/DownloadListModel.cpp \
     Downloads/DownloadManager.cpp \
-    Web/FindTextWidget.cpp \
+    Widgets/FindTextWidget.cpp \
     Web/WebActionProxy.cpp \
     Web/WebDialog.cpp \
     Web/WebPage.cpp \
@@ -107,7 +108,10 @@ SOURCES += \
     UserScripts/UserScriptTableView.cpp \
     UserScripts/UserScriptModel.cpp \
     Highlighters/JavaScriptHighlighter.cpp \
-    Widgets/CodeEditor.cpp
+    Widgets/CodeEditor.cpp \
+    AdBlock/AdBlockManager.cpp \
+    Extensions/ExtStorage.cpp \
+    UserScripts/UserScriptEditor.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -134,7 +138,7 @@ HEADERS += \
     Downloads/DownloadItem.h \
     Downloads/DownloadListModel.h \
     Downloads/DownloadManager.h \
-    Web/FindTextWidget.h \
+    Widgets/FindTextWidget.h \
     Web/WebActionProxy.h \
     Web/WebDialog.h \
     Web/WebPage.h \
@@ -179,7 +183,10 @@ HEADERS += \
     UserScripts/UserScriptTableView.h \
     UserScripts/UserScriptModel.h \
     Highlighters/JavaScriptHighlighter.h \
-    Widgets/CodeEditor.h
+    Widgets/CodeEditor.h \
+    AdBlock/AdBlockManager.h \
+    Extensions/ExtStorage.h \
+    UserScripts/UserScriptEditor.h
 
 FORMS += \
         mainwindow.ui \
@@ -190,7 +197,7 @@ FORMS += \
     Bookmarks/bookmarkwidget.ui \
     Downloads/downloadmanager.ui \
     Downloads/downloaditem.ui \
-    Web/findtextwidget.ui \
+    Widgets/FindTextWidget.ui \
     UserAgents/AddUserAgentDialog.ui \
     Network/SecurityInfoDialog.ui \
     Network/CertificateViewer.ui \
@@ -202,4 +209,5 @@ FORMS += \
     Preferences/ContentTab.ui \
     Widgets/AddBookmarkDialog.ui \
     UserAgents/UserAgentsWindow.ui \
-    UserScripts/UserScriptWidget.ui
+    UserScripts/UserScriptWidget.ui \
+    UserScripts/UserScriptEditor.ui

@@ -51,9 +51,17 @@ void UserScriptModel::addScript(UserScript &&script)
     endInsertRows();
 }
 
+QString UserScriptModel::getScriptFileName(int indexRow) const
+{
+    if (indexRow < 0 || indexRow >= rowCount())
+        return QString();
+
+    return m_scripts.at(indexRow).m_fileName;
+}
+
 QString UserScriptModel::getScriptSource(int indexRow)
 {
-    if (indexRow < 0 || indexRow > rowCount())
+    if (indexRow < 0 || indexRow >= rowCount())
         return QString();
 
     QFile f(m_scripts.at(indexRow).m_fileName);
@@ -167,6 +175,16 @@ bool UserScriptModel::removeRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
+void UserScriptModel::reloadScript(int indexRow)
+{
+    if (indexRow < 0 || indexRow >= rowCount())
+        return;
+
+    UserScript &script = m_scripts.at(indexRow);
+    if (script.load(script.m_fileName, m_scriptTemplate))
+        loadDependencies(indexRow);
+}
+
 void UserScriptModel::load()
 {
     // Load user script template
@@ -207,17 +225,11 @@ void UserScriptModel::load()
     if (!scriptDir.exists())
         scriptDir.mkpath(scriptDir.absolutePath());
 
-    QDir scriptDepDir(scriptDir);
-    if (!scriptDepDir.cd("Dependencies"))
-    {
-        scriptDir.mkpath(QString("%1%2Dependencies").arg(scriptDir.absolutePath()).arg(QDir::separator()));
-        scriptDepDir.cd("Dependencies");
-        m_scriptDepDir = scriptDir.absolutePath();
-        m_scriptDepDir.append(QDir::separator());
-        m_scriptDepDir.append(QStringLiteral("Dependencies"));
-    }
-    else
-        m_scriptDepDir = scriptDepDir.absolutePath();
+    QDir scriptDepDir(QString("%1/Dependencies").arg(scriptDir.absolutePath()));
+    if (!scriptDepDir.exists())
+        scriptDepDir.mkpath(scriptDepDir.absolutePath());
+
+    m_scriptDepDir = scriptDepDir.absolutePath();
 
     QDirIterator scriptDirItr(scriptDir.absolutePath(), QDir::Files);
     while (scriptDirItr.hasNext())
@@ -249,7 +261,7 @@ void UserScriptModel::loadDependencies(int scriptIdx)
         if (!depFile.contains("://"))
             continue;
 
-        localFilePath = QString("%1%2%3").arg(m_scriptDepDir).arg(QDir::separator()).arg(depFile.mid(depFile.lastIndexOf('/') + 1));
+        localFilePath = QString("%1/%2").arg(m_scriptDepDir).arg(depFile.mid(depFile.lastIndexOf('/') + 1));
         QFile f(localFilePath);
         if (!f.exists() || !f.open(QIODevice::ReadOnly))
         {

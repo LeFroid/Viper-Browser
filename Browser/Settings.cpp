@@ -53,6 +53,8 @@ void Settings::setDefaults()
     m_settings.setValue("SessionFile", "last_session.json");
     m_settings.setValue("UserScriptsDir", "UserScripts");
     m_settings.setValue("UserScriptsConfig", "user_scripts.json");
+    m_settings.setValue("AdBlockPlusConfig", "adblock_plus.json");
+    m_settings.setValue("AdBlockPlusDataDir", "AdBlockPlus");
 
     m_settings.setValue("HomePage", "https://www.ixquick.com/");
     m_settings.setValue("StartupMode", QVariant::fromValue(StartupMode::LoadHomePage));
@@ -68,6 +70,7 @@ void Settings::setDefaults()
     m_settings.setValue("EnableBookmarkBar", false);
     m_settings.setValue("CustomUserAgent", false);
     m_settings.setValue("UserScriptsEnabled", true);
+    m_settings.setValue("AdBlockPlusEnabled", true);
 
     QWebSettings *webSettings = QWebSettings::globalSettings();
     m_settings.setValue("StandardFont", webSettings->fontFamily(QWebSettings::StandardFont));

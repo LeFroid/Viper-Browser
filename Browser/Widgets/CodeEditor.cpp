@@ -143,7 +143,7 @@ void CodeEditor::highlightCurrentLine()
         selection.format.setBackground(lineColor);
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
         selection.cursor = textCursor();
-        selection.cursor.clearSelection();
+        //selection.cursor.clearSelection();
         extraSelections.append(selection);
     }
 
