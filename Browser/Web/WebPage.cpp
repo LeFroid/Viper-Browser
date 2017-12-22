@@ -1,3 +1,4 @@
+#include "AdBlockManager.h"
 #include "BrowserApplication.h"
 #include "DownloadManager.h"
 #include "NetworkAccessManager.h"
@@ -114,6 +115,21 @@ void WebPage::onLoadFinished(bool ok)
     QWebFrame *frame = qobject_cast<QWebFrame*>(sender());
     if (ok && (frame != nullptr))
         injectUserJavaScript(frame, ScriptInjectionTime::DocumentEnd);
+
+    if (frame == mainFrame())
+    {
+        frame->documentElement().appendInside(AdBlock::AdBlockManager::instance().getStylesheet());
+        frame->documentElement().appendInside(
+            QString("<style>%1</style>").arg(AdBlock::AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
+    }
+    /*else if (frame != nullptr)
+    {
+        if (frame->baseUrl().host().compare(mainFrame()->baseUrl().host()) != 0)
+        {
+            mainFrame()->documentElement().appendInside(
+                QString("<style>%1</style>").arg(AdBlock::AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
+        }
+    }*/
 }
 
 void WebPage::injectUserJavaScript(QWebFrame *frame, ScriptInjectionTime injectionTime)

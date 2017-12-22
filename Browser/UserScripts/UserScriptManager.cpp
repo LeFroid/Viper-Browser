@@ -85,11 +85,11 @@ void UserScriptManager::installScript(const QUrl &url)
     request.setUrl(url);
 
     DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    DownloadItem *item = downloadMgr->downloadInternal(request, m_model->m_scriptDepDir, false);
+    DownloadItem *item = downloadMgr->downloadInternal(request, m_model->m_userScriptDir, false);
     connect(item, &DownloadItem::downloadFinished, [=](const QString &filePath){
         UserScript script;
         if (script.load(filePath, m_model->m_scriptTemplate))
-            m_model->addScript(script);
+            m_model->addScript(std::move(script));
     });
 }
 

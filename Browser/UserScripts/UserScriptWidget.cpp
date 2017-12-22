@@ -5,6 +5,7 @@
 #include "UserScriptModel.h"
 #include "UserScriptEditor.h"
 
+#include <QInputDialog>
 #include <QMessageBox>
 #include <QResizeEvent>
 #include <algorithm>
@@ -19,9 +20,10 @@ UserScriptWidget::UserScriptWidget(QWidget *parent) :
 
     ui->tableViewScripts->setModel(sBrowserApplication->getUserScriptManager()->getModel());
 
-    connect(ui->tableViewScripts, &UserScriptTableView::clicked, this, &UserScriptWidget::onItemClicked);
-    connect(ui->pushButtonDeleteScript, &QPushButton::clicked, this, &UserScriptWidget::onDeleteButtonClicked);
-    connect(ui->pushButtonEditScript, &QPushButton::clicked, this, &UserScriptWidget::onEditButtonClicked);
+    connect(ui->tableViewScripts,        &UserScriptTableView::clicked, this, &UserScriptWidget::onItemClicked);
+    connect(ui->pushButtonInstallScript, &QPushButton::clicked,         this, &UserScriptWidget::onInstallButtonClicked);
+    connect(ui->pushButtonDeleteScript,  &QPushButton::clicked,         this, &UserScriptWidget::onDeleteButtonClicked);
+    connect(ui->pushButtonEditScript,    &QPushButton::clicked,         this, &UserScriptWidget::onEditButtonClicked);
 }
 
 void UserScriptWidget::resizeEvent(QResizeEvent *event)
@@ -92,4 +94,22 @@ void UserScriptWidget::onEditButtonClicked()
     connect(editor, &UserScriptEditor::scriptModified, model, &UserScriptModel::reloadScript);
     editor->setScriptInfo(scriptName, model->getScriptSource(rowIndex), model->getScriptFileName(rowIndex), rowIndex);
     editor->show();
+}
+
+void UserScriptWidget::onInstallButtonClicked()
+{
+    bool ok;
+    QString userInput = QInputDialog::getText(this, tr("Install User Script"), tr("Enter URL of User Script:"),
+                                              QLineEdit::Normal, QString(), &ok);
+    if (!ok || userInput.isEmpty())
+        return;
+
+    QUrl scriptUrl = QUrl::fromUserInput(userInput);
+    if (!scriptUrl.isValid())
+    {
+        static_cast<void>(QMessageBox::warning(this, tr("Installation Error"), tr("Could not install script."), QMessageBox::Ok,
+                                               QMessageBox::Ok));
+        return;
+    }
+    sBrowserApplication->getUserScriptManager()->installScript(scriptUrl);
 }

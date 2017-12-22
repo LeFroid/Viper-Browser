@@ -39,6 +39,9 @@ private slots:
     /// Called when the edit button is clicked. Will allow the user to edit the contents of the selected user script
     void onEditButtonClicked();
 
+    /// Called when the install button is clicked. Spawns an input dialog and attempts to download and install the resource as a user script
+    void onInstallButtonClicked();
+
 private:
     /// Pointer to the user interface elements
     Ui::UserScriptWidget *ui;

@@ -174,7 +174,7 @@ void DownloadItem::onFinished()
 
     m_file.close();
 
-    if (m_reply->error() != QNetworkReply::NoError)
+    if (m_reply->error() == QNetworkReply::NoError)
         emit downloadFinished(QFileInfo(m_file).absoluteFilePath());
 }
 

@@ -225,13 +225,15 @@ void UserScriptModel::load()
     if (!scriptDir.exists())
         scriptDir.mkpath(scriptDir.absolutePath());
 
-    QDir scriptDepDir(QString("%1/Dependencies").arg(scriptDir.absolutePath()));
+    m_userScriptDir = scriptDir.absolutePath();
+
+    QDir scriptDepDir(QString("%1/Dependencies").arg(m_userScriptDir));
     if (!scriptDepDir.exists())
         scriptDepDir.mkpath(scriptDepDir.absolutePath());
 
     m_scriptDepDir = scriptDepDir.absolutePath();
 
-    QDirIterator scriptDirItr(scriptDir.absolutePath(), QDir::Files);
+    QDirIterator scriptDirItr(m_userScriptDir, QDir::Files);
     while (scriptDirItr.hasNext())
     {
         UserScript script;

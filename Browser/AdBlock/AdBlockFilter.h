@@ -1,6 +1,7 @@
 #ifndef ADBLOCKFILTER_H
 #define ADBLOCKFILTER_H
 
+#include "Bitfield.h"
 #include <cstdint>
 #include <memory>
 #include <QHash>
@@ -8,33 +9,38 @@
 #include <QSet>
 #include <QString>
 
+/// Specific types of elements that can be filtered or whitelisted
+enum class ElementType : uint32_t
+{
+    None             = 0x00000000,
+    Script           = 0x00000001,
+    Image            = 0x00000002,
+    Stylesheet       = 0x00000004,
+    Object           = 0x00000008,
+    XMLHTTPRequest   = 0x00000010,
+    ObjectSubrequest = 0x00000020,
+    Subdocument      = 0x00000040,
+    Ping             = 0x00000080,
+    WebSocket        = 0x00000100,
+    WebRTC           = 0x00000200,
+    Document         = 0x00000400,
+    ElemHide         = 0x00000800,
+    GenericHide      = 0x00001000,
+    GenericBlock     = 0x00002000,
+    PopUp            = 0x00004000,
+    ThirdParty       = 0x00008000,
+    MatchCase        = 0x00010000,
+    Collapse         = 0x00020000,
+    Other            = 0x00040000
+};
+template<>
+struct EnableBitfield<ElementType>
+{
+    static constexpr bool enabled = true;
+};
+
 namespace AdBlock
 {
-    /// Specific types of elements that can be filtered or whitelisted
-    enum class ElementType : uint32_t
-    {
-        None             = 0x00000000,
-        Script           = 0x00000001,
-        Image            = 0x00000002,
-        Stylesheet       = 0x00000004,
-        Object           = 0x00000008,
-        XMLHTTPRequest   = 0x00000010,
-        ObjectSubrequest = 0x00000020,
-        Subdocument      = 0x00000040,
-        Ping             = 0x00000080,
-        WebSocket        = 0x00000100,
-        WebRTC           = 0x00000200,
-        Document         = 0x00000400,
-        ElemHide         = 0x00000800,
-        GenericHide      = 0x00001000,
-        GenericBlock     = 0x00002000,
-        PopUp            = 0x00004000,
-        ThirdParty       = 0x00008000,
-        MatchCase        = 0x00010000,
-        Collapse         = 0x00020000,
-        Other            = 0x00040000
-    };
-
     /// Mapping of option name strings to their corresponding \ref ElementType
     extern QHash<QString, ElementType> eOptionMap;
 
@@ -57,6 +63,9 @@ namespace AdBlock
      */
     class AdBlockFilter
     {
+        friend class AdBlockManager;
+
+    public:
         /// Default constructor
         AdBlockFilter();
 
@@ -72,7 +81,36 @@ namespace AdBlock
         /// Returns the original filter rule as a QString
         const QString &getRule() const;
 
+        /// Returns the evaluation string of the rule
+        const QString &getEvalString() const;
+
+        /// Returns true if the filter is an exception, false if it is a standard blocking filter
+        bool isException() const;
+
+        /// Returns true if there are domain-specific settings on the filter, false if else
+        bool hasDomainRules() const;
+
+        /**
+         * @brief Determines whether or not the network request matches the filter
+         * @param baseUrl URL of the original network request
+         * @param requestUrl URL of the actual network request
+         * @param requestDomain Domain of the request URL
+         * @param typeMask Element type(s) associated with the request. Filter will disregard if type is set to none
+         * @return True if request matches filter, false if else.
+         */
+        bool isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask);
+
+        /// Returns true if this rule is of the Stylesheet category and applies to the given domain, returns false if else.
+        bool isDomainStyleMatch(const QString &domain);
+
+    protected:
+        /// Adds the given domain to the whitelist
+        void addDomainToWhitelist(const QString &domainStr);
+
     private:
+        /// Returns true if the given domain matches the base domain string, false if else
+        bool isDomainMatch(const QString &base, const QString &domainStr) const;
+
         /// Parses the rule string, setting the appropriate fields of the filter object
         void parseRule();
 
@@ -86,7 +124,18 @@ namespace AdBlock
         /// Parses the given ad block plus formatted regular expression, returning the equivalent for a QRegularExpression
         QString parseRegExp(const QString &regExpString);
 
-    private:
+        /// Computes and returns base^exp
+        quint64 quPow(quint64 base, quint64 exp) const;
+
+        /// Used when applying Rabin-Karp string matching algorithm. Determines if the offset in haystack matches the eval string
+        /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/
+        bool offsetMatch(const QString &haystack, int offset) const;
+
+        /// Applies the Rabin-Karp string matching algorithm to the given string, returning true if it contains the filter's eval string, false if else
+        /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/
+        bool filterContains(const QString &haystack) const;
+
+    protected:
         /// Filter category
         FilterCategory m_category;
 

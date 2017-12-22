@@ -80,6 +80,9 @@ protected:
     /// User script template file contents
     QString m_scriptTemplate;
 
+    /// Absolute path to user script directory
+    QString m_userScriptDir;
+
     /// Absolute path to user script dependency directory
     QString m_scriptDepDir;
 

@@ -2,8 +2,12 @@
 #include "NetworkAccessManager.h"
 #include "ViperNetworkReply.h"
 
+#include "AdBlockManager.h"
+
 #include <QNetworkRequest>
 #include <QUrl>
+
+#include <QDebug>
 
 NetworkAccessManager::NetworkAccessManager(QObject *parent) :
     QNetworkAccessManager(parent)
@@ -17,19 +21,18 @@ QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operati
         if (request.url().scheme().compare("viper") == 0)
             return new ViperNetworkReply(request, this);
 
+        AdBlock::AdBlockManager &adBlockMgr = AdBlock::AdBlockManager::instance();
+        BlockedNetworkReply *blockedReply = adBlockMgr.getBlockedReply(request);
+        if (blockedReply != nullptr)
+        {
+            qDebug() << "blocked reply";
+            return blockedReply;
+        }
+        /*
         AdBlocker &adBlock = AdBlocker::instance();
         BlockedNetworkReply *blockedReply = adBlock.getBlockedReply(request);
         if (blockedReply != nullptr)
-            return blockedReply;
-        /*
-         * AdBlockManager &adBlockMgr = AdBlockManager::instance();
-         * BlockedNetworkReply *blockedReply = adBlock.getBlockedReply(request);
-         * in getBlockedReply:
-         *     QUrl baseUrl = qobject_cast<QWebFrame*>(request.originatingObject())->baseUrl();
-         *     QUrl requestUrl = request.url();
-         *     ElementType elemType = getElementType(request.rawHeader(QByteArray("Accept")));
-         *     if (isBlocked(baseUrl, requestUrl, elemType) { return new BlockedNetworkReply(...); } else return nullptr;
-         */
+            return blockedReply;*/
     }
     return QNetworkAccessManager::createRequest(op, request, outgoingData);
 }
