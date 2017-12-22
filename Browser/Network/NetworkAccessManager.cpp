@@ -7,8 +7,6 @@
 #include <QNetworkRequest>
 #include <QUrl>
 
-#include <QDebug>
-
 NetworkAccessManager::NetworkAccessManager(QObject *parent) :
     QNetworkAccessManager(parent)
 {
@@ -21,13 +19,11 @@ QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operati
         if (request.url().scheme().compare("viper") == 0)
             return new ViperNetworkReply(request, this);
 
-        AdBlock::AdBlockManager &adBlockMgr = AdBlock::AdBlockManager::instance();
+        AdBlockManager &adBlockMgr = AdBlockManager::instance();
         BlockedNetworkReply *blockedReply = adBlockMgr.getBlockedReply(request);
         if (blockedReply != nullptr)
-        {
-            qDebug() << "blocked reply";
             return blockedReply;
-        }
+
         /*
         AdBlocker &adBlock = AdBlocker::instance();
         BlockedNetworkReply *blockedReply = adBlock.getBlockedReply(request);

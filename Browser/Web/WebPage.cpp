@@ -118,16 +118,16 @@ void WebPage::onLoadFinished(bool ok)
 
     if (frame == mainFrame())
     {
-        frame->documentElement().appendInside(AdBlock::AdBlockManager::instance().getStylesheet());
+        frame->documentElement().appendInside(AdBlockManager::instance().getStylesheet());
         frame->documentElement().appendInside(
-            QString("<style>%1</style>").arg(AdBlock::AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
+            QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
     }
     /*else if (frame != nullptr)
     {
         if (frame->baseUrl().host().compare(mainFrame()->baseUrl().host()) != 0)
         {
             mainFrame()->documentElement().appendInside(
-                QString("<style>%1</style>").arg(AdBlock::AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
+                QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
         }
     }*/
 }

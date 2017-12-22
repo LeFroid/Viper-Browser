@@ -1,6 +1,5 @@
 #include "BrowserApplication.h"
 #include "MainWindow.h"
-#include "AdBlocker.h"
 #include "SecurityManager.h"
 
 #include <memory>

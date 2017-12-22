@@ -176,7 +176,6 @@ HEADERS += \
     Network/ViperNetworkReply.h \
     AdBlock/AdBlockFilter.h \
     AdBlock/AdBlockSubscription.h \
-    AdBlock/AdBlockNode.h \
     UserScripts/UserScript.h \
     UserScripts/UserScriptManager.h \
     UserScripts/UserScriptWidget.h \
