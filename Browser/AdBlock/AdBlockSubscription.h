@@ -47,6 +47,9 @@ public:
      */
     void setEnabled(bool value);
 
+    /// Returns the name of the subscription, or the file name if a name has not been given
+    const QString &getName() const;
+
     /// Returns the source URL of the subscription file
     const QUrl &getSourceUrl() const;
 
@@ -84,6 +87,9 @@ private:
 
     /// Path to the subscription file
     QString m_filePath;
+
+    /// Name of the subscription
+    QString m_name;
 
     /// Source URL of the subscription file
     QUrl m_sourceUrl;

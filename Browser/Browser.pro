@@ -111,7 +111,10 @@ SOURCES += \
     Widgets/CodeEditor.cpp \
     AdBlock/AdBlockManager.cpp \
     Extensions/ExtStorage.cpp \
-    UserScripts/UserScriptEditor.cpp
+    UserScripts/UserScriptEditor.cpp \
+    AdBlock/AdBlockModel.cpp \
+    AdBlock/AdBlockTableView.cpp \
+    AdBlock/AdBlockWidget.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -185,7 +188,10 @@ HEADERS += \
     Widgets/CodeEditor.h \
     AdBlock/AdBlockManager.h \
     Extensions/ExtStorage.h \
-    UserScripts/UserScriptEditor.h
+    UserScripts/UserScriptEditor.h \
+    AdBlock/AdBlockModel.h \
+    AdBlock/AdBlockTableView.h \
+    AdBlock/AdBlockWidget.h
 
 FORMS += \
         mainwindow.ui \
@@ -209,4 +215,5 @@ FORMS += \
     Widgets/AddBookmarkDialog.ui \
     UserAgents/UserAgentsWindow.ui \
     UserScripts/UserScriptWidget.ui \
-    UserScripts/UserScriptEditor.ui
+    UserScripts/UserScriptEditor.ui \
+    AdBlock/AdBlockWidget.ui

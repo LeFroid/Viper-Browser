@@ -2,6 +2,7 @@
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
 #include "ui_mainwindow.h"
+#include "AdBlockWidget.h"
 #include "AddBookmarkDialog.h"
 #include "BookmarkBar.h"
 #include "BookmarkNode.h"
@@ -61,7 +62,8 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<Bookm
     m_userAgentGroup(new QActionGroup(this)),
     m_preferences(nullptr),
     m_addBookmarkDialog(nullptr),
-    m_userScriptWidget(nullptr)
+    m_userScriptWidget(nullptr),
+    m_adBlockWidget(nullptr)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
@@ -338,9 +340,10 @@ void MainWindow::setupMenuBar()
     });
 
     // Tools menu
-    connect(ui->actionManage_Cookies, &QAction::triggered, this, &MainWindow::openCookieManager);
-    connect(ui->actionUser_Scripts, &QAction::triggered, this, &MainWindow::openUserScriptManager);
-    connect(ui->actionView_Downloads, &QAction::triggered, this, &MainWindow::openDownloadManager);
+    connect(ui->actionManage_Ad_Blocker, &QAction::triggered, this, &MainWindow::openAdBlockManager);
+    connect(ui->actionManage_Cookies,    &QAction::triggered, this, &MainWindow::openCookieManager);
+    connect(ui->actionUser_Scripts,      &QAction::triggered, this, &MainWindow::openUserScriptManager);
+    connect(ui->actionView_Downloads,    &QAction::triggered, this, &MainWindow::openDownloadManager);
 
     // User agent sub-menu
     resetUserAgentMenu();
@@ -658,6 +661,20 @@ void MainWindow::onFindTextAction()
     auto lineEdit = ui->widgetFindText->getLineEdit();
     lineEdit->setFocus();
     lineEdit->selectAll();
+}
+
+void MainWindow::openAdBlockManager()
+{
+    if (!m_adBlockWidget)
+    {
+        m_adBlockWidget = new AdBlockWidget;
+        connect(m_adBlockWidget, &AdBlockWidget::destroyed, [=](){
+            m_adBlockWidget = nullptr;
+        });
+    }
+    m_adBlockWidget->show();
+    m_adBlockWidget->raise();
+    m_adBlockWidget->activateWindow();
 }
 
 void MainWindow::openUserScriptManager()

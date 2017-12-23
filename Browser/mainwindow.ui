@@ -128,6 +128,7 @@
       <string>&amp;User Agents</string>
      </property>
     </widget>
+    <addaction name="actionManage_Ad_Blocker"/>
     <addaction name="actionManage_Cookies"/>
     <addaction name="actionUser_Scripts"/>
     <addaction name="menuUser_Agents"/>
@@ -433,7 +434,12 @@
   </action>
   <action name="actionUser_Scripts">
    <property name="text">
-    <string>Manage User Scripts</string>
+    <string>Manage User &amp;Scripts</string>
+   </property>
+  </action>
+  <action name="actionManage_Ad_Blocker">
+   <property name="text">
+    <string>Manage Ad Blocker</string>
    </property>
   </action>
  </widget>

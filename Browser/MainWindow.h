@@ -20,6 +20,7 @@ class QNetworkReply;
 class QSslError;
 class QToolButton;
 class QWebInspector;
+class AdBlockWidget;
 class AddBookmarkDialog;
 class BookmarkWidget;
 class BrowserTabWidget;
@@ -148,6 +149,9 @@ public slots:
     void onFindTextAction();
 
 private slots:
+    /// Launches the ad block manager UI
+    void openAdBlockManager();
+
     /// Launches the user script manager UI
     void openUserScriptManager();
 
@@ -258,6 +262,9 @@ private:
 
     /// User script management widget
     UserScriptWidget *m_userScriptWidget;
+
+    /// Advertisement blocking management widget
+    AdBlockWidget *m_adBlockWidget;
 };
 
 #endif // MAINWINDOW_H

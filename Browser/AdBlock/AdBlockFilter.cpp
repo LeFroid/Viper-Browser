@@ -158,7 +158,7 @@ bool AdBlockFilter::hasDomainRules() const
     return !m_domainBlacklist.empty() || !m_domainWhitelist.empty();
 }
 
-bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, const QString &secondLevelDomain, ElementType typeMask)
+bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
 {
     bool match = m_matchAll;
 
@@ -173,7 +173,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
                 match = isDomainMatch(m_evalString, requestDomain);
                 break;
             case FilterCategory::DomainStart:
-                match = isDomainStartMatch(requestUrl, secondLevelDomain);
+                match = isDomainStartMatch(requestUrl, requestDomain);
                 break;
             case FilterCategory::StringStartMatch:
                 match = requestUrl.startsWith(m_evalString, caseSensitivity);

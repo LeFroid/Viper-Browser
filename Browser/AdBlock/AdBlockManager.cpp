@@ -1,4 +1,5 @@
 #include "AdBlockManager.h"
+#include "AdBlockModel.h"
 #include "Bitfield.h"
 #include "BrowserApplication.h"
 #include "Settings.h"
@@ -23,7 +24,8 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_subscriptions(),
     m_blockFilters(),
     m_allowFilters(),
-    m_domainStyleFilters()
+    m_domainStyleFilters(),
+    m_adBlockModel(nullptr)
 {
     m_enabled = sBrowserApplication->getSettings()->getValue("AdBlockPlusEnabled").toBool();
     loadSubscriptions();
@@ -38,6 +40,14 @@ AdBlockManager &AdBlockManager::instance()
 {
     static AdBlockManager adBlockInstance;
     return adBlockInstance;
+}
+
+AdBlockModel *AdBlockManager::getModel()
+{
+    if (m_adBlockModel == nullptr)
+        m_adBlockModel = new AdBlockModel(this);
+
+    return m_adBlockModel;
 }
 
 const QString &AdBlockManager::getStylesheet() const
@@ -98,7 +108,6 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
 
     // Get request url in string form, as well as its domain string
     QString requestUrl = requestUrlObj.toString(QUrl::FullyEncoded).toLower();
-    QString requestDomain = requestUrlObj.host().toLower();
 
     if (baseUrl.isEmpty())
         baseUrl = requestUrl;
@@ -116,7 +125,7 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     // Compare to filters
     for (AdBlockFilter *filter : m_allowFilters)
     {
-        if (filter->isMatch(baseUrl, requestUrl, requestDomain, secondLevelDomain, elemType))
+        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
         {
             //qDebug() << "Exception rule match. BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return nullptr;
@@ -124,7 +133,7 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     }
     for (AdBlockFilter *filter : m_blockFilters)
     {
-        if (filter->isMatch(baseUrl, requestUrl, requestDomain, secondLevelDomain, elemType))
+        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
         {
             //qDebug() << "Matched block rule  BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return new BlockedNetworkReply(request, this);
@@ -132,6 +141,32 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     }
 
     return nullptr;
+}
+
+int AdBlockManager::getNumSubscriptions() const
+{
+    return static_cast<int>(m_subscriptions.size());
+}
+
+const AdBlockSubscription *AdBlockManager::getSubscription(int index) const
+{
+    if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
+        return nullptr;
+
+    return &m_subscriptions.at(index);
+}
+
+void AdBlockManager::toggleSubscriptionEnabled(int index)
+{
+    if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
+        return;
+
+    AdBlockSubscription &sub = m_subscriptions.at(index);
+    sub.setEnabled(!sub.isEnabled());
+
+    // Reset filter data
+    clearFilters();
+    extractFilters();
 }
 
 ElementType AdBlockManager::getElementTypeMask(const QNetworkRequest &request, const QString &requestPath)
@@ -240,6 +275,14 @@ void AdBlockManager::loadSubscriptions()
     }
 
     extractFilters();
+}
+
+void AdBlockManager::clearFilters()
+{
+    m_allowFilters.clear();
+    m_blockFilters.clear();
+    m_stylesheet.clear();
+    m_domainStyleFilters.clear();
 }
 
 void AdBlockManager::extractFilters()

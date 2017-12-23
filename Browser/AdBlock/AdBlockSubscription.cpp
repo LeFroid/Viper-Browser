@@ -1,11 +1,13 @@
 #include "AdBlockSubscription.h"
 
+#include <QDir>
 #include <QFile>
 #include <QTextStream>
 
 AdBlockSubscription::AdBlockSubscription() :
     m_enabled(true),
     m_filePath(),
+    m_name(),
     m_sourceUrl(),
     m_lastUpdate(),
     m_nextUpdate(),
@@ -16,6 +18,7 @@ AdBlockSubscription::AdBlockSubscription() :
 AdBlockSubscription::AdBlockSubscription(const QString &dataFile) :
     m_enabled(true),
     m_filePath(dataFile),
+    m_name(),
     m_sourceUrl(),
     m_lastUpdate(),
     m_nextUpdate(),
@@ -26,6 +29,7 @@ AdBlockSubscription::AdBlockSubscription(const QString &dataFile) :
 AdBlockSubscription::AdBlockSubscription(AdBlockSubscription &&other) :
     m_enabled(other.m_enabled),
     m_filePath(other.m_filePath),
+    m_name(other.m_name),
     m_sourceUrl(other.m_sourceUrl),
     m_lastUpdate(other.m_lastUpdate),
     m_nextUpdate(other.m_nextUpdate),
@@ -39,6 +43,7 @@ AdBlockSubscription &AdBlockSubscription::operator =(AdBlockSubscription &&other
     {
         m_enabled = other.m_enabled;
         m_filePath = other.m_filePath;
+        m_name = other.m_name;
         m_sourceUrl = other.m_sourceUrl;
         m_lastUpdate = other.m_lastUpdate;
         m_nextUpdate = other.m_nextUpdate;
@@ -60,6 +65,11 @@ bool AdBlockSubscription::isEnabled() const
 void AdBlockSubscription::setEnabled(bool value)
 {
     m_enabled = value;
+}
+
+const QString &AdBlockSubscription::getName() const
+{
+    return m_name;
 }
 
 const QUrl &AdBlockSubscription::getSourceUrl() const
@@ -90,10 +100,27 @@ void AdBlockSubscription::load()
     QTextStream stream(&subFile);
     while (stream.readLineInto(&line))
     {
-        if (line.startsWith(QChar('!')) || line.startsWith("# ") || line.startsWith(QStringLiteral("[Adblock")))
+        if (line.startsWith(QChar('!')))
+        {
+            if (m_name.isEmpty())
+            {
+                int titleIdx = line.indexOf(QStringLiteral("Title:"));
+                if (titleIdx > 0)
+                    m_name = line.mid(titleIdx + 7);
+            }
+            continue;
+        }
+        else if (line.startsWith("# ") || line.startsWith(QStringLiteral("[Adblock")))
             continue;
 
         m_filters.push_back(std::make_unique<AdBlockFilter>(line));
+    }
+
+    // Set name to filename if it was not specified in data region of file
+    if (m_name.isEmpty())
+    {
+        int sepIdx = m_filePath.lastIndexOf(QDir::separator());
+        m_name = m_filePath.mid(sepIdx + 1);
     }
 }
 
