@@ -24,7 +24,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 {
     QCoreApplication::setOrganizationName(QString("Vaccarelli"));
     QCoreApplication::setApplicationName(QString("Viper Browser"));
-    QCoreApplication::setApplicationVersion(QString("0.3"));
+    QCoreApplication::setApplicationVersion(QString("0.4"));
 
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 

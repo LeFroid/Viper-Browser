@@ -3,7 +3,6 @@
 #include "Bitfield.h"
 
 #include <QUrl>
-#include <QDebug>
 
 QHash<QString, ElementType> eOptionMap = {
     { "script", ElementType::Script },           { "image", ElementType::Image },                   { "stylesheet", ElementType::Stylesheet },
