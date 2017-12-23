@@ -1,5 +1,9 @@
 #include "AdBlockFilter.h"
+#include "AdBlockManager.h"
 #include "Bitfield.h"
+
+#include <QUrl>
+#include <QDebug>
 
 QHash<QString, ElementType> eOptionMap = {
     { "script", ElementType::Script },           { "image", ElementType::Image },                   { "stylesheet", ElementType::Stylesheet },
@@ -19,7 +23,7 @@ AdBlockFilter::AdBlockFilter() :
     m_allowedTypes(ElementType::None),
     m_blockedTypes(ElementType::None),
     m_matchCase(false),
-    m_thirdParty(false),
+    m_matchAll(false),
     m_domainBlacklist(),
     m_domainWhitelist(),
     m_regExp(nullptr)
@@ -34,7 +38,7 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_allowedTypes(ElementType::None),
     m_blockedTypes(ElementType::None),
     m_matchCase(false),
-    m_thirdParty(false),
+    m_matchAll(false),
     m_domainBlacklist(),
     m_domainWhitelist(),
     m_regExp(nullptr)
@@ -52,7 +56,7 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
-    m_thirdParty(other.m_thirdParty),
+    m_matchAll(other.m_matchAll),
     m_domainBlacklist(other.m_domainBlacklist),
     m_domainWhitelist(other.m_domainWhitelist),
     m_regExp(nullptr)
@@ -68,7 +72,7 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
-    m_thirdParty(other.m_thirdParty),
+    m_matchAll(other.m_matchAll),
     m_domainBlacklist(std::move(other.m_domainBlacklist)),
     m_domainWhitelist(std::move(other.m_domainWhitelist)),
     m_regExp(std::move(other.m_regExp))
@@ -84,7 +88,7 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
     m_allowedTypes = other.m_allowedTypes;
     m_blockedTypes = other.m_blockedTypes;
     m_matchCase = other.m_matchCase;
-    m_thirdParty = other.m_thirdParty;
+    m_matchAll = other.m_matchAll;
     m_domainBlacklist = other.m_domainBlacklist;
     m_domainWhitelist = other.m_domainWhitelist;
     m_regExp = (other.m_regExp ? std::make_unique<QRegularExpression>(*other.m_regExp) : nullptr);
@@ -103,7 +107,7 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
         m_allowedTypes = other.m_allowedTypes;
         m_blockedTypes = other.m_blockedTypes;
         m_matchCase = other.m_matchCase;
-        m_thirdParty = other.m_thirdParty;
+        m_matchAll = other.m_matchAll;
         m_domainBlacklist = std::move(other.m_domainBlacklist);
         m_domainWhitelist = std::move(other.m_domainWhitelist);
         m_regExp = std::move(other.m_regExp);
@@ -128,7 +132,7 @@ void AdBlockFilter::setRule(const QString &rule)
         m_allowedTypes = ElementType::None;
         m_blockedTypes = ElementType::None;
         m_matchCase = false;
-        m_thirdParty = false;
+        m_matchAll = false;
         m_domainBlacklist.clear();
         m_domainWhitelist.clear();
         m_regExp.reset();
@@ -160,35 +164,42 @@ bool AdBlockFilter::hasDomainRules() const
 
 bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
 {
-    bool match = false;
-    Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
-    switch (m_category)
+    bool match = m_matchAll;
+
+    if (!match)
     {
-        case FilterCategory::Stylesheet: //handled more directly in ad block manager
-            return false;
-        case FilterCategory::Domain:
-            match = isDomainMatch(m_evalString, requestDomain);
-            break;
-        case FilterCategory::StringStartMatch:
-            match = requestUrl.startsWith(m_evalString, caseSensitivity);
-            break;
-        case FilterCategory::StringEndMatch:
-            match = requestUrl.endsWith(m_evalString, caseSensitivity);
-            break;
-        case FilterCategory::StringExactMatch:
-            match = (requestUrl.compare(m_evalString, caseSensitivity) == 0);
-            break;
-        case FilterCategory::StringContains:
+        Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
+        switch (m_category)
         {
-            QString haystack = (m_matchCase ? requestUrl : requestUrl.toLower());
-            match = filterContains(haystack);
-            break;
+            case FilterCategory::Stylesheet: //handled more directly in ad block manager
+                return false;
+            case FilterCategory::Domain:
+                match = isDomainMatch(m_evalString, requestDomain);
+                break;
+            case FilterCategory::DomainStart:
+                match = isDomainStartMatch(requestUrl);
+                break;
+            case FilterCategory::StringStartMatch:
+                match = requestUrl.startsWith(m_evalString, caseSensitivity);
+                break;
+            case FilterCategory::StringEndMatch:
+                match = requestUrl.endsWith(m_evalString, caseSensitivity);
+                break;
+            case FilterCategory::StringExactMatch:
+                match = (requestUrl.compare(m_evalString, caseSensitivity) == 0);
+                break;
+            case FilterCategory::StringContains:
+            {
+                QString haystack = (m_matchCase ? requestUrl : requestUrl.toLower());
+                match = filterContains(haystack);
+                break;
+            }
+            case FilterCategory::RegExp:
+                match = m_regExp->match(requestUrl).hasMatch();
+                break;
+            default:
+                break;
         }
-        case FilterCategory::RegExp:
-            match = m_regExp->match(requestUrl).hasMatch();
-            break;
-        default:
-            break;
     }
 
     if (match)
@@ -291,8 +302,12 @@ void AdBlockFilter::addDomainToWhitelist(const QString &domainStr)
     m_domainWhitelist.insert(domainStr);
 }
 
-bool AdBlockFilter::isDomainMatch(const QString &base, const QString &domainStr) const
+bool AdBlockFilter::isDomainMatch(QString base, const QString &domainStr) const
 {
+    // Check if domain match is being performed on an entity filter
+    if (domainStr.endsWith(QChar('.')))
+        base = base.left(base.lastIndexOf(QChar('.') + 1));
+
     if (base.compare(domainStr) == 0)
         return true;
 
@@ -301,6 +316,24 @@ bool AdBlockFilter::isDomainMatch(const QString &base, const QString &domainStr)
 
     int evalIdx = domainStr.indexOf(base);
     return (evalIdx > 0 && domainStr.at(evalIdx - 1) == QChar('.'));
+}
+
+bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl) const
+{
+    QString secondLevelDomain = AdBlockManager::instance().getSecondLevelDomain(QUrl(requestUrl));
+
+    Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
+    int matchIdx = requestUrl.indexOf(m_evalString, 0, caseSensitivity);
+    if (matchIdx > 0)
+    {
+        QChar c = requestUrl[matchIdx - 1];
+        const bool validChar = c == QChar('.') || c == QChar('/');
+        if (!secondLevelDomain.isEmpty())
+            return m_evalString.contains(secondLevelDomain, caseSensitivity) && validChar;
+        else
+            return validChar;
+    }
+    return false;
 }
 
 void AdBlockFilter::parseRule()
@@ -363,9 +396,14 @@ void AdBlockFilter::parseRule()
         return;
     }
 
-    // Remove any leading and/or trailing wildcards
+    // Remove any leading wildcard
     if (rule.startsWith('*'))
         rule = rule.mid(1);
+
+    // Check if filter is an entity filter before removing trailing wildcard
+    //const bool isEntityFilter = rule.endsWith(QStringLiteral(".*")) || rule.endsWith(QStringLiteral(".*^"));
+
+    // Remove trailing wildcard
     if (rule.endsWith('*'))
         rule = rule.left(rule.size() - 1);
 
@@ -403,25 +441,29 @@ void AdBlockFilter::parseRule()
         }
     }
 
-    // Check if a regular expression is needed
-    if (rule.contains('*') || rule.contains('^') || rule.contains('|'))
+    // Check if a regular expression might be needed
+    const bool maybeRegExp = rule.contains('*') || rule.contains('^');
+
+    // Domain start match
+    if (rule.startsWith(QStringLiteral("||")) && !maybeRegExp)
     {
-        QRegularExpression::PatternOptions options =
-                (m_matchCase ? QRegularExpression::NoPatternOption : QRegularExpression::CaseInsensitiveOption);
-        m_regExp = std::make_unique<QRegularExpression>(parseRegExp(rule), options);
-        m_category = FilterCategory::RegExp;
+        m_category = FilterCategory::DomainStart;
+        m_evalString = rule.mid(2);
+
+        if (!m_matchCase)
+            m_evalString = m_evalString.toLower();
         return;
     }
 
     // String start match
-    if (rule.startsWith('|') && rule.at(1) != '|')
+    if (rule.startsWith('|') && rule.at(1) != '|' && !maybeRegExp)
     {
         m_category = FilterCategory::StringStartMatch;
         rule = rule.mid(1);
     }
 
     // String end match (or exact match)
-    if (rule.endsWith('|'))
+    if (rule.endsWith('|') && !maybeRegExp)
     {
         if (m_category == FilterCategory::StringStartMatch)
             m_category = FilterCategory::StringExactMatch;
@@ -431,11 +473,24 @@ void AdBlockFilter::parseRule()
         rule = rule.left(rule.size() - 1);
     }
 
+    //if (rule.contains('*') || rule.contains('^') || rule.contains('|'))
+    if (maybeRegExp || rule.contains(QChar('|')))
+    {
+        QRegularExpression::PatternOptions options =
+                (m_matchCase ? QRegularExpression::NoPatternOption : QRegularExpression::CaseInsensitiveOption);
+        m_regExp = std::make_unique<QRegularExpression>(parseRegExp(rule), options);
+        m_category = FilterCategory::RegExp;
+        return;
+    }
+
     // If no category set by now, it is a string contains type
     if (m_category == FilterCategory::None)
         m_category = FilterCategory::StringContains;
 
     m_evalString = rule;
+
+    if (m_evalString.isEmpty())
+        m_matchAll = true;
 
     if (!m_matchCase)
         m_evalString = m_evalString.toLower();
@@ -444,8 +499,12 @@ void AdBlockFilter::parseRule()
 void AdBlockFilter::parseDomains(const QString &domainString, QChar delimiter)
 {
     QStringList domainList = domainString.split(delimiter, QString::SkipEmptyParts);
-    for (const QString &domain : domainList)
+    for (QString &domain : domainList)
     {
+        // Check if domain is an entity filter type
+        if (domain.endsWith(QStringLiteral(".*")))
+            domain = domain.left(domain.size() - 1);
+
         if (domain.at(0) == QChar('~'))
             m_domainWhitelist.insert(domain.mid(1));
         else
@@ -477,6 +536,9 @@ void AdBlockFilter::parseOptions(const QString &optionString)
         {
             parseDomains(option.mid(7), QChar('|'));
         }
+        // Handle options specific to uBlock Origin
+        else if (option.compare(QStringLiteral("first-party")) == 0)
+            m_blockedTypes |= ElementType::ThirdParty;
     }
 }
 
@@ -499,14 +561,14 @@ QString AdBlockFilter::parseRegExp(const QString &regExpString)
             {
                 if (!usedStar)
                 {
-                    replacement.append(QStringLiteral(".*"));
+                    replacement.append(QStringLiteral("[^ ]*?"));
                     usedStar = true;
                 }
                 break;
             }
             case '^':
             {
-                replacement.append(QStringLiteral("(?:[^\\w\\d\\-.%]|$)"));
+                replacement.append(QStringLiteral("(?:[^%.a-zA-Z0-9_-]|$)"));
                 break;
             }
             case '|':
@@ -515,7 +577,7 @@ QString AdBlockFilter::parseRegExp(const QString &regExpString)
                 {
                     if (regExpString.at(1) == '|')
                     {
-                        replacement.append(QStringLiteral("^([\\w\\-]+:\\/+)?(?!\\/)(?:[^\\/]+\\.)?"));
+                        replacement.append(QStringLiteral("^[a-z-]+://(?:[^\\/?#]+\\.)?"));
                         ++i;
                     }
                     else
@@ -553,14 +615,6 @@ quint64 AdBlockFilter::quPow(quint64 base, quint64 exp) const
     return result;
 }
 
-bool AdBlockFilter::offsetMatch(const QString &haystack, int offset) const
-{
-    int needleCount = m_evalString.size();
-    int index;
-    for (index = 0; index < needleCount && m_evalString.at(index) == haystack.at(offset + index); ++index);
-    return index == needleCount;
-}
-
 bool AdBlockFilter::filterContains(const QString &haystack) const
 {
     if (m_evalString.size() > haystack.size())
@@ -572,24 +626,22 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
     static const quint64 radixLength = 256ULL;
     static const quint64 prime = 72057594037927931ULL;
 
-    std::vector<size_t> matches;
-
-    size_t needleLength = m_evalString.size();
-    size_t haystackLength = haystack.size();
-    size_t lastIndex = haystackLength - needleLength;
+    int needleLength = m_evalString.size();
+    int haystackLength = haystack.size();
+    int lastIndex = haystackLength - needleLength;
 
     quint64 differenceHash = quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
 
     size_t needleHash = 0;
     size_t firstHaystackHash = 0;
 
-    size_t index;
+    int index;
 
     // preprocessing
     for(index = 0; index < needleLength; index++)
     {
-        needleHash = (radixLength * needleHash + m_evalString.at(index).toLatin1()) % prime;
-        firstHaystackHash = (radixLength * firstHaystackHash + haystack.at(index).toLatin1()) % prime;
+        needleHash = (radixLength * needleHash + m_evalString[index].toLatin1()) % prime;
+        firstHaystackHash = (radixLength * firstHaystackHash + haystack[index].toLatin1()) % prime;
     }
 
     std::vector<quint64> haystackHashes;
@@ -601,15 +653,17 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
     {
         if(needleHash == haystackHashes[index])
         {
-            if(offsetMatch(haystack, index))
-                return true;
+           int j;
+           for (j = 0; j < needleLength && m_evalString[j] == haystack[index + j]; ++j);
+           if (j == needleLength)
+               return true;
         }
 
         if(index < lastIndex)
         {
             quint64 newHaystackHash =
-                    (radixLength * (haystackHashes.at(index) - haystack.at(index).toLatin1() * differenceHash)
-                     + haystack.at(index + needleLength).toLatin1()) % prime;
+                    (radixLength * (haystackHashes[index] - haystack[index].toLatin1() * differenceHash)
+                     + haystack[index + needleLength].toLatin1()) % prime;
             haystackHashes.push_back(newHaystackHash);
         }
     }

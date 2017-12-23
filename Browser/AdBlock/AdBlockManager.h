@@ -36,13 +36,13 @@ public:
     /// nullptr if the request is allowed
     BlockedNetworkReply *getBlockedReply(const QNetworkRequest &request);
 
+    /// Returns the second-level domain string of the given url
+    QString getSecondLevelDomain(const QUrl &url);
+
 private:
     /// Attempts to determine the type of element being requested, returning the corresponding \ref ElementType
     /// after searching the HTTP headers. Will return ElementType::None if could not be determined or not applicable
     ElementType getElementTypeMask(const QNetworkRequest &request, const QString &requestPath);
-
-    /// Returns the second-level domain string of the given url
-    QString getSecondLevelDomain(const QUrl &url);
 
     /// Loads active subscriptions
     void loadSubscriptions();

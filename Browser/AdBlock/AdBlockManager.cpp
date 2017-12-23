@@ -113,7 +113,7 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     {
         if (filter->isMatch(baseUrl, requestUrl, requestDomain, elemType))
         {
-            qDebug() << "Exception rule match. BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
+            //qDebug() << "Exception rule match. BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return nullptr;
         }
     }
@@ -121,7 +121,7 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     {
         if (filter->isMatch(baseUrl, requestUrl, requestDomain, elemType))
         {
-            qDebug() << "Matched block rule  BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
+            //qDebug() << "Matched block rule  BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return new BlockedNetworkReply(request, this);
         }
     }

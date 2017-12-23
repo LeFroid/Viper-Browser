@@ -48,6 +48,7 @@ enum class FilterCategory
     None,
     Stylesheet,          /// Block or allow CSS elements
     Domain,              /// Block or allow a domain
+    DomainStart,         /// Block or allow based on domain starting with given filter expression
     StringStartMatch,    /// Block or allow based on strings starting with the filter expression
     StringEndMatch,      /// Block or allow based on strings ending with the filter expression
     StringExactMatch,    /// Block or allow if request has an exact match
@@ -122,7 +123,10 @@ protected:
 
 private:
     /// Returns true if the given domain matches the base domain string, false if else
-    bool isDomainMatch(const QString &base, const QString &domainStr) const;
+    bool isDomainMatch(QString base, const QString &domainStr) const;
+
+    /// Compares the requested URL and domain to the evaluation string, returning true if the filter matches the request, false if else
+    bool isDomainStartMatch(const QString &requestUrl) const;
 
     /// Parses the rule string, setting the appropriate fields of the filter object
     void parseRule();
@@ -139,10 +143,6 @@ private:
 
     /// Computes and returns base^exp
     quint64 quPow(quint64 base, quint64 exp) const;
-
-    /// Used when applying Rabin-Karp string matching algorithm. Determines if the offset in haystack matches the eval string
-    /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/
-    bool offsetMatch(const QString &haystack, int offset) const;
 
     /// Applies the Rabin-Karp string matching algorithm to the given string, returning true if it contains the filter's eval string, false if else
     /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/
@@ -170,8 +170,8 @@ protected:
     /// If true, the filter only applies to addresses with a matching letter case
     bool m_matchCase;
 
-    /// If true, the rule applies to requests from a different origin than the page being loaded
-    bool m_thirdParty;
+    /// Set to true if evaluation string is empty. Requests will still be checked based on domain blacklist/whitelist and allowed/blocked element types, etc
+    bool m_matchAll;
 
     /// List of domains that the filter rule applies to. Specified by the domain filter option
     QSet<QString> m_domainBlacklist;
