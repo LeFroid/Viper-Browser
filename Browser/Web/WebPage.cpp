@@ -120,7 +120,7 @@ void WebPage::onLoadFinished(bool ok)
     {
         frame->documentElement().appendInside(AdBlockManager::instance().getStylesheet());
         frame->documentElement().appendInside(
-            QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
+            QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl())));
     }
     /*else if (frame != nullptr)
     {

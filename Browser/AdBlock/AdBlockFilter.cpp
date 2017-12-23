@@ -1,8 +1,5 @@
 #include "AdBlockFilter.h"
-#include "AdBlockManager.h"
 #include "Bitfield.h"
-
-#include <QUrl>
 
 QHash<QString, ElementType> eOptionMap = {
     { "script", ElementType::Script },           { "image", ElementType::Image },                   { "stylesheet", ElementType::Stylesheet },
@@ -161,7 +158,7 @@ bool AdBlockFilter::hasDomainRules() const
     return !m_domainBlacklist.empty() || !m_domainWhitelist.empty();
 }
 
-bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
+bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, const QString &secondLevelDomain, ElementType typeMask)
 {
     bool match = m_matchAll;
 
@@ -176,7 +173,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
                 match = isDomainMatch(m_evalString, requestDomain);
                 break;
             case FilterCategory::DomainStart:
-                match = isDomainStartMatch(requestUrl);
+                match = isDomainStartMatch(requestUrl, secondLevelDomain);
                 break;
             case FilterCategory::StringStartMatch:
                 match = requestUrl.startsWith(m_evalString, caseSensitivity);
@@ -317,10 +314,8 @@ bool AdBlockFilter::isDomainMatch(QString base, const QString &domainStr) const
     return (evalIdx > 0 && domainStr.at(evalIdx - 1) == QChar('.'));
 }
 
-bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl) const
+bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const
 {
-    QString secondLevelDomain = AdBlockManager::instance().getSecondLevelDomain(QUrl(requestUrl));
-
     Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
     int matchIdx = requestUrl.indexOf(m_evalString, 0, caseSensitivity);
     if (matchIdx > 0)

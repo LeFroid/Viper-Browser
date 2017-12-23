@@ -45,8 +45,12 @@ const QString &AdBlockManager::getStylesheet() const
     return m_stylesheet;
 }
 
-QString AdBlockManager::getDomainStylesheet(const QString &domain) const
+QString AdBlockManager::getDomainStylesheet(const QUrl &url) const
 {
+    QString domain = getSecondLevelDomain(url);
+    if (domain.isEmpty())
+        return QString();
+
     QString stylesheet;
     int numStylesheetRules = 0;
     for (AdBlockFilter *filter : m_domainStyleFilters)
@@ -105,13 +109,14 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     // Document type and third party type checking are done outside of getElementTypeMask
     if (requestUrl.compare(baseUrl) == 0)
         elemType |= ElementType::Document;
-    if (getSecondLevelDomain(requestUrlObj).compare(getSecondLevelDomain(QUrl(baseUrl))) != 0)
+    QString secondLevelDomain = getSecondLevelDomain(requestUrlObj);
+    if (secondLevelDomain == getSecondLevelDomain(QUrl(baseUrl)))
         elemType |= ElementType::ThirdParty;
 
     // Compare to filters
     for (AdBlockFilter *filter : m_allowFilters)
     {
-        if (filter->isMatch(baseUrl, requestUrl, requestDomain, elemType))
+        if (filter->isMatch(baseUrl, requestUrl, requestDomain, secondLevelDomain, elemType))
         {
             //qDebug() << "Exception rule match. BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return nullptr;
@@ -119,7 +124,7 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     }
     for (AdBlockFilter *filter : m_blockFilters)
     {
-        if (filter->isMatch(baseUrl, requestUrl, requestDomain, elemType))
+        if (filter->isMatch(baseUrl, requestUrl, requestDomain, secondLevelDomain, elemType))
         {
             //qDebug() << "Matched block rule  BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return new BlockedNetworkReply(request, this);
@@ -162,7 +167,7 @@ ElementType AdBlockManager::getElementTypeMask(const QNetworkRequest &request, c
     return type;
 }
 
-QString AdBlockManager::getSecondLevelDomain(const QUrl &url)
+QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const
 {
     const QString topLevelDomain = url.topLevelDomain();
     const QString host = url.host();

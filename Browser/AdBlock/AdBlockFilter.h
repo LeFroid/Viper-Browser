@@ -112,7 +112,7 @@ public:
      * @param typeMask Element type(s) associated with the request. Filter will disregard if type is set to none
      * @return True if request matches filter, false if else.
      */
-    bool isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask);
+    bool isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, const QString &secondLevelDomain, ElementType typeMask);
 
     /// Returns true if this rule is of the Stylesheet category and applies to the given domain, returns false if else.
     bool isDomainStyleMatch(const QString &domain);
@@ -126,7 +126,7 @@ private:
     bool isDomainMatch(QString base, const QString &domainStr) const;
 
     /// Compares the requested URL and domain to the evaluation string, returning true if the filter matches the request, false if else
-    bool isDomainStartMatch(const QString &requestUrl) const;
+    bool isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const;
 
     /// Parses the rule string, setting the appropriate fields of the filter object
     void parseRule();
