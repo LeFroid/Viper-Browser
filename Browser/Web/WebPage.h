@@ -32,6 +32,9 @@ private slots:
     /// Attempts to handle unsupported network replies
     void onUnsupportedContent(QNetworkReply *reply);
 
+    /// Called when the URL of the main frame has changed
+    void onMainFrameUrlChanged(const QUrl &url);
+
     /// Called when a frame has started loading
     void onLoadStarted();
 
@@ -44,6 +47,13 @@ private slots:
 protected:
     /// Custom user agent string. Empty if default UA is used
     static QString m_userAgent;
+
+private:
+    /// Stores the host of the main frame's URL. Used to prevent excessive requests to fetch the AdBlockManager's domain-specific cosmetic filters
+    QString m_mainFrameHost;
+
+    /// Stores the current page's domain-specific cosmetic filters in string form
+    QString m_domainFilterStyle;
 };
 
 #endif // WEBPAGE_H

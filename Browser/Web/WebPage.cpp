@@ -14,7 +14,9 @@
 QString WebPage::m_userAgent = QString();
 
 WebPage::WebPage(QObject *parent) :
-    QWebPage(parent)
+    QWebPage(parent),
+    m_mainFrameHost(),
+    m_domainFilterStyle()
 {
     setNetworkAccessManager(sBrowserApplication->getNetworkAccessManager());
     setForwardUnsupportedContent(true);
@@ -29,6 +31,7 @@ WebPage::WebPage(QObject *parent) :
         connect(frame, &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
         connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &WebPage::onLoadStarted);
     });
+    connect(pageMainFrame, &QWebFrame::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
 void WebPage::enablePrivateBrowsing()
@@ -96,6 +99,16 @@ void WebPage::onUnsupportedContent(QNetworkReply *reply)
     reply->deleteLater();
 }
 
+void WebPage::onMainFrameUrlChanged(const QUrl &url)
+{
+    QString urlHost = url.host().toLower();
+    if (!urlHost.isEmpty() && m_mainFrameHost.compare(urlHost) != 0)
+    {
+        m_mainFrameHost = urlHost;
+        m_domainFilterStyle = QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(url));
+    }
+}
+
 void WebPage::onLoadStarted()
 {
     if (QWebFrame *frame = qobject_cast<QWebFrame*>(sender()))
@@ -119,17 +132,10 @@ void WebPage::onLoadFinished(bool ok)
     if (frame == mainFrame())
     {
         frame->documentElement().appendInside(AdBlockManager::instance().getStylesheet());
-        frame->documentElement().appendInside(
-            QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl())));
+        frame->documentElement().appendInside(m_domainFilterStyle);
+        //frame->documentElement().appendInside(
+        //    QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl())));
     }
-    /*else if (frame != nullptr)
-    {
-        if (frame->baseUrl().host().compare(mainFrame()->baseUrl().host()) != 0)
-        {
-            mainFrame()->documentElement().appendInside(
-                QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl().host().toLower())));
-        }
-    }*/
 }
 
 void WebPage::injectUserJavaScript(QWebFrame *frame, ScriptInjectionTime injectionTime)
