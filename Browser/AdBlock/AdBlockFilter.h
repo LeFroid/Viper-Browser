@@ -101,6 +101,9 @@ public:
     /// Returns true if the filter is an exception, false if it is a standard blocking filter
     bool isException() const;
 
+    /// Returns true if the filter is a blocking type and has the important option specified, false if else
+    bool isImportant() const;
+
     /// Returns true if there are domain-specific settings on the filter, false if else
     bool hasDomainRules() const;
 
@@ -160,6 +163,9 @@ protected:
 
     /// True if the filter is an exception, false if it is a standard blocking rule
     bool m_exception;
+
+    /// True if the filter has the important option and is not an exception (uBlock standard)
+    bool m_important;
 
     /// Bitfield of element types to be allowed
     ElementType m_allowedTypes;

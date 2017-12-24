@@ -90,6 +90,9 @@ private:
     /// Container of content blocking subscriptions
     std::vector<AdBlockSubscription> m_subscriptions;
 
+    /// Container of important blocking filters that are checked before allow filters on network requests
+    std::vector<AdBlockFilter*> m_importantBlockFilters;
+
     /// Container of filters that block content
     std::vector<AdBlockFilter*> m_blockFilters;
 

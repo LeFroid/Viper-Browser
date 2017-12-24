@@ -7,6 +7,7 @@
 #include "BookmarkBar.h"
 #include "BookmarkNode.h"
 #include "BookmarkWidget.h"
+#include "CodeEditor.h"
 #include "CookieWidget.h"
 #include "DownloadManager.h"
 #include "FaviconStorage.h"
@@ -41,7 +42,6 @@
 #include <QPushButton>
 #include <QShortcut>
 #include <QSplitter>
-#include <QTextEdit>
 #include <QTimer>
 #include <QToolButton>
 #include <QWebElement>
@@ -814,7 +814,7 @@ void MainWindow::onRequestViewSource()
 
     QString pageSource = currentView->page()->mainFrame()->toHtml();
     QString pageTitle = currentView->title();
-    QTextEdit *view = new QTextEdit;
+    CodeEditor *view = new CodeEditor;
     view->setPlainText(pageSource);
     HTMLHighlighter *h = new HTMLHighlighter;
     h->setDocument(view->document());

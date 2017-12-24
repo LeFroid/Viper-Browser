@@ -16,6 +16,7 @@ AdBlockFilter::AdBlockFilter() :
     m_ruleString(),
     m_evalString(),
     m_exception(false),
+    m_important(false),
     m_allowedTypes(ElementType::None),
     m_blockedTypes(ElementType::None),
     m_matchCase(false),
@@ -31,6 +32,7 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_ruleString(rule),
     m_evalString(),
     m_exception(false),
+    m_important(false),
     m_allowedTypes(ElementType::None),
     m_blockedTypes(ElementType::None),
     m_matchCase(false),
@@ -49,6 +51,7 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
     m_ruleString(other.m_ruleString),
     m_evalString(other.m_evalString),
     m_exception(other.m_exception),
+    m_important(other.m_important),
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
@@ -65,6 +68,7 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
     m_ruleString(other.m_ruleString),
     m_evalString(other.m_evalString),
     m_exception(other.m_exception),
+    m_important(other.m_important),
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
@@ -81,6 +85,7 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
     m_ruleString = other.m_ruleString;
     m_evalString = other.m_evalString;
     m_exception = other.m_exception;
+    m_important = other.m_important;
     m_allowedTypes = other.m_allowedTypes;
     m_blockedTypes = other.m_blockedTypes;
     m_matchCase = other.m_matchCase;
@@ -100,6 +105,7 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
         m_ruleString = other.m_ruleString;
         m_evalString = other.m_evalString;
         m_exception = other.m_exception;
+        m_important = other.m_important;
         m_allowedTypes = other.m_allowedTypes;
         m_blockedTypes = other.m_blockedTypes;
         m_matchCase = other.m_matchCase;
@@ -151,6 +157,11 @@ const QString &AdBlockFilter::getEvalString() const
 bool AdBlockFilter::isException() const
 {
     return m_exception;
+}
+
+bool AdBlockFilter::isImportant() const
+{
+    return m_important;
 }
 
 bool AdBlockFilter::hasDomainRules() const
@@ -533,6 +544,8 @@ void AdBlockFilter::parseOptions(const QString &optionString)
         // Handle options specific to uBlock Origin
         else if (option.compare(QStringLiteral("first-party")) == 0)
             m_blockedTypes |= ElementType::ThirdParty;
+        else if (!m_exception && (option.compare(QStringLiteral("important")) == 0))
+            m_important = true;
     }
 }
 

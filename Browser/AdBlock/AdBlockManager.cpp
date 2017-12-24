@@ -22,6 +22,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_subscriptionDir(),
     m_stylesheet(),
     m_subscriptions(),
+    m_importantBlockFilters(),
     m_blockFilters(),
     m_allowFilters(),
     m_domainStyleFilters(),
@@ -123,6 +124,11 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
         elemType |= ElementType::ThirdParty;
 
     // Compare to filters
+    for (AdBlockFilter *filter : m_importantBlockFilters)
+    {
+        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+            return new BlockedNetworkReply(request, this);
+    }
     for (AdBlockFilter *filter : m_allowFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
@@ -279,6 +285,7 @@ void AdBlockManager::loadSubscriptions()
 
 void AdBlockManager::clearFilters()
 {
+    m_importantBlockFilters.clear();
     m_allowFilters.clear();
     m_blockFilters.clear();
     m_stylesheet.clear();
@@ -318,6 +325,8 @@ void AdBlockManager::extractFilters()
             {
                 if (filter->isException())
                     m_allowFilters.push_back(filter);
+                else if (filter->isImportant())
+                    m_importantBlockFilters.push_back(filter);
                 else
                     m_blockFilters.push_back(filter);
             }
