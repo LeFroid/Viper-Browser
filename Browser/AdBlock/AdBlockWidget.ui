@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="AdBlockTableView" name="tableView"/>
+    <widget class="CheckableTableView" name="tableView"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -52,9 +52,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>AdBlockTableView</class>
+   <class>CheckableTableView</class>
    <extends>QTableView</extends>
-   <header>AdBlock/AdBlockTableView.h</header>
+   <header>Widgets/CheckableTableView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -14,7 +14,7 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
 
     ui->tableView->setModel(AdBlockManager::instance().getModel());
 
-    connect(ui->tableView, &AdBlockTableView::clicked, this, &AdBlockWidget::onItemClicked);
+    connect(ui->tableView, &CheckableTableView::clicked, this, &AdBlockWidget::onItemClicked);
 }
 
 AdBlockWidget::~AdBlockWidget()

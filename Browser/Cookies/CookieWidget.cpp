@@ -7,7 +7,6 @@
 #include "DetailedCookieTableModel.h"
 #include "NetworkAccessManager.h"
 
-#include <QDebug>
 #include <QList>
 #include <QMessageBox>
 

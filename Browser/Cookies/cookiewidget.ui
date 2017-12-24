@@ -35,7 +35,7 @@
       </layout>
      </item>
      <item>
-      <widget class="CookieTableView" name="tableViewCookies">
+      <widget class="CheckableTableView" name="tableViewCookies">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -117,9 +117,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CookieTableView</class>
+   <class>CheckableTableView</class>
    <extends>QTableView</extends>
-   <header>Cookies/CookieTableView.h</header>
+   <header>Widgets/CheckableTableView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

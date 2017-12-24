@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="UserScriptTableView" name="tableViewScripts">
+    <widget class="CheckableTableView" name="tableViewScripts">
      <property name="sizeAdjustPolicy">
       <enum>QAbstractScrollArea::AdjustIgnored</enum>
      </property>
@@ -75,9 +75,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>UserScriptTableView</class>
+   <class>CheckableTableView</class>
    <extends>QTableView</extends>
-   <header>UserScripts/UserScriptTableView.h</header>
+   <header>Widgets/CheckableTableView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -47,7 +47,6 @@ SOURCES += \
     Cookies/CookieJar.cpp \
     Cookies/CookieModifyDialog.cpp \
     Cookies/CookieTableModel.cpp \
-    Cookies/CookieTableView.cpp \
     Cookies/CookieWidget.cpp \
     Cookies/DetailedCookieTableModel.cpp \
     History/ClearHistoryDialog.cpp \
@@ -105,7 +104,6 @@ SOURCES += \
     UserScripts/UserScript.cpp \
     UserScripts/UserScriptManager.cpp \
     UserScripts/UserScriptWidget.cpp \
-    UserScripts/UserScriptTableView.cpp \
     UserScripts/UserScriptModel.cpp \
     Highlighters/JavaScriptHighlighter.cpp \
     Widgets/CodeEditor.cpp \
@@ -113,8 +111,8 @@ SOURCES += \
     Extensions/ExtStorage.cpp \
     UserScripts/UserScriptEditor.cpp \
     AdBlock/AdBlockModel.cpp \
-    AdBlock/AdBlockTableView.cpp \
-    AdBlock/AdBlockWidget.cpp
+    AdBlock/AdBlockWidget.cpp \
+    Widgets/CheckableTableView.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -123,7 +121,6 @@ HEADERS += \
     Cookies/CookieJar.h \
     Cookies/CookieModifyDialog.h \
     Cookies/CookieTableModel.h \
-    Cookies/CookieTableView.h \
     Cookies/CookieWidget.h \
     Cookies/DetailedCookieTableModel.h \
     History/ClearHistoryDialog.h \
@@ -182,7 +179,6 @@ HEADERS += \
     UserScripts/UserScript.h \
     UserScripts/UserScriptManager.h \
     UserScripts/UserScriptWidget.h \
-    UserScripts/UserScriptTableView.h \
     UserScripts/UserScriptModel.h \
     Highlighters/JavaScriptHighlighter.h \
     Widgets/CodeEditor.h \
@@ -190,8 +186,8 @@ HEADERS += \
     Extensions/ExtStorage.h \
     UserScripts/UserScriptEditor.h \
     AdBlock/AdBlockModel.h \
-    AdBlock/AdBlockTableView.h \
-    AdBlock/AdBlockWidget.h
+    AdBlock/AdBlockWidget.h \
+    Widgets/CheckableTableView.h
 
 FORMS += \
         mainwindow.ui \

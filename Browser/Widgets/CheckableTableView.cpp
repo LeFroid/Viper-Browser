@@ -1,16 +1,13 @@
-#include "CookieTableModel.h"
-#include "CookieTableView.h"
+#include "CheckableTableView.h"
 
-#include <QModelIndexList>
-
-CookieTableView::CookieTableView(QWidget *parent) :
+CheckableTableView::CheckableTableView(QWidget *parent) :
     QTableView(parent)
 {
 }
 
-void CookieTableView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
+void CheckableTableView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
 {
-    CookieTableModel *tableModel = static_cast<CookieTableModel*>(model());
+    QAbstractItemModel *tableModel = model();
     QModelIndexList indexListSelected = selected.indexes();
     QVariant emptyVal;
     for (auto idx : indexListSelected)

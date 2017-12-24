@@ -20,7 +20,7 @@ UserScriptWidget::UserScriptWidget(QWidget *parent) :
 
     ui->tableViewScripts->setModel(sBrowserApplication->getUserScriptManager()->getModel());
 
-    connect(ui->tableViewScripts,        &UserScriptTableView::clicked, this, &UserScriptWidget::onItemClicked);
+    connect(ui->tableViewScripts,        &CheckableTableView::clicked,  this, &UserScriptWidget::onItemClicked);
     connect(ui->pushButtonInstallScript, &QPushButton::clicked,         this, &UserScriptWidget::onInstallButtonClicked);
     connect(ui->pushButtonDeleteScript,  &QPushButton::clicked,         this, &UserScriptWidget::onDeleteButtonClicked);
     connect(ui->pushButtonEditScript,    &QPushButton::clicked,         this, &UserScriptWidget::onEditButtonClicked);
