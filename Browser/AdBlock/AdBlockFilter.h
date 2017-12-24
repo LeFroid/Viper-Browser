@@ -47,6 +47,7 @@ enum class FilterCategory
 {
     None,
     Stylesheet,          /// Block or allow CSS elements
+    StylesheetJS,        /// Block or allow CSS elements via JavaScript injection
     Domain,              /// Block or allow a domain
     DomainStart,         /// Block or allow based on domain starting with given filter expression
     StringStartMatch,    /// Block or allow based on strings starting with the filter expression
@@ -140,6 +141,9 @@ private:
 
     /// Parses a comma separated list of options contained within the given string
     void parseOptions(const QString &optionString);
+
+    /// Parses the rule string for uBlock Origin style cosmetic filter options
+    void parseCosmeticOptions();
 
     /// Parses the given ad block plus formatted regular expression, returning the equivalent for a QRegularExpression
     QString parseRegExp(const QString &regExpString);

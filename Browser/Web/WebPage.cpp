@@ -133,6 +133,9 @@ void WebPage::onLoadFinished(bool ok)
     {
         frame->documentElement().appendInside(AdBlockManager::instance().getStylesheet());
         frame->documentElement().appendInside(m_domainFilterStyle);
+        QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(frame->baseUrl());
+        if (!adBlockJS.isEmpty())
+            frame->evaluateJavaScript(adBlockJS);
         //frame->documentElement().appendInside(
         //    QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl())));
     }

@@ -179,6 +179,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
         switch (m_category)
         {
             case FilterCategory::Stylesheet: //handled more directly in ad block manager
+            case FilterCategory::StylesheetJS:
                 return false;
             case FilterCategory::Domain:
                 match = isDomainMatch(m_evalString, requestDomain);
@@ -356,6 +357,7 @@ void AdBlockFilter::parseRule()
             parseDomains(rule.left(pos), QChar(','));
 
         m_evalString = m_ruleString.mid(pos + 2);
+        parseCosmeticOptions();
         return;
     }
 
@@ -370,6 +372,7 @@ void AdBlockFilter::parseRule()
             parseDomains(rule.left(pos), QChar(','));
 
         m_evalString = m_ruleString.mid(pos + 3);
+        parseCosmeticOptions();
         return;
     }
 
@@ -546,6 +549,33 @@ void AdBlockFilter::parseOptions(const QString &optionString)
             m_blockedTypes |= ElementType::ThirdParty;
         else if (!m_exception && (option.compare(QStringLiteral("important")) == 0))
             m_important = true;
+    }
+}
+
+void AdBlockFilter::parseCosmeticOptions()
+{
+    //TODO: support all other types of cosmetic filter options
+    //See https://github.com/gorhill/uBlock/wiki/Procedural-cosmetic-filters for reference
+
+    // Check for :xpath(...)
+    int xpathIdx = m_evalString.indexOf(QStringLiteral(":xpath("));
+    if (xpathIdx >= 0 && (!m_domainBlacklist.empty() || !m_domainWhitelist.empty()))
+    {
+        m_category = FilterCategory::StylesheetJS;
+
+        QString xpathArg = m_evalString.mid(xpathIdx + 7);
+        xpathArg = xpathArg.left(xpathArg.size() - 1);
+
+        m_evalString = m_evalString.left(xpathIdx);
+        if (m_evalString.isEmpty())
+            m_evalString = QStringLiteral("*");
+
+        QString javascript = QString("var output = [], i, j; \n var xpathExpr = document.createExpression('%1', null); "
+                                     "var xpathResult = null; var nodes = document.querySelectorAll('%2'); for ("
+                                     "i = 0; i < nodes.length; ++i) { xpathResult = xpathExpr.evaluate(nodes[i], "
+                                     "XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, xpathResult); j = xpathResult.snapshotLength; "
+                                     "while (j--) { xpathResult.snapshotItem(j).style.display = 'none'; } } ").arg(xpathArg).arg(m_evalString);
+        m_evalString = javascript;
     }
 }
 

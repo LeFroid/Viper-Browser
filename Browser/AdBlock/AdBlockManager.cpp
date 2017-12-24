@@ -26,6 +26,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_blockFilters(),
     m_allowFilters(),
     m_domainStyleFilters(),
+    m_domainJSFilters(),
     m_adBlockModel(nullptr)
 {
     m_enabled = sBrowserApplication->getSettings()->getValue("AdBlockPlusEnabled").toBool();
@@ -86,6 +87,21 @@ QString AdBlockManager::getDomainStylesheet(const QUrl &url) const
     }
 
     return stylesheet;
+}
+
+QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
+{
+    QString domain = getSecondLevelDomain(url);
+    if (domain.isEmpty())
+        return QString();
+
+    QString javascript;
+    for (AdBlockFilter *filter : m_domainJSFilters)
+    {
+        if (filter->isDomainStyleMatch(domain))
+            javascript.append(filter->getEvalString());
+    }
+    return javascript;
 }
 
 BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &request)
@@ -290,6 +306,7 @@ void AdBlockManager::clearFilters()
     m_blockFilters.clear();
     m_stylesheet.clear();
     m_domainStyleFilters.clear();
+    m_domainJSFilters.clear();
 }
 
 void AdBlockManager::extractFilters()
@@ -320,6 +337,10 @@ void AdBlockManager::extractFilters()
                     stylesheetExceptionMap.insert(filter->getEvalString(), filter);
                 else
                     stylesheetFilterMap.insert(filter->getEvalString(), filter);
+            }
+            else if (filter->getCategory() == FilterCategory::StylesheetJS)
+            {
+                m_domainJSFilters.push_back(filter);
             }
             else
             {

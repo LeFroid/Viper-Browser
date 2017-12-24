@@ -40,6 +40,9 @@ public:
     /// Returns the domain-specific blocking stylesheet, or an empty string if not applicable
     QString getDomainStylesheet(const QUrl &url) const;
 
+    /// Returns the domain-specific blocking javascript, or an empty string if not applicable
+    QString getDomainJavaScript(const QUrl &url) const;
+
     /// Determines if the network request should be blocked, returning a BlockedNetworkReply if so, or a
     /// nullptr if the request is allowed
     BlockedNetworkReply *getBlockedReply(const QNetworkRequest &request);
@@ -101,6 +104,9 @@ private:
 
     /// Container of filters that have domain-specific stylesheet rules
     std::vector<AdBlockFilter*> m_domainStyleFilters;
+
+    /// Container of filters that have domain-specific javascript rules
+    std::vector<AdBlockFilter*> m_domainJSFilters;
 
     /// Ad Block model, used to indirectly view and modify subscriptions in the user interface
     AdBlockModel *m_adBlockModel;
