@@ -1,7 +1,6 @@
 #ifndef USERSCRIPTWIDGET_H
 #define USERSCRIPTWIDGET_H
 
-#include "UserScriptTableView.h"
 #include <QWidget>
 
 namespace Ui {

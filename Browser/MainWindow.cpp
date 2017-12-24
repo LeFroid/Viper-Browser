@@ -25,6 +25,7 @@
 #include "WebPage.h"
 #include "WebView.h"
 
+#include <deque>
 #include <functional>
 #include <QActionGroup>
 #include <QCloseEvent>
@@ -254,23 +255,38 @@ void MainWindow::setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu)
         return;
 
     FaviconStorage *iconStorage = sBrowserApplication->getFaviconStorage();
-    int numChildren = folder->getNumChildren();
-    for (int i = 0; i < numChildren; ++i)
+
+    std::deque< std::pair<BookmarkNode*, QMenu*> > folders;
+    folders.push_back({folder, folderMenu});
+
+    BookmarkNode *currentNode;
+    QMenu *currentMenu;
+
+    while (!folders.empty())
     {
-        BookmarkNode *n = folder->getNode(i);
-        if (n->getType() == BookmarkNode::Folder)
+        auto &current = folders.front();
+        currentNode = current.first;
+        currentMenu = current.second;
+
+        int numChildren = currentNode->getNumChildren();
+        for (int i = 0; i < numChildren; ++i)
         {
-            QMenu *subMenu = folderMenu->addMenu(n->getIcon(), n->getName());
-            setupBookmarkFolder(n, subMenu);
-        }
-        else
-        {
+            BookmarkNode *n = currentNode->getNode(i);
+            if (n->getType() == BookmarkNode::Folder)
+            {
+                QMenu *subMenu = currentMenu->addMenu(n->getIcon(), n->getName());
+                folders.push_back({n, subMenu});
+                continue;
+            }
+
             QUrl link(n->getURL());
-            QAction *item = folderMenu->addAction(iconStorage->getFavicon(QUrl(n->getURL())), n->getName());
+            QAction *item = currentMenu->addAction(iconStorage->getFavicon(link), n->getName());
             item->setIconVisibleInMenu(true);
-            folderMenu->addAction(item);
-            connect(item, &QAction::triggered, [=]() { loadUrl(link); });
+            currentMenu->addAction(item);
+            connect(item, &QAction::triggered, [=](){ loadUrl(link); });
         }
+
+        folders.pop_front();
     }
 }
 
