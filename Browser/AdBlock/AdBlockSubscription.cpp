@@ -141,11 +141,17 @@ void AdBlockSubscription::setSourceUrl(const QUrl &source)
 
 int AdBlockSubscription::getNumFilters() const
 {
+    if (!m_enabled)
+        return 0;
+
     return static_cast<int>(m_filters.size());
 }
 
 AdBlockFilter *AdBlockSubscription::getFilter(int index)
 {
+    if (!m_enabled)
+        return nullptr;
+
     if (index < 0 || index >= static_cast<int>(m_filters.size()))
         return nullptr;
     return m_filters[index].get();
