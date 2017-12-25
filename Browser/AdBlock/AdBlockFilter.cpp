@@ -570,12 +570,7 @@ void AdBlockFilter::parseCosmeticOptions()
         if (m_evalString.isEmpty())
             m_evalString = QStringLiteral("*");
 
-        QString javascript = QString("var output = [], i, j; \n var xpathExpr = document.createExpression('%1', null); "
-                                     "var xpathResult = null; var nodes = document.querySelectorAll('%2'); for ("
-                                     "i = 0; i < nodes.length; ++i) { xpathResult = xpathExpr.evaluate(nodes[i], "
-                                     "XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, xpathResult); j = xpathResult.snapshotLength; "
-                                     "while (j--) { xpathResult.snapshotItem(j).style.display = 'none'; } } ").arg(xpathArg).arg(m_evalString);
-        m_evalString = javascript;
+        m_evalString = QString("doXPath('%1', '%2'); ").arg(xpathArg).arg(m_evalString);
     }
 }
 

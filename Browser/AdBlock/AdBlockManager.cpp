@@ -21,6 +21,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_configFile(),
     m_subscriptionDir(),
     m_stylesheet(),
+    m_cosmeticJSTemplate(),
     m_subscriptions(),
     m_importantBlockFilters(),
     m_blockFilters(),
@@ -31,6 +32,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
 {
     m_enabled = sBrowserApplication->getSettings()->getValue("AdBlockPlusEnabled").toBool();
     loadSubscriptions();
+    loadDynamicTemplate();
 }
 
 AdBlockManager::~AdBlockManager()
@@ -101,7 +103,15 @@ QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
         if (filter->isDomainStyleMatch(domain))
             javascript.append(filter->getEvalString());
     }
-    return javascript;
+
+    if (!javascript.isEmpty())
+    {
+        QString result = m_cosmeticJSTemplate;
+        result.replace(QStringLiteral("{{ADBLOCK_INTERNAL}}"), javascript);
+        return result;
+    }
+
+    return QString();
 }
 
 BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &request)
@@ -241,6 +251,16 @@ QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const
         domain = domain.mid(domain.indexOf(QChar('.')) + 1);
 
     return domain + topLevelDomain;
+}
+
+void AdBlockManager::loadDynamicTemplate()
+{
+    QFile templateFile(":/AdBlock.js");
+    if (!templateFile.open(QIODevice::ReadOnly))
+        return;
+
+    m_cosmeticJSTemplate = templateFile.readAll();
+    templateFile.close();
 }
 
 void AdBlockManager::loadSubscriptions()

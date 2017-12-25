@@ -6,6 +6,7 @@
         <file alias="search_icon.png">Images/search_icon.png</file>
         <file alias="blank.html">HTML/blank.html</file>
         <file alias="GreaseMonkeyAPI.js">JavaScript/GreaseMonkeyAPI.js</file>
+        <file alias="AdBlock.js">JavaScript/AdBlock.js</file>
         <file alias="viewer.html">HTML/viewer.html</file>
         <file alias="viewer.css">HTML/viewer.css</file>
         <file alias="pdf.js">JavaScript/pdf.js</file>

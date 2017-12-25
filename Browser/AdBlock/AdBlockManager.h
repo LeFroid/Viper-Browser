@@ -65,6 +65,9 @@ private:
     /// Returns the second-level domain string of the given url
     QString getSecondLevelDomain(const QUrl &url) const;
 
+    /// Loads the AdBlock JavaScript template for dynamic filters
+    void loadDynamicTemplate();
+
     /// Loads active subscriptions
     void loadSubscriptions();
 
@@ -89,6 +92,9 @@ private:
 
     /// Global adblock stylesheet
     QString m_stylesheet;
+
+    /// JavaScript template for uBlock style cosmetic filters
+    QString m_cosmeticJSTemplate;
 
     /// Container of content blocking subscriptions
     std::vector<AdBlockSubscription> m_subscriptions;
