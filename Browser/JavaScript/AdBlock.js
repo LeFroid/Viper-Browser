@@ -1,4 +1,19 @@
 (function() {
+/// Handles the :has(...) cosmetic filter option
+function hideIfHas(subject, target) {
+    var needScope = /^\s*[+>~]/;
+    if (needScope.test(target)) {
+        target = ':scope ' + target;
+    }
+
+    var nodes = document.querySelectorAll(subject), i;
+    for (i = 0; i < nodes.length; ++i) {
+        if (nodes[i].querySelector(target) !== null) {
+            nodes[i].style.display = 'none';
+        }
+    }
+}
+
 /// Handles the :xpath(...) cosmetic filter option
 function doXPath(expr, cssSelector) {
     var output = [], i, j;

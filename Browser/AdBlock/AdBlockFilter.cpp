@@ -557,9 +557,29 @@ void AdBlockFilter::parseCosmeticOptions()
     //TODO: support all other types of cosmetic filter options
     //See https://github.com/gorhill/uBlock/wiki/Procedural-cosmetic-filters for reference
 
+    const bool hasDomain = !m_domainBlacklist.empty() || !m_domainWhitelist.empty();
+    if (!hasDomain)
+        return;
+
+    // Check for :has(..)
+    int hasIdx = m_evalString.indexOf(QStringLiteral(":has("));
+    if (hasIdx >= 0)
+    {
+        QString hasArg = m_evalString.mid(hasIdx + 5);
+        hasArg = hasArg.left(hasArg.size() - 1);
+
+        m_evalString = m_evalString.left(hasIdx);
+        if (m_evalString.isEmpty())
+            return;
+
+        m_evalString = QString("hideIfHas('%1', '%2'); ").arg(m_evalString).arg(hasArg);
+        m_category = FilterCategory::StylesheetJS;
+        return;
+    }
+
     // Check for :xpath(...)
     int xpathIdx = m_evalString.indexOf(QStringLiteral(":xpath("));
-    if (xpathIdx >= 0 && (!m_domainBlacklist.empty() || !m_domainWhitelist.empty()))
+    if (xpathIdx >= 0)
     {
         m_category = FilterCategory::StylesheetJS;
 
