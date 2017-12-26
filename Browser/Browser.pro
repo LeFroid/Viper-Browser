@@ -112,7 +112,8 @@ SOURCES += \
     AdBlock/AdBlockModel.cpp \
     AdBlock/AdBlockWidget.cpp \
     Widgets/CheckableTableView.cpp \
-    Network/BlockedNetworkReply.cpp
+    Network/BlockedNetworkReply.cpp \
+    UserScripts/AddUserScriptDialog.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -187,7 +188,8 @@ HEADERS += \
     AdBlock/AdBlockModel.h \
     AdBlock/AdBlockWidget.h \
     Widgets/CheckableTableView.h \
-    Network/BlockedNetworkReply.h
+    Network/BlockedNetworkReply.h \
+    UserScripts/AddUserScriptDialog.h
 
 FORMS += \
         mainwindow.ui \
@@ -212,4 +214,5 @@ FORMS += \
     UserAgents/UserAgentsWindow.ui \
     UserScripts/UserScriptWidget.ui \
     UserScripts/UserScriptEditor.ui \
-    AdBlock/AdBlockWidget.ui
+    AdBlock/AdBlockWidget.ui \
+    UserScripts/AddUserScriptDialog.ui

@@ -5,7 +5,6 @@
 #include "DownloadItem.h"
 
 #include <QDir>
-#include <QDirIterator>
 #include <QFile>
 
 #include <QRegularExpression>
@@ -91,5 +90,46 @@ void UserScriptManager::installScript(const QUrl &url)
         if (script.load(filePath, m_model->m_scriptTemplate))
             m_model->addScript(std::move(script));
     });
+}
+
+void UserScriptManager::createScript(const QString &name, const QString &nameSpace, const QString &description, const QString &version)
+{
+    // Require a name and namespace
+    if (name.isEmpty() || nameSpace.isEmpty())
+        return;
+
+    QString fileName = QString("%1%2%3.%4.user.js").arg(m_model->m_userScriptDir).arg(QDir::separator()).arg(nameSpace).arg(name);
+    QFile f(fileName);
+    if (f.exists())
+    {
+        fileName = QString("%1%2%3.%4.user.js").arg(m_model->m_userScriptDir).arg(QDir::separator()).arg(name).arg(nameSpace);
+        f.setFileName(fileName);
+
+        // Exit if the second attempt to find an unused name fails
+        if (f.exists())
+            return;
+    }
+
+    if (!f.open(QIODevice::WriteOnly))
+        return;
+
+    // Create metadata block and write to file
+    QByteArray scriptData;
+    scriptData.append(QString("// ==UserScript==\n"));
+    scriptData.append(QString("// @name    %1\n").arg(name));
+    scriptData.append(QString("// @namespace    %1\n").arg(nameSpace));
+    scriptData.append(QString("// @description    %1\n").arg(description));
+    scriptData.append(QString("// @version    %1\n").arg(version));
+    scriptData.append(QString("// ==/UserScript==\n\n"));
+    scriptData.append(QString("// Don't forget to add @include, @exclude and/or @match rules to the script header!"));
+    f.write(scriptData);
+    f.close();
+
+    UserScript script;
+    if (script.load(fileName, m_model->m_scriptTemplate))
+    {
+        m_model->addScript(std::move(script));
+        emit scriptCreated(m_model->rowCount() - 1);
+    }
 }
 

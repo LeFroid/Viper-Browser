@@ -1,5 +1,6 @@
 #include "UserScriptWidget.h"
 #include "ui_UserScriptWidget.h"
+#include "AddUserScriptDialog.h"
 #include "BrowserApplication.h"
 #include "UserScriptManager.h"
 #include "UserScriptModel.h"
@@ -18,10 +19,14 @@ UserScriptWidget::UserScriptWidget(QWidget *parent) :
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->setupUi(this);
 
-    ui->tableViewScripts->setModel(sBrowserApplication->getUserScriptManager()->getModel());
+    UserScriptManager *scriptMgr = sBrowserApplication->getUserScriptManager();
+    ui->tableViewScripts->setModel(scriptMgr->getModel());
+
+    connect(scriptMgr, &UserScriptManager::scriptCreated, this, &UserScriptWidget::onScriptCreated);
 
     connect(ui->tableViewScripts,        &CheckableTableView::clicked,  this, &UserScriptWidget::onItemClicked);
     connect(ui->pushButtonInstallScript, &QPushButton::clicked,         this, &UserScriptWidget::onInstallButtonClicked);
+    connect(ui->pushButtonCreateScript,  &QPushButton::clicked,         this, &UserScriptWidget::onCreateButtonClicked);
     connect(ui->pushButtonDeleteScript,  &QPushButton::clicked,         this, &UserScriptWidget::onDeleteButtonClicked);
     connect(ui->pushButtonEditScript,    &QPushButton::clicked,         this, &UserScriptWidget::onEditButtonClicked);
 }
@@ -112,4 +117,25 @@ void UserScriptWidget::onInstallButtonClicked()
         return;
     }
     sBrowserApplication->getUserScriptManager()->installScript(scriptUrl);
+}
+
+void UserScriptWidget::onCreateButtonClicked()
+{    
+    AddUserScriptDialog *scriptDialog = new AddUserScriptDialog;
+    connect(scriptDialog, &AddUserScriptDialog::informationEntered, sBrowserApplication->getUserScriptManager(), &UserScriptManager::createScript);
+    scriptDialog->show();
+    scriptDialog->setFocus();
+    scriptDialog->activateWindow();
+}
+
+void UserScriptWidget::onScriptCreated(int scriptIdx)
+{
+    UserScriptModel *model = qobject_cast<UserScriptModel*>(ui->tableViewScripts->model());
+    QModelIndex nameIdx = model->index(scriptIdx, 1);
+    QString scriptName = model->data(nameIdx, Qt::DisplayRole).toString();
+
+    UserScriptEditor *editor = new UserScriptEditor;
+    connect(editor, &UserScriptEditor::scriptModified, model, &UserScriptModel::reloadScript);
+    editor->setScriptInfo(scriptName, model->getScriptSource(scriptIdx), model->getScriptFileName(scriptIdx), scriptIdx);
+    editor->show();
 }

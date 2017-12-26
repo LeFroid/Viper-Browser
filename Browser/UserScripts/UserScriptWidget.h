@@ -41,6 +41,12 @@ private slots:
     /// Called when the install button is clicked. Spawns an input dialog and attempts to download and install the resource as a user script
     void onInstallButtonClicked();
 
+    /// Called when the create button is clicked. Asks for some script meta-information from the user and creates a template they can edit
+    void onCreateButtonClicked();
+
+    /// Called after a user script has been created by the user and is ready to be loaded into a text editor
+    void onScriptCreated(int scriptIdx);
+
 private:
     /// Pointer to the user interface elements
     Ui::UserScriptWidget *ui;

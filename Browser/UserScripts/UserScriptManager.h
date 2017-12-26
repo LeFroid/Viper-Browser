@@ -38,12 +38,25 @@ public:
      */
     QString getScriptsFor(const QUrl &url, ScriptInjectionTime injectionTime, bool isMainFrame);
 
+signals:
+    /// Emitted when a user script has been created by the user and can be loaded into the script editor
+    void scriptCreated(int scriptIdx);
+
 public slots:
     /**
      * @brief Attempts to download and install the user script from the given URL
      * @param url The location of the user script to be installed
      */
     void installScript(const QUrl &url);
+
+    /**
+     * @brief Creates a new user script, given some basic meta-information about its contents
+     * @param name Name of the user script
+     * @param nameSpace Namespace of the user script
+     * @param description Brief description regarding the purpose or functionality of the script
+     * @param version Version string of the script
+     */
+    void createScript(const QString &name, const QString &nameSpace, const QString &description, const QString &version);
 
 private:
     /// Pointer to the user scripts model
