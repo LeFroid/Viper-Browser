@@ -4,6 +4,7 @@
 #include "Bitfield.h"
 #include <cstdint>
 #include <memory>
+#include <tuple>
 #include <QHash>
 #include <QRegularExpression>
 #include <QSet>
@@ -178,11 +179,11 @@ private:
     /// Parses the rule string for uBlock Origin style cosmetic filter options
     void parseCosmeticOptions();
 
-    /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type filter information pairs
-    CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::pair<int, CosmeticFilter>> &filters);
+    /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type-string len filter information pairs
+    CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters);
 
-    /// Returns a container of pairs including the index and type of each chainable cosmetic filter in the evaluation string
-    std::vector< std::pair<int, CosmeticFilter> > getChainableFilters(const QString &evalStr) const;
+    /// Returns a container of tuples including the index, type, and string length of each chainable cosmetic filter in the evaluation string
+    std::vector< std::tuple<int, CosmeticFilter, int> > getChainableFilters(const QString &evalStr) const;
 
     /// Parses the given ad block plus formatted regular expression, returning the equivalent for a QRegularExpression
     QString parseRegExp(const QString &regExpString);

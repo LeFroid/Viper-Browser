@@ -600,23 +600,30 @@ void AdBlockFilter::parseCosmeticOptions()
 
     // Search for each chainable type and handle the first one to appear, as any other
     // chainable filter options will appear as an argument of the first
-    std::vector< std::pair<int, CosmeticFilter> > filters = getChainableFilters(m_evalString);
+    std::vector<std::tuple<int, CosmeticFilter, int>> filters = getChainableFilters(m_evalString);
     if (filters.empty())
         return;
 
     // Keep a copy of original evaluation string until processing is complete
-    QString evalStr = m_evalString, evalArg;
+    QString evalStr = m_evalString;
 
     // Process first item in filters container
-    const std::pair<int, CosmeticFilter> &p = filters.at(0);
-    switch (p.second)
+    const std::tuple<int, CosmeticFilter, int> &p = filters.at(0);
+
+    // Extract filter argument
+    QString evalArg = evalStr.mid(std::get<0>(p) + std::get<2>(p));
+    evalArg = evalArg.left(evalArg.lastIndexOf(QChar(')')));
+
+    evalStr = evalStr.left(std::get<0>(p));
+    if (std::get<1>(p) == CosmeticFilter::XPath && evalStr.isEmpty())
+        evalStr = QStringLiteral("document");
+    else if (evalStr.isEmpty())
+        return;
+
+    switch (std::get<1>(p))
     {
         case CosmeticFilter::HasText:
         {
-            // Extract inner text (will not have other chainable types if has-text is outer-most item)
-            evalArg = evalStr.mid(p.first + 10);
-            evalArg = evalArg.left(evalArg.indexOf(QChar(')')));
-
             // Place argument in quotes if not a regular expression
             if (!evalArg.startsWith(QChar('/'))
                     && (!evalArg.endsWith(QChar('/')) || !(evalArg.at(evalArg.size() - 2) == QChar('/'))))
@@ -624,107 +631,52 @@ void AdBlockFilter::parseCosmeticOptions()
                 evalArg = QString("'%1'").arg(evalArg);
             }
 
-            evalStr = evalStr.left(p.first);
-            if (evalStr.isEmpty())
-                return;
-
             m_evalString = QString("hideNodes(hasText('%1', %2)); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::If:
-        {
-            // Extract inner text and check that for more cosmetic filter options
-            evalArg = evalStr.mid(p.first + 4);
-            evalArg = evalArg.left(evalArg.lastIndexOf(QChar(')')));
-
-            evalStr = evalStr.left(p.first);
-            if (evalStr.isEmpty())
-                return;
-
-            // Check if anything within the :if(...) is a cosmetic filter, thus requiring the use of callbacks
-            if (filters.size() > 1)
-            {
-                CosmeticJSCallback c = getTranslation(evalArg, filters);
-                if (c.IsValid)
-                {
-                    m_evalString = QString("hideIfChain('%1', '%2', '%3', %4); ").arg(evalStr).arg(c.CallbackSubject).arg(c.CallbackTarget).arg(c.CallbackName);
-                    m_category = FilterCategory::StylesheetJS;
-                    return;
-                }
-            }
-            m_evalString = QString("hideIfHas('%1', '%2'); ").arg(evalStr).arg(evalArg);
-            break;
-        }
         case CosmeticFilter::IfNot:
         {
-            // Extract inner text and check that for more cosmetic filter options
-            evalArg = evalStr.mid(p.first + 8);
-            evalArg = evalArg.left(evalArg.lastIndexOf(QChar(')')));
-
-            evalStr = evalStr.left(p.first);
-            if (evalStr.isEmpty())
-                return;
-
+            const bool isNegation = (std::get<1>(p) == CosmeticFilter::IfNot);
             // Check if anything within the :if(...) is a cosmetic filter, thus requiring the use of callbacks
             if (filters.size() > 1)
             {
                 CosmeticJSCallback c = getTranslation(evalArg, filters);
                 if (c.IsValid)
                 {
-                    m_evalString = QString("hideIfNotChain('%1', '%2', '%3', %4); ").arg(evalStr).arg(c.CallbackSubject).arg(c.CallbackTarget).arg(c.CallbackName);
+                    if (isNegation)
+                        m_evalString = QString("hideIfNotChain('%1', '%2', '%3', %4); ").arg(evalStr).arg(c.CallbackSubject).arg(c.CallbackTarget).arg(c.CallbackName);
+                    else
+                        m_evalString = QString("hideIfChain('%1', '%2', '%3', %4); ").arg(evalStr).arg(c.CallbackSubject).arg(c.CallbackTarget).arg(c.CallbackName);
                     m_category = FilterCategory::StylesheetJS;
                     return;
                 }
             }
-            m_evalString = QString("hideIfNotHas('%1', '%2'); ").arg(evalStr).arg(evalArg);
+            if (isNegation)
+                m_evalString = QString("hideIfNotHas('%1', '%2'); ").arg(evalStr).arg(evalArg);
+            else
+                m_evalString = QString("hideIfHas('%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSS:
         {
-            evalArg = evalStr.mid(p.first + 13);
-            evalArg = evalArg.left(evalArg.indexOf(QChar(')')));
-
-            evalStr = evalStr.left(p.first);
-            if (evalStr.isEmpty())
-                return;
-
             m_evalString = QString("hideNodes(matchesCSS('%1', '%2')); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSSBefore:
         {
-            evalArg = evalStr.mid(p.first + 20);
-            evalArg = evalArg.left(evalArg.indexOf(QChar(')')));
-
-            evalStr = QString("%1:before").arg(evalStr.left(p.first));
-            if (evalStr.isEmpty())
-                return;
-
+            evalStr.append(QStringLiteral(":before"));
             m_evalString = QString("hideNodes(matchesCSS('%1', '%2')); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSSAfter:
         {
-            evalArg = evalStr.mid(p.first + 19);
-            evalArg = evalArg.left(evalArg.indexOf(QChar(')')));
-
-            evalStr = QString("%1:after").arg(evalStr.left(p.first));
-            if (evalStr.isEmpty())
-                return;
-
+            evalStr.append(QStringLiteral(":after"));
             m_evalString = QString("hideNodes(matchesCSS('%1', '%2')); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::XPath:
         {
-            // Extract inner text (will not have other chainable types, no need to check)
-            evalArg = evalStr.mid(p.first + 7);
-            evalArg = evalArg.left(evalArg.indexOf(QChar(')')));
-
-            evalStr = evalStr.left(p.first);
-            if (evalStr.isEmpty())
-                evalStr = QStringLiteral("document");
-
             m_evalString = QString("hideNodes(doXPath('%1', '%2')); ").arg(evalStr).arg(evalArg);
             break;
         }
@@ -733,73 +685,45 @@ void AdBlockFilter::parseCosmeticOptions()
     m_category = FilterCategory::StylesheetJS;
 }
 
-AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &evalArg, const std::vector<std::pair<int, CosmeticFilter>> &filters)
+AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters)
 {
     CosmeticJSCallback result;
 
-    const std::pair<int, CosmeticFilter> &p = filters.at(0);
+    const std::tuple<int, CosmeticFilter, int> &p = filters.at(0);
 
     // Attempt to extract information neccessary for callback invocation
     int argStrLen = evalArg.size();
     for (std::size_t i = 1; i < filters.size(); ++i)
     {
         auto const &p2 = filters.at(i);
-        if (p2.first < p.first + 4 + argStrLen)
+        if (std::get<0>(p2) < std::get<0>(p) + std::get<2>(p) + argStrLen)
         {
             result.IsValid = true;
 
             // Extract selector and argument for nested filter
-            int colonPos = p2.first - p.first - 4;
-            int cosmeticLen = 0;
-            switch (p2.second)
+            int colonPos = std::get<0>(p2) - std::get<0>(p) - std::get<2>(p);
+            int cosmeticLen = std::get<2>(p2);
+
+            CosmeticFilter currFilter = std::get<1>(p2);
+            switch (currFilter)
             {
                 case CosmeticFilter::HasText:
-                {
-                    cosmeticLen = 10;
                     result.CallbackName = QStringLiteral("hasText");
                     break;
-                }
-                case CosmeticFilter::If: // should not be nested
-                {
-                    cosmeticLen = 4;
-                    break;
-                }
-                case CosmeticFilter::IfNot: // should not be nested
-                {
-                    cosmeticLen = 8;
-                    break;
-                }
-                case CosmeticFilter::MatchesCSS:
-                {
-                    cosmeticLen = 13;
-                    result.CallbackName = QStringLiteral("matchesCSS");
-                    break;
-                }
-                case CosmeticFilter::MatchesCSSBefore:
-                {
-                    cosmeticLen = 20;
-                    result.CallbackName = QStringLiteral("matchesCSS");
-                    break;
-                }
-                case CosmeticFilter::MatchesCSSAfter:
-                {
-                    cosmeticLen = 19;
-                    result.CallbackName = QStringLiteral("matchesCSS");
-                    break;
-                }
                 case CosmeticFilter::XPath:
-                {
-                    cosmeticLen = 7;
                     result.CallbackName = QStringLiteral("doXPath");
                     break;
-                }
-                default: break;
+                case CosmeticFilter::MatchesCSS:
+                case CosmeticFilter::MatchesCSSBefore:
+                case CosmeticFilter::MatchesCSSAfter:
+                    result.CallbackName = QStringLiteral("matchesCSS"); break;
+                default: break; // If, IfNot and Has should not be nested
             }
 
             result.CallbackSubject = QString("%1").arg(evalArg.left(colonPos));
-            if (p.second == CosmeticFilter::MatchesCSSBefore)
+            if (currFilter== CosmeticFilter::MatchesCSSBefore)
                 result.CallbackSubject.append(QStringLiteral(":before"));
-            if (p.second == CosmeticFilter::MatchesCSSAfter)
+            else if (currFilter == CosmeticFilter::MatchesCSSAfter)
                 result.CallbackSubject.append(QStringLiteral(":after"));
             result.CallbackTarget = evalArg.mid(colonPos + cosmeticLen);
             result.CallbackTarget = result.CallbackTarget.left(result.CallbackTarget.indexOf(QChar(')')));
@@ -809,23 +733,23 @@ AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &e
     return result;
 }
 
-std::vector< std::pair<int, AdBlockFilter::CosmeticFilter> > AdBlockFilter::getChainableFilters(const QString &evalStr) const
+std::vector<std::tuple<int, AdBlockFilter::CosmeticFilter, int> > AdBlockFilter::getChainableFilters(const QString &evalStr) const
 {
     // Only search for chainable types
-    std::vector< std::pair<int, CosmeticFilter> > filters;
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":has-text(")), CosmeticFilter::HasText });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":if(")), CosmeticFilter::If });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":if-not(")), CosmeticFilter::IfNot });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css(")), CosmeticFilter::MatchesCSS });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css-before(")), CosmeticFilter::MatchesCSSBefore });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css-after(")), CosmeticFilter::MatchesCSSAfter });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":xpath(")), CosmeticFilter::XPath });
-    filters.erase(std::remove_if(filters.begin(), filters.end(), [](std::pair<int, CosmeticFilter> p){ return p.first < 0; }), filters.end());
+    std::vector< std::tuple<int, CosmeticFilter, int> > filters;
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":has-text(")), CosmeticFilter::HasText, 10));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if(")), CosmeticFilter::If, 4));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if-not(")), CosmeticFilter::IfNot, 8));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css(")), CosmeticFilter::MatchesCSS, 13));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-before(")), CosmeticFilter::MatchesCSSBefore, 20));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-after(")), CosmeticFilter::MatchesCSSAfter, 19));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":xpath(")), CosmeticFilter::XPath, 7));
+    filters.erase(std::remove_if(filters.begin(), filters.end(), [](std::tuple<int, CosmeticFilter, int> p){ return std::get<0>(p) < 0; }), filters.end());
     if (filters.empty())
         return filters;
 
-    std::sort(filters.begin(), filters.end(), [](std::pair<int, CosmeticFilter> const &p1, std::pair<int, CosmeticFilter> const &p2) {
-        return p1.first < p2.first;
+    std::sort(filters.begin(), filters.end(), [](std::tuple<int, CosmeticFilter, int> const &p1, std::tuple<int, CosmeticFilter, int> const &p2) {
+        return std::get<0>(p1) < std::get<0>(p2);
     });
 
     return filters;
