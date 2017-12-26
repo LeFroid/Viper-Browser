@@ -3,7 +3,7 @@
 
 #include "AdBlockSubscription.h"
 
-#include "AdBlocker.h"
+#include "BlockedNetworkReply.h"
 
 #include <QObject>
 #include <QString>

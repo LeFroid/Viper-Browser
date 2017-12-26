@@ -1,5 +1,5 @@
-#ifndef ADBLOCKER_H
-#define ADBLOCKER_H
+#ifndef BLOCKEDNETWORKREPLY_H
+#define BLOCKEDNETWORKREPLY_H
 
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -16,7 +16,8 @@ class BlockedNetworkReply : public QNetworkReply
     Q_OBJECT
 
 public:
-    BlockedNetworkReply(const QNetworkRequest &request, QObject *parent = nullptr);
+    /// Constructs the ad-block network reply, given the original request, filter string and a parent object
+    BlockedNetworkReply(const QNetworkRequest &request, const QString &filter, QObject *parent = nullptr);
     void abort() {}
 
 protected:
@@ -26,4 +27,4 @@ private slots:
     void delayedFinished();
 };
 
-#endif // ADBLOCKER_H
+#endif // BLOCKEDNETWORKREPLY_H

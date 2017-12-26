@@ -1,4 +1,4 @@
-#include "AdBlocker.h"
+#include "BlockedNetworkReply.h"
 #include "BrowserApplication.h"
 #include "Settings.h"
 
@@ -7,13 +7,13 @@
 #include <QTimer>
 #include <QWebFrame>
 
-BlockedNetworkReply::BlockedNetworkReply(const QNetworkRequest &request, QObject *parent) :
+BlockedNetworkReply::BlockedNetworkReply(const QNetworkRequest &request, const QString &filter, QObject *parent) :
     QNetworkReply(parent)
 {
     setOperation(QNetworkAccessManager::GetOperation);
     setRequest(request);
     setUrl(request.url());
-    setError(QNetworkReply::ContentAccessDenied, tr("Advertisement has been blocked"));
+    setError(QNetworkReply::ContentAccessDenied, tr("Advertisement has been blocked by the rule: %1").arg(filter));
     QTimer::singleShot(0, this, SLOT(delayedFinished()));
 }
 

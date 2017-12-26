@@ -70,7 +70,6 @@ SOURCES += \
     Web/WebView.cpp \
     URLSuggestionModel.cpp \
     Network/NetworkAccessManager.cpp \
-    Network/AdBlocker.cpp \
     UserAgents/UserAgentManager.cpp \
     UserAgents/AddUserAgentDialog.cpp \
     Network/SecurityManager.cpp \
@@ -112,7 +111,8 @@ SOURCES += \
     UserScripts/UserScriptEditor.cpp \
     AdBlock/AdBlockModel.cpp \
     AdBlock/AdBlockWidget.cpp \
-    Widgets/CheckableTableView.cpp
+    Widgets/CheckableTableView.cpp \
+    Network/BlockedNetworkReply.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -145,7 +145,6 @@ HEADERS += \
     Web/WebView.h \
     URLSuggestionModel.h \
     Network/NetworkAccessManager.h \
-    Network/AdBlocker.h \
     UserAgents/UserAgentManager.h \
     UserAgents/AddUserAgentDialog.h \
     Network/SecurityManager.h \
@@ -187,7 +186,8 @@ HEADERS += \
     UserScripts/UserScriptEditor.h \
     AdBlock/AdBlockModel.h \
     AdBlock/AdBlockWidget.h \
-    Widgets/CheckableTableView.h
+    Widgets/CheckableTableView.h \
+    Network/BlockedNetworkReply.h
 
 FORMS += \
         mainwindow.ui \

@@ -95,7 +95,7 @@ QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
 {
     QString domain = getSecondLevelDomain(url);
     if (domain.isEmpty())
-        return QString();
+        domain = url.host();
 
     QString javascript;
     for (AdBlockFilter *filter : m_domainJSFilters)
@@ -128,10 +128,10 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     {
         while (frame->parentFrame() != nullptr)
             frame = frame->parentFrame();
-        baseUrl = frame->baseUrl().toString(QUrl::FullyEncoded);
+        baseUrl = frame->baseUrl().toString(QUrl::FullyEncoded).toLower();
     }
     else
-        baseUrl = requestUrlObj.toString(QUrl::FullyEncoded);
+        baseUrl = requestUrlObj.toString(QUrl::FullyEncoded).toLower();
 
     // Get request url in string form, as well as its domain string
     QString requestUrl = requestUrlObj.toString(QUrl::FullyEncoded).toLower();
@@ -146,6 +146,8 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     if (requestUrl.compare(baseUrl) == 0)
         elemType |= ElementType::Document;
     QString secondLevelDomain = getSecondLevelDomain(requestUrlObj);
+    if (secondLevelDomain.isEmpty())
+        secondLevelDomain = requestUrlObj.host();
     if (secondLevelDomain == getSecondLevelDomain(QUrl(baseUrl)))
         elemType |= ElementType::ThirdParty;
 
@@ -153,7 +155,7 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     for (AdBlockFilter *filter : m_importantBlockFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
-            return new BlockedNetworkReply(request, this);
+            return new BlockedNetworkReply(request, filter->getRule(), this);
     }
     for (AdBlockFilter *filter : m_allowFilters)
     {
@@ -168,7 +170,7 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
         {
             //qDebug() << "Matched block rule  BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
-            return new BlockedNetworkReply(request, this);
+            return new BlockedNetworkReply(request, filter->getRule(), this);
         }
     }
 

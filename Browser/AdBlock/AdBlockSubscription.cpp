@@ -110,7 +110,7 @@ void AdBlockSubscription::load()
             }
             continue;
         }
-        else if (line.startsWith("# ") || line.startsWith(QStringLiteral("[Adblock")))
+        else if (line.isEmpty() || line.compare(QStringLiteral("#")) == 0 || line.startsWith("# ") || line.startsWith(QStringLiteral("[Adblock")))
             continue;
 
         m_filters.push_back(std::make_unique<AdBlockFilter>(line));

@@ -65,6 +65,36 @@ class AdBlockFilter
 {
     friend class AdBlockManager;
 
+    /// Cosmetic filter types, used internally for creating appropriate JavaScript calls
+    /// has-text, if, if-not, matches-css, matches-css-before, matches-css-after, xpath
+    enum class CosmeticFilter
+    {
+        Has,
+        HasText,
+        If,
+        IfNot,
+        MatchesCSS,
+        MatchesCSSBefore,
+        MatchesCSSAfter,
+        XPath
+    };
+
+    /// Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
+    struct CosmeticJSCallback
+    {
+        /// True if the callback information is valid, false if this structure contains no useful information
+        bool IsValid;
+
+        /// Name of the callback to be invoked, or empty if IsNested is false
+        QString CallbackName;
+
+        /// Subject to be passed to the callback if
+        QString CallbackSubject;
+
+        /// Target to be searched for in the callback
+        QString CallbackTarget;
+    };
+
 public:
     /// Default constructor
     AdBlockFilter();
@@ -135,6 +165,9 @@ private:
     /// Parses the rule string, setting the appropriate fields of the filter object
     void parseRule();
 
+    /// Returns true if, while parsing the filter rule, its category is determined to be of type Stylesheet or StylesheetJS. Otherwise returns false.
+    bool isStylesheetRule();
+
     /// Parses a list of domains, separated with the given delimiter, and placing them into
     /// either the domain blacklist or whitelist depending on the syntax (~ = whitelist, default = blacklist)
     void parseDomains(const QString &domainString, QChar delimiter);
@@ -144,6 +177,12 @@ private:
 
     /// Parses the rule string for uBlock Origin style cosmetic filter options
     void parseCosmeticOptions();
+
+    /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type filter information pairs
+    CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::pair<int, CosmeticFilter>> &filters);
+
+    /// Returns a container of pairs including the index and type of each chainable cosmetic filter in the evaluation string
+    std::vector< std::pair<int, CosmeticFilter> > getChainableFilters(const QString &evalStr) const;
 
     /// Parses the given ad block plus formatted regular expression, returning the equivalent for a QRegularExpression
     QString parseRegExp(const QString &regExpString);
