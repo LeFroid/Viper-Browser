@@ -51,6 +51,9 @@ AdBlockManager &AdBlockManager::instance()
 
 void AdBlockManager::updateSubscriptions()
 {
+    if (!m_enabled)
+        return;
+
     // Try updating the subscription if its next_update is hit
     // Check if subscription should be updated
     for (size_t i = 0; i < m_subscriptions.size(); ++i)
@@ -100,6 +103,9 @@ const QString &AdBlockManager::getStylesheet() const
 
 QString AdBlockManager::getDomainStylesheet(const QUrl &url) const
 {
+    if (!m_enabled)
+        return QString();
+
     QString domain = getSecondLevelDomain(url);
     if (domain.isEmpty())
         return QString();
@@ -139,6 +145,9 @@ QString AdBlockManager::getDomainStylesheet(const QUrl &url) const
 
 QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
 {
+    if (!m_enabled)
+        return QString();
+
     QString domain = getSecondLevelDomain(url);
     if (domain.isEmpty())
         domain = url.host();
