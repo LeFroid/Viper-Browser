@@ -28,6 +28,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_allowFilters(),
     m_domainStyleFilters(),
     m_domainJSFilters(),
+    m_customStyleFilters(),
     m_adBlockModel(nullptr)
 {
     m_enabled = sBrowserApplication->getSettings()->getValue("AdBlockPlusEnabled").toBool();
@@ -86,6 +87,13 @@ QString AdBlockManager::getDomainStylesheet(const QUrl &url) const
     {
         stylesheet = stylesheet.left(stylesheet.size() - 1);
         stylesheet.append(QStringLiteral("{ display: none !important; } "));
+    }
+
+    // Check for custom stylesheet rules
+    for (AdBlockFilter *filter : m_customStyleFilters)
+    {
+        if (filter->isDomainStyleMatch(domain))
+            stylesheet.append(filter->getEvalString());
     }
 
     return stylesheet;
@@ -363,6 +371,10 @@ void AdBlockManager::extractFilters()
             else if (filter->getCategory() == FilterCategory::StylesheetJS)
             {
                 m_domainJSFilters.push_back(filter);
+            }
+            else if (filter->getCategory() == FilterCategory::StylesheetCustom)
+            {
+                m_customStyleFilters.push_back(filter);
             }
             else
             {

@@ -179,8 +179,9 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
         Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
         switch (m_category)
         {
-            case FilterCategory::Stylesheet: //handled more directly in ad block manager
+            case FilterCategory::Stylesheet:    // Handled in AdBlockManager
             case FilterCategory::StylesheetJS:
+            case FilterCategory::StylesheetCustom:
                 return false;
             case FilterCategory::Domain:
                 match = isDomainMatch(m_evalString, requestDomain);
@@ -496,6 +497,9 @@ bool AdBlockFilter::isStylesheetRule()
 
         m_evalString = m_ruleString.mid(pos + 2);
 
+        // Check if specific css is applied to selector instead of default hiding behavior
+        parseCustomStylesheet();
+
         // Check if filter is procedural cosmetic filter type
         parseCosmeticOptions();
 
@@ -683,6 +687,21 @@ void AdBlockFilter::parseCosmeticOptions()
         default: return;
     }
     m_category = FilterCategory::StylesheetJS;
+}
+
+void AdBlockFilter::parseCustomStylesheet()
+{
+    int styleIdx = m_evalString.indexOf(QStringLiteral(":style("));
+    if (styleIdx < 0)
+        return;
+
+    // Extract style, and convert evaluation string into format "selector { style }"
+    QString style = m_evalString.mid(styleIdx + 7);
+    style = style.left(style.lastIndexOf(QChar(')')));
+
+    m_evalString = m_evalString.left(styleIdx).append(QString(" { %1 } ").arg(style));
+
+    m_category = FilterCategory::StylesheetCustom;
 }
 
 AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters)

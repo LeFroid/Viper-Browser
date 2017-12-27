@@ -49,6 +49,7 @@ enum class FilterCategory
     None,
     Stylesheet,          /// Block or allow CSS elements
     StylesheetJS,        /// Block or allow CSS elements via JavaScript injection
+    StylesheetCustom,    /// Custom CSS for filter element as per :style option
     Domain,              /// Block or allow a domain
     DomainStart,         /// Block or allow based on domain starting with given filter expression
     StringStartMatch,    /// Block or allow based on strings starting with the filter expression
@@ -178,6 +179,9 @@ private:
 
     /// Parses the rule string for uBlock Origin style cosmetic filter options
     void parseCosmeticOptions();
+
+    /// Handles the :style option for stylesheet filters
+    void parseCustomStylesheet();
 
     /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type-string len filter information pairs
     CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters);

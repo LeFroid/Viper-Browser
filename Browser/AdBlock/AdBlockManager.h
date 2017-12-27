@@ -114,6 +114,9 @@ private:
     /// Container of filters that have domain-specific javascript rules
     std::vector<AdBlockFilter*> m_domainJSFilters;
 
+    /// Container of filters that have custom stylesheet values (:style filter option)
+    std::vector<AdBlockFilter*> m_customStyleFilters;
+
     /// Ad Block model, used to indirectly view and modify subscriptions in the user interface
     AdBlockModel *m_adBlockModel;
 };
