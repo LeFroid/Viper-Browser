@@ -92,6 +92,7 @@ void AdBlockSubscription::load()
     if (!m_enabled || m_filePath.isEmpty())
         return;
 
+    // Load subscription file
     QFile subFile(m_filePath);
     if (!subFile.exists() || !subFile.open(QIODevice::ReadOnly))
         return;
@@ -160,4 +161,9 @@ AdBlockFilter *AdBlockSubscription::getFilter(int index)
 const QString &AdBlockSubscription::getFilePath() const
 {
     return m_filePath;
+}
+
+void AdBlockSubscription::setFilePath(const QString &filePath)
+{
+    m_filePath = filePath;
 }

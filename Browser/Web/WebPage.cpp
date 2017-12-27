@@ -113,6 +113,9 @@ void WebPage::onLoadStarted()
 {
     if (QWebFrame *frame = qobject_cast<QWebFrame*>(sender()))
     {
+        //if (frame == mainFrame() && m_mainFrameHost == frame->baseUrl().host())
+        //    frame->documentElement().appendInside(m_domainFilterStyle);
+
         //bool isMainFrame = (frame == mainFrame());
         //QString extensionJS = m_extensionMgr->getScriptsFor(frame->url(), isMainFrame);
         //if (!extensionJS.isEmpty()) {

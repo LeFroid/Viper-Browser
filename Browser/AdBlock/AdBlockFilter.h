@@ -97,6 +97,12 @@ class AdBlockFilter
         QString CallbackTarget;
     };
 
+    /// Returns true if the given ElementType bitfield is set for the bit associated with the target ElementType
+    inline bool hasElementType(ElementType subject, ElementType target)
+    {
+        return (subject & target) == target;
+    }
+
 public:
     /// Default constructor
     AdBlockFilter();

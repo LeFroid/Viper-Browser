@@ -4,6 +4,7 @@
 #include "DownloadManager.h"
 #include "NetworkAccessManager.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QFile>
 #include <QFileInfo>
@@ -14,11 +15,12 @@
 
 QMimeDatabase mimeDB;
 
-DownloadItem::DownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, QWidget *parent) :
+DownloadItem::DownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, bool writeOverExisting, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DownloadItem),
     m_reply(reply),
     m_askForFileName(askForFileName),
+    m_writeOverExisting(writeOverExisting),
     m_downloadDir(downloadDir),
     m_bytesReceived(0),
     m_file(),
@@ -58,7 +60,15 @@ void DownloadItem::setupItem()
     QString externalName = info.baseName();
 
     // Request file name for download if needed
-    QString fileNameDefault = getDefaultFileName(m_downloadDir + '/' + (externalName.isEmpty() ? "unknown" : externalName), info.completeSuffix());
+    QString fileNameDefault;
+    if (!m_writeOverExisting)
+    {
+        fileNameDefault = getDefaultFileName(QString("%1%2%3").arg(m_downloadDir).arg(QDir::separator()).arg((externalName.isEmpty() ? "unknown" : externalName)),
+                                             info.completeSuffix());
+    }
+    else
+        fileNameDefault = QString("%1%2%3.%4").arg(m_downloadDir).arg(QDir::separator()).arg((externalName.isEmpty() ? "unknown" : externalName)).arg(info.completeSuffix());
+
     QString fileName = fileNameDefault;
     if (m_askForFileName)
     {
@@ -197,7 +207,7 @@ void DownloadItem::onMetaDataChanged()
 QString DownloadItem::getDefaultFileName(const QString &pathWithoutSuffix, const QString &completeSuffix) const
 {
     int attempts = 0;
-    QString fileAttempt = pathWithoutSuffix + '.' + completeSuffix;
+    QString fileAttempt = QString("%1.%2").arg(pathWithoutSuffix).arg(completeSuffix);
 
     while (QFile::exists(fileAttempt))
     {

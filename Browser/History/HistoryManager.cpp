@@ -159,9 +159,6 @@ QList<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate)
         item.VisitID = it.VisitID;
         item.Visits = it.Visits;
 
-        qint64 dbVisit;
-        qint64 lastVisit = (item.Visits.empty() ? 0 : item.Visits.at(item.Visits.size() - 1).toMSecsSinceEpoch());
-
         // Check DB
         query.bindValue(":id", it.VisitID);
         query.bindValue(":date", startMSec);
@@ -169,10 +166,7 @@ QList<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate)
         {
             while (query.next())
             {
-                // Make sure there are no duplicate entries in the visit list
-                dbVisit = query.value(0).toLongLong();
-                if (lastVisit && dbVisit < lastVisit)
-                    item.Visits.append(QDateTime::fromMSecsSinceEpoch(dbVisit));
+                item.Visits.append(QDateTime::fromMSecsSinceEpoch(query.value(0).toLongLong()));//dbVisit));
             }
         }
         items.append(item);
@@ -218,7 +212,7 @@ void HistoryManager::load()
     // Only load data from the History table, will load specific visits if user requests full history
     QSqlQuery query(m_database);
 
-    if (query.exec("SELECT * FROM History ORDER BY VisitID ASC"))
+    if (query.exec("SELECT URL, TITLE, VisitID FROM History ORDER BY VisitID ASC"))
     {
         QSqlRecord rec = query.record();
         int idUrl = rec.indexOf("URL");
@@ -298,10 +292,10 @@ void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visi
     if (m_queryHistoryItem == nullptr)
     {
         m_queryHistoryItem = new QSqlQuery(m_database);
-        m_queryHistoryItem->prepare("INSERT OR REPLACE INTO History(URL, Title, VisitID) VALUES(:url, :title, :visitId)");
+        m_queryHistoryItem->prepare("INSERT OR IGNORE INTO History(URL, Title, VisitID) VALUES(:url, :title, :visitId)");
 
         m_queryVisit = new QSqlQuery(m_database);
-        m_queryVisit->prepare("INSERT OR REPLACE INTO Visits(VisitID, Date) VALUES(:visitId, :date)");
+        m_queryVisit->prepare("INSERT INTO Visits(VisitID, Date) VALUES(:visitId, :date)");
     }
 
     m_queryHistoryItem->bindValue(":url", item.URL.toString().toLower());

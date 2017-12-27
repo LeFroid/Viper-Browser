@@ -218,54 +218,20 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
         if (hasDomainRules() && !isDomainMatch(m_evalString, baseUrl))
             return false;
 
-        // Check for XMLHttpRequest restrictions
-        bool isElemType = (typeMask & ElementType::XMLHTTPRequest) == ElementType::XMLHTTPRequest;
-        if (((m_allowedTypes & ElementType::XMLHTTPRequest) == ElementType::XMLHTTPRequest) && isElemType)
-            return false;
-        if (((m_blockedTypes & ElementType::XMLHTTPRequest) == ElementType::XMLHTTPRequest) && isElemType)
-            return true;
+        // Check for element type restrictions (in specific order)
+        std::array<ElementType, 7> elemTypes = { ElementType::XMLHTTPRequest, ElementType::Document,   ElementType::Object,
+                                                 ElementType::Subdocument,    ElementType::ThirdParty, ElementType::Image,
+                                                 ElementType::Script };
 
-        // Check for document restrictions
-        isElemType = (typeMask & ElementType::Document) == ElementType::Document;
-        if (((m_allowedTypes & ElementType::Document) == ElementType::Document) && isElemType)
-            return false;
-        if (((m_blockedTypes & ElementType::Document) == ElementType::Document) && isElemType)
-            return true;
-
-        // Check for object restrictions
-        isElemType = (typeMask & ElementType::Object) == ElementType::Object;
-        if (((m_allowedTypes & ElementType::Object) == ElementType::Object) && isElemType)
-            return false;
-        if (((m_blockedTypes & ElementType::Object) == ElementType::Object) && isElemType)
-            return true;
-
-        // Check for subdocument restrictions
-        isElemType = (typeMask & ElementType::Subdocument) == ElementType::Subdocument;
-        if (((m_allowedTypes & ElementType::Subdocument) == ElementType::Subdocument) && isElemType)
-            return false;
-        if (((m_blockedTypes & ElementType::Subdocument) == ElementType::Subdocument) && isElemType)
-            return true;
-
-        // Check for third-party restrictions. If third-party in type mask, request is known to be third party
-        isElemType = (typeMask & ElementType::ThirdParty) == ElementType::ThirdParty;
-        if (((m_allowedTypes & ElementType::ThirdParty) == ElementType::ThirdParty) && isElemType)
-            return false;
-        if (((m_blockedTypes & ElementType::ThirdParty) == ElementType::ThirdParty) && isElemType)
-            return true;
-
-        // Check for image restrictions
-        isElemType = (typeMask & ElementType::Image) == ElementType::Image;
-        if (((m_allowedTypes & ElementType::Image) == ElementType::Image) && isElemType)
-            return false;
-        if (((m_blockedTypes & ElementType::Image) == ElementType::Image) && isElemType)
-            return true;
-
-        // Check for script restrictions
-        isElemType = (typeMask & ElementType::Script) == ElementType::Script;
-        if (((m_allowedTypes & ElementType::Script) == ElementType::Script) && isElemType)
-            return false;
-        if (((m_blockedTypes & ElementType::Script) == ElementType::Script) && isElemType)
-            return true;
+        for (std::size_t i = 0; i < elemTypes.size(); ++i)
+        {
+            ElementType currentType = elemTypes[i];
+            bool isRequestOfType = hasElementType(typeMask, currentType);
+            if (hasElementType(m_allowedTypes, currentType) && isRequestOfType)
+                return false;
+            if (hasElementType(m_blockedTypes, currentType) && isRequestOfType)
+                return true;
+        }
     }
 
     return match;

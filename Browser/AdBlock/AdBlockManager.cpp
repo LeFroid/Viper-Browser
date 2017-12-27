@@ -2,6 +2,8 @@
 #include "AdBlockModel.h"
 #include "Bitfield.h"
 #include "BrowserApplication.h"
+#include "DownloadItem.h"
+#include "DownloadManager.h"
 #include "Settings.h"
 #include "WebPage.h"
 
@@ -45,6 +47,42 @@ AdBlockManager &AdBlockManager::instance()
 {
     static AdBlockManager adBlockInstance;
     return adBlockInstance;
+}
+
+void AdBlockManager::updateSubscriptions()
+{
+    // Try updating the subscription if its next_update is hit
+    // Check if subscription should be updated
+    for (size_t i = 0; i < m_subscriptions.size(); ++i)
+    {
+        AdBlockSubscription *subPtr = &m_subscriptions.at(i);
+        if (!subPtr)
+            continue;
+        const QDateTime &updateTime = subPtr->getNextUpdate();
+        QDateTime now = QDateTime::currentDateTime();
+        if (!updateTime.isNull() && updateTime < now)
+        {
+            const QUrl &srcUrl = subPtr->getSourceUrl();
+            if (srcUrl.isValid() && !srcUrl.isLocalFile())
+            {
+                QNetworkRequest request;
+                request.setUrl(srcUrl);
+
+                DownloadItem *item = sBrowserApplication->getDownloadManager()->downloadInternal(request, m_subscriptionDir, false, true);
+                connect(item, &DownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath){
+                    if (filePath != subPtr->getFilePath())
+                    {
+                        QFile oldFile(subPtr->getFilePath());
+                        oldFile.remove();
+                        subPtr->setFilePath(filePath);
+                    }
+                    item->deleteLater();
+                    subPtr->setLastUpdate(now);
+                    subPtr->setNextUpdate(now.addDays(7));
+                });
+            }
+        }
+    }
 }
 
 AdBlockModel *AdBlockManager::getModel()

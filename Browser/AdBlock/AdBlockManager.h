@@ -47,6 +47,10 @@ public:
     /// nullptr if the request is allowed
     BlockedNetworkReply *getBlockedReply(const QNetworkRequest &request);
 
+public slots:
+    /// Attempt to update ad block subscriptions
+    void updateSubscriptions();
+
 protected:
     /// Returns the number of subscriptions used by the ad block manager
     int getNumSubscriptions() const;

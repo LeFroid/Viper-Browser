@@ -48,7 +48,7 @@ void DownloadManager::download(const QNetworkRequest &request, bool askForFileNa
     handleUnsupportedContent(m_accessMgr->get(request), askForFileName);
 }
 
-DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName)
+DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName, bool writeOverExisting)
 {
     if (!m_accessMgr || request.url().isEmpty())
         return nullptr;
@@ -62,7 +62,7 @@ DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, 
         return nullptr;
 
     // Add to model
-    DownloadItem *item = new DownloadItem(reply, downloadDir, askForFileName, this);
+    DownloadItem *item = new DownloadItem(reply, downloadDir, askForFileName, writeOverExisting, this);
     return item;
 }
 
@@ -76,7 +76,7 @@ void DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askFor
         return;
 
     // Add to model
-    DownloadItem *item = new DownloadItem(reply, m_downloadDir, askForFileName, this);
+    DownloadItem *item = new DownloadItem(reply, m_downloadDir, askForFileName, false, this);
     int downloadRow = m_downloads.size();
     m_model->beginInsertRows(QModelIndex(), downloadRow, downloadRow);
     m_downloads.append(item);

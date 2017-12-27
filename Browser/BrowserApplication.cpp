@@ -13,6 +13,7 @@
 #include "UserAgentManager.h"
 #include "UserScriptManager.h"
 #include "WebPage.h"
+#include "AdBlockManager.h"
 
 #include <vector>
 #include <QDir>
@@ -219,6 +220,8 @@ MainWindow *BrowserApplication::getNewWindow()
                 m_sessionMgr.restoreSession(w);
                 break;
         }
+
+        AdBlockManager::instance().updateSubscriptions();
     }
     else
     {

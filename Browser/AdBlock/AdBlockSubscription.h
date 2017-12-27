@@ -81,6 +81,9 @@ protected:
     /// Returns the absolute path of the subscription file
     const QString &getFilePath() const;
 
+    /// Updates the path of the subscription file - called after completion of an update if the file name is different
+    void setFilePath(const QString &filePath);
+
 private:
     /// True if subscription is enabled, false if else
     bool m_enabled;

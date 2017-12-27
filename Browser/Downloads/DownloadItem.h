@@ -23,9 +23,10 @@ public:
      * @param reply The network reply of the original download request
      * @param downloadDir The default download directory
      * @param askForFileName True if the interface will ask for a specific file name to download the item as, false if default
+     * @param writeOverExisting True if the download should overwrite any existing files with naming conflicts, false if else
      * @param parent Pointer to the DownloadManager
      */
-    explicit DownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, QWidget *parent = 0);
+    explicit DownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, bool writeOverExisting, QWidget *parent = 0);
     ~DownloadItem();
 
  signals:
@@ -49,7 +50,7 @@ private slots:
     void onMetaDataChanged();
 
 private:
-    /// Connects the interface items to network activity
+    /// Connects the interface items to network activity.
     void setupItem();
 
     /// Sets the icon for the download's file type
@@ -70,6 +71,9 @@ private:
 
     /// Whether or not to ask for a file name to save the download item as
     bool m_askForFileName;
+
+    /// If true, the download will overwrite any existing files with naming conflicts. Otherwise, it will try to resolve the naming conflict
+    bool m_writeOverExisting;
 
     /// Download directory
     QString m_downloadDir;

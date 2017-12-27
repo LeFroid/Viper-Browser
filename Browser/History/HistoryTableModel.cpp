@@ -3,7 +3,6 @@
 #include "HistoryManager.h"
 #include "FaviconStorage.h"
 
-#include <QDebug>
 HistoryTableModel::HistoryTableModel(HistoryManager *historyMgr, QObject *parent) :
     QAbstractTableModel(parent),
     m_historyMgr(historyMgr),
@@ -64,11 +63,9 @@ QVariant HistoryTableModel::data(const QModelIndex &index, int role) const
         {
             if (role == Qt::DisplayRole)
                 return itemData.Title;
-
-            if (role == Qt::DecorationRole)
+            else if (role == Qt::DecorationRole)
                 return itemData.Favicon;
-
-            if (role == Qt::SizeHintRole)
+            else if (role == Qt::SizeHintRole)
                 return itemData.Favicon.size();
             break;
         }
