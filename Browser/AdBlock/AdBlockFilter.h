@@ -221,6 +221,9 @@ protected:
     /// True if the filter has the important option and is not an exception (uBlock standard)
     bool m_important;
 
+    /// True if filter is disabled (will never match network requests), false if enabled (default)
+    bool m_disabled;
+
     /// Bitfield of element types to be allowed
     ElementType m_allowedTypes;
 

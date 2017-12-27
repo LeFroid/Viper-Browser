@@ -18,6 +18,7 @@ AdBlockFilter::AdBlockFilter() :
     m_evalString(),
     m_exception(false),
     m_important(false),
+    m_disabled(false),
     m_allowedTypes(ElementType::None),
     m_blockedTypes(ElementType::None),
     m_matchCase(false),
@@ -34,6 +35,7 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_evalString(),
     m_exception(false),
     m_important(false),
+    m_disabled(false),
     m_allowedTypes(ElementType::None),
     m_blockedTypes(ElementType::None),
     m_matchCase(false),
@@ -53,6 +55,7 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
     m_evalString(other.m_evalString),
     m_exception(other.m_exception),
     m_important(other.m_important),
+    m_disabled(other.m_disabled),
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
@@ -70,6 +73,7 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
     m_evalString(other.m_evalString),
     m_exception(other.m_exception),
     m_important(other.m_important),
+    m_disabled(other.m_disabled),
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
@@ -87,6 +91,7 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
     m_evalString = other.m_evalString;
     m_exception = other.m_exception;
     m_important = other.m_important;
+    m_disabled = other.m_disabled;
     m_allowedTypes = other.m_allowedTypes;
     m_blockedTypes = other.m_blockedTypes;
     m_matchCase = other.m_matchCase;
@@ -107,6 +112,7 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
         m_evalString = other.m_evalString;
         m_exception = other.m_exception;
         m_important = other.m_important;
+        m_disabled = other.m_disabled;
         m_allowedTypes = other.m_allowedTypes;
         m_blockedTypes = other.m_blockedTypes;
         m_matchCase = other.m_matchCase;
@@ -172,6 +178,9 @@ bool AdBlockFilter::hasDomainRules() const
 
 bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
 {
+    if (m_disabled)
+        return false;
+
     bool match = m_matchAll;
 
     if (!match)
@@ -219,9 +228,9 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
             return false;
 
         // Check for element type restrictions (in specific order)
-        std::array<ElementType, 7> elemTypes = { ElementType::XMLHTTPRequest, ElementType::Document,   ElementType::Object,
+        std::array<ElementType, 8> elemTypes = { ElementType::XMLHTTPRequest, ElementType::Document,   ElementType::Object,
                                                  ElementType::Subdocument,    ElementType::ThirdParty, ElementType::Image,
-                                                 ElementType::Script };
+                                                 ElementType::Script,         ElementType::WebSocket };
 
         for (std::size_t i = 0; i < elemTypes.size(); ++i)
         {
@@ -527,7 +536,13 @@ void AdBlockFilter::parseOptions(const QString &optionString)
             if (optionException)
                 m_allowedTypes |= elemType;
             else
+            {
+                // Don't allow exception filters to whitelist entire pages / disable ad block (uBlock origin setting)
+                if (m_exception && elemType == ElementType::Document)
+                    m_disabled = true;
+
                 m_blockedTypes |= elemType;
+            }
         }
         else if (option.startsWith("domain="))
         {
