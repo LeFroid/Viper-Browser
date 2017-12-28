@@ -15,6 +15,20 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QCheckBox" name="checkBoxEnableAdBlock">
+     <property name="text">
+      <string>Block Advertisements</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="Line" name="line_4">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QCheckBox" name="checkBoxBlockPopups">
      <property name="text">
       <string>Block pop-up windows</string>

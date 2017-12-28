@@ -33,6 +33,9 @@ public:
     /// Static AdBlockManager instance
     static AdBlockManager &instance();
 
+    /// Sets the state of the ad block manager. If true, it will filter network requests as per filter rules. Otherwise, no blocking will be done
+    void setEnabled(bool value);
+
     /// Returns the model that is used to view and modify ad block subscriptions
     AdBlockModel *getModel();
 

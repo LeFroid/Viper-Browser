@@ -23,6 +23,11 @@ bool ContentTab::arePopupsEnabled() const
     return !ui->checkBoxBlockPopups->isChecked();
 }
 
+bool ContentTab::isAdBlockEnabled() const
+{
+    return ui->checkBoxEnableAdBlock->isChecked();
+}
+
 bool ContentTab::isAutoLoadImagesEnabled() const
 {
     return ui->checkBoxAutoLoadImages->isChecked();
@@ -125,6 +130,11 @@ void ContentTab::setFixedFontSize(int size)
 bool ContentTab::isJavaScriptEnabled() const
 {
     return ui->checkBoxEnableJavaScript->isChecked();
+}
+
+void ContentTab::toggleAdBlock(bool value)
+{
+    ui->checkBoxEnableAdBlock->setChecked(value);
 }
 
 void ContentTab::toggleAutoLoadImages(bool value)

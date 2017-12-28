@@ -61,6 +61,11 @@ AdBlockManager &AdBlockManager::instance()
     return adBlockInstance;
 }
 
+void AdBlockManager::setEnabled(bool value)
+{
+    m_enabled = value;
+}
+
 void AdBlockManager::updateSubscriptions()
 {
     if (!m_enabled)

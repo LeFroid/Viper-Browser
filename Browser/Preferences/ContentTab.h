@@ -29,6 +29,9 @@ public:
     /// Returns true if popups are enabled, false if disabled
     bool arePopupsEnabled() const;
 
+    /// Returns true if advertisement blocking is enabled, false if disabled
+    bool isAdBlockEnabled() const;
+
     /// Returns true if images should automatically be loaded, false if otherwise
     bool isAutoLoadImagesEnabled() const;
 
@@ -84,6 +87,12 @@ public:
     void setFixedFontSize(int size);
 
 public slots:
+    /**
+     * @brief toggleAdBlock Toggles the setting for using an advertisement blocker when loading content
+     * @param value If true, the ad blocker will be enabled. Otherwise it will be disabled
+     */
+    void toggleAdBlock(bool value);
+
     /**
      * @brief toggleAutoLoadImages Toggles the setting for automatically loading images per page
      * @param value If true, images will be loaded automatically. If false, they will not be loaded automatically

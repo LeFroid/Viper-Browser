@@ -1,6 +1,7 @@
 #include "Preferences.h"
 #include "ui_Preferences.h"
 
+#include "AdBlockManager.h"
 #include "BrowserApplication.h"
 #include "Settings.h"
 #include <QDir>
@@ -23,24 +24,25 @@ Preferences::~Preferences()
 
 void Preferences::loadSettings()
 {
-    ui->tabGeneral->setDownloadDirectory(m_settings->getValue("DownloadDir").toString());
-    ui->tabGeneral->setDownloadAskBehavior(m_settings->getValue("AskWhereToSaveDownloads").toBool());
-    ui->tabGeneral->setHomePage(m_settings->getValue("HomePage").toString());
-    ui->tabGeneral->setStartupIndex(m_settings->getValue("StartupMode").toInt());
-    ui->tabGeneral->setNewTabsLoadHomePage(m_settings->getValue("NewTabsLoadHomePage").toBool());
+    ui->tabGeneral->setDownloadDirectory(m_settings->getValue(QStringLiteral("DownloadDir")).toString());
+    ui->tabGeneral->setDownloadAskBehavior(m_settings->getValue(QStringLiteral("AskWhereToSaveDownloads")).toBool());
+    ui->tabGeneral->setHomePage(m_settings->getValue(QStringLiteral("HomePage")).toString());
+    ui->tabGeneral->setStartupIndex(m_settings->getValue(QStringLiteral("StartupMode")).toInt());
+    ui->tabGeneral->setNewTabsLoadHomePage(m_settings->getValue(QStringLiteral("NewTabsLoadHomePage")).toBool());
 
-    ui->tabContent->toggleAutoLoadImages(m_settings->getValue("AutoLoadImages").toBool());
-    ui->tabContent->togglePlugins(m_settings->getValue("EnablePlugins").toBool());
-    ui->tabContent->togglePopupBlock(!m_settings->getValue("EnableJavascriptPopups").toBool());
-    ui->tabContent->toggleJavaScript(m_settings->getValue("EnableJavascript").toBool());
-    ui->tabContent->setDefaultFont(m_settings->getValue("StandardFont").toString());
-    ui->tabContent->setSerifFont(m_settings->getValue("SerifFont").toString());
-    ui->tabContent->setSansSerifFont(m_settings->getValue("SansSerifFont").toString());
-    ui->tabContent->setCursiveFont(m_settings->getValue("CursiveFont").toString());
-    ui->tabContent->setFantasyFont(m_settings->getValue("FantasyFont").toString());
-    ui->tabContent->setFixedFont(m_settings->getValue("FixedFont").toString());
-    ui->tabContent->setStandardFontSize(m_settings->getValue("StandardFontSize").toInt());
-    ui->tabContent->setFixedFontSize(m_settings->getValue("FixedFontSize").toInt());
+    ui->tabContent->toggleAdBlock(m_settings->getValue(QStringLiteral("AdBlockPlusEnabled")).toBool());
+    ui->tabContent->toggleAutoLoadImages(m_settings->getValue(QStringLiteral("AutoLoadImages")).toBool());
+    ui->tabContent->togglePlugins(m_settings->getValue(QStringLiteral("EnablePlugins")).toBool());
+    ui->tabContent->togglePopupBlock(!m_settings->getValue(QStringLiteral("EnableJavascriptPopups")).toBool());
+    ui->tabContent->toggleJavaScript(m_settings->getValue(QStringLiteral("EnableJavascript")).toBool());
+    ui->tabContent->setDefaultFont(m_settings->getValue(QStringLiteral("StandardFont")).toString());
+    ui->tabContent->setSerifFont(m_settings->getValue(QStringLiteral("SerifFont")).toString());
+    ui->tabContent->setSansSerifFont(m_settings->getValue(QStringLiteral("SansSerifFont")).toString());
+    ui->tabContent->setCursiveFont(m_settings->getValue(QStringLiteral("CursiveFont")).toString());
+    ui->tabContent->setFantasyFont(m_settings->getValue(QStringLiteral("FantasyFont")).toString());
+    ui->tabContent->setFixedFont(m_settings->getValue(QStringLiteral("FixedFont")).toString());
+    ui->tabContent->setStandardFontSize(m_settings->getValue(QStringLiteral("StandardFontSize")).toInt());
+    ui->tabContent->setFixedFontSize(m_settings->getValue(QStringLiteral("FixedFontSize")).toInt());
 }
 
 void Preferences::onCloseWithSave()
@@ -51,34 +53,36 @@ void Preferences::onCloseWithSave()
     // Fetch preferences in the General tab
     QString currItem = ui->tabGeneral->getHomePage();
     if (!currItem.isEmpty())
-        m_settings->setValue("HomePage", currItem);
+        m_settings->setValue(QStringLiteral("HomePage"), currItem);
 
     currItem = ui->tabGeneral->getDownloadDirectory();
     QDir downDir(currItem);
     if (downDir.exists())
-        m_settings->setValue("DownloadDir", currItem);
+        m_settings->setValue(QStringLiteral("DownloadDir"), currItem);
 
-    m_settings->setValue("AskWhereToSaveDownloads", ui->tabGeneral->getDownloadAskBehavior());
+    m_settings->setValue(QStringLiteral("AskWhereToSaveDownloads"), ui->tabGeneral->getDownloadAskBehavior());
 
-    m_settings->setValue("StartupMode", ui->tabGeneral->getStartupIndex());
-    m_settings->setValue("NewTabsLoadHomePage", ui->tabGeneral->doNewTabsLoadHomePage());
+    m_settings->setValue(QStringLiteral("StartupMode"), ui->tabGeneral->getStartupIndex());
+    m_settings->setValue(QStringLiteral("NewTabsLoadHomePage"), ui->tabGeneral->doNewTabsLoadHomePage());
 
     // Save preferences in Content tab
-    m_settings->setValue("AutoLoadImages", ui->tabContent->isAutoLoadImagesEnabled());
-    m_settings->setValue("EnablePlugins", ui->tabContent->arePluginsEnabled());
-    m_settings->setValue("EnableJavascriptPopups", ui->tabContent->arePopupsEnabled());
-    m_settings->setValue("EnableJavascript", ui->tabContent->isJavaScriptEnabled());
+    AdBlockManager::instance().setEnabled(ui->tabContent->isAdBlockEnabled());
+    m_settings->setValue(QStringLiteral("AdBlockPlusEnabled"), ui->tabContent->isAdBlockEnabled());
+    m_settings->setValue(QStringLiteral("AutoLoadImages"), ui->tabContent->isAutoLoadImagesEnabled());
+    m_settings->setValue(QStringLiteral("EnablePlugins"), ui->tabContent->arePluginsEnabled());
+    m_settings->setValue(QStringLiteral("EnableJavascriptPopups"), ui->tabContent->arePopupsEnabled());
+    m_settings->setValue(QStringLiteral("EnableJavascript"), ui->tabContent->isJavaScriptEnabled());
 
     // Save font choices, and also set them in the global web settings
-    m_settings->setValue("StandardFont", ui->tabContent->getDefaultFont());
-    m_settings->setValue("SerifFont", ui->tabContent->getSerifFont());
-    m_settings->setValue("SansSerifFont", ui->tabContent->getSansSerifFont());
-    m_settings->setValue("CursiveFont", ui->tabContent->getCursiveFont());
-    m_settings->setValue("FantasyFont", ui->tabContent->getFantasyFont());
-    m_settings->setValue("FixedFont", ui->tabContent->getFixedFont());
+    m_settings->setValue(QStringLiteral("StandardFont"), ui->tabContent->getDefaultFont());
+    m_settings->setValue(QStringLiteral("SerifFont"), ui->tabContent->getSerifFont());
+    m_settings->setValue(QStringLiteral("SansSerifFont"), ui->tabContent->getSansSerifFont());
+    m_settings->setValue(QStringLiteral("CursiveFont"), ui->tabContent->getCursiveFont());
+    m_settings->setValue(QStringLiteral("FantasyFont"), ui->tabContent->getFantasyFont());
+    m_settings->setValue(QStringLiteral("FixedFont"), ui->tabContent->getFixedFont());
 
-    m_settings->setValue("StandardFontSize", ui->tabContent->getStandardFontSize());
-    m_settings->setValue("FixedFontSize", ui->tabContent->getFixedFontSize());
+    m_settings->setValue(QStringLiteral("StandardFontSize"), ui->tabContent->getStandardFontSize());
+    m_settings->setValue(QStringLiteral("FixedFontSize"), ui->tabContent->getFixedFontSize());
 
     sBrowserApplication->setWebSettings();
 
