@@ -4,13 +4,16 @@
 #include "Bitfield.h"
 
 QHash<QString, ElementType> eOptionMap = {
-    { "script", ElementType::Script },           { "image", ElementType::Image },                   { "stylesheet", ElementType::Stylesheet },
-    { "object", ElementType::Object },           { "xmlhttprequest", ElementType::XMLHTTPRequest }, { "object-subrequest", ElementType::ObjectSubrequest },
-    { "subdocument", ElementType::Subdocument }, { "ping", ElementType::Ping },                     { "websocket", ElementType::WebSocket },
-    { "webrtc", ElementType::WebRTC },           { "document", ElementType::Document },             { "elemhide", ElementType::ElemHide },
-    { "generichide", ElementType::GenericHide }, { "genericblock", ElementType::GenericBlock },     { "popup", ElementType::PopUp },
-    { "third-party", ElementType::ThirdParty},   { "match-case", ElementType::MatchCase },          { "collapse", ElementType::Collapse },
-    { "other", ElementType::Other }
+    { QStringLiteral("script"), ElementType::Script },                 { QStringLiteral("image"), ElementType::Image },
+    { QStringLiteral("stylesheet"), ElementType::Stylesheet },         { QStringLiteral("object"), ElementType::Object },
+    { QStringLiteral("xmlhttprequest"), ElementType::XMLHTTPRequest }, { QStringLiteral("object-subrequest"), ElementType::ObjectSubrequest },
+    { QStringLiteral("subdocument"), ElementType::Subdocument },       { QStringLiteral("ping"), ElementType::Ping },
+    { QStringLiteral("websocket"), ElementType::WebSocket },           { QStringLiteral("webrtc"), ElementType::WebRTC },
+    { QStringLiteral("document"), ElementType::Document },             { QStringLiteral("elemhide"), ElementType::ElemHide },
+    { QStringLiteral("generichide"), ElementType::GenericHide },       { QStringLiteral("genericblock"), ElementType::GenericBlock },
+    { QStringLiteral("popup"), ElementType::PopUp },                   { QStringLiteral("third-party"), ElementType::ThirdParty},
+    { QStringLiteral("match-case"), ElementType::MatchCase },          { QStringLiteral("collapse"), ElementType::Collapse },
+    { QStringLiteral("badfilter"), ElementType::BadFilter },           { QStringLiteral("other"), ElementType::Other }
 };
 
 AdBlockFilter::AdBlockFilter() :
@@ -552,6 +555,16 @@ void AdBlockFilter::parseOptions(const QString &optionString)
             m_blockedTypes |= ElementType::ThirdParty;
         else if (!m_exception && (option.compare(QStringLiteral("important")) == 0))
             m_important = true;
+    }
+
+    // Check if BadFilter option was set, and remove the badfilter string from original rule
+    // (so the hash can be made and compared to other filters for removal)
+    if (hasElementType(m_blockedTypes, ElementType::BadFilter))
+    {
+        if (m_ruleString.endsWith(QStringLiteral(",badfilter")))
+            m_ruleString = m_ruleString.left(m_ruleString.indexOf(QStringLiteral(",badfilter")));
+        else if (m_ruleString.endsWith(QStringLiteral("$badfilter")))
+            m_ruleString = m_ruleString.left(m_ruleString.indexOf(QStringLiteral("$badfilter")));
     }
 }
 

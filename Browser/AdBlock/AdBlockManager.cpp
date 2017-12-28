@@ -466,6 +466,9 @@ void AdBlockManager::extractFilters()
     QHash<QString, AdBlockFilter*> stylesheetFilterMap;
     QHash<QString, AdBlockFilter*> stylesheetExceptionMap;
 
+    // Used to remove bad filters (badfilter option from uBlock)
+    QSet<QString> badFilters;
+
     // Setup global stylesheet string
     m_stylesheet = QStringLiteral("<style>");
 
@@ -497,6 +500,10 @@ void AdBlockManager::extractFilters()
             {
                 m_customStyleFilters.push_back(filter);
             }
+            else if (filter->hasElementType(filter->m_blockedTypes, ElementType::BadFilter))
+            {
+                badFilters.insert(filter->getRule());
+            }
             else
             {
                 if (filter->isException())
@@ -507,6 +514,18 @@ void AdBlockManager::extractFilters()
                     m_blockFilters.push_back(filter);
             }
         }
+    }
+
+    // Remove bad filters from m_allowFilters, m_blockFilters
+    for (auto it = m_allowFilters.begin(); it != m_allowFilters.end(); ++it)
+    {
+        if (badFilters.contains((*it)->getRule()))
+            m_allowFilters.erase(it);
+    }
+    for (auto it = m_blockFilters.begin(); it != m_blockFilters.end(); ++it)
+    {
+        if (badFilters.contains((*it)->getRule()))
+            m_blockFilters.erase(it);
     }
 
     // Parse stylesheet exceptions

@@ -32,7 +32,8 @@ enum class ElementType : uint32_t
     ThirdParty       = 0x00008000,
     MatchCase        = 0x00010000,
     Collapse         = 0x00020000,
-    Other            = 0x00040000
+    BadFilter        = 0x00040000,
+    Other            = 0x00080000
 };
 template<>
 struct EnableBitfield<ElementType>
@@ -96,12 +97,6 @@ class AdBlockFilter
         /// Target to be searched for in the callback
         QString CallbackTarget;
     };
-
-    /// Returns true if the given ElementType bitfield is set for the bit associated with the target ElementType
-    inline bool hasElementType(ElementType subject, ElementType target) const
-    {
-        return (subject & target) == target;
-    }
 
     /// Computes and returns base^exp
     inline quint64 quPow(quint64 base, quint64 exp) const
@@ -172,6 +167,12 @@ public:
 
     /// Returns true if this rule is of the Stylesheet category and applies to the given domain, returns false if else.
     bool isDomainStyleMatch(const QString &domain);
+
+    /// Returns true if the given ElementType bitfield is set for the bit associated with the target ElementType
+    inline bool hasElementType(ElementType subject, ElementType target) const
+    {
+        return (subject & target) == target;
+    }
 
 protected:
     /// Adds the given domain to the whitelist
