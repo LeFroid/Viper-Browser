@@ -702,8 +702,7 @@ bool AdBlockFilter::parseScriptInjection()
     const QString &resourceName = injectionArgs.at(0);
 
     // Fetch resource from AdBlockManager and set value as m_evalString
-    AdBlockManager &mgr = AdBlockManager::instance();
-    m_evalString = mgr.getResource(resourceName);
+    m_evalString = AdBlockManager::instance().getResource(resourceName);
     if (injectionArgs.size() < 2)
         return true;
 

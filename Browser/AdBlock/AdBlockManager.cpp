@@ -359,7 +359,7 @@ void AdBlockManager::loadResourceFile(const QString &path)
 
     //TODO: handle non-javascript types properly for redirect filter option
     bool readingValue = false;
-    QString currentKey;
+    QString currentKey, mimeType;
     QByteArray currentValue;
     QList<QByteArray> contents = f.readAll().split('\n');
     f.close();
@@ -378,7 +378,7 @@ void AdBlockManager::loadResourceFile(const QString &path)
             else
             {
                 currentKey = line.left(sepIdx);
-                //mime type = line.mid(sepIdx + 1);
+                mimeType = line.mid(sepIdx + 1);
             }
             readingValue = true;
         }
@@ -386,7 +386,11 @@ void AdBlockManager::loadResourceFile(const QString &path)
         {
             // Append currentValue with line if not empty.
             if (!line.isEmpty())
+            {
                 currentValue.append(line);
+                if (mimeType.contains(QStringLiteral("javascript")))
+                    currentValue.append('\n');
+            }
             else
             {
                 // Insert key-value pair into map once an empty line is reached and search for next key
