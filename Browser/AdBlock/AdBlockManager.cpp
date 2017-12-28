@@ -8,8 +8,8 @@
 #include "WebPage.h"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
-#include <QHash>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -31,11 +31,23 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_domainStyleFilters(),
     m_domainJSFilters(),
     m_customStyleFilters(),
+    m_resourceMap(),
     m_adBlockModel(nullptr)
 {
-    m_enabled = sBrowserApplication->getSettings()->getValue("AdBlockPlusEnabled").toBool();
-    loadSubscriptions();
+    // Fetch some global settings before loading ad block data
+    std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
+
+    m_enabled = settings->getValue("AdBlockPlusEnabled").toBool();
+    m_configFile = settings->getPathValue("AdBlockPlusConfig");
+    m_subscriptionDir = settings->getPathValue("AdBlockPlusDataDir");
+
+    // Create data dir if it does not yet exist
+    QDir subscriptionDir(m_subscriptionDir);
+    if (!subscriptionDir.exists())
+        subscriptionDir.mkpath(m_subscriptionDir);
+
     loadDynamicTemplate();
+    loadUBOResources();
 }
 
 AdBlockManager::~AdBlockManager()
@@ -232,6 +244,11 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     return nullptr;
 }
 
+QString AdBlockManager::getResource(const QString &key) const
+{
+    return m_resourceMap.value(key);
+}
+
 int AdBlockManager::getNumSubscriptions() const
 {
     return static_cast<int>(m_subscriptions.size());
@@ -312,7 +329,7 @@ QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const
 
 void AdBlockManager::loadDynamicTemplate()
 {
-    QFile templateFile(":/AdBlock.js");
+    QFile templateFile(QStringLiteral(":/AdBlock.js"));
     if (!templateFile.open(QIODevice::ReadOnly))
         return;
 
@@ -320,19 +337,72 @@ void AdBlockManager::loadDynamicTemplate()
     templateFile.close();
 }
 
+void AdBlockManager::loadUBOResources()
+{
+    QDir resourceDir(QString("%1%2%3").arg(m_subscriptionDir).arg(QDir::separator()).arg(QStringLiteral("resources")));
+    if (!resourceDir.exists())
+        resourceDir.mkpath(QStringLiteral("."));
+
+    // Iterate through files in directory, loading into m_resourceMap
+    QDirIterator resourceItr(resourceDir.absolutePath(), QDir::Files);
+    while (resourceItr.hasNext())
+    {
+        loadResourceFile(resourceItr.next());
+    }
+}
+
+void AdBlockManager::loadResourceFile(const QString &path)
+{
+    QFile f(path);
+    if (!f.exists() || !f.open(QIODevice::ReadOnly))
+        return;
+
+    //TODO: handle non-javascript types properly for redirect filter option
+    bool readingValue = false;
+    QString currentKey;
+    QByteArray currentValue;
+    QList<QByteArray> contents = f.readAll().split('\n');
+    f.close();
+    for (int i = 0; i < contents.size(); ++i)
+    {
+        const QByteArray &line = contents.at(i);
+        if ((!readingValue && line.isEmpty()) || line.startsWith('#'))
+            continue;
+
+        // Extract key from line if not loading a value associated with a key
+        if (!readingValue)
+        {
+            int sepIdx = line.indexOf(' ');
+            if (sepIdx < 0)
+                currentKey = line;
+            else
+            {
+                currentKey = line.left(sepIdx);
+                //mime type = line.mid(sepIdx + 1);
+            }
+            readingValue = true;
+        }
+        else
+        {
+            // Append currentValue with line if not empty.
+            if (!line.isEmpty())
+                currentValue.append(line);
+            else
+            {
+                // Insert key-value pair into map once an empty line is reached and search for next key
+                m_resourceMap.insert(currentKey, QString(currentValue));
+                currentValue.clear();
+                readingValue = false;
+            }
+        }
+    }
+}
+
 void AdBlockManager::loadSubscriptions()
 {
     if (!m_enabled)
         return;
 
-    std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
-
-    m_subscriptionDir = settings->getPathValue("AdBlockPlusDataDir");
-    QDir subscriptionDir(m_subscriptionDir);
-    if (!subscriptionDir.exists())
-        subscriptionDir.mkpath(m_subscriptionDir);
-
-    m_configFile = settings->getPathValue("AdBlockPlusConfig");
     QFile configFile(m_configFile);
     if (!configFile.exists() || !configFile.open(QIODevice::ReadOnly))
         return;

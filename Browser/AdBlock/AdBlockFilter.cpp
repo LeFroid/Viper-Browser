@@ -1,5 +1,6 @@
 #include <algorithm>
 #include "AdBlockFilter.h"
+#include "AdBlockManager.h"
 #include "Bitfield.h"
 
 QHash<QString, ElementType> eOptionMap = {
@@ -472,11 +473,9 @@ bool AdBlockFilter::isStylesheetRule()
 
         m_evalString = m_ruleString.mid(pos + 2);
 
-        // Check if specific css is applied to selector instead of default hiding behavior
-        parseCustomStylesheet();
-
-        // Check if filter is procedural cosmetic filter type
-        parseCosmeticOptions();
+        // Check for custom stylesheets, cosmetic options, and/or script injection filter rules
+        if (parseCustomStylesheet() || parseCosmeticOptions() || parseScriptInjection())
+            return true;
 
         return true;
     }
@@ -544,7 +543,7 @@ void AdBlockFilter::parseOptions(const QString &optionString)
                 m_blockedTypes |= elemType;
             }
         }
-        else if (option.startsWith("domain="))
+        else if (option.startsWith(QStringLiteral("domain=")))
         {
             parseDomains(option.mid(7), QChar('|'));
         }
@@ -556,10 +555,10 @@ void AdBlockFilter::parseOptions(const QString &optionString)
     }
 }
 
-void AdBlockFilter::parseCosmeticOptions()
+bool AdBlockFilter::parseCosmeticOptions()
 {
     if (!hasDomainRules())
-        return;
+        return false;
 
     // Replace -abp- terms with uBlock versions
     m_evalString.replace(QStringLiteral(":-abp-contains"), QStringLiteral(":has-text"));
@@ -574,20 +573,20 @@ void AdBlockFilter::parseCosmeticOptions()
 
         m_evalString = m_evalString.left(hasIdx);
         if (m_evalString.isEmpty())
-            return;
+            return false;
 
         m_evalString = QString("hideIfHas('%1', '%2'); ").arg(m_evalString).arg(hasArg);
         m_category = FilterCategory::StylesheetJS;
 
         // :has cannot be chained, so exit the method at this point
-        return;
+        return true;
     }
 
     // Search for each chainable type and handle the first one to appear, as any other
     // chainable filter options will appear as an argument of the first
     std::vector<std::tuple<int, CosmeticFilter, int>> filters = getChainableFilters(m_evalString);
     if (filters.empty())
-        return;
+        return false;
 
     // Keep a copy of original evaluation string until processing is complete
     QString evalStr = m_evalString;
@@ -603,7 +602,7 @@ void AdBlockFilter::parseCosmeticOptions()
     if (std::get<1>(p) == CosmeticFilter::XPath && evalStr.isEmpty())
         evalStr = QStringLiteral("document");
     else if (evalStr.isEmpty())
-        return;
+        return false;
 
     switch (std::get<1>(p))
     {
@@ -634,7 +633,7 @@ void AdBlockFilter::parseCosmeticOptions()
                     else
                         m_evalString = QString("hideIfChain('%1', '%2', '%3', %4); ").arg(evalStr).arg(c.CallbackSubject).arg(c.CallbackTarget).arg(c.CallbackName);
                     m_category = FilterCategory::StylesheetJS;
-                    return;
+                    return true;
                 }
             }
             if (isNegation)
@@ -665,16 +664,17 @@ void AdBlockFilter::parseCosmeticOptions()
             m_evalString = QString("hideNodes(doXPath('%1', '%2')); ").arg(evalStr).arg(evalArg);
             break;
         }
-        default: return;
+        default: return false;
     }
     m_category = FilterCategory::StylesheetJS;
+    return true;
 }
 
-void AdBlockFilter::parseCustomStylesheet()
+bool AdBlockFilter::parseCustomStylesheet()
 {
     int styleIdx = m_evalString.indexOf(QStringLiteral(":style("));
     if (styleIdx < 0)
-        return;
+        return false;
 
     // Extract style, and convert evaluation string into format "selector { style }"
     QString style = m_evalString.mid(styleIdx + 7);
@@ -683,6 +683,42 @@ void AdBlockFilter::parseCustomStylesheet()
     m_evalString = m_evalString.left(styleIdx).append(QString(" { %1 } ").arg(style));
 
     m_category = FilterCategory::StylesheetCustom;
+    return true;
+}
+
+bool AdBlockFilter::parseScriptInjection()
+{
+    // Check if filter is used for script injection, and has at least 1 domain option
+    if (!m_evalString.startsWith(QStringLiteral("script:inject(")) || !hasDomainRules())
+        return false;
+
+    m_category = FilterCategory::StylesheetJS;
+
+    // Extract inner arguments and separate by ',' delimiter
+    QString injectionStr = m_evalString.mid(14);
+    injectionStr = injectionStr.left(injectionStr.lastIndexOf(QChar(')')));
+
+    QStringList injectionArgs = injectionStr.split(QChar(','), QString::SkipEmptyParts);
+    const QString &resourceName = injectionArgs.at(0);
+
+    // Fetch resource from AdBlockManager and set value as m_evalString
+    AdBlockManager &mgr = AdBlockManager::instance();
+    m_evalString = mgr.getResource(resourceName);
+    if (injectionArgs.size() < 2)
+        return true;
+
+    // For each item with index > 0 in injectionArgs list, replace first {{index}}
+    // string in resource with injectionArgs[index]
+    for (int i = 1; i < injectionArgs.size(); ++i)
+    {
+        QString arg = injectionArgs.at(i).trimmed();
+        QString term = QString("{{%1}}").arg(i);
+        int argIdx = m_evalString.indexOf(term);
+        if (argIdx >= 0)
+            m_evalString.replace(argIdx, term.size(), arg);
+    }
+
+    return true;
 }
 
 AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters)
@@ -813,19 +849,6 @@ QString AdBlockFilter::parseRegExp(const QString &regExpString)
         }
     }
     return replacement;
-}
-
-quint64 AdBlockFilter::quPow(quint64 base, quint64 exp) const
-{
-    quint64 result = 1;
-    while (exp)
-    {
-        if (exp & 1)
-            result *= base;
-        exp >>= 1;
-        base *= base;
-    }
-    return result;
 }
 
 bool AdBlockFilter::filterContains(const QString &haystack) const

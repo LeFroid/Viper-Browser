@@ -98,9 +98,23 @@ class AdBlockFilter
     };
 
     /// Returns true if the given ElementType bitfield is set for the bit associated with the target ElementType
-    inline bool hasElementType(ElementType subject, ElementType target)
+    inline bool hasElementType(ElementType subject, ElementType target) const
     {
         return (subject & target) == target;
+    }
+
+    /// Computes and returns base^exp
+    inline quint64 quPow(quint64 base, quint64 exp) const
+    {
+        quint64 result = 1;
+        while (exp)
+        {
+            if (exp & 1)
+                result *= base;
+            exp >>= 1;
+            base *= base;
+        }
+        return result;
     }
 
 public:
@@ -183,11 +197,14 @@ private:
     /// Parses a comma separated list of options contained within the given string
     void parseOptions(const QString &optionString);
 
-    /// Parses the rule string for uBlock Origin style cosmetic filter options
-    void parseCosmeticOptions();
+    /// Parses the rule string for uBlock Origin style cosmetic filter options, returning true if category is StylesheetJS, false if else
+    bool parseCosmeticOptions();
 
-    /// Handles the :style option for stylesheet filters
-    void parseCustomStylesheet();
+    /// Handles the :style option for stylesheet filters, returning true if category is StylesheetCustom, false if else
+    bool parseCustomStylesheet();
+
+    /// Checks for and handles the script:inject(...) filter option, returning true if found, false if else
+    bool parseScriptInjection();
 
     /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type-string len filter information pairs
     CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters);
@@ -197,9 +214,6 @@ private:
 
     /// Parses the given ad block plus formatted regular expression, returning the equivalent for a QRegularExpression
     QString parseRegExp(const QString &regExpString);
-
-    /// Computes and returns base^exp
-    quint64 quPow(quint64 base, quint64 exp) const;
 
     /// Applies the Rabin-Karp string matching algorithm to the given string, returning true if it contains the filter's eval string, false if else
     /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/

@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "AdBlockManager.h"
 #include "BookmarkManager.h"
 #include "CookieJar.h"
 #include "DownloadManager.h"
@@ -88,6 +89,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Set global web settings
     setWebSettings();
+
+    // Load ad block subscriptions (will do nothing if disabled)
+    AdBlockManager::instance().loadSubscriptions();
 
     m_sessionMgr.setSessionFile(m_settings->getPathValue("SessionFile"));
 

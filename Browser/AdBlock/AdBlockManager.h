@@ -2,9 +2,9 @@
 #define ADBLOCKMANAGER_H
 
 #include "AdBlockSubscription.h"
-
 #include "BlockedNetworkReply.h"
 
+#include <QHash>
 #include <QObject>
 #include <QString>
 #include <vector>
@@ -17,7 +17,9 @@ class AdBlockModel;
  */
 class AdBlockManager : public QObject
 {
+    friend class AdBlockFilter;
     friend class AdBlockModel;
+    friend class BrowserApplication;
 
     Q_OBJECT
 
@@ -51,6 +53,12 @@ public slots:
     /// Attempt to update ad block subscriptions
     void updateSubscriptions();
 
+// Called by AdBlockFilter:
+protected:
+    /// Searches for and returns the value from the resource map that is associated with the given key. Returns an empty string if not found
+    QString getResource(const QString &key) const;
+
+// Called by AdBlockModel:
 protected:
     /// Returns the number of subscriptions used by the ad block manager
     int getNumSubscriptions() const;
@@ -60,6 +68,11 @@ protected:
 
     /// Toggles the state of the subscription at the given index (enabled <--> disabled)
     void toggleSubscriptionEnabled(int index);
+
+// Called by BrowserApplication:
+protected:
+    /// Loads active subscriptions
+    void loadSubscriptions();
 
 private:
     /// Attempts to determine the type of element being requested, returning the corresponding \ref ElementType
@@ -72,8 +85,11 @@ private:
     /// Loads the AdBlock JavaScript template for dynamic filters
     void loadDynamicTemplate();
 
-    /// Loads active subscriptions
-    void loadSubscriptions();
+    /// Load uBlock Origin-style resources file(s) from m_subscriptionDir/resources folder
+    void loadUBOResources();
+
+    /// Loads the uBlock Origin-style resource file into the resource map
+    void loadResourceFile(const QString &path);
 
     /// Clears current filter data
     void clearFilters();
@@ -120,6 +136,9 @@ private:
 
     /// Container of filters that have custom stylesheet values (:style filter option)
     std::vector<AdBlockFilter*> m_customStyleFilters;
+
+    /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
+    QHash<QString, QString> m_resourceMap;
 
     /// Ad Block model, used to indirectly view and modify subscriptions in the user interface
     AdBlockModel *m_adBlockModel;
