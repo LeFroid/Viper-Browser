@@ -26,6 +26,9 @@ public:
     /// Saves user script information (i.e. which scripts are enabled) before destruction
     virtual ~UserScriptManager();
 
+    /// Sets the state of the user script system. If set to true, scripts will be injected as per their specifications, otherwise scripts will be ignored
+    void setEnabled(bool value);
+
     /// Returns a pointer to the user script model
     UserScriptModel *getModel();
 

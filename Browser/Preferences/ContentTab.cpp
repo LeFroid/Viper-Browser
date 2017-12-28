@@ -23,6 +23,11 @@ bool ContentTab::arePopupsEnabled() const
     return !ui->checkBoxBlockPopups->isChecked();
 }
 
+bool ContentTab::areUserScriptsEnabled() const
+{
+    return ui->checkBoxEnableUserScripts->isChecked();
+}
+
 bool ContentTab::isAdBlockEnabled() const
 {
     return ui->checkBoxEnableAdBlock->isChecked();
@@ -155,4 +160,9 @@ void ContentTab::togglePopupBlock(bool value)
 void ContentTab::toggleJavaScript(bool value)
 {
     ui->checkBoxEnableJavaScript->setChecked(value);
+}
+
+void ContentTab::toggleUserScripts(bool value)
+{
+    ui->checkBoxEnableUserScripts->setChecked(value);
 }

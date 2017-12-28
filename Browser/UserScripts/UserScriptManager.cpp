@@ -22,6 +22,11 @@ UserScriptManager::~UserScriptManager()
 {
 }
 
+void UserScriptManager::setEnabled(bool value)
+{
+    m_model->m_enabled = value;
+}
+
 UserScriptModel *UserScriptManager::getModel()
 {
     return m_model;

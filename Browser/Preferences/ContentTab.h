@@ -29,6 +29,9 @@ public:
     /// Returns true if popups are enabled, false if disabled
     bool arePopupsEnabled() const;
 
+    /// Returns true if the user script system is enabled, false if disabled
+    bool areUserScriptsEnabled() const;
+
     /// Returns true if advertisement blocking is enabled, false if disabled
     bool isAdBlockEnabled() const;
 
@@ -116,6 +119,12 @@ public slots:
      * @param value If true, JavaScript will be enabled. If false, JavaScript will be disabled
      */
     void toggleJavaScript(bool value);
+
+    /**
+     * @brief toggleUserScripts Toggles the setting for allowing user scripts to be injected into web pages
+     * @param value If true, user scripts will be enabled. If false, they will be disabled
+     */
+    void toggleUserScripts(bool value);
 
 private:
     Ui::ContentTab *ui;

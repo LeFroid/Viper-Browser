@@ -91,6 +91,20 @@
     </spacer>
    </item>
    <item>
+    <widget class="Line" name="line_5">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="checkBoxEnableUserScripts">
+     <property name="text">
+      <string>Enable User Scripts</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBoxFonts">
      <property name="title">
       <string>Fonts</string>

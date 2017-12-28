@@ -4,6 +4,7 @@
 #include "AdBlockManager.h"
 #include "BrowserApplication.h"
 #include "Settings.h"
+#include "UserScriptManager.h"
 #include <QDir>
 
 Preferences::Preferences(std::shared_ptr<Settings> settings, QWidget *parent) :
@@ -35,6 +36,7 @@ void Preferences::loadSettings()
     ui->tabContent->togglePlugins(m_settings->getValue(QStringLiteral("EnablePlugins")).toBool());
     ui->tabContent->togglePopupBlock(!m_settings->getValue(QStringLiteral("EnableJavascriptPopups")).toBool());
     ui->tabContent->toggleJavaScript(m_settings->getValue(QStringLiteral("EnableJavascript")).toBool());
+    ui->tabContent->toggleUserScripts(m_settings->getValue(QStringLiteral("UserScriptsEnabled")).toBool());
     ui->tabContent->setDefaultFont(m_settings->getValue(QStringLiteral("StandardFont")).toString());
     ui->tabContent->setSerifFont(m_settings->getValue(QStringLiteral("SerifFont")).toString());
     ui->tabContent->setSansSerifFont(m_settings->getValue(QStringLiteral("SansSerifFont")).toString());
@@ -72,6 +74,8 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(QStringLiteral("EnablePlugins"), ui->tabContent->arePluginsEnabled());
     m_settings->setValue(QStringLiteral("EnableJavascriptPopups"), ui->tabContent->arePopupsEnabled());
     m_settings->setValue(QStringLiteral("EnableJavascript"), ui->tabContent->isJavaScriptEnabled());
+    m_settings->setValue(QStringLiteral("UserScriptsEnabled"), ui->tabContent->areUserScriptsEnabled());
+    sBrowserApplication->getUserScriptManager()->setEnabled(ui->tabContent->areUserScriptsEnabled());
 
     // Save font choices, and also set them in the global web settings
     m_settings->setValue(QStringLiteral("StandardFont"), ui->tabContent->getDefaultFont());
