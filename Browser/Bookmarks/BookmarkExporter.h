@@ -25,11 +25,10 @@ public:
 
 private:
     /**
-     * @brief exportFolder Recursively exports bookmarks and folders belonging to the given folder into the output file
-     * @param folder Parent folder
+     * @brief exportFolder Iteratively exports bookmark data into the output file
      * @param stream Bookmark file text stream
      */
-    void exportFolder(BookmarkNode *folder, QTextStream &stream);
+    void exportFolders(QTextStream &stream);
 
 private:
     /// Netscape bookmark file header

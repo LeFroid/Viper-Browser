@@ -1,6 +1,9 @@
 #include "BookmarkExporter.h"
 #include "BookmarkNode.h"
 
+#include <deque>
+#include <stack>
+
 const QString BookmarkExporter::NetscapeHeader = QString("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n"
                                        "<!-- This is an automatically generated file.\n"
                                        "     It will be read and overwritten.\n"
@@ -26,8 +29,8 @@ bool BookmarkExporter::saveTo(const QString &fileName)
     QTextStream stream(&m_outputFile);
     stream << NetscapeHeader;
 
-    // Recursively export bookmarks, starting with the root folder
-    exportFolder(m_bookmarkManager->getRoot(), stream);
+    // Iteratively export bookmarks
+    exportFolders(stream);
 
     stream.flush();
     m_outputFile.close();
@@ -35,31 +38,68 @@ bool BookmarkExporter::saveTo(const QString &fileName)
     return true;
 }
 
-void BookmarkExporter::exportFolder(BookmarkNode* folder, QTextStream &stream)
+void BookmarkExporter::exportFolders(QTextStream &stream)
 {
-    if (!folder)
-        return;
-
+    // Iteratively export bookmarks
     QString spacing;
-    for (int i = 0; i < m_recursionLevel; ++i)
-        spacing.append("    ");
+    int depth;
+    BookmarkNode *current;
 
-    stream << spacing << "<DL><p>\n";
-
-    // Export child items
-    ++m_recursionLevel;
-    int numChildren = folder->getNumChildren();
-    for (int i = 0; i < numChildren; ++i)
+    std::stack<std::pair<BookmarkNode*, int>> nodes;
+    nodes.push({ m_bookmarkManager->getRoot(), 0 });
+    while (!nodes.empty())
     {
-        BookmarkNode *n = folder->getNode(i);
-        if (n->getType() == BookmarkNode::Folder)
+        std::pair<BookmarkNode*, int> currentItem = nodes.top();
+        current = currentItem.first;
+        depth = currentItem.second;
+        nodes.pop();
+
+        spacing.clear();
+        for (int i = 0; i < depth; ++i)
+            spacing.append(QStringLiteral("    "));
+
+        if (depth > 0)
+            stream << spacing << "<DT><H3>" << current->getName() << "</H3>\n";
+
+        stream << spacing << "<DL><p>\n";
+
+        BookmarkNode *n;
+        int numChildren = current->getNumChildren();
+        std::deque<BookmarkNode*> subFolders;
+        for (int i = 0; i < numChildren; ++i)
         {
-            stream << spacing << "    <DT><H3>" << n->getName() << "</H3>\n";
-            exportFolder(n, stream);
+            n = current->getNode(i);
+            if (n->getType() == BookmarkNode::Folder)
+                subFolders.push_back(n);
+            else
+                stream << spacing << "    <DT><A HREF=\"" << n->getURL() << "\">" << n->getName() << "</A>\n";
+        }
+
+        // At max depth, form closing tags
+        if (subFolders.empty())
+        {
+            // Number of closing tags = current depth - depth of next item on stack (or 0 if stack is empty)
+            int closingTags = depth;
+            if (!nodes.empty())
+                closingTags += 1 - nodes.top().second;
+
+            for (int i = closingTags; i > 0; --i)
+            {
+                stream << spacing << "</DL><p>\n";
+                spacing = spacing.left(spacing.size() - 4);
+            }
         }
         else
-            stream << spacing << "    <DT><A HREF=\"" << n->getURL() << "\">" << n->getName() << "</A>\n";
+        {
+            // Add subfolders to stack at this point in order to preserve the internal ordering for the user
+            while (!subFolders.empty())
+            {
+                nodes.push({ subFolders.back(), depth + 1 });
+                subFolders.pop_back();
+            }
+        }
     }
 
+    // Root closing tag
     stream << spacing << "</DL><p>\n";
 }
