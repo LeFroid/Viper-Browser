@@ -1,8 +1,6 @@
 #include "CookieModifyDialog.h"
 #include "ui_cookiemodifydialog.h"
 
-#include <QDebug>
-
 CookieModifyDialog::CookieModifyDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CookieModifyDialog),
@@ -21,8 +19,7 @@ CookieModifyDialog::CookieModifyDialog(QWidget *parent) :
     ui->comboBoxExpireType->addItem(tr("At the end of this session"), static_cast<int>(ExpireType::Session));
 
     // Set default expiration date to a year from now
-    QDateTime nextYear = QDateTime::currentDateTime();
-    nextYear.addYears(1);
+    QDateTime nextYear = QDateTime::currentDateTime().addYears(1);
     ui->dateTimeEdit->setDateTime(nextYear);
 
     // Connect change in selection of expire combo box type to act of hiding or showing date time widget for expiration

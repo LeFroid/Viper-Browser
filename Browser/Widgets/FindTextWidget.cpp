@@ -1,5 +1,5 @@
 #include "FindTextWidget.h"
-#include "ui_findtextwidget.h"
+#include "ui_FindTextWidget.h"
 #include "WebView.h"
 
 #include <QPaintEvent>

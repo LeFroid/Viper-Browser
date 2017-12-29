@@ -17,7 +17,7 @@ public:
     explicit ViperNetworkReply(const QNetworkRequest &request, QObject *parent = nullptr);
 
     /// Unused
-    void abort() {}
+    void abort() override {}
 
     /// Returns the number of bytes available for reading
     qint64 bytesAvailable() const override;

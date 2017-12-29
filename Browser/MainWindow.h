@@ -197,10 +197,10 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
     /// Handles drag enter events (supports tab drags)
-    void dragEnterEvent(QDragEnterEvent *event);
+    void dragEnterEvent(QDragEnterEvent *event) override;
 
     /// Handles tab drop events
-    void dropEvent(QDropEvent *event);
+    void dropEvent(QDropEvent *event) override;
 
 private:
     /// UI items from .ui file
