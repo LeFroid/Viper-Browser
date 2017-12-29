@@ -35,6 +35,7 @@ AddBookmarkDialog::AddBookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *pare
         }
         ++foldersAdded;
     }
+    ui->comboBoxFolder->setCurrentIndex(0);
 
     // Connect UI signals to slots
     connect(ui->pushButtonRemove, &QPushButton::clicked, this, &AddBookmarkDialog::onRemoveBookmark);
@@ -52,9 +53,6 @@ void AddBookmarkDialog::setBookmarkInfo(const QString &bookmarkName, const QStri
 
     // Set name field
     ui->lineEditName->setText(bookmarkName);
-
-    // New bookmarks are added by default to the root folder
-    ui->comboBoxFolder->setCurrentIndex(0);
 }
 
 void AddBookmarkDialog::onRemoveBookmark()
