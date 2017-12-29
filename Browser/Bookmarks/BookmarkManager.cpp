@@ -520,7 +520,7 @@ void BookmarkManager::setup()
 
     // Insert root bookmark folder
     int rootFolderId = 0;
-    query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name) VALUES (:folderId, :parentID, :type, :name)");
+    query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name) VALUES (:folderID, :parentID, :type, :name)");
     query.bindValue(":folderID", rootFolderId);
     query.bindValue(":parentID", -1);
     query.bindValue(":type", QVariant::fromValue(BookmarkNode::Folder));
@@ -532,7 +532,7 @@ void BookmarkManager::setup()
     BookmarkNode *bookmarkBar = addFolder("Bookmarks Bar", m_rootNode.get());
 
     // Insert bookmark for search engine
-    query.prepare("INSERT OR IGNORE INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderId, :parentID, :type, :name, :url, :position)");
+    query.prepare("INSERT OR IGNORE INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderID, :parentID, :type, :name, :url, :position)");
     query.bindValue(":folderID", bookmarkBar->getFolderId());
     query.bindValue(":parentID", bookmarkBar->getFolderId());
     query.bindValue(":type", QVariant::fromValue(BookmarkNode::Bookmark));
