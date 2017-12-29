@@ -2,7 +2,6 @@
 #define BOOKMARKEXPORTER_H
 
 #include "BookmarkManager.h"
-#include <memory>
 #include <QFile>
 #include <QString>
 #include <QTextStream>
@@ -14,8 +13,8 @@
 class BookmarkExporter
 {
 public:
-    /// Constructs the bookmark exporter with a shared_ptr to the BookmarkManager instance
-    explicit BookmarkExporter(std::shared_ptr<BookmarkManager> bookmarkMgr);
+    /// Constructs the bookmark exporter given a pointer to the BookmarkManager
+    explicit BookmarkExporter(BookmarkManager *bookmarkMgr);
 
     /**
      * @brief saveTo Attempts to save the user's bookmarks to a file
@@ -37,7 +36,7 @@ private:
     static const QString NetscapeHeader;
 
     /// Bookmark manager
-    std::shared_ptr<BookmarkManager> m_bookmarkManager;
+    BookmarkManager *m_bookmarkManager;
 
     /// Output file handle
     QFile m_outputFile;

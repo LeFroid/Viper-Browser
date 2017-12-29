@@ -5,7 +5,6 @@
 #include "URLSuggestionModel.h"
 
 #include <QQueue>
-#include <QDebug>
 
 //TODO: Add method to insert new urls to the model as new urls are visited by the user
 
@@ -47,8 +46,8 @@ QSet<QString> URLSuggestionModel::loadBookmarkURLs()
 {
     QSet<QString> urls;
 
-    std::shared_ptr<BookmarkManager> bookmarkMgr = sBrowserApplication->getBookmarkManager();
-    if (!bookmarkMgr.get())
+    BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
+    if (!bookmarkMgr)
         return urls;
 
     BookmarkNode *f = nullptr;

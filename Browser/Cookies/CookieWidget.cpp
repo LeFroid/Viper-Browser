@@ -144,7 +144,7 @@ void CookieWidget::onCookieDialogFinished(int result)
         return;
 
     CookieTableModel *model = static_cast<CookieTableModel*>(ui->tableViewCookies->model());
-    std::shared_ptr<CookieJar> jar = sBrowserApplication->getCookieJar();
+    CookieJar *jar = sBrowserApplication->getCookieJar();
     const QNetworkCookie &cookie = m_cookieDialog->getCookie();
     if (m_dialogEditMode)
     {

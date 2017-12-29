@@ -2,7 +2,6 @@
 #define BOOKMARKBAR_H
 
 #include "BookmarkManager.h"
-#include <memory>
 #include <QToolBar>
 
 class FaviconStorage;
@@ -21,7 +20,7 @@ public:
     explicit BookmarkBar(QWidget *parent = nullptr);
 
     /// Sets the pointer to the bookmark manager
-    void setBookmarkManager(std::shared_ptr<BookmarkManager> manager);
+    void setBookmarkManager(BookmarkManager *manager);
 
     /// Refreshes the items belonging to the bookmark bar
     void refresh();
@@ -55,8 +54,8 @@ private:
     void openFolderItemsNewWindow(BookmarkNode *folder, bool privateWindow = false);
 
 private:
-    /// Bookmark manager
-    std::shared_ptr<BookmarkManager> m_bookmarkManager;
+    /// Pointer to the bookmark manager
+    BookmarkManager *m_bookmarkManager;
 };
 
 #endif // BOOKMARKBAR_H

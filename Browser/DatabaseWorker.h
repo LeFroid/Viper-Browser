@@ -30,15 +30,15 @@ public:
 
     /// Creates and returns a shared_ptr of an object that inherits the DatabaseWorker class
     template <class Derived>
-    static std::shared_ptr<Derived> createWorker(bool firstRun, const QString &databaseFile)
+    static std::unique_ptr<Derived> createWorker(bool firstRun, const QString &databaseFile)
     {
         static_assert(std::is_base_of<DatabaseWorker, Derived>::value, "Object should inherit from DatabaseWorker");
-        auto worker = std::make_shared<Derived>(databaseFile);
+        auto worker = std::make_unique<Derived>(databaseFile);
         if (firstRun)
             worker->setup();
 
         worker->load();
-        return worker;
+        return std::move(worker);
     }
 
 protected:

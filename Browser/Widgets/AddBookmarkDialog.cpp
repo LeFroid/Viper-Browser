@@ -4,7 +4,7 @@
 
 #include <QQueue>
 
-AddBookmarkDialog::AddBookmarkDialog(std::shared_ptr<BookmarkManager> bookmarkMgr, QWidget *parent) :
+AddBookmarkDialog::AddBookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddBookmarkDialog),
     m_bookmarkManager(bookmarkMgr),

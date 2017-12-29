@@ -8,9 +8,7 @@
 #include <QWebFrame>
 #include <QWebPage>
 
-#include <QDebug>
-
-BookmarkImporter::BookmarkImporter(std::shared_ptr<BookmarkManager> bookmarkMgr) :
+BookmarkImporter::BookmarkImporter(BookmarkManager *bookmarkMgr) :
     m_bookmarkManager(bookmarkMgr)
 {
 }

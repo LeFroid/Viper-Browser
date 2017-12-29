@@ -1,8 +1,6 @@
 #ifndef COOKIETABLEMODEL_H
 #define COOKIETABLEMODEL_H
 
-#include <memory>
-
 #include <QAbstractTableModel>
 #include <QList>
 #include <QNetworkCookie>
@@ -20,6 +18,7 @@ class CookieTableModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
+    /// Constructs the cookie table model
     explicit CookieTableModel(QObject *parent = nullptr);
 
     // Header:
@@ -64,8 +63,8 @@ private slots:
     void eraseCookies();
 
 private:
-    /// Cookie jar, containing cookie information
-    std::shared_ptr<CookieJar> m_cookieJar;
+    /// Cookie jar (container)
+    CookieJar *m_cookieJar;
 
     /// Stores each row's checked state
     QList<int> m_checkedState;

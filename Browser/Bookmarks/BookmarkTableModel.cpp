@@ -11,7 +11,7 @@
 #include <QUrl>
 #include <QDebug>
 
-BookmarkTableModel::BookmarkTableModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
+BookmarkTableModel::BookmarkTableModel(BookmarkManager *bookmarkMgr, QObject *parent) :
     QAbstractTableModel(parent),
     m_bookmarkMgr(bookmarkMgr),
     m_folder(bookmarkMgr->getBookmarksBar())

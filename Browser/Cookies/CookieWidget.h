@@ -20,6 +20,7 @@ class CookieWidget : public QWidget
     Q_OBJECT
 
 public:
+    /// Constructs the cookie widget
     explicit CookieWidget(QWidget *parent = 0);
     ~CookieWidget();
 

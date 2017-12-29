@@ -24,9 +24,9 @@
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
 {
-    QCoreApplication::setOrganizationName(QString("Vaccarelli"));
-    QCoreApplication::setApplicationName(QString("Viper Browser"));
-    QCoreApplication::setApplicationVersion(QString("0.4"));
+    QCoreApplication::setOrganizationName(QStringLiteral("Vaccarelli"));
+    QCoreApplication::setApplicationName(QStringLiteral("Viper Browser"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.4"));
 
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
@@ -34,26 +34,27 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_settings = std::make_shared<Settings>();
 
     // Initialize bookmarks manager
-    m_bookmarks = DatabaseWorker::createWorker<BookmarkManager>(m_settings->firstRun(), m_settings->getPathValue("BookmarkPath"));
+    m_bookmarks = DatabaseWorker::createWorker<BookmarkManager>(m_settings->firstRun(),
+                                                                m_settings->getPathValue(QStringLiteral("BookmarkPath")));
 
     // Initialize cookie jar
-    m_cookieJar = DatabaseWorker::createWorker<CookieJar>(m_settings->firstRun(), m_settings->getPathValue("CookiePath"));
+    m_cookieJar = DatabaseWorker::createWorker<CookieJar>(m_settings->firstRun(),
+                                                          m_settings->getPathValue(QStringLiteral("CookiePath")));
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
-    m_downloadMgr->setDownloadDir(m_settings->getPathValue("DownloadDir"));
+    m_downloadMgr->setDownloadDir(m_settings->getPathValue(QStringLiteral("DownloadDir")));
 
     // Initialize favicon storage module
-    m_faviconStorage = new FaviconStorage(m_settings->firstRun(), m_settings->getPathValue("FaviconPath"));
+    m_faviconStorage = new FaviconStorage(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("FaviconPath")));
 
     // Instantiate the history manager
-    m_historyMgr = new HistoryManager(m_settings->firstRun(), m_settings->getPathValue("HistoryPath"));
+    m_historyMgr = new HistoryManager(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("HistoryPath")));
     connect(m_historyMgr, &HistoryManager::pageVisited, [=](const QString &url, const QString &title) {
         QUrl itemUrl(url);
         QIcon favicon = m_faviconStorage->getFavicon(itemUrl);
 
-        // update the History menu in each MainWindow
-        //QUrl itemUrl = QUrl::fromUserInput(url);
+        // Update the history menu in each MainWindow
         for (int i = 0; i < m_browserWindows.size(); ++i)
         {
             QPointer<MainWindow> m = m_browserWindows.at(i);
@@ -74,7 +75,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_downloadMgr->setNetworkAccessManager(m_networkAccessMgr);
 
     m_privateNetworkAccessMgr = new NetworkAccessManager;
-    CookieJar *privateJar = new CookieJar(QString("%1.fake").arg(m_settings->getPathValue("CookiePath")), QString("FakeCookies"), true);
+    CookieJar *privateJar = new CookieJar(QString("%1.fake").arg(m_settings->getPathValue(QStringLiteral("CookiePath"))), QStringLiteral("FakeCookies"), true);
     m_privateNetworkAccessMgr->setCookieJar(privateJar);
 
     // Setup user agent manager
@@ -85,7 +86,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_userScriptMgr = new UserScriptManager(m_settings);
 
     // Load search engine information
-    SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue("SearchEnginesFile"));
+    SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QStringLiteral("SearchEnginesFile")));
 
     // Set global web settings
     setWebSettings();
@@ -93,7 +94,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Load ad block subscriptions (will do nothing if disabled)
     AdBlockManager::instance().loadSubscriptions();
 
-    m_sessionMgr.setSessionFile(m_settings->getPathValue("SessionFile"));
+    m_sessionMgr.setSessionFile(m_settings->getPathValue(QStringLiteral("SessionFile")));
 
     // Connect aboutToQuit signal to browser's session management slot
     connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
@@ -129,14 +130,14 @@ BrowserApplication *BrowserApplication::instance()
     return static_cast<BrowserApplication*>(QCoreApplication::instance());
 }
 
-std::shared_ptr<BookmarkManager> BrowserApplication::getBookmarkManager()
+BookmarkManager *BrowserApplication::getBookmarkManager()
 {
-    return m_bookmarks;
+    return m_bookmarks.get();
 }
 
-std::shared_ptr<CookieJar> BrowserApplication::getCookieJar()
+CookieJar *BrowserApplication::getCookieJar()
 {
-    return m_cookieJar;
+    return m_cookieJar.get();
 }
 
 std::shared_ptr<Settings> BrowserApplication::getSettings()
@@ -199,7 +200,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks);
+    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get());
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
 
@@ -242,7 +243,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks);
+    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get());
     m_browserWindows.append(w);
     setHistoryForWindow(w);
 

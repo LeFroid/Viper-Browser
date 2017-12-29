@@ -48,7 +48,7 @@
 #include <QWebFrame>
 #include <QWebInspector>
 
-MainWindow::MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<BookmarkManager> bookmarkManager, QWidget *parent) :
+MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_privateWindow(false),

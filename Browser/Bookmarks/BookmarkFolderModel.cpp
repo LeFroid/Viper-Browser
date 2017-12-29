@@ -8,9 +8,7 @@
 #include <QIODevice>
 #include <QMimeData>
 
-#include <QDebug>
-
-BookmarkFolderModel::BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent) :
+BookmarkFolderModel::BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent) :
     QAbstractItemModel(parent),
     m_root(bookmarkMgr->getRoot()),
     m_bookmarksBar(bookmarkMgr->getBookmarksBar()),

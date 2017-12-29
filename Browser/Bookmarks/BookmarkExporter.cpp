@@ -8,7 +8,7 @@ const QString BookmarkExporter::NetscapeHeader = QString("<!DOCTYPE NETSCAPE-Boo
                                        "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">\n"
                                        "<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n");
 
-BookmarkExporter::BookmarkExporter(std::shared_ptr<BookmarkManager> bookmarkMgr) :
+BookmarkExporter::BookmarkExporter(BookmarkManager *bookmarkMgr) :
     m_bookmarkManager(bookmarkMgr),
     m_outputFile(),
     m_recursionLevel(0)

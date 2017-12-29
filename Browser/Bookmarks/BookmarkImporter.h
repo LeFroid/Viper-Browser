@@ -2,7 +2,6 @@
 #define BOOKMARKIMPORTER_H
 
 #include "BookmarkManager.h"
-#include <memory>
 
 /**
  * @class BookmarkImporter
@@ -12,8 +11,8 @@
 class BookmarkImporter
 {
 public:
-    /// Constructs the bookmark importer, given a shared pointer to the bookmark manager
-    explicit BookmarkImporter(std::shared_ptr<BookmarkManager> bookmarkMgr);
+    /// Constructs the bookmark importer, given a pointer to the bookmark manager
+    explicit BookmarkImporter(BookmarkManager *bookmarkMgr);
 
     /**
      * @brief import Attempts to import bookmarks from the given HTML file into a bookmark folder
@@ -25,7 +24,7 @@ public:
 
 private:
     /// Bookmark manager
-    std::shared_ptr<BookmarkManager> m_bookmarkManager;
+    BookmarkManager *m_bookmarkManager;
 };
 
 #endif // BOOKMARKIMPORTER_H

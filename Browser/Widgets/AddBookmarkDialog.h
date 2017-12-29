@@ -2,7 +2,6 @@
 #define ADDBOOKMARKDIALOG_H
 
 #include "BookmarkManager.h"
-#include <memory>
 #include <QDialog>
 #include <QString>
 
@@ -21,8 +20,8 @@ class AddBookmarkDialog : public QDialog
     Q_OBJECT
 
 public:
-    /// Constructs the dialog given a shared pointer to the bookmark manager and optionally a parent widget
-    explicit AddBookmarkDialog(std::shared_ptr<BookmarkManager> bookmarkMgr, QWidget *parent = 0);
+    /// Constructs the dialog given a pointer to the bookmark manager and optionally a parent widget
+    explicit AddBookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent = 0);
 
     /// Dialog destructor
     ~AddBookmarkDialog();
@@ -46,7 +45,7 @@ private:
     Ui::AddBookmarkDialog *ui;
 
     /// Bookmark manager
-    std::shared_ptr<BookmarkManager> m_bookmarkManager;
+    BookmarkManager *m_bookmarkManager;
 
     /// URL of current bookmark shown in the UI (bookmarks are referenced by their unique URL values in bookmark manager)
     QString m_currentUrl;

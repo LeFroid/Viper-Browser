@@ -46,7 +46,7 @@ class MainWindow : public QMainWindow
 
 public:
     /// Constructs the main window
-    explicit MainWindow(std::shared_ptr<Settings> settings, std::shared_ptr<BookmarkManager> bookmarkManager, QWidget *parent = 0);
+    explicit MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, QWidget *parent = 0);
 
     /// MainWindow destructor
     ~MainWindow();
@@ -213,7 +213,7 @@ private:
     std::shared_ptr<Settings> m_settings;
 
     /// Bookmark manager
-    std::shared_ptr<BookmarkManager> m_bookmarkManager;
+    BookmarkManager *m_bookmarkManager;
 
     /// Bookmark manager interface
     BookmarkWidget *m_bookmarkUI;

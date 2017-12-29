@@ -15,8 +15,8 @@ CookieTableModel::CookieTableModel(QObject *parent) :
 {
     loadCookies();
 
-    connect(m_cookieJar.get(), &CookieJar::cookieAdded, this, &CookieTableModel::loadCookies);
-    connect(m_cookieJar.get(), &CookieJar::cookiesRemoved, this, &CookieTableModel::eraseCookies);
+    connect(m_cookieJar, &CookieJar::cookieAdded, this, &CookieTableModel::loadCookies);
+    connect(m_cookieJar, &CookieJar::cookiesRemoved, this, &CookieTableModel::eraseCookies);
 }
 
 QVariant CookieTableModel::headerData(int section, Qt::Orientation orientation, int role) const

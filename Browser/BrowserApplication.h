@@ -54,11 +54,11 @@ public:
     /// Returns the browser application singleton
     static BrowserApplication *instance();
 
-    /// Returns a shared pointer to the bookmark manager
-    std::shared_ptr<BookmarkManager> getBookmarkManager();
+    /// Returns a pointer to the bookmark manager
+    BookmarkManager *getBookmarkManager();
 
-    /// Returns the cookie jar used when in non-private browsing modes
-    std::shared_ptr<CookieJar> getCookieJar();
+    /// Returns the cookie jar used for standard (non-private) browsing mode
+    CookieJar *getCookieJar();
 
     /// Returns a shared pointer to the application settings object
     std::shared_ptr<Settings> getSettings();
@@ -132,10 +132,10 @@ private:
     std::shared_ptr<Settings> m_settings;
 
     /// Bookmark management class
-    std::shared_ptr<BookmarkManager> m_bookmarks;
+    std::unique_ptr<BookmarkManager> m_bookmarks;
 
     /// Cookie jar
-    std::shared_ptr<CookieJar> m_cookieJar;
+    std::unique_ptr<CookieJar> m_cookieJar;
 
     /// Download manager
     DownloadManager *m_downloadMgr;

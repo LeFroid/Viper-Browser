@@ -16,7 +16,7 @@ BookmarkBar::BookmarkBar(QWidget *parent) :
 {
 }
 
-void BookmarkBar::setBookmarkManager(std::shared_ptr<BookmarkManager> manager)
+void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
 {
     m_bookmarkManager = manager;
     refresh();
@@ -59,7 +59,7 @@ void BookmarkBar::showBookmarkContextMenu(const QPoint &pos)
 
 void BookmarkBar::refresh()
 {
-    if (!m_bookmarkManager.get())
+    if (!m_bookmarkManager)
         return;
 
     clear();

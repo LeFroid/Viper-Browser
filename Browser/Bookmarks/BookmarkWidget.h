@@ -3,7 +3,6 @@
 
 #include "BookmarkManager.h"
 #include <deque>
-#include <memory>
 #include <QUrl>
 #include <QWidget>
 
@@ -34,7 +33,7 @@ public:
     ~BookmarkWidget();
 
     /// Sets the pointer to the user's bookmark manager
-    void setBookmarkManager(std::shared_ptr<BookmarkManager> bookmarkManager);
+    void setBookmarkManager(BookmarkManager *bookmarkManager);
 
 public slots:
     /// Reloads bookmark data into tree and table models
@@ -133,7 +132,7 @@ private:
     Ui::BookmarkWidget *ui;
 
     /// Pointer to the user's bookmark manager
-    std::shared_ptr<BookmarkManager> m_bookmarkManager;
+    BookmarkManager *m_bookmarkManager;
 
     /// Proxy model used for searching bookmarks
     QSortFilterProxyModel *m_proxyModel;

@@ -2,7 +2,6 @@
 #define BOOKMARKFOLDERMODEL_H
 
 #include "BookmarkManager.h"
-#include <memory>
 #include <QAbstractItemModel>
 
 /**
@@ -16,7 +15,7 @@ class BookmarkFolderModel : public QAbstractItemModel
 
 public:
     /// Constructs the bookmark folder model
-    explicit BookmarkFolderModel(std::shared_ptr<BookmarkManager> bookmarkMgr, QObject *parent = nullptr);
+    explicit BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent = nullptr);
     ~BookmarkFolderModel();
 
     // Basic functionality:
@@ -67,7 +66,7 @@ private:
     BookmarkNode *m_bookmarksBar;
 
     /// Bookmark manager
-    std::shared_ptr<BookmarkManager> m_bookmarkMgr;
+    BookmarkManager *m_bookmarkMgr;
 };
 
 #endif // BOOKMARKFOLDERMODEL_H
