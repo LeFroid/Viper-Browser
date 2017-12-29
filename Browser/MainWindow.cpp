@@ -742,6 +742,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
     {
         m_urlInput->setURL(view->url());
         checkPageForBookmark();
+        view->setFocus();
     }
 
     // Get favicon and inform HistoryManager of the title and favicon associated with the page's url, if not in private mode
