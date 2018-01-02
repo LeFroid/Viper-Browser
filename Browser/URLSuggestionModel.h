@@ -27,6 +27,10 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
+private slots:
+    /// Called when a web page has been visited by the user
+    void onPageVisited(const QString &url, const QString &title);
+
 private:
     /// Loads the URLs stored in the user's bookmarks and browsing history
     void loadURLs();
@@ -37,9 +41,17 @@ private:
     /// Loads URLs stored in the browser history, returning a set of all found URLs and their page titles
     QSet<QString> loadHistoryURLs();
 
+    /// Checks the URL container for duplicate entries, removing all that are found and resetting the counter
+    void removeDuplicates();
+
 private:
     /// Container of saved URLs concatenated with page titles
     std::vector<QString> m_urls;
+
+    /// Counter that records the number of URLs that have been added to the URL suggestion model recently.
+    /// Once the number of new URLs has reached a threshold, the counter resets and the container of URLs is
+    /// checked for duplicate entries
+    int m_counter;
 };
 
 #endif // URLSUGGESTIONMODEL_H

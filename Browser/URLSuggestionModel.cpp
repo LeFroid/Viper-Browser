@@ -4,13 +4,15 @@
 #include "HistoryManager.h"
 #include "URLSuggestionModel.h"
 
+#include <algorithm>
 #include <QQueue>
 
-//TODO: Add method to insert new urls to the model as new urls are visited by the user
+const static int URL_Counter_Threshold = 15;
 
 URLSuggestionModel::URLSuggestionModel(QObject *parent) :
     QAbstractListModel(parent),
-    m_urls()
+    m_urls(),
+    m_counter(0)
 {
     loadURLs();
 }
@@ -33,6 +35,21 @@ Qt::ItemFlags URLSuggestionModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return 0;
     return Qt::ItemIsEditable | Qt::ItemIsSelectable | QAbstractListModel::flags(index);
+}
+
+void URLSuggestionModel::onPageVisited(const QString &url, const QString &title)
+{
+    if (url.isEmpty() || title.isEmpty())
+        return;
+
+    m_urls.push_back(QString("%1 - %2").arg(url).arg(title));
+
+    // Check counter threshold
+    if (++m_counter >= URL_Counter_Threshold)
+    {
+        removeDuplicates();
+        m_counter = 0;
+    }
 }
 
 void URLSuggestionModel::loadURLs()
@@ -82,3 +99,9 @@ QSet<QString> URLSuggestionModel::loadHistoryURLs()
 
     return urls;
 }
+
+void URLSuggestionModel::removeDuplicates()
+{
+    m_urls.erase(std::unique(m_urls.begin(), m_urls.end()), m_urls.end());
+}
+
