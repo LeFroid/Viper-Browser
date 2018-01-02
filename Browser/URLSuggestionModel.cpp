@@ -15,6 +15,8 @@ URLSuggestionModel::URLSuggestionModel(QObject *parent) :
     m_counter(0)
 {
     loadURLs();
+
+    connect(sBrowserApplication->getHistoryManager(), &HistoryManager::pageVisited, this, &URLSuggestionModel::onPageVisited);
 }
 
 int URLSuggestionModel::rowCount(const QModelIndex &/*parent*/) const
