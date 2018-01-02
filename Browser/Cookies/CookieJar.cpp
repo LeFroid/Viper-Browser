@@ -52,6 +52,25 @@ void CookieJar::clearCookiesFrom(const QDateTime &start)
     if (!query.exec())
         qDebug() << "[Warning]: In CookieJar::clearCookiesFrom(..) - Could not erase cookies newer than "
                  << start.toString() << " from database";
+
+    // reload cookies
+    load();
+}
+
+void CookieJar::clearCookiesInRange(std::pair<QDateTime, QDateTime> range)
+{
+    if (m_privateJar)
+        return;
+
+    QSqlQuery query(m_database);
+    query.prepare("DELETE FROM Cookies WHERE DateCreated > (:startDate) AND DateCreated < (:endDate)");
+    query.bindValue(":startDate", range.first.toMSecsSinceEpoch());
+    query.bindValue(":endDate", range.second.toMSecsSinceEpoch());
+    if (!query.exec())
+        qDebug() << "[Warning]: In CookieJar::clearCookiesInRaneg(..) - Could not erase cookies";
+
+    // reload cookies
+    load();
 }
 
 bool CookieJar::insertCookie(const QNetworkCookie &cookie)

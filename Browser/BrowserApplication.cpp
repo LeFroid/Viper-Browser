@@ -288,6 +288,26 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
     //todo: support clearing form and search data
 }
 
+void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range)
+{
+    // Check for a valid start-end date-time pair
+    if (!range.first.isValid() || !range.second.isValid())
+        return;
+
+    // Check if browsing history flag is set
+    if ((histType & HistoryType::Browsing) == HistoryType::Browsing)
+    {
+        m_historyMgr->clearHistoryInRange(range);
+        resetHistoryMenus();
+    }
+
+    // Check if cookie flag is set
+    if ((histType & HistoryType::Cookies) == HistoryType::Cookies)
+        m_cookieJar->clearCookiesInRange(range);
+
+    //todo: support clearing form and search data
+}
+
 void BrowserApplication::resetHistoryMenus()
 {
     for (int i = 0; i < m_browserWindows.size(); ++i)

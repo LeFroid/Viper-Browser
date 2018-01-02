@@ -29,6 +29,9 @@ public:
     /// Clears cookies stored from the given start time to the present
     void clearCookiesFrom(const QDateTime &start);
 
+    /// Clears cookies that were created any time within the {start,end} date-time range pair
+    void clearCookiesInRange(std::pair<QDateTime, QDateTime> range);
+
     /// Emits a singal when a cookie has been added to the jar
     bool insertCookie(const QNetworkCookie &cookie) override;
 

@@ -117,6 +117,9 @@ protected:
     /// If no start time is given, all history will be cleared
     void clearHistory(HistoryType histType, QDateTime start = QDateTime());
 
+    /// Clears the given history type(s) from the browser's storage within the given {start, end} date-time range
+    void clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range);
+
 private:
     /// Resets each browser's history menu after clearing recent history
     void resetHistoryMenus();

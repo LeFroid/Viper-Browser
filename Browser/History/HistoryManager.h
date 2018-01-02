@@ -62,6 +62,9 @@ public:
     /// Clears history stored from the given start time to the present
     void clearHistoryFrom(const QDateTime &start);
 
+    /// Clears history within the given {start,end} date-time pair
+    void clearHistoryInRange(std::pair<QDateTime, QDateTime> range);
+
     /// Returns true if the history contains the given url, false if else. Will return
     /// false if private browsing mode is enabled
     bool historyContains(const QString &url) const override;

@@ -18,7 +18,13 @@ ClearHistoryDialog::ClearHistoryDialog(QWidget *parent) :
     ui->comboBoxTimeRange->addItem(tr("Last Four Hours"), LAST_FOUR_HOUR);
     ui->comboBoxTimeRange->addItem(tr("Today"), LAST_DAY);
     ui->comboBoxTimeRange->addItem(tr("Everything"), TIME_RANGE_ALL);
+    ui->comboBoxTimeRange->addItem(tr("Custom"), CUSTOM_RANGE);
     ui->comboBoxTimeRange->insertSeparator(4);
+    ui->comboBoxTimeRange->insertSeparator(6);
+
+    setCustomRangeVisiblity(false);
+    connect(ui->comboBoxTimeRange, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &ClearHistoryDialog::onTimeRangeSelected);
 
     // Set details hide/show icon and implement behavior
     ui->pushButtonDetails->setIcon(style()->standardIcon(QStyle::SP_TitleBarMinButton));
@@ -57,6 +63,11 @@ HistoryType ClearHistoryDialog::getHistoryTypes() const
     return histTypes;
 }
 
+std::pair<QDateTime, QDateTime> ClearHistoryDialog::getCustomTimeRange() const
+{
+    return std::make_pair(ui->dateTimeEditStart->dateTime(), ui->dateTimeEditEnd->dateTime());
+}
+
 void ClearHistoryDialog::toggleDetails()
 {
     if (ui->listWidgetDetails->isHidden())
@@ -68,6 +79,39 @@ void ClearHistoryDialog::toggleDetails()
     {
         ui->listWidgetDetails->hide();
         ui->pushButtonDetails->setIcon(style()->standardIcon(QStyle::SP_TitleBarMaxButton));
+    }
+}
+
+void ClearHistoryDialog::onTimeRangeSelected(int index)
+{
+    // Check if custom time range option was selected
+    if (ui->comboBoxTimeRange->itemData(index).toInt() != CUSTOM_RANGE)
+    {
+        setCustomRangeVisiblity(false);
+        return;
+    }
+
+    setCustomRangeVisiblity(true);
+    QDateTime now = QDateTime::currentDateTime();
+    ui->dateTimeEditEnd->setDateTime(now);
+    ui->dateTimeEditStart->setDateTime(now.addDays(-14));
+}
+
+void ClearHistoryDialog::setCustomRangeVisiblity(bool visible)
+{
+    if (visible)
+    {
+        ui->labelStartTime->show();
+        ui->labelEndTime->show();
+        ui->dateTimeEditStart->show();
+        ui->dateTimeEditEnd->show();
+    }
+    else
+    {
+        ui->labelStartTime->hide();
+        ui->labelEndTime->hide();
+        ui->dateTimeEditStart->hide();
+        ui->dateTimeEditEnd->hide();
     }
 }
 

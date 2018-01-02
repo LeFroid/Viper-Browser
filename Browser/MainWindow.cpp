@@ -580,6 +580,7 @@ void MainWindow::onClearHistoryDialogFinished(int result)
     qint64 hourInSecond = 3600;
     QDateTime now = QDateTime::currentDateTime();
     QDateTime timeRange;
+    bool customTimeRange = false;
     switch (m_clearHistoryDialog->getTimeRange())
     {
         case ClearHistoryDialog::LAST_HOUR:
@@ -594,12 +595,21 @@ void MainWindow::onClearHistoryDialogFinished(int result)
         case ClearHistoryDialog::LAST_DAY:
             timeRange = now.addSecs(-24 * hourInSecond);
             break;
+        case ClearHistoryDialog::CUSTOM_RANGE:
+            customTimeRange = true;
         default:
             break;
     }
 
-    // Pass start time and history deletion types to BrowserApplication
-    sBrowserApplication->clearHistory(m_clearHistoryDialog->getHistoryTypes(), timeRange);
+    if (!customTimeRange)
+    {
+        // Pass start time and history deletion types to BrowserApplication
+        sBrowserApplication->clearHistory(m_clearHistoryDialog->getHistoryTypes(), timeRange);
+    }
+    else
+    {
+        sBrowserApplication->clearHistoryRange(m_clearHistoryDialog->getHistoryTypes(), m_clearHistoryDialog->getCustomTimeRange());
+    }
 }
 
 void MainWindow::refreshBookmarkMenu()

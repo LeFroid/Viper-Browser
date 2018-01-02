@@ -111,6 +111,25 @@ void HistoryManager::clearHistoryFrom(const QDateTime &start)
     load();
 }
 
+void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
+{
+    // Perform database query and reload data
+    QSqlQuery query(m_database);
+    query.prepare("DELETE FROM Visits WHERE Date > (:startDate) AND Date < (:endDate)");
+    query.bindValue(":startDate", range.first.toMSecsSinceEpoch());
+    query.bindValue(":endDate", range.second.toMSecsSinceEpoch());
+    if (!query.exec())
+    {
+        qDebug() << "[Error]: In HistoryManager::clearHistoryFrom - Unable to clear history. Message: "
+                 << query.lastError().text();
+        return;
+    }
+
+    m_recentItems.clear();
+    m_historyItems.clear();
+    load();
+}
+
 bool HistoryManager::historyContains(const QString &url) const
 {
     return (m_historyItems.find(url.toLower()) != m_historyItems.end());
