@@ -14,6 +14,8 @@
  */
 class URLSuggestionModel : public QAbstractListModel
 {
+    friend class BrowserApplication;
+
     Q_OBJECT
 
 public:
@@ -27,14 +29,15 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
+protected:
+    /// Loads the URLs stored in the user's bookmarks and browsing history
+    void loadURLs();
+
 private slots:
     /// Called when a web page has been visited by the user
     void onPageVisited(const QString &url, const QString &title);
 
 private:
-    /// Loads the URLs stored in the user's bookmarks and browsing history
-    void loadURLs();
-
     /// Loads URLs stored in the bookmark database, returning a set of all found URLs and their page titles
     QSet<QString> loadBookmarkURLs();
 

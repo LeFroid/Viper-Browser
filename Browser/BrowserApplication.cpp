@@ -286,6 +286,9 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
     }
 
     //todo: support clearing form and search data
+
+    // Reload URLs in the suggestion model
+    m_suggestionModel->loadURLs();
 }
 
 void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range)
@@ -306,6 +309,9 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
         m_cookieJar->clearCookiesInRange(range);
 
     //todo: support clearing form and search data
+
+    // Reload URLs in the suggestion model
+    m_suggestionModel->loadURLs();
 }
 
 void BrowserApplication::resetHistoryMenus()

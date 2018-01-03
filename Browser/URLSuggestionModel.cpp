@@ -56,9 +56,16 @@ void URLSuggestionModel::onPageVisited(const QString &url, const QString &title)
 
 void URLSuggestionModel::loadURLs()
 {
+    beginResetModel();
+
+    m_counter = 0;
+    m_urls.clear();
+
     QSet<QString> foundURLs = loadBookmarkURLs().unite(loadHistoryURLs());
     for (const QString &url : foundURLs)
         m_urls.push_back(url);
+
+    endResetModel();
 }
 
 QSet<QString> URLSuggestionModel::loadBookmarkURLs()
