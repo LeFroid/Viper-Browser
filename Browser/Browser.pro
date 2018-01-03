@@ -189,7 +189,8 @@ HEADERS += \
     AdBlock/AdBlockWidget.h \
     Widgets/CheckableTableView.h \
     Network/BlockedNetworkReply.h \
-    UserScripts/AddUserScriptDialog.h
+    UserScripts/AddUserScriptDialog.h \
+    DatabaseFactory.h
 
 FORMS += \
         mainwindow.ui \

@@ -2,6 +2,7 @@
 #include "AdBlockManager.h"
 #include "BookmarkManager.h"
 #include "CookieJar.h"
+#include "DatabaseFactory.h"
 #include "DownloadManager.h"
 #include "FaviconStorage.h"
 #include "HistoryManager.h"
@@ -14,7 +15,6 @@
 #include "UserAgentManager.h"
 #include "UserScriptManager.h"
 #include "WebPage.h"
-#include "AdBlockManager.h"
 
 #include <vector>
 #include <QDir>
@@ -34,11 +34,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_settings = std::make_shared<Settings>();
 
     // Initialize bookmarks manager
-    m_bookmarks = DatabaseWorker::createWorker<BookmarkManager>(m_settings->firstRun(),
+    m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->firstRun(),
                                                                 m_settings->getPathValue(QStringLiteral("BookmarkPath")));
 
     // Initialize cookie jar
-    m_cookieJar = DatabaseWorker::createWorker<CookieJar>(m_settings->firstRun(),
+    m_cookieJar = DatabaseFactory::createWorker<CookieJar>(m_settings->firstRun(),
                                                           m_settings->getPathValue(QStringLiteral("CookiePath")));
 
     // Initialize download manager

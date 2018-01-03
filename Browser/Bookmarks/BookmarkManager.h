@@ -18,7 +18,7 @@ class BookmarkManager : private DatabaseWorker
 {
     friend class BookmarkTableModel;
     friend class BookmarkFolderModel;
-    friend class DatabaseWorker;
+    friend class DatabaseFactory;
 
 public:
     /// Bookmark constructor - loads database information into memory

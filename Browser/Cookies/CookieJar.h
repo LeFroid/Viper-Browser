@@ -12,7 +12,7 @@
 class CookieJar : public QNetworkCookieJar, private DatabaseWorker
 {
     friend class CookieTableModel;
-    friend class DatabaseWorker;
+    friend class DatabaseFactory;
 
     Q_OBJECT
 
