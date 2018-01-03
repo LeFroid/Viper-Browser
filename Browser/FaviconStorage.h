@@ -35,15 +35,16 @@ struct FaviconInfo
  */
 class FaviconStorage : public QObject, private DatabaseWorker
 {
+    friend class DatabaseFactory;
+
     Q_OBJECT
 
 public:
     /**
      * @brief FaviconStorage Constructs the Favicon storage object
-     * @param firstRun True if the application is being executed for the first time
      * @param databaseFile Path of the favicon database file
      */
-    FaviconStorage(bool firstRun, const QString &databaseFile, QObject *parent = nullptr);
+    FaviconStorage(const QString &databaseFile, QObject *parent = nullptr);
 
     /// Destroys the favicon storage object, saving data to the favicon database
     virtual ~FaviconStorage();

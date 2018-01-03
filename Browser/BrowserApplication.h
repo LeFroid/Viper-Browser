@@ -144,7 +144,7 @@ private:
     DownloadManager *m_downloadMgr;
 
     /// Favicon storage manager
-    FaviconStorage *m_faviconStorage;
+    std::unique_ptr<FaviconStorage> m_faviconStorage;
 
     /// History management class
     HistoryManager *m_historyMgr;

@@ -12,7 +12,7 @@
 #include <QWebSettings>
 #include <QDebug>
 
-FaviconStorage::FaviconStorage(bool firstRun, const QString &databaseFile, QObject *parent) :
+FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, "Favicons"),
     m_accessMgr(nullptr),
@@ -23,11 +23,6 @@ FaviconStorage::FaviconStorage(bool firstRun, const QString &databaseFile, QObje
     m_queryInsertFavicon(nullptr),
     m_queryInsertIconData(nullptr)
 {
-    if (firstRun)
-        setup();
-
-    load();
-
     m_queryInsertFavicon = new QSqlQuery(m_database);
     m_queryInsertFavicon->prepare("INSERT OR REPLACE INTO Favicons(FaviconID, URL) VALUES(:iconId, :url)");
 

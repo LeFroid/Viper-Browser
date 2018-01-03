@@ -46,7 +46,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_downloadMgr->setDownloadDir(m_settings->getPathValue(QStringLiteral("DownloadDir")));
 
     // Initialize favicon storage module
-    m_faviconStorage = new FaviconStorage(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("FaviconPath")));
+    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->firstRun(),
+                                                                     m_settings->getPathValue(QStringLiteral("FaviconPath")));
+                                                                     //new FaviconStorage(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("FaviconPath")));
 
     // Instantiate the history manager
     m_historyMgr = new HistoryManager(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("HistoryPath")));
@@ -115,7 +117,6 @@ BrowserApplication::~BrowserApplication()
     m_cookieJar->setParent(nullptr);
 
     delete m_downloadMgr;
-    delete m_faviconStorage;
     delete m_historyMgr;
     delete m_suggestionModel;
     delete m_networkAccessMgr;
@@ -152,7 +153,7 @@ DownloadManager *BrowserApplication::getDownloadManager()
 
 FaviconStorage *BrowserApplication::getFaviconStorage()
 {
-    return m_faviconStorage;
+    return m_faviconStorage.get();
 }
 
 HistoryManager *BrowserApplication::getHistoryManager()
