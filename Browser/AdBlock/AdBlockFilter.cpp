@@ -252,7 +252,9 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
 
 bool AdBlockFilter::isDomainStyleMatch(const QString &domain)
 {
-    // this method is failing
+    if (m_disabled)
+        return false;
+
     if (m_domainBlacklist.isEmpty())
     {
         for (const QString &d : m_domainWhitelist)
@@ -340,8 +342,10 @@ void AdBlockFilter::parseRule()
     }
 
     // Check if filter options are set
-    if ((pos = rule.indexOf(QChar('$'))) >= 0)
+    pos = rule.indexOf(QChar('$'));
+    if (pos >= 0 && rule.at(rule.size() - 1).isLetter())
     {
+        if (rule.at(rule.size() - 1).isLetter())
         parseOptions(rule.mid(pos + 1));
         rule = rule.left(pos);
     }

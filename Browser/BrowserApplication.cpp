@@ -48,7 +48,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->firstRun(),
                                                                      m_settings->getPathValue(QStringLiteral("FaviconPath")));
-                                                                     //new FaviconStorage(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("FaviconPath")));
 
     // Instantiate the history manager
     m_historyMgr = new HistoryManager(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("HistoryPath")));
