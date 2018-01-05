@@ -64,6 +64,12 @@ AdBlockManager &AdBlockManager::instance()
 void AdBlockManager::setEnabled(bool value)
 {
     m_enabled = value;
+
+    // Clear filters regardless of state, and re-extract
+    // filter data from subscriptions if being set to enabled
+    clearFilters();
+    if (value)
+        extractFilters();
 }
 
 void AdBlockManager::updateSubscriptions()
@@ -232,18 +238,12 @@ BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &requ
     for (AdBlockFilter *filter : m_allowFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
-        {
-            //qDebug() << "Exception rule match. BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return nullptr;
-        }
     }
     for (AdBlockFilter *filter : m_blockFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
-        {
-            //qDebug() << "Matched block rule  BaseURL: " << baseUrl << " request URL: " << requestUrl << " request domain: " << requestDomain << " rule: " << filter->getRule();
             return new BlockedNetworkReply(request, filter->getRule(), this);
-        }
     }
 
     return nullptr;

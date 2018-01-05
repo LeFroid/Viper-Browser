@@ -869,17 +869,17 @@ QString AdBlockFilter::parseRegExp(const QString &regExpString)
 
 bool AdBlockFilter::filterContains(const QString &haystack) const
 {
-    if (m_evalString.size() > haystack.size())
-        return false;
+    int needleLength = m_evalString.size();
+    int haystackLength = haystack.size();
 
-    if (m_evalString.isEmpty())
+    if (needleLength > haystackLength)
+        return false;
+    if (needleLength == 0)
         return true;
 
     static const quint64 radixLength = 256ULL;
     static const quint64 prime = 72057594037927931ULL;
 
-    int needleLength = m_evalString.size();
-    int haystackLength = haystack.size();
     int lastIndex = haystackLength - needleLength;
 
     quint64 differenceHash = quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
@@ -888,12 +888,14 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
     size_t firstHaystackHash = 0;
 
     int index;
+    const QChar *needlePtr = m_evalString.constData();
+    const QChar *haystackPtr = haystack.constData();
 
     // preprocessing
     for(index = 0; index < needleLength; index++)
     {
-        needleHash = (radixLength * needleHash + m_evalString[index].toLatin1()) % prime;
-        firstHaystackHash = (radixLength * firstHaystackHash + haystack[index].toLatin1()) % prime;
+        needleHash = (radixLength * needleHash + (needlePtr + index)->toLatin1()) % prime;
+        firstHaystackHash = (radixLength * firstHaystackHash + (haystackPtr + index)->toLatin1()) % prime;
     }
 
     std::vector<quint64> haystackHashes;
@@ -906,7 +908,7 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
         if(needleHash == haystackHashes[index])
         {
            int j;
-           for (j = 0; j < needleLength && m_evalString[j] == haystack[index + j]; ++j);
+           for(j = 0; j < needleLength && (*(needlePtr + j) == *(haystackPtr + index + j)); ++j);
            if (j == needleLength)
                return true;
         }
@@ -914,8 +916,8 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
         if(index < lastIndex)
         {
             quint64 newHaystackHash =
-                    (radixLength * (haystackHashes[index] - haystack[index].toLatin1() * differenceHash)
-                     + haystack[index + needleLength].toLatin1()) % prime;
+                    (radixLength * (haystackHashes[index] - (haystackPtr + index)->toLatin1() * differenceHash)
+                     + (haystackPtr + index + needleLength)->toLatin1()) % prime;
             haystackHashes.push_back(newHaystackHash);
         }
     }
