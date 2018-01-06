@@ -103,6 +103,7 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
 {
     WebView *view = new WebView(parentWidget());
     view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    view->setPrivate(m_privateBrowsing);
 
     QString tabLabel;
     if (!skipHomePage)
@@ -151,7 +152,8 @@ void BrowserTabWidget::onIconChanged()
     int tabIndex = indexOf(view);
     if (tabIndex < 0 || !view)
         return;
-    setTabIcon(tabIndex, QWebSettings::iconForUrl(view->url()));
+
+    setTabIcon(tabIndex, sBrowserApplication->getFaviconStorage()->getFavicon(view->url()));
 }
 
 
