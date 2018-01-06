@@ -210,7 +210,10 @@ void BrowserTabWidget::onCurrentChanged(int index)
         return;
 
     m_activeView = view;
-    connect(view, &WebView::loadProgress, this, &BrowserTabWidget::loadProgress);
+    connect(view, &WebView::loadProgress, [=](int progress){
+        if (view == currentWebView())
+            emit loadProgress(progress);
+    });
 
     resetHistoryButtonMenus(true);
 

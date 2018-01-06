@@ -407,8 +407,6 @@ void MainWindow::setupTabWidget()
 
 void MainWindow::setupToolBar()
 {
-    ui->toolBar->setStyleSheet("QToolBar { spacing: 3px; } QToolButton::menu-indicator { subcontrol-position: bottom right; subcontrol-origin: content; }");
-
     // Previous Page Button
     m_prevPage = new QToolButton(ui->toolBar);
     QAction *prevPageAction = ui->toolBar->addWidget(m_prevPage);
@@ -434,7 +432,13 @@ void MainWindow::setupToolBar()
     m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
     connect(m_stopRefresh, &QAction::triggered, [=](){
         if (WebView *view = m_tabWidget->currentWebView())
-            view->reload();
+        {
+            int progress = view->getProgress();
+            if (progress > 0 && progress < 100)
+                view->stop();
+            else
+                view->reload();
+        }
     });
 
     // URL Bar
