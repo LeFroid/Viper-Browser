@@ -13,6 +13,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QNetworkRequest>
 #include <QWebFrame>
 
 #include <QDebug>
@@ -109,6 +110,37 @@ void AdBlockManager::updateSubscriptions()
             }
         }
     }
+}
+
+void AdBlockManager::installSubscription(const QUrl &url)
+{
+    if (!url.isValid())
+        return;
+
+    QNetworkRequest request;
+    request.setUrl(url);
+
+    DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
+    DownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
+    connect(item, &DownloadItem::downloadFinished, [=](const QString &filePath){
+        AdBlockSubscription subscription(filePath);
+        subscription.setSourceUrl(url);
+
+        // Update ad block model
+        int rowNum = static_cast<int>(m_subscriptions.size());
+        const bool hasModel = m_adBlockModel != nullptr;
+        if (hasModel)
+            m_adBlockModel->beginInsertRows(QModelIndex(), rowNum, rowNum);
+
+        m_subscriptions.push_back(std::move(subscription));
+
+        if (hasModel)
+            m_adBlockModel->endInsertRows();
+
+        // Reload filters
+        clearFilters();
+        extractFilters();
+    });
 }
 
 AdBlockModel *AdBlockManager::getModel()

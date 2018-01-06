@@ -11,6 +11,8 @@ class AdBlockManager;
  */
 class AdBlockModel : public QAbstractTableModel
 {
+    friend class AdBlockManager;
+
     Q_OBJECT
 
 public:

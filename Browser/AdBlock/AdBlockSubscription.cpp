@@ -97,6 +97,8 @@ void AdBlockSubscription::load()
     if (!subFile.exists() || !subFile.open(QIODevice::ReadOnly))
         return;
 
+    m_filters.clear();
+
     QString line;
     QTextStream stream(&subFile);
     while (stream.readLineInto(&line))

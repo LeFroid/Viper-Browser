@@ -27,9 +27,12 @@ protected:
     /// Called when the widget is resized - resizes the columns of the table view
     void resizeEvent(QResizeEvent *event) override;
 
-private:
+private slots:
     /// Called when a subscription item in the table has been clicked
     void onItemClicked(const QModelIndex &index);
+
+    /// Called when the user chooses to install a new subscription
+    void onAddSubscriptionButtonClicked();
 
 private:
     /// Pointer to the user interface items

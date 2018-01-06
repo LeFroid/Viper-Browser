@@ -3,7 +3,10 @@
 #include "AdBlockManager.h"
 #include "AdBlockModel.h"
 
+#include <QInputDialog>
+#include <QMessageBox>
 #include <QResizeEvent>
+#include <QUrl>
 
 AdBlockWidget::AdBlockWidget(QWidget *parent) :
     QWidget(parent),
@@ -15,6 +18,7 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
     ui->tableView->setModel(AdBlockManager::instance().getModel());
 
     connect(ui->tableView, &CheckableTableView::clicked, this, &AdBlockWidget::onItemClicked);
+    connect(ui->pushButtonAddSubscription, &QPushButton::clicked, this, &AdBlockWidget::onAddSubscriptionButtonClicked);
 }
 
 AdBlockWidget::~AdBlockWidget()
@@ -37,4 +41,22 @@ void AdBlockWidget::onItemClicked(const QModelIndex &/*index*/)
 {
     ui->pushButtonEditSubscription->setEnabled(true);
     ui->pushButtonDeleteSubscription->setEnabled(true);
+}
+
+void AdBlockWidget::onAddSubscriptionButtonClicked()
+{
+    bool ok;
+    QString userInput = QInputDialog::getText(this, tr("Install Subscription"), tr("Enter the URL of the subscription:"),
+                                              QLineEdit::Normal, QString(), &ok);
+    if (!ok || userInput.isEmpty())
+        return;
+
+    QUrl subUrl = QUrl::fromUserInput(userInput);
+    if (!subUrl.isValid())
+    {
+        static_cast<void>(QMessageBox::warning(this, tr("Installation Error"), tr("Could not install subscription."), QMessageBox::Ok,
+                                               QMessageBox::Ok));
+        return;
+    }
+    AdBlockManager::instance().installSubscription(subUrl);
 }

@@ -56,6 +56,12 @@ public slots:
     /// Attempt to update ad block subscriptions
     void updateSubscriptions();
 
+    /**
+     * @brief Attempts to download and install the subscription from the given URL
+     * @param url The location of the subscription file to be installed
+     */
+    void installSubscription(const QUrl &url);
+
 // Called by AdBlockFilter:
 protected:
     /// Searches for and returns the value from the resource map that is associated with the given key. Returns an empty string if not found
