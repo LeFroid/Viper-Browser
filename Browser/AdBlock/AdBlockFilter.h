@@ -191,6 +191,11 @@ private:
     /// Returns true if, while parsing the filter rule, its category is determined to be of type Stylesheet or StylesheetJS. Otherwise returns false.
     bool isStylesheetRule();
 
+    /// Returns true if the given rule string is able to be interpreted as a domain anchor rule with no regular expressions.
+    /// Example [will return true]: ||my.adserver.com^
+    /// Example [will return false]: ||ads.*.host.com^
+    bool isDomainRule(const QString &rule) const;
+
     /// Parses a list of domains, separated with the given delimiter, and placing them into
     /// either the domain blacklist or whitelist depending on the syntax (~ = whitelist, default = blacklist)
     void parseDomains(const QString &domainString, QChar delimiter);

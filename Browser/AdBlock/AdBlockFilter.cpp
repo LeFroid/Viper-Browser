@@ -328,21 +328,20 @@ bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString 
 void AdBlockFilter::parseRule()
 {
     QString rule = m_ruleString;
-    int pos = 0;
 
     // Check if CSS rule
     if (isStylesheetRule())
         return;
 
     // Check if the rule is an exception
-    if (rule.startsWith(QString("@@")))
+    if (rule.startsWith(QStringLiteral("@@")))
     {
         m_exception = true;
         rule = rule.mid(2);
     }
 
     // Check if filter options are set
-    pos = rule.indexOf(QChar('$'));
+    int pos = rule.indexOf(QChar('$'));
     if (pos >= 0 && rule.at(rule.size() - 1).isLetter())
     {
         if (rule.at(rule.size() - 1).isLetter())
@@ -368,45 +367,17 @@ void AdBlockFilter::parseRule()
     if (rule.startsWith('*'))
         rule = rule.mid(1);
 
-    // Check if filter is an entity filter before removing trailing wildcard
-    //const bool isEntityFilter = rule.endsWith(QStringLiteral(".*")) || rule.endsWith(QStringLiteral(".*^"));
-
     // Remove trailing wildcard
     if (rule.endsWith('*'))
         rule = rule.left(rule.size() - 1);
 
     // Check for domain matching rule
-    if (rule.startsWith("||") && rule.endsWith('^'))
+    if (rule.startsWith(QStringLiteral("||")) && rule.endsWith('^') && isDomainRule(rule))
     {
-        bool isDomainCategory = true;
-
-        for (int i = 2; i < rule.size() - 1; ++i)
-        {
-            if (!isDomainCategory)
-                break;
-
-            switch (rule.at(i).toLatin1())
-            {
-                case '/':
-                case ':':
-                case '?':
-                case '=':
-                case '&':
-                case '*':
-                    isDomainCategory = false;
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (isDomainCategory)
-        {
-            m_evalString = rule.mid(2);
-            m_evalString = m_evalString.left(m_evalString.size() - 1);
-            m_category = FilterCategory::Domain;
-            return;
-        }
+        m_evalString = rule.mid(2);
+        m_evalString = m_evalString.left(m_evalString.size() - 1);
+        m_category = FilterCategory::Domain;
+        return;
     }
 
     // Check if a regular expression might be needed
@@ -441,7 +412,7 @@ void AdBlockFilter::parseRule()
         rule = rule.left(rule.size() - 1);
     }
 
-    //if (rule.contains('*') || rule.contains('^') || rule.contains('|'))
+    // Ad block format -> regular expression conversion
     if (maybeRegExp || rule.contains(QChar('|')))
     {
         QRegularExpression::PatternOptions options =
@@ -470,7 +441,7 @@ bool AdBlockFilter::isStylesheetRule()
     QString rule = m_ruleString;
 
     // Check if CSS rule
-    if ((pos = rule.indexOf("##")) >= 0)
+    if ((pos = rule.indexOf(QStringLiteral("##"))) >= 0)
     {
         m_category = FilterCategory::Stylesheet;
 
@@ -488,7 +459,7 @@ bool AdBlockFilter::isStylesheetRule()
     }
 
     // Check if CSS exception
-    if ((pos = rule.indexOf("#@#")) >= 0)
+    if ((pos = rule.indexOf(QStringLiteral("#@#"))) >= 0)
     {
         m_category = FilterCategory::Stylesheet;
         m_exception = true;
@@ -499,13 +470,32 @@ bool AdBlockFilter::isStylesheetRule()
 
         m_evalString = m_ruleString.mid(pos + 3);
 
-        // Check if filter is procedural cosmetic filter type
-        //parseCosmeticOptions();
-
         return true;
     }
 
     return false;
+}
+
+bool AdBlockFilter::isDomainRule(const QString &rule) const
+{
+    // looping through string of format: "||inner_rule_text^", indices 0,1, and len-1 ignored
+    for (int i = 2; i < rule.size() - 1; ++i)
+    {
+        switch (rule.at(i).toLatin1())
+        {
+            case '/':
+            case ':':
+            case '?':
+            case '=':
+            case '&':
+            case '*':
+                return false;
+            default:
+                break;
+        }
+    }
+
+    return true;
 }
 
 void AdBlockFilter::parseDomains(const QString &domainString, QChar delimiter)
