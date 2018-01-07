@@ -60,7 +60,6 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     m_tabWidget(nullptr),
     m_addPageBookmarks(nullptr),
     m_removePageBookmarks(nullptr),
-    m_userAgentGroup(new QActionGroup(this)),
     m_preferences(nullptr),
     m_addBookmarkDialog(nullptr),
     m_userScriptWidget(nullptr),
@@ -117,51 +116,6 @@ void MainWindow::setPrivate(bool value)
 
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");
-}
-
-void MainWindow::resetUserAgentMenu()
-{
-    // First remove old items, then repopulate the menu
-    ui->menuUser_Agents->clear();
-    UserAgentManager *uaManager = sBrowserApplication->getUserAgentManager();
-    QAction *currItem = ui->menuUser_Agents->addAction(tr("Default"), uaManager, &UserAgentManager::disableActiveAgent);
-    currItem->setCheckable(true);
-    m_userAgentGroup->addAction(currItem);
-    currItem->setChecked(true);
-
-    QMenu *subMenu = nullptr;
-    for (auto it = uaManager->getAgentIterBegin(); it != uaManager->getAgentIterEnd(); ++it)
-    {
-        subMenu = new QMenu(it.key(), this);
-        ui->menuUser_Agents->addMenu(subMenu);
-
-        bool hasActiveAgentInMenu = (m_settings->getValue("CustomUserAgent").toBool()
-                && (uaManager->getUserAgentCategory().compare(it.key()) == 0));
-
-        for (auto agentIt = it->cbegin(); agentIt != it->cend(); ++agentIt)
-        {
-            QAction *action = subMenu->addAction(agentIt->Name);
-            action->setData(agentIt->Value);
-            action->setCheckable(true);
-            m_userAgentGroup->addAction(action);
-            if (hasActiveAgentInMenu && (agentIt->Name.compare(uaManager->getUserAgent().Name) == 0))
-                action->setChecked(true);
-        }
-
-        connect(subMenu, &QMenu::triggered, [=](QAction *action){
-            UserAgent agent;
-            agent.Name = action->text();
-            // Remove first character from UA name, as it begins with a '&'
-            agent.Name = agent.Name.right(agent.Name.size() - 1);
-            agent.Value = action->data().toString();
-            uaManager->setActiveAgent(it.key(), agent);
-            action->setChecked(true);
-        });
-    }
-
-    ui->menuUser_Agents->addSeparator();
-    ui->menuUser_Agents->addAction(tr("Add User Agent"), uaManager, &UserAgentManager::addUserAgent);
-    ui->menuUser_Agents->addAction(tr("Modify User Agents"), uaManager, &UserAgentManager::modifyUserAgents);
 }
 
 void MainWindow::loadBlankPage()
@@ -321,7 +275,7 @@ void MainWindow::setupMenuBar()
     connect(ui->actionView_Downloads,    &QAction::triggered, this, &MainWindow::openDownloadManager);
 
     // User agent sub-menu
-    resetUserAgentMenu();
+    ui->menuUser_Agents->resetItems();
 
     // Help menu
     connect(ui->actionAbout, &QAction::triggered, [=](){

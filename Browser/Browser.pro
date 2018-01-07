@@ -114,7 +114,8 @@ SOURCES += \
     Widgets/CheckableTableView.cpp \
     Network/BlockedNetworkReply.cpp \
     UserScripts/AddUserScriptDialog.cpp \
-    History/HistoryMenu.cpp
+    History/HistoryMenu.cpp \
+    UserAgents/UserAgentMenu.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -192,7 +193,8 @@ HEADERS += \
     Network/BlockedNetworkReply.h \
     UserScripts/AddUserScriptDialog.h \
     DatabaseFactory.h \
-    History/HistoryMenu.h
+    History/HistoryMenu.h \
+    UserAgents/UserAgentMenu.h
 
 FORMS += \
         mainwindow.ui \

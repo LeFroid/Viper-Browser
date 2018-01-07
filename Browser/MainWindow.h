@@ -57,9 +57,6 @@ public:
     /// Sets the browsing mode to private if flag is true, otherwise disables private browsing mode
     void setPrivate(bool value);
 
-    /// Resets the contents of the user agent sub-menu of the tools menu
-    void resetUserAgentMenu();
-
 signals:
     /// Emitted when the window is about to be closed
     void aboutToClose();
@@ -244,9 +241,6 @@ private:
 
     /// Search engine line edit, located in the browser toolbar
     SearchEngineLineEdit *m_searchEngineLineEdit;
-
-    /// Action group for user agent items in the menu bar
-    QActionGroup *m_userAgentGroup;
 
     /// Preferences window
     Preferences *m_preferences;

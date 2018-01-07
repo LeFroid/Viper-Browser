@@ -69,7 +69,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Setup user agent manager
     m_userAgentMgr = new UserAgentManager(m_settings);
-    connect(m_userAgentMgr, &UserAgentManager::updateUserAgents, this, &BrowserApplication::resetUserAgentMenus);
 
     // Setup user script manager
     m_userScriptMgr = new UserScriptManager(m_settings);
@@ -297,16 +296,6 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
 
     // Reload URLs in the suggestion model
     m_suggestionModel->loadURLs();
-}
-
-void BrowserApplication::resetUserAgentMenus()
-{
-    for (int i = 0; i < m_browserWindows.size(); ++i)
-    {
-        QPointer<MainWindow> m = m_browserWindows.at(i);
-        if (!m.isNull())
-            m->resetUserAgentMenu();
-    }
 }
 
 void BrowserApplication::setWebSettings()

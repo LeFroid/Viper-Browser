@@ -125,10 +125,6 @@ protected:
     void clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range);
 
 private:
-    /// Resets each browser's user agent menu after a new agent has been added
-    void resetUserAgentMenus();
-
-private:
     /// Application settings
     std::shared_ptr<Settings> m_settings;
 

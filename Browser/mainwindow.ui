@@ -120,7 +120,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <widget class="QMenu" name="menuUser_Agents">
+    <widget class="UserAgentMenu" name="menuUser_Agents">
      <property name="title">
       <string>&amp;User Agents</string>
      </property>
@@ -461,6 +461,11 @@
    <class>HistoryMenu</class>
    <extends>QMenu</extends>
    <header>History/HistoryMenu.h</header>
+  </customwidget>
+  <customwidget>
+   <class>UserAgentMenu</class>
+   <extends>QMenu</extends>
+   <header>UserAgents/UserAgentMenu.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
