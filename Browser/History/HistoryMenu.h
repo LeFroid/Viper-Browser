@@ -39,6 +39,9 @@ private slots:
     /// Resets the contents of the menu to the most recently visited items
     void resetItems();
 
+    /// Called when a page has been visited by the user
+    void onPageVisited(const QString &url, const QString &title);
+
 private:
     /// Binds the pageVisited signal from the \ref HistoryManager to a slot that adds the
     /// page to the top of the history menu. Also binds the reset menu signal to the reset items slot

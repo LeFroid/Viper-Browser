@@ -82,14 +82,17 @@ void HistoryMenu::resetItems()
     }
 }
 
+void HistoryMenu::onPageVisited(const QString &url, const QString &title)
+{
+    QUrl itemUrl(url);
+    QIcon favicon = sBrowserApplication->getFaviconStorage()->getFavicon(itemUrl);
+    addHistoryItem(itemUrl, title, favicon);
+}
+
 void HistoryMenu::setup()
 {
     BrowserApplication *app = sBrowserApplication;
-    connect(app->getHistoryManager(), &HistoryManager::pageVisited, [=](const QString &url, const QString &title){
-        QUrl itemUrl(url);
-        QIcon favicon = app->getFaviconStorage()->getFavicon(itemUrl);
-        addHistoryItem(itemUrl, title, favicon);
-    });
+    connect(app->getHistoryManager(), &HistoryManager::pageVisited, this, &HistoryMenu::onPageVisited);
     connect(app, &BrowserApplication::resetHistoryMenu, this, &HistoryMenu::resetItems);
 
     m_actionShowHistory = addAction(QStringLiteral("&Show all History"));
