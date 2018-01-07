@@ -90,6 +90,10 @@ public:
     /// Returns a pointer to the user script manager
     UserScriptManager *getUserScriptManager();
 
+signals:
+    /// Emitted when each browsing window's history menu should reset its contents
+    void resetHistoryMenu();
+
 public slots:
     /// Spawns and returns the pointer to a new browser window
     MainWindow *getNewWindow();
@@ -121,14 +125,8 @@ protected:
     void clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range);
 
 private:
-    /// Resets each browser's history menu after clearing recent history
-    void resetHistoryMenus();
-
     /// Resets each browser's user agent menu after a new agent has been added
     void resetUserAgentMenus();
-
-    /// Populates the "Recent History" menu items for the given window
-    void setHistoryForWindow(MainWindow *w);
 
 private:
     /// Application settings

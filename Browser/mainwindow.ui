@@ -103,13 +103,10 @@
     <addaction name="actionPage_So_urce"/>
     <addaction name="action_Full_Screen"/>
    </widget>
-   <widget class="QMenu" name="menuHistory">
+   <widget class="HistoryMenu" name="menuHistory">
     <property name="title">
      <string>Histo&amp;ry</string>
     </property>
-    <addaction name="actionShow_all_history"/>
-    <addaction name="actionClear_Recent_History"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuBookmarks">
     <property name="styleSheet">
@@ -459,6 +456,11 @@
    <extends>QWidget</extends>
    <header>Widgets/BookmarkBar.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>HistoryMenu</class>
+   <extends>QMenu</extends>
+   <header>History/HistoryMenu.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -57,12 +57,6 @@ public:
     /// Sets the browsing mode to private if flag is true, otherwise disables private browsing mode
     void setPrivate(bool value);
 
-    /// Adds an item to the history menu
-    void addHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon);
-
-    /// Removes the items contained in the history menu
-    void clearHistoryItems();
-
     /// Resets the contents of the user agent sub-menu of the tools menu
     void resetUserAgentMenu();
 

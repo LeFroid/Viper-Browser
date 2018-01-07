@@ -119,50 +119,6 @@ void MainWindow::setPrivate(bool value)
         setWindowTitle("Web Browser - Private Browsing");
 }
 
-void MainWindow::addHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon)
-{
-    QMenu *menu = ui->menuHistory;
-    QList<QAction*> menuActions = menu->actions();
-
-    QAction *beforeItem = nullptr;
-    if (menuActions.size() > 3)
-        beforeItem = menuActions[3];
-
-    QAction *historyItem = new QAction(title, menu);
-    historyItem->setIcon(favicon);
-    connect(historyItem, &QAction::triggered, [=](){
-        m_tabWidget->loadUrl(url);
-    });
-
-    if (beforeItem)
-        menu->insertAction(beforeItem, historyItem);
-    else
-        menu->addAction(historyItem);
-
-    int menuSize = menuActions.size();
-    QAction *actionToRemove = nullptr;
-    while (menuSize > 17)
-    {
-        actionToRemove = menuActions[menuSize - 1];
-        menu->removeAction(actionToRemove);
-        --menuSize;
-    }
-}
-
-void MainWindow::clearHistoryItems()
-{
-    QList<QAction*> menuActions = ui->menuHistory->actions();
-    if (menuActions.size() < 3)
-        return;
-
-    QAction *currItem = nullptr;
-    for (int i = 3; i < menuActions.size(); ++i)
-    {
-        currItem = menuActions.at(i);
-        ui->menuHistory->removeAction(currItem);
-    }
-}
-
 void MainWindow::resetUserAgentMenu()
 {
     // First remove old items, then repopulate the menu
@@ -339,14 +295,12 @@ void MainWindow::setupMenuBar()
     // View-related
     connect(ui->actionPage_So_urce, &QAction::triggered, this, &MainWindow::onRequestViewSource);
 
-    // Bookmark bar setting
-    ui->actionBookmark_Bar->setChecked(m_settings->getValue("EnableBookmarkBar").toBool());
-    connect(ui->actionBookmark_Bar, &QAction::toggled, this, &MainWindow::toggleBookmarkBar);
-    toggleBookmarkBar(ui->actionBookmark_Bar->isChecked());
+    // History menu
+    connect(ui->menuHistory, &HistoryMenu::loadUrl, this, &MainWindow::loadUrl);
 
     // History menu items
-    connect(ui->actionShow_all_history, &QAction::triggered, this, &MainWindow::onShowAllHistory);
-    connect(ui->actionClear_Recent_History, &QAction::triggered, [=]() {
+    connect(ui->menuHistory->m_actionShowHistory, &QAction::triggered, this, &MainWindow::onShowAllHistory);
+    connect(ui->menuHistory->m_actionClearHistory, &QAction::triggered, [=]() {
         if (!m_clearHistoryDialog)
         {
             m_clearHistoryDialog = new ClearHistoryDialog(this);
@@ -354,6 +308,11 @@ void MainWindow::setupMenuBar()
         }
         m_clearHistoryDialog->show();
     });
+
+    // Bookmark bar setting
+    ui->actionBookmark_Bar->setChecked(m_settings->getValue("EnableBookmarkBar").toBool());
+    connect(ui->actionBookmark_Bar, &QAction::toggled, this, &MainWindow::toggleBookmarkBar);
+    toggleBookmarkBar(ui->actionBookmark_Bar->isChecked());
 
     // Tools menu
     connect(ui->actionManage_Ad_Blocker, &QAction::triggered, this, &MainWindow::openAdBlockManager);

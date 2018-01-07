@@ -51,18 +51,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Instantiate the history manager
     m_historyMgr = new HistoryManager(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("HistoryPath")));
-    connect(m_historyMgr, &HistoryManager::pageVisited, [=](const QString &url, const QString &title) {
-        QUrl itemUrl(url);
-        QIcon favicon = m_faviconStorage->getFavicon(itemUrl);
-
-        // Update the history menu in each MainWindow
-        for (int i = 0; i < m_browserWindows.size(); ++i)
-        {
-            QPointer<MainWindow> m = m_browserWindows.at(i);
-            if (!m.isNull())
-                m->addHistoryItem(itemUrl, title, favicon);
-        }
-    });
 
     m_historyWidget = nullptr;
 
@@ -204,8 +192,6 @@ MainWindow *BrowserApplication::getNewWindow()
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
 
-    // Add recent history to main window
-    setHistoryForWindow(w);
     w->show();
 
     // Check if this is the first window since the application has started - if so, handle
@@ -245,7 +231,6 @@ MainWindow *BrowserApplication::getNewPrivateWindow()
 {
     MainWindow *w = new MainWindow(m_settings, m_bookmarks.get());
     m_browserWindows.append(w);
-    setHistoryForWindow(w);
 
     // Set to private, show window and return pointer
     w->setPrivate(true);
@@ -273,7 +258,7 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
         else
             m_historyMgr->clearHistoryFrom(start);
 
-        resetHistoryMenus();
+        emit resetHistoryMenu();
     }
 
     // Check if cookie flag is set
@@ -301,7 +286,7 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
     if ((histType & HistoryType::Browsing) == HistoryType::Browsing)
     {
         m_historyMgr->clearHistoryInRange(range);
-        resetHistoryMenus();
+        emit resetHistoryMenu();
     }
 
     // Check if cookie flag is set
@@ -314,20 +299,6 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
     m_suggestionModel->loadURLs();
 }
 
-void BrowserApplication::resetHistoryMenus()
-{
-    for (int i = 0; i < m_browserWindows.size(); ++i)
-    {
-        QPointer<MainWindow> m = m_browserWindows.at(i);
-        if (!m.isNull())
-        {
-            // Remove current history and set items to updated content in history manager
-            m->clearHistoryItems();
-            setHistoryForWindow(m);
-        }
-    }
-}
-
 void BrowserApplication::resetUserAgentMenus()
 {
     for (int i = 0; i < m_browserWindows.size(); ++i)
@@ -335,20 +306,6 @@ void BrowserApplication::resetUserAgentMenus()
         QPointer<MainWindow> m = m_browserWindows.at(i);
         if (!m.isNull())
             m->resetUserAgentMenu();
-    }
-}
-
-void BrowserApplication::setHistoryForWindow(MainWindow *w)
-{
-    if (!w)
-        return;
-
-    // Add recent history to window
-    const QList<WebHistoryItem> &historyItems = m_historyMgr->getRecentItems();
-    for (auto it : historyItems)
-    {
-        if (!it.Title.isEmpty())
-            w->addHistoryItem(it.URL, it.Title, m_faviconStorage->getFavicon(it.URL));
     }
 }
 

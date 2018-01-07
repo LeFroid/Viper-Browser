@@ -113,7 +113,8 @@ SOURCES += \
     AdBlock/AdBlockWidget.cpp \
     Widgets/CheckableTableView.cpp \
     Network/BlockedNetworkReply.cpp \
-    UserScripts/AddUserScriptDialog.cpp
+    UserScripts/AddUserScriptDialog.cpp \
+    History/HistoryMenu.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -190,7 +191,8 @@ HEADERS += \
     Widgets/CheckableTableView.h \
     Network/BlockedNetworkReply.h \
     UserScripts/AddUserScriptDialog.h \
-    DatabaseFactory.h
+    DatabaseFactory.h \
+    History/HistoryMenu.h
 
 FORMS += \
         mainwindow.ui \
