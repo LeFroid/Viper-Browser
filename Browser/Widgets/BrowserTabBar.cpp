@@ -19,10 +19,12 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     QTabBar(parent)
 {
     setAcceptDrops(true);
+    setDocumentMode(true);
     setExpanding(false);
     setTabsClosable(true);
     setSelectionBehaviorOnRemove(QTabBar::SelectPreviousTab);
     setMovable(true);
+    setUsesScrollButtons(false);
     setElideMode(Qt::ElideRight);
 
     // Add "New Tab" button
@@ -178,10 +180,26 @@ QSize BrowserTabBar::tabSizeHint(int index) const
 {
     // Get the QTabBar size hint and keep width within an upper bound
     QSize hint = QTabBar::tabSizeHint(index);
-    if (count() > 3)
+    QFontMetrics fMetric = fontMetrics();
+    int numTabs = count();
+    if (numTabs > 3 && numTabs < 10)
     {
-        QFontMetrics fMetric = fontMetrics();
         return hint.boundedTo(QSize(fMetric.width("R") * 20, hint.height()));
+    }
+    else if (numTabs >= 10)
+    {
+        const int mainTabWidth = fMetric.width("R") * 20;
+        int tabWidth = 0;
+
+        if (index == currentIndex())
+        {
+            tabWidth = mainTabWidth;
+        }
+        else
+        {
+            tabWidth = (geometry().width() - mainTabWidth) / (numTabs - 1);
+        }
+        return hint.boundedTo(QSize(tabWidth, hint.height()));
     }
     return hint;
 }
@@ -204,7 +222,7 @@ void BrowserTabBar::moveNewTabButton()
 
     QRect barRect = rect();
     if (tabWidth > width())
-        m_buttonNewTab->hide();//move(barRect.right() - m_buttonNewTab->width(), barRect.y());
+        m_buttonNewTab->move(barRect.right() - m_buttonNewTab->width(), barRect.y()); //m_buttonNewTab->hide();
     else
     {
         m_buttonNewTab->move(barRect.left() + tabWidth, barRect.y());
