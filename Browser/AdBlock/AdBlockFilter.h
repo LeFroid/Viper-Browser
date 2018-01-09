@@ -60,6 +60,20 @@ enum class FilterCategory
     RegExp               /// Block or allow based on a regular expression
 };
 
+/// Cosmetic filter types, used internally for creating appropriate JavaScript calls
+/// has-text, if, if-not, matches-css, matches-css-before, matches-css-after, xpath
+enum class CosmeticFilter
+{
+    Has,                 /// Selects the subject element(s) iff it contains at least one or more of the given targets
+    HasText,             /// Selects the subject element(s) iff the given text is contained within the subject element
+    If,                  /// Same as :has cosmetic filter, however this may take other procedural cosmetic filters as arguments, while :has cannot
+    IfNot,               /// Selects the subject element(s) iff the result of evaluating the argument has exactly zero elements
+    MatchesCSS,          /// Selects the subject element(s) iff the given argument (css) is a subset of the subject's CSS properties
+    MatchesCSSBefore,    /// Same as :matches-css cosmetic filter, with the :before pseudo-class attached to the subject
+    MatchesCSSAfter,     /// Same as :matches-css cosmetic filter, with the :after pseudo-class attached to the subject
+    XPath                /// Creates a new set of elements by evaluating a XPath. Uses an optional subject as the context node and the argument as the expression.
+};
+
 /**
  * @class AdBlockFilter
  * @brief An implementation of an AdBlock Plus filter for network content
@@ -67,20 +81,6 @@ enum class FilterCategory
 class AdBlockFilter
 {
     friend class AdBlockManager;
-
-    /// Cosmetic filter types, used internally for creating appropriate JavaScript calls
-    /// has-text, if, if-not, matches-css, matches-css-before, matches-css-after, xpath
-    enum class CosmeticFilter
-    {
-        Has,
-        HasText,
-        If,
-        IfNot,
-        MatchesCSS,
-        MatchesCSSBefore,
-        MatchesCSSAfter,
-        XPath
-    };
 
     /// Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
     struct CosmeticJSCallback

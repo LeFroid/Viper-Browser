@@ -780,7 +780,7 @@ AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &e
     return result;
 }
 
-std::vector<std::tuple<int, AdBlockFilter::CosmeticFilter, int> > AdBlockFilter::getChainableFilters(const QString &evalStr) const
+std::vector<std::tuple<int, CosmeticFilter, int> > AdBlockFilter::getChainableFilters(const QString &evalStr) const
 {
     // Only search for chainable types
     std::vector< std::tuple<int, CosmeticFilter, int> > filters;
