@@ -30,7 +30,7 @@ public:
     AdBlockSubscription(AdBlockSubscription &&other);
 
     /// Copy assignment operator
-    AdBlockSubscription &operator =(const AdBlockSubscription &other);
+    AdBlockSubscription &operator =(const AdBlockSubscription &other) = delete;
 
     /// Move assignment operator
     AdBlockSubscription &operator =(AdBlockSubscription &&other);

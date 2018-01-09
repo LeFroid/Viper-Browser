@@ -3,6 +3,7 @@
 
 #include "AdBlockSubscription.h"
 #include "BlockedNetworkReply.h"
+#include "LRUCache.h"
 
 #include <QHash>
 #include <QObject>
@@ -43,7 +44,7 @@ public:
     const QString &getStylesheet() const;
 
     /// Returns the domain-specific blocking stylesheet, or an empty string if not applicable
-    QString getDomainStylesheet(const QUrl &url) const;
+    const QString &getDomainStylesheet(const QUrl &url);
 
     /// Returns the domain-specific blocking javascript, or an empty string if not applicable
     QString getDomainJavaScript(const QUrl &url) const;
@@ -148,6 +149,12 @@ private:
 
     /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
     QHash<QString, QString> m_resourceMap;
+
+    /// A cache of the most recently used domain-specific stylesheets
+    LRUCache<std::string, QString> m_domainStylesheetCache;
+
+    /// Empty string, used when getDomainStylesheet returns nothing
+    QString m_emptyStr;
 
     /// Ad Block model, used to indirectly view and modify subscriptions in the user interface
     AdBlockModel *m_adBlockModel;

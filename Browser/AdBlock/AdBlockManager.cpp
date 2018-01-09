@@ -31,6 +31,8 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_domainJSFilters(),
     m_customStyleFilters(),
     m_resourceMap(),
+    m_domainStylesheetCache(24),
+    m_emptyStr(),
     m_adBlockModel(nullptr)
 {
     // Fetch some global settings before loading ad block data
@@ -154,14 +156,19 @@ const QString &AdBlockManager::getStylesheet() const
     return m_stylesheet;
 }
 
-QString AdBlockManager::getDomainStylesheet(const QUrl &url) const
+const QString &AdBlockManager::getDomainStylesheet(const QUrl &url)
 {
     if (!m_enabled)
-        return QString();
+        return m_emptyStr;
 
     QString domain = getSecondLevelDomain(url);
     if (domain.isEmpty())
-        return QString();
+        return m_emptyStr;
+
+    // Check for a cache hit
+    std::string domainStdStr = domain.toStdString();
+    if (m_domainStylesheetCache.has(domainStdStr))
+        return m_domainStylesheetCache.get(domainStdStr);
 
     QString stylesheet;
     int numStylesheetRules = 0;
@@ -193,7 +200,9 @@ QString AdBlockManager::getDomainStylesheet(const QUrl &url) const
             stylesheet.append(filter->getEvalString());
     }
 
-    return stylesheet;
+    // Insert the stylesheet into cache
+    m_domainStylesheetCache.put(domainStdStr, stylesheet);
+    return m_domainStylesheetCache.get(domainStdStr);
 }
 
 QString AdBlockManager::getDomainJavaScript(const QUrl &url) const

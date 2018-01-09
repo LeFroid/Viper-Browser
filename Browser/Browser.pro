@@ -29,6 +29,7 @@ RESOURCES  = application.qrc
 INCLUDEPATH += \
     $$PWD/AdBlock \
     $$PWD/Bookmarks \
+    $$PWD/Cache \
     $$PWD/Cookies \
     $$PWD/Downloads \
     $$PWD/Extensions \
@@ -121,6 +122,7 @@ HEADERS += \
     Bitfield.h \
     TreeNode.h \
     History/HistoryTableModel.h \
+    Cache/LRUCache.h \
     Cookies/CookieJar.h \
     Cookies/CookieModifyDialog.h \
     Cookies/CookieTableModel.h \

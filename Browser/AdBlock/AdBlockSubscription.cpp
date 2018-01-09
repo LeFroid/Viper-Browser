@@ -38,6 +38,7 @@ AdBlockSubscription::AdBlockSubscription(AdBlockSubscription &&other) :
 {
 }
 
+/*
 AdBlockSubscription &AdBlockSubscription::operator =(const AdBlockSubscription &other)
 {
     if (this != &other)
@@ -53,6 +54,7 @@ AdBlockSubscription &AdBlockSubscription::operator =(const AdBlockSubscription &
 
     return *this;
 }
+*/
 
 AdBlockSubscription &AdBlockSubscription::operator =(AdBlockSubscription &&other)
 {
