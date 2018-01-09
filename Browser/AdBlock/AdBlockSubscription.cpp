@@ -3,6 +3,7 @@
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
+#include <QDebug>
 
 AdBlockSubscription::AdBlockSubscription() :
     m_enabled(true),
@@ -35,6 +36,22 @@ AdBlockSubscription::AdBlockSubscription(AdBlockSubscription &&other) :
     m_nextUpdate(other.m_nextUpdate),
     m_filters(std::move(other.m_filters))
 {
+}
+
+AdBlockSubscription &AdBlockSubscription::operator =(const AdBlockSubscription &other)
+{
+    if (this != &other)
+    {
+        m_enabled = other.m_enabled;
+        m_filePath = other.m_filePath;
+        m_name = other.m_name;
+        m_sourceUrl = other.m_sourceUrl;
+        m_lastUpdate = other.m_lastUpdate;
+        m_nextUpdate = other.m_nextUpdate;
+        // don't copy filters
+    }
+
+    return *this;
 }
 
 AdBlockSubscription &AdBlockSubscription::operator =(AdBlockSubscription &&other)
@@ -127,8 +144,7 @@ void AdBlockSubscription::load()
 
                 // Add the number of days to the last update and set as next update
                 QDateTime updateDate = getLastUpdate();
-                updateDate.addDays(numDays);
-                setNextUpdate(updateDate);
+                m_nextUpdate = updateDate.addDays(numDays);
             }
 
             continue;

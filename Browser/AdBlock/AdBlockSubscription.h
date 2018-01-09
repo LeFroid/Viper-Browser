@@ -29,8 +29,8 @@ public:
     /// Move constructor
     AdBlockSubscription(AdBlockSubscription &&other);
 
-    /// Copy assignment operator (forbid)
-    AdBlockSubscription &operator =(const AdBlockSubscription &other) = delete;
+    /// Copy assignment operator
+    AdBlockSubscription &operator =(const AdBlockSubscription &other);
 
     /// Move assignment operator
     AdBlockSubscription &operator =(AdBlockSubscription &&other);

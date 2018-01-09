@@ -16,8 +16,6 @@
 #include <QNetworkRequest>
 #include <QWebFrame>
 
-#include <QDebug>
-
 AdBlockManager::AdBlockManager(QObject *parent) :
     QObject(parent),
     m_enabled(true),
@@ -82,7 +80,7 @@ void AdBlockManager::updateSubscriptions()
     // Check if subscription should be updated
     for (size_t i = 0; i < m_subscriptions.size(); ++i)
     {
-        AdBlockSubscription *subPtr = &m_subscriptions.at(i);
+        AdBlockSubscription *subPtr = &(m_subscriptions[i]);
         if (!subPtr)
             continue;
         const QDateTime &updateTime = subPtr->getNextUpdate();
@@ -471,10 +469,11 @@ void AdBlockManager::loadSubscriptions()
 
         // Attempt to get next update time as unix epoch value
         uint nextUpdateUInt = subscriptionObj.value(QStringLiteral("next_update")).toVariant().toUInt(&ok);
-        QDateTime nextUpdate;
         if (ok && nextUpdateUInt > 0)
-            nextUpdate = QDateTime::fromTime_t(nextUpdateUInt);
-        subscription.setNextUpdate(nextUpdate);
+        {
+            QDateTime nextUpdate = QDateTime::fromTime_t(nextUpdateUInt);
+            subscription.setNextUpdate(nextUpdate);
+        }
 
         // Get source URL of the subscription
         QString source = subscriptionObj.value(QStringLiteral("source")).toString();
