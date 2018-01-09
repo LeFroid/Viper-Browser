@@ -103,17 +103,37 @@ void AdBlockSubscription::load()
     QTextStream stream(&subFile);
     while (stream.readLineInto(&line))
     {
+        // Check for metadata
         if (line.startsWith(QChar('!')))
         {
+            // Subscription name
             if (m_name.isEmpty())
             {
                 int titleIdx = line.indexOf(QStringLiteral("Title:"));
                 if (titleIdx > 0)
                     m_name = line.mid(titleIdx + 7);
             }
+
+            // Check for next update
+            int expireIdx = line.indexOf(QStringLiteral("! Expires:")), numDaysIdx = line.indexOf(QStringLiteral(" day"));
+            if (expireIdx >= 0 && numDaysIdx > 0)
+            {
+                // Update string is in format "! Expires: x days" Try extracting x and converting to integer
+                QString numDayStr = line.mid(10, numDaysIdx - 10).trimmed();
+                bool ok;
+                int numDays = numDayStr.toInt(&ok, 10);
+                if (!ok || numDays == 0)
+                    continue;
+
+                // Add the number of days to the last update and set as next update
+                QDateTime updateDate = getLastUpdate();
+                updateDate.addDays(numDays);
+                setNextUpdate(updateDate);
+            }
+
             continue;
         }
-        else if (line.isEmpty() || line.compare(QStringLiteral("#")) == 0 || line.startsWith("# ") || line.startsWith(QStringLiteral("[Adblock")))
+        else if (line.isEmpty() || line.compare(QStringLiteral("#")) == 0 || line.startsWith(QStringLiteral("# ")) || line.startsWith(QStringLiteral("[Adblock")))
             continue;
 
         m_filters.push_back(std::make_unique<AdBlockFilter>(line));
