@@ -142,6 +142,10 @@ void AdBlockFilter::setRule(const QString &rule)
     // Only bother parsing the rule if the given string is not empty and is not a comment
     if (!rule.isEmpty() && !rule.startsWith('!'))
     {
+        m_category = FilterCategory::None;
+        m_exception = false;
+        m_important = false;
+        m_disabled = false;
         m_allowedTypes = ElementType::None;
         m_blockedTypes = ElementType::None;
         m_matchCase = false;
@@ -149,6 +153,7 @@ void AdBlockFilter::setRule(const QString &rule)
         m_domainBlacklist.clear();
         m_domainWhitelist.clear();
         m_regExp.reset();
+
         m_ruleString = rule;
         m_evalString = QString();
         parseRule();
