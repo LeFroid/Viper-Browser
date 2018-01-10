@@ -30,6 +30,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_domainStyleFilters(),
     m_domainJSFilters(),
     m_customStyleFilters(),
+    m_genericHideFilters(),
     m_resourceMap(),
     m_domainStylesheetCache(24),
     m_emptyStr(),
@@ -151,8 +152,19 @@ AdBlockModel *AdBlockManager::getModel()
     return m_adBlockModel;
 }
 
-const QString &AdBlockManager::getStylesheet() const
+const QString &AdBlockManager::getStylesheet(const QUrl &url) const
 {
+    // Check generic hide filters
+    QString requestUrl = url.toString(QUrl::FullyEncoded).toLower();
+    QString secondLevelDomain = getSecondLevelDomain(url);
+    if (secondLevelDomain.isEmpty())
+        secondLevelDomain = url.host();
+    for (AdBlockFilter *filter : m_genericHideFilters)
+    {
+        if (filter->isMatch(requestUrl, requestUrl, secondLevelDomain, ElementType::Other))
+            return m_emptyStr;
+    }
+
     return m_stylesheet;
 }
 
@@ -503,6 +515,8 @@ void AdBlockManager::clearFilters()
     m_stylesheet.clear();
     m_domainStyleFilters.clear();
     m_domainJSFilters.clear();
+    m_customStyleFilters.clear();
+    m_genericHideFilters.clear();
 }
 
 void AdBlockManager::extractFilters()
@@ -512,7 +526,7 @@ void AdBlockManager::extractFilters()
     QHash<QString, AdBlockFilter*> stylesheetExceptionMap;
 
     // Used to remove bad filters (badfilter option from uBlock)
-    QSet<QString> badFilters;
+    QSet<QString> badFilters, badHideFilters;
 
     // Setup global stylesheet string
     m_stylesheet = QStringLiteral("<style>");
@@ -552,16 +566,26 @@ void AdBlockManager::extractFilters()
             else
             {
                 if (filter->isException())
-                    m_allowFilters.push_back(filter);
+                {
+                    if (filter->hasElementType(filter->m_blockedTypes, ElementType::GenericHide))
+                        m_genericHideFilters.push_back(filter);
+                    else
+                        m_allowFilters.push_back(filter);
+                }
                 else if (filter->isImportant())
-                    m_importantBlockFilters.push_back(filter);
+                {
+                    if (filter->hasElementType(filter->m_blockedTypes, ElementType::GenericHide))
+                        badHideFilters.insert(filter->getRule());
+                    else
+                        m_importantBlockFilters.push_back(filter);
+                }
                 else
                     m_blockFilters.push_back(filter);
             }
         }
     }
 
-    // Remove bad filters from m_allowFilters, m_blockFilters
+    // Remove bad filters from m_allowFilters, m_blockFilters, m_genericHideFilters
     for (auto it = m_allowFilters.begin(); it != m_allowFilters.end(); ++it)
     {
         if (badFilters.contains((*it)->getRule()))
@@ -571,6 +595,11 @@ void AdBlockManager::extractFilters()
     {
         if (badFilters.contains((*it)->getRule()))
             m_blockFilters.erase(it);
+    }
+    for (auto it = m_genericHideFilters.begin(); it != m_genericHideFilters.end(); ++it)
+    {
+        if (badHideFilters.contains((*it)->getRule()))
+            m_genericHideFilters.erase(it);
     }
 
     // Parse stylesheet exceptions

@@ -443,16 +443,15 @@ void AdBlockFilter::parseRule()
 bool AdBlockFilter::isStylesheetRule()
 {
     int pos = 0;
-    QString rule = m_ruleString;
 
     // Check if CSS rule
-    if ((pos = rule.indexOf(QStringLiteral("##"))) >= 0)
+    if ((pos = m_ruleString.indexOf(QStringLiteral("##"))) >= 0)
     {
         m_category = FilterCategory::Stylesheet;
 
         // Fill domain blacklist
         if (pos > 0)
-            parseDomains(rule.left(pos), QChar(','));
+            parseDomains(m_ruleString.left(pos), QChar(','));
 
         m_evalString = m_ruleString.mid(pos + 2);
 
@@ -464,14 +463,14 @@ bool AdBlockFilter::isStylesheetRule()
     }
 
     // Check if CSS exception
-    if ((pos = rule.indexOf(QStringLiteral("#@#"))) >= 0)
+    if ((pos = m_ruleString.indexOf(QStringLiteral("#@#"))) >= 0)
     {
         m_category = FilterCategory::Stylesheet;
         m_exception = true;
 
         // Fill domain whitelist
         if (pos > 0)
-            parseDomains(rule.left(pos), QChar(','));
+            parseDomains(m_ruleString.left(pos), QChar(','));
 
         m_evalString = m_ruleString.mid(pos + 3);
 

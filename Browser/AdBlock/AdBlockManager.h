@@ -40,8 +40,8 @@ public:
     /// Returns the model that is used to view and modify ad block subscriptions
     AdBlockModel *getModel();
 
-    /// Returns the base stylesheet for elements to be blocked
-    const QString &getStylesheet() const;
+    /// Returns the base stylesheet for elements to be blocked. If the given url matches a generichide filter, this will return an empty string
+    const QString &getStylesheet(const QUrl &url) const;
 
     /// Returns the domain-specific blocking stylesheet, or an empty string if not applicable
     const QString &getDomainStylesheet(const QUrl &url);
@@ -146,6 +146,9 @@ private:
 
     /// Container of filters that have custom stylesheet values (:style filter option)
     std::vector<AdBlockFilter*> m_customStyleFilters;
+
+    /// Container of domain-specific filters for which the generic element hiding rules (in m_stylesheet) do not apply
+    std::vector<AdBlockFilter*> m_genericHideFilters;
 
     /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
     QHash<QString, QString> m_resourceMap;
