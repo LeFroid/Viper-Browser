@@ -10,7 +10,7 @@ This project is done in my spare time and is far from being complete. It is prob
 
 # Features
 
-* Built-in AdBlock Plus support, will support uBlock format in the future
+* Built-in AdBlock Plus support, with uBlock Origin filter compatibility (mostly compatible)
 * Greasemonkey-style UserScript support
 * Multi-tab style web browser
 * Ability to customize the user agent
