@@ -11,21 +11,15 @@
 #include <QUrl>
 #include <QDebug>
 
-HistoryManager::HistoryManager(bool firstRun, const QString &databaseFile, QObject *parent) :
+HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     QWebHistoryInterface(parent),
-    DatabaseWorker(databaseFile, "HistoryDB"),
+    DatabaseWorker(databaseFile, QStringLiteral("HistoryDB")),
     m_lastVisitID(0),
     m_historyItems(),
     m_recentItems(),
     m_queryHistoryItem(nullptr),
     m_queryVisit(nullptr)
 {
-    // Setup structure if first run
-    if (firstRun)
-        setup();
-
-    load();
-
     QWebHistoryInterface::setDefaultInterface(this);
 }
 
@@ -65,7 +59,7 @@ void HistoryManager::addHistoryEntry(const QString &url)
     }
 
     WebHistoryItem item;
-    item.URL = QUrl::fromUserInput(lowerUrl);
+    item.URL = url;
     item.VisitID = ++m_lastVisitID;
     item.Visits.prepend(visitTime);
     m_historyItems.insert(lowerUrl, item);
@@ -77,17 +71,11 @@ void HistoryManager::addHistoryEntry(const QString &url)
 
 void HistoryManager::clearAllHistory()
 {
-    QSqlQuery query(m_database);
-    if (!query.exec("DELETE FROM History"))
-    {
-        qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear History table. Message: "
-                 << query.lastError().text();
-    }
-    if (!query.exec("DELETE FROM Visits"))
-    {
-        qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear Visits table. Message: "
-                 << query.lastError().text();
-    }
+    if (!exec(QStringLiteral("DELETE FROM History")))
+        qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear History table.";
+
+    if (!exec(QStringLiteral("DELETE FROM Visits")))
+        qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear Visits table.";
 
     m_recentItems.clear();
     m_historyItems.clear();
@@ -176,7 +164,7 @@ QList<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate)
         item.Title = it.Title;
         item.URL = it.URL;
         item.VisitID = it.VisitID;
-        item.Visits = it.Visits;
+        //item.Visits = it.Visits;
 
         // Check DB
         query.bindValue(":id", it.VisitID);
@@ -275,35 +263,6 @@ void HistoryManager::load()
 
 void HistoryManager::save()
 {
-    /*
-    QSqlQuery query(m_database), queryVisits(m_database);
-    query.prepare("INSERT OR REPLACE INTO History(URL, Title, VisitID) VALUES(:url, :title, :visitId)");
-    queryVisits.prepare("INSERT OR REPLACE INTO Visits(VisitID, Date) VALUES(:visitId, :date)");
-
-    for (auto it = m_historyItems.begin(); it != m_historyItems.end(); ++it)
-    {
-        const WebHistoryItem &item = it.value();
-
-        // Skip item if title is blank - means the item was visited in private browsing mode
-        if (item.Title.isEmpty())
-            continue;
-
-        query.bindValue(":url", it.key());
-        query.bindValue(":title", item.Title);
-        query.bindValue(":visitId", item.VisitID);
-
-        if (!query.exec())
-            qDebug() << "[Error]: In HistoryManager::save - unable to save history item to database. Message: " << query.lastError().text();
-
-        // save the item's visits into the visits table
-        for (auto visit : item.Visits)
-        {
-            queryVisits.bindValue(":visitId", item.VisitID);
-            queryVisits.bindValue(":date", visit.toMSecsSinceEpoch());
-            queryVisits.exec();
-        }
-    }
-    */
 }
 
 void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visitTime)

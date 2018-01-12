@@ -140,8 +140,8 @@ private:
     /// Favicon storage manager
     std::unique_ptr<FaviconStorage> m_faviconStorage;
 
-    /// History management class
-    HistoryManager *m_historyMgr;
+    /// Web history manager
+    std::unique_ptr<HistoryManager> m_historyMgr;
 
     /// History view UI
     HistoryWidget *m_historyWidget;

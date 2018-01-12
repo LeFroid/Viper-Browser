@@ -50,7 +50,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
                                                                      m_settings->getPathValue(QStringLiteral("FaviconPath")));
 
     // Instantiate the history manager
-    m_historyMgr = new HistoryManager(m_settings->firstRun(), m_settings->getPathValue(QStringLiteral("HistoryPath")));
+    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->firstRun(),
+                                                                 m_settings->getPathValue(QStringLiteral("HistoryPath")));
 
     m_historyWidget = nullptr;
 
@@ -103,7 +104,6 @@ BrowserApplication::~BrowserApplication()
     m_cookieJar->setParent(nullptr);
 
     delete m_downloadMgr;
-    delete m_historyMgr;
     delete m_suggestionModel;
     delete m_networkAccessMgr;
     delete m_privateNetworkAccessMgr;
@@ -144,7 +144,7 @@ FaviconStorage *BrowserApplication::getFaviconStorage()
 
 HistoryManager *BrowserApplication::getHistoryManager()
 {
-    return m_historyMgr;
+    return m_historyMgr.get();
 }
 
 HistoryWidget *BrowserApplication::getHistoryWidget()
@@ -152,7 +152,7 @@ HistoryWidget *BrowserApplication::getHistoryWidget()
     if (!m_historyWidget)
     {
         m_historyWidget = new HistoryWidget;
-        m_historyWidget->setHistoryManager(m_historyMgr);
+        m_historyWidget->setHistoryManager(m_historyMgr.get());
     }
 
     return m_historyWidget;

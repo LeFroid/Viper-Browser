@@ -43,12 +43,13 @@ struct WebHistoryItem
  */
 class HistoryManager : public QWebHistoryInterface, private DatabaseWorker
 {
+    friend class DatabaseFactory;
+
     Q_OBJECT
 
 public:
-    /// Constructs the history manager. If firstRun is set to true, the
-    /// browsing history-related tables in the database will be created
-    explicit HistoryManager(bool firstRun, const QString &databaseFile, QObject *parent = nullptr);
+    /// Constructs the history manager, given the history database file path and a parent pointer
+    explicit HistoryManager(const QString &databaseFile, QObject *parent = nullptr);
 
     /// Saves browsing history at exit
     virtual ~HistoryManager();

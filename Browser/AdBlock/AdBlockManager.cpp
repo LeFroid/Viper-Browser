@@ -647,7 +647,7 @@ void AdBlockManager::extractFilters()
         m_stylesheet = m_stylesheet.left(m_stylesheet.size() - 1);
         m_stylesheet.append(QStringLiteral("{ display: none !important; } "));
     }
-    m_stylesheet.append("</style>");
+    m_stylesheet.append(QStringLiteral("</style>"));
 }
 
 void AdBlockManager::save()
