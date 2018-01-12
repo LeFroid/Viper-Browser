@@ -47,9 +47,9 @@ void HistoryManager::addHistoryEntry(const QString &url)
     if (it != m_historyItems.end())
     {
         it->Visits.prepend(visitTime);
-        m_recentItems.prepend(*it);
+        m_recentItems.push_front(*it);
         while (m_recentItems.size() > 15)
-            m_recentItems.removeLast();
+            m_recentItems.pop_back();
         if (!it->Title.isEmpty())
         {
             saveVisit(*it, visitTime);
@@ -63,9 +63,9 @@ void HistoryManager::addHistoryEntry(const QString &url)
     item.VisitID = ++m_lastVisitID;
     item.Visits.prepend(visitTime);
     m_historyItems.insert(lowerUrl, item);
-    m_recentItems.prepend(item);
+    m_recentItems.push_front(item);
     while (m_recentItems.size() > 15)
-        m_recentItems.removeLast();
+        m_recentItems.pop_back();
     // don't emit pageLoaded until title is set
 }
 
@@ -133,7 +133,15 @@ void HistoryManager::setTitleForURL(const QString &url, const QString &title)
         {
             it->Title = title;
 
-            int recentVisitIdx = m_recentItems.indexOf(*it);
+            int recentVisitIdx = -1;
+            for (size_t i = 0; i < m_recentItems.size(); ++i)
+            {
+                if (m_recentItems.at(i) == *it)
+                {
+                    recentVisitIdx = static_cast<int>(i);
+                    break;
+                }
+            }
             if (recentVisitIdx >= 0)
                 m_recentItems[recentVisitIdx].Title = title;
 
@@ -143,9 +151,9 @@ void HistoryManager::setTitleForURL(const QString &url, const QString &title)
     }
 }
 
-QList<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate) const
+std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate) const
 {
-    QList<WebHistoryItem> items;
+    std::vector<WebHistoryItem> items;
 
     if (!startDate.isValid())
         return items;
@@ -176,7 +184,7 @@ QList<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate)
                 item.Visits.append(QDateTime::fromMSecsSinceEpoch(query.value(0).toLongLong()));//dbVisit));
             }
         }
-        items.append(item);
+        items.push_back(item);
     }
     return items;
 }
@@ -253,7 +261,7 @@ void HistoryManager::load()
             {
                 QDateTime date = QDateTime::fromMSecsSinceEpoch(query.value(idDate).toULongLong());
                 it->Visits.prepend(date);
-                m_recentItems.prepend(*it);
+                m_recentItems.push_front(*it);
             }
         }
     }

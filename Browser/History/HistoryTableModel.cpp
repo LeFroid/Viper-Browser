@@ -34,7 +34,7 @@ int HistoryTableModel::rowCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
 
-    return m_history.size();
+    return static_cast<int>(m_history.size());
 }
 
 int HistoryTableModel::columnCount(const QModelIndex &parent) const
@@ -48,7 +48,7 @@ int HistoryTableModel::columnCount(const QModelIndex &parent) const
 
 QVariant HistoryTableModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || index.row() >= m_history.size())
+    if (!index.isValid() || index.row() >= static_cast<int>(m_history.size()))
         return QVariant();
 
     if (index.column() > 0 && role != Qt::DisplayRole)
@@ -80,7 +80,7 @@ QVariant HistoryTableModel::data(const QModelIndex &index, int role) const
 
 QUrl HistoryTableModel::getIndexURL(const QModelIndex &index) const
 {
-    if (!index.isValid() || index.row() >= m_history.size())
+    if (!index.isValid() || index.row() >= static_cast<int>(m_history.size()))
         return QUrl();
 
     const HistoryTableItem &itemData = m_commonData.at(m_history.at(index.row()).ItemIndex);
@@ -98,18 +98,18 @@ void HistoryTableModel::loadFromDate(const QDateTime &date)
     // load data from history manager and use FaviconStorage to fetch icons
     m_commonData.clear();
     m_history.clear();
-    QList<WebHistoryItem> entries = m_historyMgr->getHistoryFrom(date);
+    std::vector<WebHistoryItem> entries = m_historyMgr->getHistoryFrom(date);
     QMap<qint64, int> tmpVisitInfo; // Used to sort visits by date
-    for (auto it : entries)
+    for (auto &it : entries)
     {
         // Load entry into common entry list, then specific visits into a temporary map for sorting
         HistoryTableItem tableItem;
         tableItem.Title = it.Title;
         tableItem.URL = it.URL.toString();
         tableItem.Favicon = favicons->getFavicon(it.URL).pixmap(16, 16);
-        m_commonData.append(tableItem);
+        m_commonData.push_back(tableItem);
 
-        int itemIndex = m_commonData.size() - 1;
+        int itemIndex = static_cast<int>(m_commonData.size()) - 1;
         for (auto visit : it.Visits)
             tmpVisitInfo.insert(visit.toMSecsSinceEpoch(), itemIndex);
     }
@@ -125,7 +125,7 @@ void HistoryTableModel::loadFromDate(const QDateTime &date)
         HistoryTableRow row;
         row.ItemIndex = mapIt.value();
         row.VisitString = dateTime.toString("MMMM d yyyy, h:m ap");
-        m_history.append(row);
+        m_history.push_back(row);
     }
 
     endResetModel();

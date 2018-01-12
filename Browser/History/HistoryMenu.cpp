@@ -74,8 +74,8 @@ void HistoryMenu::resetItems()
     clearItems();
 
     FaviconStorage *faviconStorage = sBrowserApplication->getFaviconStorage();
-    const QList<WebHistoryItem> &historyItems = sBrowserApplication->getHistoryManager()->getRecentItems();
-    for (auto it : historyItems)
+    const std::deque<WebHistoryItem> &historyItems = sBrowserApplication->getHistoryManager()->getRecentItems();
+    for (auto &it : historyItems)
     {
         if (!it.Title.isEmpty())
             addHistoryItem(it.URL, it.Title, faviconStorage->getFavicon(it.URL));

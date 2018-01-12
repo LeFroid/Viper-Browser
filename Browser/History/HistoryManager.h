@@ -11,6 +11,9 @@
 #include <QUrl>
 #include <QWebHistoryInterface>
 
+#include <deque>
+#include <vector>
+
 /**
  * @struct WebHistoryItem
  * @brief Contains data about a specific web URL visited by the user
@@ -73,8 +76,8 @@ public:
     /// Sets the title and associated with the given url
     void setTitleForURL(const QString &url, const QString &title);
 
-    /// Returns a list of recently visited items
-    const QList<WebHistoryItem> &getRecentItems() const { return m_recentItems; }
+    /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
+    const std::deque<WebHistoryItem> &getRecentItems() const { return m_recentItems; }
 
     /// Returns a const_iterator to the first element in the history hash map
     QHash<QString, WebHistoryItem>::const_iterator getHistIterBegin() const { return m_historyItems.cbegin(); }
@@ -86,7 +89,7 @@ public:
     QList<QString> getVisitedURLs() const { return m_historyItems.keys(); }
 
     /// Loads and returns a list of all \ref WebHistoryItem items visited from the given start date to the present
-    QList<WebHistoryItem> getHistoryFrom(const QDateTime &startDate) const;
+    std::vector<WebHistoryItem> getHistoryFrom(const QDateTime &startDate) const;
 
     /// Returns the number of times the user has visited the given website by its hostname
     int getTimesVisited(const QString &host);
@@ -116,7 +119,7 @@ private:
     QHash<QString, WebHistoryItem> m_historyItems;
 
     /// Queue of recently visited items
-    QList<WebHistoryItem> m_recentItems;
+    std::deque<WebHistoryItem> m_recentItems;
 
     /// Prepared query for an individual WebHistoryItem entry
     QSqlQuery *m_queryHistoryItem;

@@ -1,9 +1,9 @@
 #ifndef HISTORYTABLEMODEL_H
 #define HISTORYTABLEMODEL_H
 
+#include <vector>
 #include <QAbstractTableModel>
 #include <QDateTime>
-#include <QList>
 #include <QMap>
 #include <QPixmap>
 #include <QUrl>
@@ -76,10 +76,10 @@ private:
     HistoryManager *m_historyMgr;
 
     /// Common history data
-    QList<HistoryTableItem> m_commonData;
+    std::vector<HistoryTableItem> m_commonData;
 
     /// List of visited history items, ordered by most to least recent visit
-    QList<HistoryTableRow> m_history;
+    std::vector<HistoryTableRow> m_history;
 };
 
 #endif // HISTORYTABLEMODEL_H
