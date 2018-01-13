@@ -108,7 +108,7 @@
      <string>Histo&amp;ry</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuBookmarks">
+   <widget class="BookmarkMenu" name="menuBookmarks">
     <property name="styleSheet">
      <string notr="true">* { menu-scrollable: 1 }</string>
     </property>
@@ -466,6 +466,11 @@
    <class>UserAgentMenu</class>
    <extends>QMenu</extends>
    <header>UserAgents/UserAgentMenu.h</header>
+  </customwidget>
+  <customwidget>
+   <class>BookmarkMenu</class>
+   <extends>QMenu</extends>
+   <header>Bookmarks/BookmarkMenu.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

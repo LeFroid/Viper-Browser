@@ -116,7 +116,8 @@ SOURCES += \
     Network/BlockedNetworkReply.cpp \
     UserScripts/AddUserScriptDialog.cpp \
     History/HistoryMenu.cpp \
-    UserAgents/UserAgentMenu.cpp
+    UserAgents/UserAgentMenu.cpp \
+    Bookmarks/BookmarkMenu.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -196,7 +197,8 @@ HEADERS += \
     UserScripts/AddUserScriptDialog.h \
     DatabaseFactory.h \
     History/HistoryMenu.h \
-    UserAgents/UserAgentMenu.h
+    UserAgents/UserAgentMenu.h \
+    Bookmarks/BookmarkMenu.h
 
 FORMS += \
         mainwindow.ui \

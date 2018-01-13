@@ -62,11 +62,8 @@ signals:
     void aboutToClose();
 
 private:
-    /// Instantiates the items belonging to the bookmarks menu
+    /// Sets the proper functionality of the bookmarks menu and bookmarks bar
     void setupBookmarks();
-
-    /// Recursively initializes the items belonging to the given bookmark folder, placing them into the menu
-    void setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu);
 
     /// Initializes the actions belonging to the menu bar (except bookmarks, history and plugins)
     void setupMenuBar();
@@ -220,12 +217,6 @@ private:
 
     /// List of web action proxies that bind menu bar actions to web page actions
     QList<WebActionProxy*> m_webActions;
-
-    /// Action to add the current page to the bookmarks
-    QAction *m_addPageBookmarks;
-
-    /// Action to remove the current page from the bookmarks
-    QAction *m_removePageBookmarks;
 
     /// Button to go to the previously visited page
     QToolButton *m_prevPage;

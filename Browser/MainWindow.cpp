@@ -58,8 +58,6 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     m_clearHistoryDialog(nullptr),
     m_cookieUI(nullptr),
     m_tabWidget(nullptr),
-    m_addPageBookmarks(nullptr),
-    m_removePageBookmarks(nullptr),
     m_preferences(nullptr),
     m_addBookmarkDialog(nullptr),
     m_userScriptWidget(nullptr),
@@ -140,15 +138,10 @@ void MainWindow::openLinkNewWindow(const QUrl &url)
 
 void MainWindow::setupBookmarks()
 {
-    ui->menuBookmarks->addAction(tr("Manage Bookmarks"), this, SLOT(openBookmarkWidget()));
-    ui->menuBookmarks->addSeparator();
-    setupBookmarkFolder(m_bookmarkManager->getRoot(), ui->menuBookmarks);
-
-    m_addPageBookmarks = new QAction(tr("Bookmark this page"), this);
-    connect(m_addPageBookmarks, &QAction::triggered, this, &MainWindow::addPageToBookmarks);
-
-    m_removePageBookmarks = new QAction(tr("Remove this bookmark"), this);
-    connect(m_removePageBookmarks, &QAction::triggered, this, &MainWindow::removePageFromBookmarks);
+    connect(ui->menuBookmarks, &BookmarkMenu::manageBookmarkRequest,   this, &MainWindow::openBookmarkWidget);
+    connect(ui->menuBookmarks, &BookmarkMenu::loadUrlRequest,          this, &MainWindow::loadUrl);
+    connect(ui->menuBookmarks, &BookmarkMenu::addPageToBookmarks,      this, &MainWindow::addPageToBookmarks);
+    connect(ui->menuBookmarks, &BookmarkMenu::removePageFromBookmarks, this, &MainWindow::removePageFromBookmarks);
 
     // Setup bookmark bar
     ui->bookmarkBar->setBookmarkManager(m_bookmarkManager);
@@ -157,47 +150,6 @@ void MainWindow::setupBookmarks()
     connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewWindow, [=](const QUrl &url){
         m_tabWidget->openLinkInNewWindow(url, m_privateWindow);
     });
-}
-
-void MainWindow::setupBookmarkFolder(BookmarkNode *folder, QMenu *folderMenu)
-{
-    if (!folderMenu)
-        return;
-
-    FaviconStorage *iconStorage = sBrowserApplication->getFaviconStorage();
-
-    std::deque< std::pair<BookmarkNode*, QMenu*> > folders;
-    folders.push_back({folder, folderMenu});
-
-    BookmarkNode *currentNode;
-    QMenu *currentMenu;
-
-    while (!folders.empty())
-    {
-        auto &current = folders.front();
-        currentNode = current.first;
-        currentMenu = current.second;
-
-        int numChildren = currentNode->getNumChildren();
-        for (int i = 0; i < numChildren; ++i)
-        {
-            BookmarkNode *n = currentNode->getNode(i);
-            if (n->getType() == BookmarkNode::Folder)
-            {
-                QMenu *subMenu = currentMenu->addMenu(n->getIcon(), n->getName());
-                folders.push_back({n, subMenu});
-                continue;
-            }
-
-            QUrl link(n->getURL());
-            QAction *item = currentMenu->addAction(iconStorage->getFavicon(link), n->getName());
-            item->setIconVisibleInMenu(true);
-            currentMenu->addAction(item);
-            connect(item, &QAction::triggered, [=](){ loadUrl(link); });
-        }
-
-        folders.pop_front();
-    }
 }
 
 void MainWindow::setupMenuBar()
@@ -392,15 +344,7 @@ void MainWindow::checkPageForBookmark()
     if (!view)
         return;
 
-    ui->menuBookmarks->removeAction(m_addPageBookmarks);
-    ui->menuBookmarks->removeAction(m_removePageBookmarks);
-    QList<QAction*> menuActions = ui->menuBookmarks->actions();
-    if (menuActions.empty())
-        return;
-    int lastActionPos = (menuActions.size() > 1) ? 1 : 0;
-    QAction *firstBookmark = menuActions[lastActionPos];
-    QAction *actionToAdd = (m_bookmarkManager->isBookmarked(view->url().toString())) ? m_removePageBookmarks : m_addPageBookmarks;
-    ui->menuBookmarks->insertAction(firstBookmark, actionToAdd);
+    ui->menuBookmarks->setCurrentPageBookmarked(m_bookmarkManager->isBookmarked(view->url().toString()));
 }
 
 void MainWindow::onTabChanged(int index)
@@ -531,10 +475,7 @@ void MainWindow::onClearHistoryDialogFinished(int result)
 
 void MainWindow::refreshBookmarkMenu()
 {
-    ui->menuBookmarks->clear();
-    ui->menuBookmarks->addAction(tr("Manage Bookmarks"), this, SLOT(openBookmarkWidget()));
-    ui->menuBookmarks->addSeparator();
-    setupBookmarkFolder(m_bookmarkManager->getRoot(), ui->menuBookmarks);
+    ui->menuBookmarks->resetMenu();
     checkPageForBookmark();
 
     // Bookmark bar
