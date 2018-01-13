@@ -8,8 +8,9 @@ QT       += core gui sql printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webkitwidgets
 
-TARGET = Browser
+TARGET = viper-browser
 TEMPLATE = app
+DESTDIR = $$VIPER_BUILD_DIR
 
 CONFIG += c++14
 
