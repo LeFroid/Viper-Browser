@@ -36,7 +36,6 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
     // Fetch root folder in bookmark page, add its first child to queue, and traverse the bookmark tree
     QWebElement folderElem = pageFrame->findFirstElement("DL");
     QWebElement subFolder = folderElem.firstChild();
-    BookmarkNode *folder = nullptr;
 
     QQueue< std::pair<QWebElement, BookmarkNode*> > q;
     q.enqueue(std::make_pair(subFolder, importFolder));
@@ -45,7 +44,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
         // Currently in the first child node of a bookmark folder.
         auto p = q.dequeue();
         folderElem = p.first;
-        folder = p.second;
+        BookmarkNode *folder = p.second;
 
         // Check each sibling if it matches the signature of a bookmark or a folder.
         // If the current node is a bookmark, add it to the folder. If it is a folder,

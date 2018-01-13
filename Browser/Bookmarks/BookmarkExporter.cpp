@@ -63,12 +63,11 @@ void BookmarkExporter::exportFolders(QTextStream &stream)
 
         stream << spacing << "<DL><p>\n";
 
-        BookmarkNode *n;
         int numChildren = current->getNumChildren();
         std::deque<BookmarkNode*> subFolders;
         for (int i = 0; i < numChildren; ++i)
         {
-            n = current->getNode(i);
+            BookmarkNode *n = current->getNode(i);
             if (n->getType() == BookmarkNode::Folder)
                 subFolders.push_back(n);
             else

@@ -52,10 +52,9 @@ HistoryType ClearHistoryDialog::getHistoryTypes() const
     HistoryType histTypes = HistoryType::None;
 
     // Fetch checkbox states
-    QListWidgetItem *item = nullptr;
     for (int i = 0; i < ui->listWidgetDetails->count(); ++i)
     {
-        item = ui->listWidgetDetails->item(i);
+        QListWidgetItem *item = ui->listWidgetDetails->item(i);
         if (item->checkState() == Qt::Checked)
             histTypes = histTypes | item->data(Qt::UserRole).value<HistoryType>();
     }

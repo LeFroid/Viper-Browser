@@ -46,10 +46,9 @@ void HistoryMenu::addHistoryItem(const QUrl &url, const QString &title, const QI
         addAction(historyItem);
 
     int menuSize = menuActions.size();
-    QAction *actionToRemove = nullptr;
     while (menuSize > 17)
     {
-        actionToRemove = menuActions[menuSize - 1];
+        QAction *actionToRemove = menuActions[menuSize - 1];
         removeAction(actionToRemove);
         --menuSize;
     }
@@ -61,10 +60,9 @@ void HistoryMenu::clearItems()
     if (menuActions.size() < 3)
         return;
 
-    QAction *currItem = nullptr;
     for (int i = 3; i < menuActions.size(); ++i)
     {
-        currItem = menuActions.at(i);
+        QAction *currItem = menuActions.at(i);
         removeAction(currItem);
     }
 }

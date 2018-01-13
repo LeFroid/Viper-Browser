@@ -22,11 +22,10 @@ BookmarkNode *BookmarkManager::getRoot()
 
 BookmarkNode *BookmarkManager::getBookmarksBar()
 {
-    BookmarkNode *child = nullptr;
     int numChildren = m_rootNode->getNumChildren();
     for (int i = 0; i < numChildren; ++i)
     {
-        child = m_rootNode->getNode(i);
+        BookmarkNode *child = m_rootNode->getNode(i);
         if (child->getType() == BookmarkNode::Folder && child->getName().compare("Bookmarks Bar") == 0)
             return child;
     }
@@ -135,8 +134,11 @@ void BookmarkManager::removeBookmark(const QString &url)
 
     int folderId = query.value(0).toInt();
     BookmarkNode *folder = findFolder(folderId);
-    if (!folder)
+    if (folder == nullptr)
+    {
         qDebug() << "[Warning]: In BookmarkManager::removeBookmark(..) - found bookmark, could not find folder it belongs to";
+        return;
+    }
 
     for (auto &node : folder->m_children)
     {
@@ -443,14 +445,13 @@ BookmarkNode *BookmarkManager::findFolder(int id)
     if (!isValidFolderID(id))
         return nullptr;
 
-    BookmarkNode *currNode = nullptr;
     std::deque<BookmarkNode*> queue;
     queue.push_back(m_rootNode.get());
 
     // BFS until the folder with given ID is found, or all folders are searched
     while (!queue.empty())
     {
-        currNode = queue.front();
+        BookmarkNode *currNode = queue.front();
         if (!currNode)
         {
             queue.pop_front();

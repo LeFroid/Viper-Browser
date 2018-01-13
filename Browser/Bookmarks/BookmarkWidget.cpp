@@ -281,11 +281,10 @@ void BookmarkWidget::openAllBookmarksNewTabs(BookmarkNode *folder)
     if (!folder)
         return;
 
-    BookmarkNode *child = nullptr;
     int numChildren = folder->getNumChildren();
     for (int i = 0; i < numChildren; ++i)
     {
-        child = folder->getNode(i);
+        BookmarkNode *child = folder->getNode(i);
         if (child->getType() == BookmarkNode::Bookmark)
             emit openBookmarkNewTab(child->getURL());
     }

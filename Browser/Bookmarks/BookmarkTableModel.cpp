@@ -138,11 +138,10 @@ bool BookmarkTableModel::removeRows(int row, int count, const QModelIndex &paren
     if (!m_folder)
         return false;
 
-    BookmarkNode *n = nullptr;
     beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
     {
-        n = m_folder->getNode(row + i);
+        BookmarkNode *n = m_folder->getNode(row + i);
         m_bookmarkMgr->removeBookmark(n);
     }
     endRemoveRows();
