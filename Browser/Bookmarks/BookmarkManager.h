@@ -112,6 +112,10 @@ private:
     bool removeBookmarkFromDB(BookmarkNode *bookmark);
 
 protected:
+    /// Returns true if the bookmark database contains the table structure(s) needed for it to function properly,
+    /// false if else.
+    bool hasProperStructure() override;
+
     /// Creates the initial table structures and default bookmarks if necessary
     void setup() override;
 

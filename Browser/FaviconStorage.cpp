@@ -168,6 +168,13 @@ void FaviconStorage::saveToDB(const QString &faviconUrl, const FaviconInfo &favi
                  << m_queryInsertIconData->lastError().text();
 }
 
+bool FaviconStorage::hasProperStructure()
+{
+    return hasTable(QStringLiteral("Favicons"))
+            && hasTable(QStringLiteral("FaviconData"))
+            && hasTable(QStringLiteral("FaviconMap"));
+}
+
 void FaviconStorage::setup()
 {
     // Setup table structures

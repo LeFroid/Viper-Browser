@@ -206,6 +206,12 @@ int HistoryManager::getTimesVisited(const QString &host)
     return timesVisited;
 }
 
+bool HistoryManager::hasProperStructure()
+{
+    // Verify existence of Visits and History tables
+    return hasTable(QStringLiteral("Visits")) && hasTable(QStringLiteral("History"));
+}
+
 void HistoryManager::setup()
 {
     QSqlQuery query(m_database);

@@ -72,6 +72,10 @@ private:
     void saveToDB(const QString &faviconUrl, const FaviconInfo &favicon);
 
 protected:
+    /// Returns true if the favicon database contains the table structure(s) needed for it to function properly,
+    /// false if else.
+    bool hasProperStructure() override;
+
     /// Sets initial table structures of the database
     void setup() override;
 

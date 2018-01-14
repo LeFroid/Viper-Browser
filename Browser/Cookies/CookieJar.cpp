@@ -131,6 +131,12 @@ void CookieJar::eraseAllCookies()
     emit cookiesRemoved();
 }
 
+bool CookieJar::hasProperStructure()
+{
+    // Verify existence of Cookies table
+    return hasTable(QStringLiteral("Cookies"));
+}
+
 void CookieJar::setup()
 {
     // Setup table structure

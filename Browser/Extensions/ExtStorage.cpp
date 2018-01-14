@@ -33,6 +33,12 @@ QVariantMap ExtStorage::getResult(const QString &extUID, const QVariantMap &keys
     return results;
 }
 
+bool ExtStorage::hasProperStructure()
+{
+    // Verify existence of ItemTable table
+    return hasTable(QStringLiteral("ItemTable"));
+}
+
 void ExtStorage::setup()
 {
     // Setup table structure

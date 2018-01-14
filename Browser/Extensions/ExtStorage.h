@@ -39,6 +39,10 @@ public slots:
     //QVariantMap getResult(const QString &extUID, const QString &key);
 
 protected:
+    /// Returns true if the extension database contains the table structure(s) needed for it to function properly,
+    /// false if else.
+    bool hasProperStructure() override;
+
     /// Sets initial table structure in the database
     void setup() override;
 

@@ -33,25 +33,21 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Load settings
     m_settings = std::make_shared<Settings>();
 
+    // Initialize favicon storage module
+    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QStringLiteral("FaviconPath")));
+
     // Initialize bookmarks manager
-    m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->firstRun(),
-                                                                m_settings->getPathValue(QStringLiteral("BookmarkPath")));
+    m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(QStringLiteral("BookmarkPath")));
 
     // Initialize cookie jar
-    m_cookieJar = DatabaseFactory::createWorker<CookieJar>(m_settings->firstRun(),
-                                                          m_settings->getPathValue(QStringLiteral("CookiePath")));
+    m_cookieJar = DatabaseFactory::createWorker<CookieJar>(m_settings->getPathValue(QStringLiteral("CookiePath")));
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
     m_downloadMgr->setDownloadDir(m_settings->getPathValue(QStringLiteral("DownloadDir")));
 
-    // Initialize favicon storage module
-    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->firstRun(),
-                                                                     m_settings->getPathValue(QStringLiteral("FaviconPath")));
-
     // Instantiate the history manager
-    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->firstRun(),
-                                                                 m_settings->getPathValue(QStringLiteral("HistoryPath")));
+    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QStringLiteral("HistoryPath")));
 
     m_historyWidget = nullptr;
 

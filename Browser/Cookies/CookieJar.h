@@ -49,6 +49,10 @@ signals:
     void cookiesRemoved();
 
 protected:
+    /// Returns true if the cookie database contains the table structure(s) needed for it to function properly,
+    /// false if else.
+    bool hasProperStructure() override;
+
     /// Sets initial table structure for storage of cookies
     void setup() override;
 

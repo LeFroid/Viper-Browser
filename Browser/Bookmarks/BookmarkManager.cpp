@@ -511,6 +511,12 @@ bool BookmarkManager::removeBookmarkFromDB(BookmarkNode *bookmark)
     return ok;
 }
 
+bool BookmarkManager::hasProperStructure()
+{
+    // Verify existence of Bookmarks table
+    return hasTable(QStringLiteral("Bookmarks"));
+}
+
 void BookmarkManager::setup()
 {
     // Setup table structures

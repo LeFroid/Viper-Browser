@@ -99,6 +99,10 @@ signals:
     void pageVisited(const QString &url, const QString &title);
 
 protected:
+    /// Returns true if the history database contains the table structures needed for it to function properly,
+    /// false if else.
+    bool hasProperStructure() override;
+
     /// Creates the browsing history-related tables in the database
     void setup() override;
 
