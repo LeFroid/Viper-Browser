@@ -733,7 +733,7 @@ bool AdBlockFilter::parseScriptInjection()
 
 AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters)
 {
-    CosmeticJSCallback result;
+    auto result = CosmeticJSCallback();
 
     const std::tuple<int, CosmeticFilter, int> &p = filters.at(0);
 

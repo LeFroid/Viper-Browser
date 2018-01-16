@@ -96,6 +96,9 @@ class AdBlockFilter
 
         /// Target to be searched for in the callback
         QString CallbackTarget;
+
+        /// Default constructor
+        CosmeticJSCallback() : IsValid(false), CallbackName(), CallbackSubject(), CallbackTarget() {}
     };
 
     /// Computes and returns base^exp
