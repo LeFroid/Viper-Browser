@@ -360,7 +360,7 @@ void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldV
                         "URL " << oldValue.getURL() << ". Error message: " << query.lastError().text();
         query.prepare("DELETE FROM Bookmarks WHERE URL = (:url)");
         query.bindValue(":url", oldValue.getURL());
-        query.exec();
+        static_cast<void>(query.exec());
         query.prepare("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderID, :parentID, :type, :name, :url, :position)");
         query.bindValue(":folderID", folderID);
         query.bindValue(":parentID", folderID);

@@ -12,6 +12,12 @@
 #include <QJsonValue>
 #include <QUrl>
 
+SessionManager::SessionManager() :
+    m_dataFile(),
+    m_savedSession(false)
+{
+}
+
 bool SessionManager::alreadySaved() const
 {
     return m_savedSession;

@@ -128,7 +128,6 @@ QVariant UserScriptModel::data(const QModelIndex &index, int role) const
         case 3: return script.getVersion();
         default: return QVariant();
     }
-    return QVariant();
 }
 
 Qt::ItemFlags UserScriptModel::flags(const QModelIndex& index) const

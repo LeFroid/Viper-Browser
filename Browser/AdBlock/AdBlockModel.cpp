@@ -62,7 +62,6 @@ QVariant AdBlockModel::data(const QModelIndex &index, int role) const
         case 3: return sub->getSourceUrl().toString(QUrl::FullyEncoded);
         default: return QVariant();
     }
-    return QVariant();
 }
 
 Qt::ItemFlags AdBlockModel::flags(const QModelIndex& index) const

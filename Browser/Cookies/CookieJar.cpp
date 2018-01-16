@@ -111,8 +111,7 @@ bool CookieJar::deleteCookie(const QNetworkCookie &cookie)
         query.prepare("DELETE FROM Cookies WHERE Domain = (:domain) AND Name = (:name)");
         query.bindValue(":domain", cookie.domain());
         query.bindValue(":name", cookie.name());
-        query.exec();
-        return true;
+        return query.exec();
     }
     return false;
 }

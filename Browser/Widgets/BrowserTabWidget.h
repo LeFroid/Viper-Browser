@@ -110,9 +110,6 @@ private:
     /// Stores the index of the last two active tabs
     int m_lastTabIndex, m_currentTabIndex;
 
-    /// True if last tab index should be updated, false if else
-    bool m_updateLastIndex;
-
     /// Stores the index of the next tab to be created. Starts at current index + 1, and increments with
     /// each new tab created. Resets on change of active tab
     int m_nextTabIndex;

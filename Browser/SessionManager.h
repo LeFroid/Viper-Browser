@@ -15,7 +15,7 @@ class SessionManager
 {
 public:
     /// Default constructor
-    SessionManager() = default;
+    SessionManager();
 
     /// Returns true if the session has already been saved, false if else
     bool alreadySaved() const;
