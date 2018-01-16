@@ -85,6 +85,60 @@ private:
     QTreeWidgetItem *makeCertField(QTreeWidgetItem *parent, const QString &text, CertificateField field = CertificateField::None);
 
 private:
+    /// Entities for which any type of QSslCertificate::SubjectInfo may be obtained
+    enum class CertInfoType { Subject, Issuer };
+
+    /**
+     * @brief Fetches the requested entity information, returning the result in string form
+     * @param cert The SSL certificate
+     * @param info The type of information being requested
+     * @param type The type of entity for which the information is being requested
+     * @return A string containing the subject information
+     */
+    inline QString getSubjectInfoString(const QSslCertificate &cert, QSslCertificate::SubjectInfo info, CertInfoType type) const
+    {
+        QStringList infoList;
+        switch (type)
+        {
+            case CertInfoType::Subject:
+                infoList = cert.subjectInfo(info);
+                break;
+            case CertInfoType::Issuer:
+                infoList = cert.issuerInfo(info);
+                break;
+        }
+        if (infoList.empty())
+            return QString();
+
+        QString infoStr;
+        switch (info)
+        {
+            case QSslCertificate::Organization:
+                infoStr = QStringLiteral("O = ");
+                break;
+            case QSslCertificate::CommonName:
+                infoStr = QStringLiteral("CN = ");
+                break;
+            case QSslCertificate::LocalityName:
+                infoStr = QStringLiteral("L = ");
+                break;
+            case QSslCertificate::OrganizationalUnitName:
+                infoStr = QStringLiteral("OU = ");
+                break;
+            case QSslCertificate::CountryName:
+                infoStr = QStringLiteral("C = ");
+                break;
+            case QSslCertificate::StateOrProvinceName:
+                infoStr = QStringLiteral("ST = ");
+                break;
+            default:
+                break;
+        }
+        infoStr.append(infoList.at(0)).append(QChar('\n'));
+        return infoStr;
+    }
+
+private:
     /// UI elements found in CertificateViewer.ui file
     Ui::CertificateViewer *ui;
 

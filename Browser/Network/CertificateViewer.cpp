@@ -10,8 +10,6 @@
 #include <QTextEdit>
 #include <QTreeWidget>
 
-#include <QDebug>
-
 CertificateViewer::CertificateViewer(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CertificateViewer),
@@ -131,7 +129,6 @@ void CertificateViewer::onCertFieldSelected()
 
     const QSslCertificate &cert = m_certChain.at(m_currentCertIdx);
 
-    QStringList infoList; // Used when information is returned in the form of a string list
     QString contents;
     switch (to_certfield(userData))
     {
@@ -143,18 +140,12 @@ void CertificateViewer::onCertFieldSelected()
             break;
         case CertificateField::Issuer:
         {
-            infoList = cert.issuerInfo(QSslCertificate::CommonName);
-            if (!infoList.empty()) contents = QString("CN = %1\n").arg(infoList.at(0));
-            infoList = cert.issuerInfo(QSslCertificate::Organization);
-            if (!infoList.empty()) contents.append(QString("O = %1\n").arg(infoList.at(0)));
-            infoList = cert.issuerInfo(QSslCertificate::OrganizationalUnitName);
-            if (!infoList.empty()) contents.append(QString("OU = %1\n").arg(infoList.at(0)));
-            infoList = cert.issuerInfo(QSslCertificate::LocalityName);
-            if (!infoList.empty()) contents.append(QString("L = %1\n").arg(infoList.at(0)));
-            infoList = cert.issuerInfo(QSslCertificate::StateOrProvinceName);
-            if (!infoList.empty()) contents.append(QString("ST = %1\n").arg(infoList.at(0)));
-            infoList = cert.issuerInfo(QSslCertificate::CountryName);
-            if (!infoList.empty()) contents.append(QString("C = %1").arg(infoList.at(0)));
+            contents = getSubjectInfoString(cert, QSslCertificate::CommonName, CertInfoType::Issuer);
+            contents.append(getSubjectInfoString(cert, QSslCertificate::Organization, CertInfoType::Issuer));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::OrganizationalUnitName, CertInfoType::Issuer));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::LocalityName, CertInfoType::Issuer));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::StateOrProvinceName, CertInfoType::Issuer));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::CountryName, CertInfoType::Issuer));
             break;
         }
         case CertificateField::EffectiveDate:
@@ -165,18 +156,12 @@ void CertificateViewer::onCertFieldSelected()
             break;
         case CertificateField::Subject:
         {
-            infoList = cert.subjectInfo(QSslCertificate::CommonName);
-            if (!infoList.empty()) contents = QString("CN = %1\n").arg(infoList.at(0));
-            infoList = cert.subjectInfo(QSslCertificate::Organization);
-            if (!infoList.empty()) contents.append(QString("O = %1\n").arg(infoList.at(0)));
-            infoList = cert.subjectInfo(QSslCertificate::OrganizationalUnitName);
-            if (!infoList.empty()) contents.append(QString("OU = %1\n").arg(infoList.at(0)));
-            infoList = cert.subjectInfo(QSslCertificate::LocalityName);
-            if (!infoList.empty()) contents.append(QString("L = %1\n").arg(infoList.at(0)));
-            infoList = cert.subjectInfo(QSslCertificate::StateOrProvinceName);
-            if (!infoList.empty()) contents.append(QString("ST = %1\n").arg(infoList.at(0)));
-            infoList = cert.subjectInfo(QSslCertificate::CountryName);
-            if (!infoList.empty()) contents.append(QString("C = %1").arg(infoList.at(0)));
+            contents = getSubjectInfoString(cert, QSslCertificate::CommonName, CertInfoType::Subject);
+            contents.append(getSubjectInfoString(cert, QSslCertificate::Organization, CertInfoType::Subject));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::OrganizationalUnitName, CertInfoType::Subject));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::LocalityName, CertInfoType::Subject));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::StateOrProvinceName, CertInfoType::Subject));
+            contents.append(getSubjectInfoString(cert, QSslCertificate::CountryName, CertInfoType::Subject));
             break;
         }
         case CertificateField::SubjectPubKeyAlgorithm:
@@ -184,16 +169,16 @@ void CertificateViewer::onCertFieldSelected()
             switch (cert.publicKey().algorithm())
             {
                 case QSsl::Rsa:
-                    contents = "RSA Algorithm";
+                    contents = QStringLiteral("RSA Algorithm");
                     break;
                 case QSsl::Dsa:
-                    contents = "DSA Algorithm";
+                    contents = QStringLiteral("DSA Algorithm");
                     break;
                 case QSsl::Ec:
-                    contents = "Elliptic Curve Algorithm";
+                    contents = QStringLiteral("Elliptic Curve Algorithm");
                     break;
                 case QSsl::Opaque:
-                    contents = "Opaque";
+                    contents = QStringLiteral("Opaque");
                     break;
             }
 
@@ -275,29 +260,29 @@ void CertificateViewer::setupDetailTab()
     QTreeWidgetItem *certInfo = new QTreeWidgetItem(certFieldRoot);
     certInfo->setText(0, tr("Certificate"));
 
-    makeCertField(certInfo, tr("Version"), CertificateField::Version);
-    makeCertField(certInfo, tr("Serial Number"), CertificateField::SerialNumber);
-    makeCertField(certInfo, tr("Issuer"), CertificateField::Issuer);
+    static_cast<void>(makeCertField(certInfo, tr("Version"), CertificateField::Version));
+    static_cast<void>(makeCertField(certInfo, tr("Serial Number"), CertificateField::SerialNumber));
+    static_cast<void>(makeCertField(certInfo, tr("Issuer"), CertificateField::Issuer));
 
     QTreeWidgetItem *certInfoItem = makeCertField(certInfo, tr("Validity"));
-    makeCertField(certInfoItem, tr("Not Before"), CertificateField::EffectiveDate);
-    makeCertField(certInfoItem, tr("Not After"), CertificateField::ExpiryDate);
+    static_cast<void>(makeCertField(certInfoItem, tr("Not Before"), CertificateField::EffectiveDate));
+    static_cast<void>(makeCertField(certInfoItem, tr("Not After"), CertificateField::ExpiryDate));
 
-    makeCertField(certInfo, tr("Subject"), CertificateField::Subject);
+    static_cast<void>(makeCertField(certInfo, tr("Subject"), CertificateField::Subject));
 
     certInfoItem = makeCertField(certInfo, tr("Subject Public Key Info"));
-    makeCertField(certInfoItem, tr("Subject Public Key Algorithm"), CertificateField::SubjectPubKeyAlgorithm);
-    makeCertField(certInfoItem, tr("Subject Public Key"), CertificateField::SubjectPubKey);
+    static_cast<void>(makeCertField(certInfoItem, tr("Subject Public Key Algorithm"), CertificateField::SubjectPubKeyAlgorithm));
+    static_cast<void>(makeCertField(certInfoItem, tr("Subject Public Key"), CertificateField::SubjectPubKey));
 
     certInfoItem = makeCertField(certInfo, tr("Extensions"));
     //TODO: sub-items for extensions
 
-    makeCertField(certInfo, tr("Certificate Signature Algorithm"), CertificateField::SignatureAlgorithm);
-    makeCertField(certInfo, tr("Certificate Signature Value"), CertificateField::Signature);
+    static_cast<void>(makeCertField(certInfo, tr("Certificate Signature Algorithm"), CertificateField::SignatureAlgorithm));
+    static_cast<void>(makeCertField(certInfo, tr("Certificate Signature Value"), CertificateField::Signature));
 
     certInfoItem = makeCertField(certInfo, tr("Fingerprints"));
-    makeCertField(certInfoItem, tr("SHA-256 Fingerprint"), CertificateField::SHA256Fingerprint);
-    makeCertField(certInfoItem, tr("SHA-1 Fingerprint"), CertificateField::SHA1Fingerprint);
+    static_cast<void>(makeCertField(certInfoItem, tr("SHA-256 Fingerprint"), CertificateField::SHA256Fingerprint));
+    static_cast<void>(makeCertField(certInfoItem, tr("SHA-1 Fingerprint"), CertificateField::SHA1Fingerprint));
 
     treeCertFields->expandToDepth(2);
 

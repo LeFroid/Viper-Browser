@@ -15,9 +15,7 @@ SecurityInfoDialog::SecurityInfoDialog(QWidget *parent) :
     ui->setupUi(this);
 
     // Connect simple button signals to dialog display slots
-    connect(ui->pushButtonCertificate, &QPushButton::clicked, [=](){
-        m_certViewer->show();
-    });
+    connect(ui->pushButtonCertificate, &QPushButton::clicked, m_certViewer, &CertificateViewer::show);
 }
 
 SecurityInfoDialog::~SecurityInfoDialog()
