@@ -108,7 +108,13 @@ function hideIfNotChain(subject, chainSubject, chainTarget, callback) {
     }
 }
 /// Hides the nodes in the given array
-function hideNodes(nodes) {
+function hideNodes(cb, cbSubj, cbTarget) {
+    var nodes;
+    if (cbSubj !== undefined) {
+        nodes = cb(cbSubj, cbTarget);
+    } else {
+        nodes = cb;
+    }
     if (nodes === null)
         return;
     var i;

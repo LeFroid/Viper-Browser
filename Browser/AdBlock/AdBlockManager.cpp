@@ -175,7 +175,7 @@ const QString &AdBlockManager::getDomainStylesheet(const QUrl &url)
 
     QString domain = getSecondLevelDomain(url);
     if (domain.isEmpty())
-        return m_emptyStr;
+        domain = url.host().toLower();
 
     // Check for a cache hit
     std::string domainStdStr = domain.toStdString();
@@ -224,7 +224,7 @@ QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
 
     QString domain = getSecondLevelDomain(url);
     if (domain.isEmpty())
-        domain = url.host();
+        domain = url.host().toLower();
 
     QString javascript;
     for (AdBlockFilter *filter : m_domainJSFilters)

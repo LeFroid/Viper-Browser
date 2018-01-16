@@ -76,8 +76,12 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
                     return nodeIcon.pixmap(16, 16);
                 if (role == Qt::SizeHintRole)
                     return QSize(16, 16);
+                break;
             }
-            case 1: if (role == Qt::DisplayRole || role == Qt::EditRole) return b->getURL();
+            case 1:
+                if (role == Qt::DisplayRole || role == Qt::EditRole)
+                    return b->getURL();
+                break;
         }
     }
     return QVariant();

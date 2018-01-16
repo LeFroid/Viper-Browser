@@ -626,7 +626,7 @@ bool AdBlockFilter::parseCosmeticOptions()
                 evalArg = QString("'%1'").arg(evalArg);
             }
 
-            m_evalString = QString("hideNodes(hasText('%1', %2)); ").arg(evalStr).arg(evalArg);
+            m_evalString = QString("hideNodes(hasText, '%1', %2); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::If:
@@ -655,24 +655,24 @@ bool AdBlockFilter::parseCosmeticOptions()
         }
         case CosmeticFilter::MatchesCSS:
         {
-            m_evalString = QString("hideNodes(matchesCSS('%1', '%2')); ").arg(evalStr).arg(evalArg);
+            m_evalString = QString("hideNodes(matchesCSS, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSSBefore:
         {
             evalStr.append(QStringLiteral(":before"));
-            m_evalString = QString("hideNodes(matchesCSS('%1', '%2')); ").arg(evalStr).arg(evalArg);
+            m_evalString = QString("hideNodes(matchesCSS, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSSAfter:
         {
             evalStr.append(QStringLiteral(":after"));
-            m_evalString = QString("hideNodes(matchesCSS('%1', '%2')); ").arg(evalStr).arg(evalArg);
+            m_evalString = QString("hideNodes(matchesCSS, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::XPath:
         {
-            m_evalString = QString("hideNodes(doXPath('%1', '%2')); ").arg(evalStr).arg(evalArg);
+            m_evalString = QString("hideNodes(doXPath, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
         default: return false;
@@ -722,6 +722,7 @@ bool AdBlockFilter::parseScriptInjection()
     for (int i = 1; i < injectionArgs.size(); ++i)
     {
         QString arg = injectionArgs.at(i).trimmed();
+        arg.replace(QChar('\''), QStringLiteral("\\'"));
         QString term = QString("{{%1}}").arg(i);
         int argIdx = m_evalString.indexOf(term);
         if (argIdx >= 0)
