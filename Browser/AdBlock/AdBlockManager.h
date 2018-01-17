@@ -18,7 +18,6 @@ class AdBlockModel;
  */
 class AdBlockManager : public QObject
 {
-    friend class AdBlockFilter;
     friend class AdBlockFilterParser;
     friend class AdBlockModel;
     friend class BrowserApplication;

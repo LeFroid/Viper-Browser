@@ -98,11 +98,8 @@ class AdBlockFilter
     }
 
 public:
-    /// Default constructor
-    AdBlockFilter();
-
     /// Constructs the filter given the corresponding rule (a line in an adblock plus-formatted file)
-    AdBlockFilter(const QString &rule);
+    explicit AdBlockFilter(const QString &rule);
 
     /// Copy constructor
     AdBlockFilter(const AdBlockFilter &other);
@@ -121,9 +118,6 @@ public:
 
     /// Returns the category of this filter
     FilterCategory getCategory() const;
-
-    /// Evaluates the rule, setting the filter to reflect the corresponding value(s)
-    void setRule(const QString &rule);
 
     /// Returns the original filter rule as a QString
     const QString &getRule() const;
@@ -168,6 +162,9 @@ protected:
 
     /// Sets the evaluation string used to match network requests
     void setEvalString(const QString &evalString);
+
+    /// Evaluates the rule, setting the filter to reflect the corresponding value(s)
+    void setRule(const QString &rule);
 
     /// Calculates the hash value of the evaluation string and the difference hash variable, used in Rabin-Karp string matching algorithm
     void hashEvalString();

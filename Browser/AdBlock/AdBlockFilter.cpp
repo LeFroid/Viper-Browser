@@ -2,27 +2,6 @@
 #include "AdBlockFilter.h"
 #include "Bitfield.h"
 
-/*
-AdBlockFilter::AdBlockFilter() :
-    m_category(FilterCategory::None),
-    m_ruleString(),
-    m_evalString(),
-    m_exception(false),
-    m_important(false),
-    m_disabled(false),
-    m_allowedTypes(ElementType::None),
-    m_blockedTypes(ElementType::None),
-    m_matchCase(false),
-    m_matchAll(false),
-    m_domainBlacklist(),
-    m_domainWhitelist(),
-    m_regExp(nullptr),
-    m_differenceHash(0),
-    m_evalStringHash(0)
-{
-}
-*/
-
 AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_category(FilterCategory::None),
     m_ruleString(rule),
