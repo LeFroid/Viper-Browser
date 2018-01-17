@@ -29,7 +29,9 @@ AdBlockFilter::AdBlockFilter() :
     m_matchAll(false),
     m_domainBlacklist(),
     m_domainWhitelist(),
-    m_regExp(nullptr)
+    m_regExp(nullptr),
+    m_differenceHash(0),
+    m_evalStringHash(0)
 {
 }
 
@@ -46,7 +48,9 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_matchAll(false),
     m_domainBlacklist(),
     m_domainWhitelist(),
-    m_regExp(nullptr)
+    m_regExp(nullptr),
+    m_differenceHash(0),
+    m_evalStringHash(0)
 {
     // Only bother parsing the rule if the given string is not empty and is not a comment
     if (!rule.isEmpty() && !rule.startsWith('!'))
@@ -66,9 +70,10 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
     m_matchAll(other.m_matchAll),
     m_domainBlacklist(other.m_domainBlacklist),
     m_domainWhitelist(other.m_domainWhitelist),
-    m_regExp(nullptr)
+    m_regExp(other.m_regExp ? std::make_unique<QRegularExpression>(*other.m_regExp) : nullptr),
+    m_differenceHash(other.m_differenceHash),
+    m_evalStringHash(other.m_evalStringHash)
 {
-    m_regExp = (other.m_regExp ? std::make_unique<QRegularExpression>(*other.m_regExp) : nullptr);
 }
 
 AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
@@ -84,25 +89,32 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
     m_matchAll(other.m_matchAll),
     m_domainBlacklist(std::move(other.m_domainBlacklist)),
     m_domainWhitelist(std::move(other.m_domainWhitelist)),
-    m_regExp(std::move(other.m_regExp))
+    m_regExp(std::move(other.m_regExp)),
+    m_differenceHash(other.m_differenceHash),
+    m_evalStringHash(other.m_evalStringHash)
 {
 }
 
 AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
 {
-    m_category = other.m_category;
-    m_ruleString = other.m_ruleString;
-    m_evalString = other.m_evalString;
-    m_exception = other.m_exception;
-    m_important = other.m_important;
-    m_disabled = other.m_disabled;
-    m_allowedTypes = other.m_allowedTypes;
-    m_blockedTypes = other.m_blockedTypes;
-    m_matchCase = other.m_matchCase;
-    m_matchAll = other.m_matchAll;
-    m_domainBlacklist = other.m_domainBlacklist;
-    m_domainWhitelist = other.m_domainWhitelist;
-    m_regExp = (other.m_regExp ? std::make_unique<QRegularExpression>(*other.m_regExp) : nullptr);
+    if(this != &other)
+    {
+        m_category = other.m_category;
+        m_ruleString = other.m_ruleString;
+        m_evalString = other.m_evalString;
+        m_exception = other.m_exception;
+        m_important = other.m_important;
+        m_disabled = other.m_disabled;
+        m_allowedTypes = other.m_allowedTypes;
+        m_blockedTypes = other.m_blockedTypes;
+        m_matchCase = other.m_matchCase;
+        m_matchAll = other.m_matchAll;
+        m_domainBlacklist = other.m_domainBlacklist;
+        m_domainWhitelist = other.m_domainWhitelist;
+        m_regExp = (other.m_regExp ? std::make_unique<QRegularExpression>(*other.m_regExp) : nullptr);
+        m_differenceHash = other.m_differenceHash;
+        m_evalStringHash = other.m_evalStringHash;
+    }
 
     return *this;
 }
@@ -124,6 +136,8 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
         m_domainBlacklist = std::move(other.m_domainBlacklist);
         m_domainWhitelist = std::move(other.m_domainWhitelist);
         m_regExp = std::move(other.m_regExp);
+        m_differenceHash = other.m_differenceHash;
+        m_evalStringHash = other.m_evalStringHash;
     }
     return *this;
 }
@@ -153,6 +167,8 @@ void AdBlockFilter::setRule(const QString &rule)
         m_domainBlacklist.clear();
         m_domainWhitelist.clear();
         m_regExp.reset();
+        m_differenceHash = 0;
+        m_evalStringHash = 0;
 
         m_ruleString = rule;
         m_evalString = QString();
@@ -427,10 +443,7 @@ void AdBlockFilter::parseRule()
         return;
     }
 
-    // If no category set by now, it is a string contains type
-    if (m_category == FilterCategory::None)
-        m_category = FilterCategory::StringContains;
-
+    // Set evaluation string based on the processed rule string
     m_evalString = rule;
 
     if (m_evalString.isEmpty())
@@ -438,6 +451,15 @@ void AdBlockFilter::parseRule()
 
     if (!m_matchCase)
         m_evalString = m_evalString.toLower();
+
+    // If no category set by now, it is a string contains type
+    if (m_category == FilterCategory::None)
+    {
+        m_category = FilterCategory::StringContains;
+
+        // Pre-calculate hash of evaluation string for Rabin-Karp string matching
+        hashEvalString();
+    }
 }
 
 bool AdBlockFilter::isStylesheetRule()
@@ -732,7 +754,7 @@ bool AdBlockFilter::parseScriptInjection()
     return true;
 }
 
-AdBlockFilter::CosmeticJSCallback AdBlockFilter::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters)
+CosmeticJSCallback AdBlockFilter::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters)
 {
     auto result = CosmeticJSCallback();
 
@@ -864,8 +886,8 @@ QString AdBlockFilter::parseRegExp(const QString &regExpString)
 
 bool AdBlockFilter::filterContains(const QString &haystack) const
 {
-    int needleLength = m_evalString.size();
-    int haystackLength = haystack.size();
+    const int needleLength = m_evalString.size();
+    const int haystackLength = haystack.size();
 
     if (needleLength > haystackLength)
         return false;
@@ -877,9 +899,6 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
 
     int lastIndex = haystackLength - needleLength;
 
-    quint64 differenceHash = quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
-
-    size_t needleHash = 0;
     size_t firstHaystackHash = 0;
 
     int index;
@@ -887,20 +906,17 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
     const QChar *haystackPtr = haystack.constData();
 
     // preprocessing
-    for(index = 0; index < needleLength; index++)
-    {
-        needleHash = (radixLength * needleHash + (needlePtr + index)->toLatin1()) % prime;
+    for (index = 0; index < needleLength; index++)
         firstHaystackHash = (radixLength * firstHaystackHash + (haystackPtr + index)->toLatin1()) % prime;
-    }
 
     std::vector<quint64> haystackHashes;
     haystackHashes.reserve(lastIndex + 1);
     haystackHashes.push_back(firstHaystackHash);
 
     // matching
-    for(index = 0; index <= lastIndex; index++)
+    for (index = 0; index <= lastIndex; index++)
     {
-        if(needleHash == haystackHashes[index])
+        if (m_evalStringHash == haystackHashes[index])
         {
            int j;
            for(j = 0; j < needleLength && (*(needlePtr + j) == *(haystackPtr + index + j)); ++j);
@@ -908,14 +924,28 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
                return true;
         }
 
-        if(index < lastIndex)
+        if (index < lastIndex)
         {
             quint64 newHaystackHash =
-                    (radixLength * (haystackHashes[index] - (haystackPtr + index)->toLatin1() * differenceHash)
+                    (radixLength * (haystackHashes[index] - (haystackPtr + index)->toLatin1() * m_differenceHash)
                      + (haystackPtr + index + needleLength)->toLatin1()) % prime;
             haystackHashes.push_back(newHaystackHash);
         }
     }
 
     return false;
+}
+
+void AdBlockFilter::hashEvalString()
+{
+    const int needleLength = m_evalString.size();
+    const QChar *needlePtr = m_evalString.constData();
+
+    const quint64 radixLength = 256ULL;
+    const quint64 prime = 72057594037927931ULL;
+
+    m_differenceHash = quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
+
+    for (int index = 0; index < needleLength; ++index)
+        m_evalStringHash = (radixLength * m_evalStringHash + (needlePtr + index)->toLatin1()) % prime;
 }

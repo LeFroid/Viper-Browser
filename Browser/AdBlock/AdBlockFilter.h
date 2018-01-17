@@ -74,6 +74,25 @@ enum class CosmeticFilter
     XPath                /// Creates a new set of elements by evaluating a XPath. Uses an optional subject as the context node and the argument as the expression.
 };
 
+/// Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
+struct CosmeticJSCallback
+{
+    /// True if the callback information is valid, false if this structure contains no useful information
+    bool IsValid;
+
+    /// Name of the callback to be invoked, or empty if IsNested is false
+    QString CallbackName;
+
+    /// Subject to be passed to the callback if
+    QString CallbackSubject;
+
+    /// Target to be searched for in the callback
+    QString CallbackTarget;
+
+    /// Default constructor
+    CosmeticJSCallback() : IsValid(false), CallbackName(), CallbackSubject(), CallbackTarget() {}
+};
+
 /**
  * @class AdBlockFilter
  * @brief An implementation of an AdBlock Plus filter for network content
@@ -81,25 +100,6 @@ enum class CosmeticFilter
 class AdBlockFilter
 {
     friend class AdBlockManager;
-
-    /// Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
-    struct CosmeticJSCallback
-    {
-        /// True if the callback information is valid, false if this structure contains no useful information
-        bool IsValid;
-
-        /// Name of the callback to be invoked, or empty if IsNested is false
-        QString CallbackName;
-
-        /// Subject to be passed to the callback if
-        QString CallbackSubject;
-
-        /// Target to be searched for in the callback
-        QString CallbackTarget;
-
-        /// Default constructor
-        CosmeticJSCallback() : IsValid(false), CallbackName(), CallbackSubject(), CallbackTarget() {}
-    };
 
     /// Computes and returns base^exp
     inline quint64 quPow(quint64 base, quint64 exp) const
@@ -228,6 +228,9 @@ private:
     /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/
     bool filterContains(const QString &haystack) const;
 
+    /// Calculates the hash value of the evaluation string and the difference hash variable, used in Rabin-Karp string matching algorithm
+    void hashEvalString();
+
 protected:
     /// Filter category
     FilterCategory m_category;
@@ -267,6 +270,13 @@ protected:
 
     /// Unique pointer to a regular expression used by the filter, if filter is of the category RegExp
     std::unique_ptr<QRegularExpression> m_regExp;
+
+private:
+    /// Used for string hash computations in rabin-karp matching algorithm
+    quint64 m_differenceHash;
+
+    /// Contains a hash of the evaluation string, used if filter category is StringContains
+    size_t m_evalStringHash;
 };
 
 #endif // ADBLOCKFILTER_H
