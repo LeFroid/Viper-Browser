@@ -118,7 +118,8 @@ SOURCES += \
     UserScripts/AddUserScriptDialog.cpp \
     History/HistoryMenu.cpp \
     UserAgents/UserAgentMenu.cpp \
-    Bookmarks/BookmarkMenu.cpp
+    Bookmarks/BookmarkMenu.cpp \
+    AdBlock/AdBlockFilterParser.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -199,7 +200,8 @@ HEADERS += \
     DatabaseFactory.h \
     History/HistoryMenu.h \
     UserAgents/UserAgentMenu.h \
-    Bookmarks/BookmarkMenu.h
+    Bookmarks/BookmarkMenu.h \
+    AdBlock/AdBlockFilterParser.h
 
 FORMS += \
         mainwindow.ui \

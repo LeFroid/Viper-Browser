@@ -74,31 +74,13 @@ enum class CosmeticFilter
     XPath                /// Creates a new set of elements by evaluating a XPath. Uses an optional subject as the context node and the argument as the expression.
 };
 
-/// Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
-struct CosmeticJSCallback
-{
-    /// True if the callback information is valid, false if this structure contains no useful information
-    bool IsValid;
-
-    /// Name of the callback to be invoked, or empty if IsNested is false
-    QString CallbackName;
-
-    /// Subject to be passed to the callback if
-    QString CallbackSubject;
-
-    /// Target to be searched for in the callback
-    QString CallbackTarget;
-
-    /// Default constructor
-    CosmeticJSCallback() : IsValid(false), CallbackName(), CallbackSubject(), CallbackTarget() {}
-};
-
 /**
  * @class AdBlockFilter
  * @brief An implementation of an AdBlock Plus filter for network content
  */
 class AdBlockFilter
 {
+    friend class AdBlockFilterParser;
     friend class AdBlockManager;
 
     /// Computes and returns base^exp
@@ -181,6 +163,15 @@ protected:
     /// Adds the given domain to the whitelist
     void addDomainToWhitelist(const QString &domainStr);
 
+    /// Adds the given domain to the blacklist
+    void addDomainToBlacklist(const QString &domainStr);
+
+    /// Sets the evaluation string used to match network requests
+    void setEvalString(const QString &evalString);
+
+    /// Calculates the hash value of the evaluation string and the difference hash variable, used in Rabin-Karp string matching algorithm
+    void hashEvalString();
+
 private:
     /// Returns true if the given domain matches the base domain string, false if else
     bool isDomainMatch(QString base, const QString &domainStr) const;
@@ -188,48 +179,9 @@ private:
     /// Compares the requested URL and domain to the evaluation string, returning true if the filter matches the request, false if else
     bool isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const;
 
-    /// Parses the rule string, setting the appropriate fields of the filter object
-    void parseRule();
-
-    /// Returns true if, while parsing the filter rule, its category is determined to be of type Stylesheet or StylesheetJS. Otherwise returns false.
-    bool isStylesheetRule();
-
-    /// Returns true if the given rule string is able to be interpreted as a domain anchor rule with no regular expressions.
-    /// Example [will return true]: ||my.adserver.com^
-    /// Example [will return false]: ||ads.*.host.com^
-    bool isDomainRule(const QString &rule) const;
-
-    /// Parses a list of domains, separated with the given delimiter, and placing them into
-    /// either the domain blacklist or whitelist depending on the syntax (~ = whitelist, default = blacklist)
-    void parseDomains(const QString &domainString, QChar delimiter);
-
-    /// Parses a comma separated list of options contained within the given string
-    void parseOptions(const QString &optionString);
-
-    /// Parses the rule string for uBlock Origin style cosmetic filter options, returning true if category is StylesheetJS, false if else
-    bool parseCosmeticOptions();
-
-    /// Handles the :style option for stylesheet filters, returning true if category is StylesheetCustom, false if else
-    bool parseCustomStylesheet();
-
-    /// Checks for and handles the script:inject(...) filter option, returning true if found, false if else
-    bool parseScriptInjection();
-
-    /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type-string len filter information pairs
-    CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters);
-
-    /// Returns a container of tuples including the index, type, and string length of each chainable cosmetic filter in the evaluation string
-    std::vector< std::tuple<int, CosmeticFilter, int> > getChainableFilters(const QString &evalStr) const;
-
-    /// Parses the given ad block plus formatted regular expression, returning the equivalent for a QRegularExpression
-    QString parseRegExp(const QString &regExpString);
-
     /// Applies the Rabin-Karp string matching algorithm to the given string, returning true if it contains the filter's eval string, false if else
     /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/
     bool filterContains(const QString &haystack) const;
-
-    /// Calculates the hash value of the evaluation string and the difference hash variable, used in Rabin-Karp string matching algorithm
-    void hashEvalString();
 
 protected:
     /// Filter category

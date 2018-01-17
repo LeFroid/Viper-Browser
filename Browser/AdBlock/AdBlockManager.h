@@ -19,6 +19,7 @@ class AdBlockModel;
 class AdBlockManager : public QObject
 {
     friend class AdBlockFilter;
+    friend class AdBlockFilterParser;
     friend class AdBlockModel;
     friend class BrowserApplication;
 
@@ -63,7 +64,7 @@ public slots:
      */
     void installSubscription(const QUrl &url);
 
-// Called by AdBlockFilter:
+// Called by AdBlockFilterParser:
 protected:
     /// Searches for and returns the value from the resource map that is associated with the given key. Returns an empty string if not found
     QString getResource(const QString &key) const;

@@ -1,4 +1,5 @@
 #include "AdBlockSubscription.h"
+#include "AdBlockFilterParser.h"
 
 #include <QDir>
 #include <QFile>
@@ -118,6 +119,8 @@ void AdBlockSubscription::load()
 
     m_filters.clear();
 
+    AdBlockFilterParser parser;
+
     QString line;
     QTextStream stream(&subFile);
     while (stream.readLineInto(&line))
@@ -154,7 +157,8 @@ void AdBlockSubscription::load()
         else if (line.isEmpty() || line.compare(QStringLiteral("#")) == 0 || line.startsWith(QStringLiteral("# ")) || line.startsWith(QStringLiteral("[Adblock")))
             continue;
 
-        m_filters.push_back(std::make_unique<AdBlockFilter>(line));
+        //m_filters.push_back(std::make_unique<AdBlockFilter>(line));
+        m_filters.push_back(parser.makeFilter(line));
     }
 
     // Set name to filename if it was not specified in data region of file
