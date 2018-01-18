@@ -619,7 +619,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
         BrowserApplication *browserApp = sBrowserApplication;
 
         QString pageUrl = view->url().toString();
-        QWebElement faviconElement = view->page()->mainFrame()->findFirstElement("link[rel*='icon']");
+        QWebElement faviconElement = view->page()->mainFrame()->findFirstElement(QStringLiteral("link[rel*='icon']"));
         if (!faviconElement.isNull())
         {
             QString iconRef = faviconElement.attribute("href");

@@ -25,7 +25,6 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
 
 HistoryManager::~HistoryManager()
 {
-    //save();
     if (m_queryHistoryItem != nullptr)
     {
         delete m_queryHistoryItem;
@@ -35,15 +34,13 @@ HistoryManager::~HistoryManager()
 
 void HistoryManager::addHistoryEntry(const QString &url)
 {
-    QString lowerUrl = url.toLower();
-
     // Check if qrc:/ resource, and if so, ignore
-    if (lowerUrl.startsWith("qrc:"))
+    if (url.startsWith("qrc:"))
         return;
 
     QDateTime visitTime = QDateTime::currentDateTime();
 
-    auto it = m_historyItems.find(lowerUrl);
+    auto it = m_historyItems.find(url);
     if (it != m_historyItems.end())
     {
         it->Visits.prepend(visitTime);
@@ -53,7 +50,7 @@ void HistoryManager::addHistoryEntry(const QString &url)
         if (!it->Title.isEmpty())
         {
             saveVisit(*it, visitTime);
-            emit pageVisited(lowerUrl, it->Title);
+            emit pageVisited(url, it->Title);
         }
         return;
     }
@@ -62,7 +59,7 @@ void HistoryManager::addHistoryEntry(const QString &url)
     item.URL = url;
     item.VisitID = ++m_lastVisitID;
     item.Visits.prepend(visitTime);
-    m_historyItems.insert(lowerUrl, item);
+    m_historyItems.insert(url, item);
     m_recentItems.push_front(item);
     while (m_recentItems.size() > 15)
         m_recentItems.pop_back();
@@ -120,13 +117,12 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 
 bool HistoryManager::historyContains(const QString &url) const
 {
-    return (m_historyItems.find(url.toLower()) != m_historyItems.end());
+    return (m_historyItems.find(url) != m_historyItems.end());
 }
 
 void HistoryManager::setTitleForURL(const QString &url, const QString &title)
 {
-    QString lowerUrl = url.toLower();
-    auto it = m_historyItems.find(lowerUrl);
+    auto it = m_historyItems.find(url);
     if (it != m_historyItems.end())
     {
         if (it->Title.isEmpty())
@@ -146,7 +142,7 @@ void HistoryManager::setTitleForURL(const QString &url, const QString &title)
                 m_recentItems[recentVisitIdx].Title = title;
 
             saveVisit(*it, it->Visits.front());
-            emit pageVisited(lowerUrl, title);
+            emit pageVisited(url, title);
         }
     }
 }
@@ -180,9 +176,7 @@ std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &star
         if (query.exec())
         {
             while (query.next())
-            {
-                item.Visits.append(QDateTime::fromMSecsSinceEpoch(query.value(0).toLongLong()));//dbVisit));
-            }
+                item.Visits.append(QDateTime::fromMSecsSinceEpoch(query.value(0).toLongLong()));
         }
         items.push_back(item);
     }
@@ -247,7 +241,7 @@ void HistoryManager::load()
             item.VisitID = query.value(idVisit).toInt();
 
             m_lastVisitID = item.VisitID;
-            m_historyItems.insert(item.URL.toString().toLower(), item);
+            m_historyItems.insert(item.URL.toString(), item);
         }
     }
     else
@@ -290,7 +284,7 @@ void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visi
         m_queryVisit->prepare("INSERT INTO Visits(VisitID, Date) VALUES(:visitId, :date)");
     }
 
-    m_queryHistoryItem->bindValue(":url", item.URL.toString().toLower());
+    m_queryHistoryItem->bindValue(":url", item.URL.toString());
     m_queryHistoryItem->bindValue(":title", item.Title);
     m_queryHistoryItem->bindValue(":visitId", item.VisitID);
     if (!m_queryHistoryItem->exec())
