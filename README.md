@@ -4,10 +4,6 @@ A lightweight web browser built with the Qt framework and WebKit
 
 Licensed under GPLv3
 
-# Note
-
-This project is done in my spare time and is far from being complete. It is probably a bad idea to use this browser as a substitute for any of the mainstream ones.
-
 # Features
 
 * Built-in AdBlock Plus support, with uBlock Origin filter compatibility (mostly compatible)
@@ -21,8 +17,6 @@ This project is done in my spare time and is far from being complete. It is prob
 # Building
 
 The browser software uses the qmake build system. The project can be built with QtCreator or through the command line by running 'qmake-qt5' or 'qmake', followed by 'make'
-
-If it is your first time running the program, you will have to manually copy the file 'search_engines.json' into the directory ~/.config/Vaccarelli/
 
 # Thanks
 

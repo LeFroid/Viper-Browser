@@ -97,7 +97,12 @@ void SearchEngineManager::removeSearchEngine(const QString &name)
 void SearchEngineManager::loadSearchEngines(const QString &fileName)
 {
     QFile dataFile(fileName);
-    if (!dataFile.exists() || !dataFile.open(QIODevice::ReadOnly))
+
+    // Load from template if provided file does not exist
+    if (!dataFile.exists())
+        dataFile.setFileName(QStringLiteral(":/search_engines.json"));
+
+    if (!dataFile.open(QIODevice::ReadOnly))
         return;
 
     m_searchEngineFile = fileName;
