@@ -23,7 +23,7 @@ UserAgentsWindow::UserAgentsWindow(UserAgentManager *uaManager, QWidget *parent)
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &UserAgentsWindow::close);
 
     // "New" button actions
-    QMenu *addMenu = new QMenu;
+    QMenu *addMenu = new QMenu(ui->toolButtonAdd);
     addMenu->addAction(tr("Category"), this, &UserAgentsWindow::addCategory);
     addMenu->addAction(tr("User Agent"), this, &UserAgentsWindow::addUserAgent);
     ui->toolButtonAdd->setMenu(addMenu);

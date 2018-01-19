@@ -1,0 +1,21 @@
+{
+    "uBlock Filters": {
+        "source": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
+        "resource": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resources.txt"
+    },
+    "uBlock Filters - Privacy": {
+        "source": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/privacy.txt" 
+    },
+    "uBlock Filters - Resource Abuse": {
+        "source": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resource-abuse.txt"
+    },
+    "uBlock Filters - Unbreak": {
+        "source": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/unbreak.txt"
+    },
+    "EasyList": {
+        "source": "https://easylist.to/easylist/easylist.txt"
+    },
+    "EasyPrivacy": {
+        "source": "https://easylist.to/easylist/easyprivacy.txt"
+    }
+}

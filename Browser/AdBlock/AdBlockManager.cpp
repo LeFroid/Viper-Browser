@@ -113,6 +113,19 @@ void AdBlockManager::updateSubscriptions()
     }
 }
 
+void AdBlockManager::installResource(const QUrl &url)
+{
+    if (!url.isValid())
+        return;
+
+    QNetworkRequest request;
+    request.setUrl(url);
+
+    DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
+    DownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
+    connect(item, &DownloadItem::downloadFinished, this, &AdBlockManager::loadResourceFile);
+}
+
 void AdBlockManager::installSubscription(const QUrl &url)
 {
     if (!url.isValid())

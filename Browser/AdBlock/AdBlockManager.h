@@ -58,6 +58,12 @@ public slots:
     void updateSubscriptions();
 
     /**
+     * @brief Attempts to download and install the uBlock-style resource file from the given URL
+     * @param url The location of the resource file to be installed
+     */
+    void installResource(const QUrl &url);
+
+    /**
      * @brief Attempts to download and install the subscription from the given URL
      * @param url The location of the subscription file to be installed
      */
@@ -84,6 +90,10 @@ protected:
     /// Loads active subscriptions
     void loadSubscriptions();
 
+private slots:
+    /// Loads the uBlock Origin-style resource file into the resource map
+    void loadResourceFile(const QString &path);
+
 private:
     /// Attempts to determine the type of element being requested, returning the corresponding \ref ElementType
     /// after searching the HTTP headers. Will return ElementType::None if could not be determined or not applicable
@@ -97,9 +107,6 @@ private:
 
     /// Load uBlock Origin-style resources file(s) from m_subscriptionDir/resources folder
     void loadUBOResources();
-
-    /// Loads the uBlock Origin-style resource file into the resource map
-    void loadResourceFile(const QString &path);
 
     /// Clears current filter data
     void clearFilters();

@@ -31,6 +31,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
        <property name="text">
         <string>Add</string>
        </property>

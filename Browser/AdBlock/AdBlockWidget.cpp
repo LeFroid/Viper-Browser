@@ -2,8 +2,10 @@
 #include "ui_AdBlockWidget.h"
 #include "AdBlockManager.h"
 #include "AdBlockModel.h"
+#include "AdBlockSubscribeDialog.h"
 
 #include <QInputDialog>
+#include <QMenu>
 #include <QMessageBox>
 #include <QResizeEvent>
 #include <QUrl>
@@ -16,9 +18,13 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
     ui->setupUi(this);
 
     ui->tableView->setModel(AdBlockManager::instance().getModel());
-
     connect(ui->tableView, &CheckableTableView::clicked, this, &AdBlockWidget::onItemClicked);
-    connect(ui->pushButtonAddSubscription, &QPushButton::clicked, this, &AdBlockWidget::onAddSubscriptionButtonClicked);
+
+    // Setup "Add Subscription" menu
+    QMenu *addMenu = new QMenu(ui->toolButtonAddSubscription);
+    addMenu->addAction(tr("Select from list"), this, &AdBlockWidget::addSubscriptionFromList);
+    addMenu->addAction(tr("Install by URL"), this, &AdBlockWidget::addSubscriptionFromURL);
+    ui->toolButtonAddSubscription->setMenu(addMenu);
 }
 
 AdBlockWidget::~AdBlockWidget()
@@ -39,11 +45,28 @@ void AdBlockWidget::resizeEvent(QResizeEvent *event)
 
 void AdBlockWidget::onItemClicked(const QModelIndex &/*index*/)
 {
-    ui->pushButtonEditSubscription->setEnabled(true);
     ui->pushButtonDeleteSubscription->setEnabled(true);
 }
 
-void AdBlockWidget::onAddSubscriptionButtonClicked()
+void AdBlockWidget::addSubscriptionFromList()
+{
+    AdBlockSubscribeDialog dialog(this);
+    if (dialog.exec() == QDialog::Rejected)
+        return;
+
+    // Iterate through selected subscriptions, installing each via AdBlockManager
+    AdBlockManager &adBlockMgr = AdBlockManager::instance();
+    std::vector<AdBlockSubscriptionInfo> subscriptions = dialog.getSubscriptions();
+    for (const AdBlockSubscriptionInfo &sub : subscriptions)
+    {
+        if (!sub.ResourceURL.isEmpty())
+            adBlockMgr.installResource(sub.ResourceURL);
+
+        adBlockMgr.installSubscription(sub.SubscriptionURL);
+    }
+}
+
+void AdBlockWidget::addSubscriptionFromURL()
 {
     bool ok;
     QString userInput = QInputDialog::getText(this, tr("Install Subscription"), tr("Enter the URL of the subscription:"),

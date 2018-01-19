@@ -20,19 +20,21 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QPushButton" name="pushButtonAddSubscription">
+      <widget class="QToolButton" name="toolButtonAddSubscription">
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
        <property name="text">
         <string>Add Subscription</string>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonEditSubscription">
-       <property name="enabled">
-        <bool>false</bool>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
        </property>
-       <property name="text">
-        <string>Edit Subscription</string>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+       <property name="arrowType">
+        <enum>Qt::DownArrow</enum>
        </property>
       </widget>
      </item>
@@ -43,6 +45,16 @@
        </property>
        <property name="text">
         <string>Delete Subscription</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonCustomFilters">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Custom Filters</string>
        </property>
       </widget>
      </item>

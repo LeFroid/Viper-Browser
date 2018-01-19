@@ -31,8 +31,11 @@ private slots:
     /// Called when a subscription item in the table has been clicked
     void onItemClicked(const QModelIndex &index);
 
-    /// Called when the user chooses to install a new subscription
-    void onAddSubscriptionButtonClicked();
+    /// Called when the user chooses to install one or more subscriptions from a list of recommended options
+    void addSubscriptionFromList();
+
+    /// Called when the user chooses to install a subscription by its URL
+    void addSubscriptionFromURL();
 
 private:
     /// Pointer to the user interface items
