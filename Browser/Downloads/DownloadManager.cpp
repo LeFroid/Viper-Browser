@@ -1,7 +1,6 @@
 #include "DownloadManager.h"
 #include "ui_downloadmanager.h"
 #include "DownloadItem.h"
-#include "DownloadListModel.h"
 #include "NetworkAccessManager.h"
 
 #include <QDir>
@@ -12,12 +11,9 @@ DownloadManager::DownloadManager(QWidget *parent) :
     ui(new Ui::DownloadManager),
     m_downloadDir(),
     m_accessMgr(nullptr),
-    m_model(new DownloadListModel(this)),
     m_downloads()
 {
     ui->setupUi(this);
-    ui->listView->setModel(m_model);
-    m_model->setParent(ui->listView);
 }
 
 DownloadManager::~DownloadManager()
@@ -27,7 +23,7 @@ DownloadManager::~DownloadManager()
 
 void DownloadManager::setDownloadDir(const QString &path)
 {
-    m_downloadDir = path + QDir::separator();
+    m_downloadDir = path;
 }
 
 const QString &DownloadManager::getDownloadDir() const
@@ -61,7 +57,6 @@ DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, 
     if (castOk && !contentLen)
         return nullptr;
 
-    // Add to model
     DownloadItem *item = new DownloadItem(reply, downloadDir, askForFileName, writeOverExisting, this);
     return item;
 }
@@ -75,14 +70,13 @@ void DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askFor
     if (castOk && !contentLen)
         return;
 
-    // Add to model
+    // Add to table
     DownloadItem *item = new DownloadItem(reply, m_downloadDir, askForFileName, false, this);
     int downloadRow = m_downloads.size();
-    m_model->beginInsertRows(QModelIndex(), downloadRow, downloadRow);
     m_downloads.append(item);
-    m_model->endInsertRows();
-
-    ui->listView->setIndexWidget(m_model->index(downloadRow, 0), item);
+    ui->tableWidget->insertRow(downloadRow);
+    ui->tableWidget->setCellWidget(downloadRow, 0, item);
+    ui->tableWidget->setRowHeight(downloadRow, item->sizeHint().height());
 
     // Show download manager if hidden
     if (!isVisible())

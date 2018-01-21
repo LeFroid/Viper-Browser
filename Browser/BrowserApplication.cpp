@@ -44,7 +44,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
-    m_downloadMgr->setDownloadDir(m_settings->getPathValue(QStringLiteral("DownloadDir")));
+    m_downloadMgr->setDownloadDir(m_settings->getValue(QStringLiteral("DownloadDir")).toString());
 
     // Instantiate the history manager
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QStringLiteral("HistoryPath")));

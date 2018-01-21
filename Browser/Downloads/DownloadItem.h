@@ -49,6 +49,9 @@ private slots:
     /// Called if the metadata in the network reply associated with the download has changed
     void onMetaDataChanged();
 
+    /// Opens the folder containing the downloaded item
+    void openDownloadFolder();
+
 private:
     /// Connects the interface items to network activity.
     void setupItem();

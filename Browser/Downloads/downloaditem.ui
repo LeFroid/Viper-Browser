@@ -62,9 +62,19 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="labelOpenFolderIcon">
+    <widget class="QPushButton" name="pushButtonOpenFolder">
+     <property name="toolTip">
+      <string>Open download folder</string>
+     </property>
      <property name="text">
-      <string>f</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset theme="folder">
+       <normaloff>.</normaloff>.</iconset>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

@@ -4,6 +4,7 @@
 #include "DownloadManager.h"
 #include "NetworkAccessManager.h"
 
+#include <QDesktopServices>
 #include <QDir>
 #include <QFileDialog>
 #include <QFile>
@@ -29,7 +30,10 @@ DownloadItem::DownloadItem(QNetworkReply *reply, const QString &downloadDir, boo
 {
     ui->setupUi(this);
 
-    if (m_reply)
+    // Connect "Open download folder" button to slot
+    connect(ui->pushButtonOpenFolder, &QPushButton::clicked, this, &DownloadItem::openDownloadFolder);
+
+    if (m_reply != nullptr)
         setupItem();
 }
 
@@ -47,27 +51,28 @@ void DownloadItem::setupItem()
     ui->labelDownloadName->setText(QString());
     ui->labelDownloadSize->setText(QString());
     ui->progressBarDownload->show();
+    ui->pushButtonOpenFolder->hide();
 
     // Setup network slots
     connect(m_reply, &QNetworkReply::readyRead, this, &DownloadItem::onReadyRead);
     connect(m_reply, &QNetworkReply::downloadProgress, this, &DownloadItem::onDownloadProgress);
     connect(m_reply, &QNetworkReply::finished, this, &DownloadItem::onFinished);
+    connect(m_reply, &QNetworkReply::metaDataChanged, this, &DownloadItem::onMetaDataChanged);
     connect(m_reply, static_cast<void(QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &DownloadItem::onError);
 
     // Get file info
-    QString urlPath = m_reply->url().path();
-    QFileInfo info(urlPath);
+    QFileInfo info(m_reply->url().path());
     QString externalName = info.baseName();
 
     // Request file name for download if needed
-    QString fileNameDefault;
+    QString fileNameDefault = QString("%1%2").arg(m_downloadDir).arg(QDir::separator());
     if (!m_writeOverExisting)
     {
-        fileNameDefault = getDefaultFileName(QString("%1%2%3").arg(m_downloadDir).arg(QDir::separator()).arg((externalName.isEmpty() ? "unknown" : externalName)),
+        fileNameDefault = getDefaultFileName(QString("%1%2").arg(fileNameDefault).arg((externalName.isEmpty() ? "unknown" : externalName)),
                                              info.completeSuffix());
     }
     else
-        fileNameDefault = QString("%1%2%3.%4").arg(m_downloadDir).arg(QDir::separator()).arg((externalName.isEmpty() ? "unknown" : externalName)).arg(info.completeSuffix());
+        fileNameDefault = QString("%1%2.%3").arg(fileNameDefault).arg((externalName.isEmpty() ? "unknown" : externalName)).arg(info.completeSuffix());
 
     QString fileName = fileNameDefault;
     if (m_askForFileName)
@@ -80,8 +85,7 @@ void DownloadItem::setupItem()
             return;
         }
         // Update download directory in manager class
-        QString newDownloadDir = QFileInfo(fileName).absoluteDir().absolutePath();
-        sBrowserApplication->getDownloadManager()->setDownloadDir(newDownloadDir);
+        sBrowserApplication->getDownloadManager()->setDownloadDir(QFileInfo(fileName).absoluteDir().absolutePath());
     }
 
     // Create file on disk
@@ -145,7 +149,6 @@ void DownloadItem::onReadyRead()
         if (!m_file.open(QIODevice::WriteOnly))
         {
             ui->labelDownloadSize->setText("Error opening output file");
-            //stop();
             m_reply->abort();
             return;
         }
@@ -177,6 +180,11 @@ void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void DownloadItem::onFinished()
 {
+    const bool hadError = m_reply->error() != QNetworkReply::NoError;
+
+    if (!hadError && (m_file.size() == 0 || (m_bytesReceived > 0 && m_file.size() < m_bytesReceived)))
+        onReadyRead();
+
     m_finished = true;
     ui->progressBarDownload->hide();
     QString urlString = m_reply->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash);
@@ -184,8 +192,11 @@ void DownloadItem::onFinished()
 
     m_file.close();
 
-    if (m_reply->error() == QNetworkReply::NoError)
+    if (!hadError)
+    {
+        ui->pushButtonOpenFolder->show();
         emit downloadFinished(QFileInfo(m_file).absoluteFilePath());
+    }
 }
 
 void DownloadItem::onError(QNetworkReply::NetworkError /*errorCode*/)
@@ -202,6 +213,12 @@ void DownloadItem::onMetaDataChanged()
     m_reply->deleteLater();
     m_reply = sBrowserApplication->getNetworkAccessManager()->get(QNetworkRequest(locHeader.toUrl()));
     setupItem();
+}
+
+void DownloadItem::openDownloadFolder()
+{
+    QString folderUrlStr = QString("file://%1").arg(m_downloadDir);
+    static_cast<void>(QDesktopServices::openUrl(QUrl(folderUrlStr, QUrl::TolerantMode)));
 }
 
 QString DownloadItem::getDefaultFileName(const QString &pathWithoutSuffix, const QString &completeSuffix) const
