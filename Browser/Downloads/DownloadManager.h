@@ -11,7 +11,6 @@ class DownloadManager;
 }
 
 class DownloadItem;
-class DownloadListModel;
 class NetworkAccessManager;
 class QNetworkReply;
 
@@ -60,9 +59,6 @@ private:
 
     /// Network access manager
     NetworkAccessManager *m_accessMgr;
-
-    /// List view model
-    DownloadListModel *m_model;
 
 protected:
     /// List of downloads
