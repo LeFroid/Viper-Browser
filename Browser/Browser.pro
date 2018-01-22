@@ -119,7 +119,8 @@ SOURCES += \
     UserAgents/UserAgentMenu.cpp \
     Bookmarks/BookmarkMenu.cpp \
     AdBlock/AdBlockFilterParser.cpp \
-    AdBlock/AdBlockSubscribeDialog.cpp
+    AdBlock/AdBlockSubscribeDialog.cpp \
+    AdBlock/CustomFilterEditor.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -201,7 +202,8 @@ HEADERS += \
     UserAgents/UserAgentMenu.h \
     Bookmarks/BookmarkMenu.h \
     AdBlock/AdBlockFilterParser.h \
-    AdBlock/AdBlockSubscribeDialog.h
+    AdBlock/AdBlockSubscribeDialog.h \
+    AdBlock/CustomFilterEditor.h
 
 FORMS += \
         mainwindow.ui \
@@ -228,4 +230,5 @@ FORMS += \
     UserScripts/UserScriptEditor.ui \
     AdBlock/AdBlockWidget.ui \
     UserScripts/AddUserScriptDialog.ui \
-    AdBlock/AdBlockSubscribeDialog.ui
+    AdBlock/AdBlockSubscribeDialog.ui \
+    AdBlock/CustomFilterEditor.ui

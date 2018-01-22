@@ -37,6 +37,9 @@ private slots:
     /// Called when the user chooses to install a subscription by its URL
     void addSubscriptionFromURL();
 
+    /// Spawns a \ref CustomFilterEditor window so the user may create and/or modify their own blocking filters
+    void editUserFilters();
+
 private:
     /// Pointer to the user interface items
     Ui::AdBlockWidget *ui;

@@ -118,7 +118,7 @@ void UserScriptEditor::closeEvent(QCloseEvent *event)
         event->accept();
     else if (answer == QMessageBox::Yes)
     {
-        saveState();
+        saveScript();
         event->accept();
     }
 }

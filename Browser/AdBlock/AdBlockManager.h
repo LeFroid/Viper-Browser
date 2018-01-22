@@ -20,6 +20,7 @@ class AdBlockManager : public QObject
 {
     friend class AdBlockFilterParser;
     friend class AdBlockModel;
+    friend class AdBlockWidget;
     friend class BrowserApplication;
 
     Q_OBJECT
@@ -69,6 +70,9 @@ public slots:
      */
     void installSubscription(const QUrl &url);
 
+    /// Creates and registers new \ref AdBlockSubscription to be associated with user-set filter rules
+    void createUserSubscription();
+
 // Called by AdBlockFilterParser:
 protected:
     /// Searches for and returns the value from the resource map that is associated with the given key. Returns an empty string if not found
@@ -84,6 +88,10 @@ protected:
 
     /// Toggles the state of the subscription at the given index (enabled <--> disabled)
     void toggleSubscriptionEnabled(int index);
+
+// Called by AdBlockWidget:
+    /// Reloads the ad blocking subscriptions
+    void reloadSubscriptions();
 
 // Called by BrowserApplication:
 protected:

@@ -157,6 +157,32 @@ void AdBlockManager::installSubscription(const QUrl &url)
     });
 }
 
+void AdBlockManager::createUserSubscription()
+{
+    // Associate new subscription with file "custom.txt"
+    QString userFile = m_subscriptionDir;
+    userFile.append(QDir::separator());
+    userFile.append(QStringLiteral("custom.txt"));
+    QString userFileUrl = QString("file://%1").arg(QFileInfo(userFile).absoluteFilePath());
+
+    AdBlockSubscription subscription(userFile);
+    subscription.setSourceUrl(QUrl(userFileUrl));
+
+    // Update AdBlockModel if it is instantiated
+    // Update ad block model
+    int rowNum = static_cast<int>(m_subscriptions.size());
+    const bool hasModel = m_adBlockModel != nullptr;
+    if (hasModel)
+        m_adBlockModel->beginInsertRows(QModelIndex(), rowNum, rowNum);
+
+    m_subscriptions.push_back(std::move(subscription));
+
+    if (hasModel)
+        m_adBlockModel->endInsertRows();
+
+    // Don't bother reloading filters until some data is set within the filter, through the editor widget
+}
+
 AdBlockModel *AdBlockManager::getModel()
 {
     if (m_adBlockModel == nullptr)
@@ -340,6 +366,12 @@ void AdBlockManager::toggleSubscriptionEnabled(int index)
     sub.setEnabled(!sub.isEnabled());
 
     // Reset filter data
+    clearFilters();
+    extractFilters();
+}
+
+void AdBlockManager::reloadSubscriptions()
+{
     clearFilters();
     extractFilters();
 }

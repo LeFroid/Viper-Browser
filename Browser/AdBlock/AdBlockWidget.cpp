@@ -3,6 +3,7 @@
 #include "AdBlockManager.h"
 #include "AdBlockModel.h"
 #include "AdBlockSubscribeDialog.h"
+#include "CustomFilterEditor.h"
 
 #include <QInputDialog>
 #include <QMenu>
@@ -25,6 +26,8 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
     addMenu->addAction(tr("Select from list"), this, &AdBlockWidget::addSubscriptionFromList);
     addMenu->addAction(tr("Install by URL"), this, &AdBlockWidget::addSubscriptionFromURL);
     ui->toolButtonAddSubscription->setMenu(addMenu);
+
+    connect(ui->pushButtonCustomFilters, &QPushButton::clicked, this, &AdBlockWidget::editUserFilters);
 }
 
 AdBlockWidget::~AdBlockWidget()
@@ -82,4 +85,16 @@ void AdBlockWidget::addSubscriptionFromURL()
         return;
     }
     AdBlockManager::instance().installSubscription(subUrl);
+}
+
+void AdBlockWidget::editUserFilters()
+{
+    CustomFilterEditor *editor = new CustomFilterEditor;
+    connect(editor, &CustomFilterEditor::createUserSubscription, [=](){
+        AdBlockManager::instance().createUserSubscription();
+    });
+    connect(editor, &CustomFilterEditor::filtersModified, [=](){
+        AdBlockManager::instance().reloadSubscriptions();
+    });
+    editor->show();
 }

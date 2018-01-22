@@ -753,7 +753,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasFormat("application/x-browser-tab"))
+    {
         event->acceptProposedAction();
+        return;
+    }
+
+    QMainWindow::dragEnterEvent(event);
 }
 
 void MainWindow::dropEvent(QDropEvent *event)
