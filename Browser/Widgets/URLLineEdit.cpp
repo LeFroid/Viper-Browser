@@ -36,16 +36,55 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
         }
     });
 
+    // Style common to both tool buttons in line edit
+    const QString toolButtonStyle = QStringLiteral("QToolButton { border: none; padding: 0px; }");
+
     // Setup tool button
     m_securityButton = new QToolButton(this);
     m_securityButton->setCursor(Qt::ArrowCursor);
-    m_securityButton->setStyleSheet("QToolButton { border: none; padding: 0px; }");
+    m_securityButton->setStyleSheet(toolButtonStyle);
     connect(m_securityButton, &QToolButton::clicked, this, &URLLineEdit::viewSecurityInfo);
 
+    // Setup bookmark button
+    m_bookmarkButton = new QToolButton(this);
+    m_bookmarkButton->setCursor(Qt::ArrowCursor);
+    m_bookmarkButton->setStyleSheet(toolButtonStyle);
+    connect(m_bookmarkButton, &QToolButton::clicked, this, &URLLineEdit::toggleBookmarkStatus);
+
     // Set appearance
-    setStyleSheet(QString("QLineEdit { border: 1px solid #666666; padding-left: %1px; }"
-                          "QLineEdit:focus { border: 1px solid #6c91ff; }").arg(m_securityButton->sizeHint().width()));
+    QString urlStyle = QString("QLineEdit { border: 1px solid #666666; padding-left: %1px; padding-right: %2px; }"
+                               "QLineEdit:focus { border: 1px solid #6c91ff; }");
+    urlStyle = urlStyle.arg(m_securityButton->sizeHint().width()).arg(m_bookmarkButton->sizeHint().width());
+    setStyleSheet(urlStyle);
     setPlaceholderText(tr("Search or enter address"));
+}
+
+URLLineEdit::~URLLineEdit()
+{
+}
+
+void URLLineEdit::setCurrentPageBookmarked(bool isBookmarked)
+{
+    setBookmarkIcon(isBookmarked ? BookmarkIcon::Bookmarked : BookmarkIcon::NotBookmarked);
+}
+
+void URLLineEdit::setBookmarkIcon(BookmarkIcon iconType)
+{
+    switch (iconType)
+    {
+        case BookmarkIcon::NoIcon:
+            m_bookmarkButton->setIcon(QIcon());
+            m_bookmarkButton->setToolTip(QString());
+            return;
+        case BookmarkIcon::Bookmarked:
+            m_bookmarkButton->setIcon(QIcon(":/bookmarked.png"));
+            m_bookmarkButton->setToolTip(tr("Remove this bookmark"));
+            return;
+        case BookmarkIcon::NotBookmarked:
+            m_bookmarkButton->setIcon(QIcon(":/not_bookmarked.png"));
+            m_bookmarkButton->setToolTip(tr("Bookmark this page"));
+            return;
+    }
 }
 
 void URLLineEdit::setSecurityIcon(SecurityIcon iconType)
@@ -72,7 +111,7 @@ void URLLineEdit::setURL(const QUrl &url)
     setText(url.toString(QUrl::FullyEncoded));
 
     SecurityIcon secureIcon = SecurityIcon::Standard;
-    if (url.scheme().compare("https") == 0)
+    if (url.scheme().compare(QStringLiteral("https")) == 0)
         secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
     setSecurityIcon(secureIcon);
 }
@@ -81,7 +120,10 @@ void URLLineEdit::resizeEvent(QResizeEvent *event)
 {
     QLineEdit::resizeEvent(event);
 
-    QSize sz = m_securityButton->sizeHint();
+    const QSize securitySize = m_securityButton->sizeHint();
+    const QSize bookmarkSize = m_bookmarkButton->sizeHint();
     const QRect widgetRect = rect();
-    m_securityButton->move(widgetRect.left(), (widgetRect.bottom() + 1 - sz.height()) / 2);
+
+    m_securityButton->move(widgetRect.left(), (widgetRect.bottom() + 1 - securitySize.height()) / 2);
+    m_bookmarkButton->move(widgetRect.right() - bookmarkSize.width() - 2, (widgetRect.bottom() + 1 - bookmarkSize.height()) / 2);
 }

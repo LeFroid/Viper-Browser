@@ -128,7 +128,7 @@ public slots:
     void addPageToBookmarks();
 
     /// Attempts to remove the current page from the user's bookmarks
-    void removePageFromBookmarks();
+    void removePageFromBookmarks(bool showDialog);
 
     /// Toggles visibility of the bookmark bar
     void toggleBookmarkBar(bool enabled);
@@ -172,6 +172,9 @@ private slots:
 
     /// Called when the user requests that the contents of the current browser tab be printed
     void printTabContents();
+
+    /// Called when the bookmark icon is clicked by the user
+    void onClickBookmarkIcon();
 
 protected slots:
     /// Called by a \ref WebView when it is requested that some content be opened in a new window. This opens it in a new tab and returns the tab's WebView

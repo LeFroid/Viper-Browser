@@ -310,6 +310,7 @@ void MainWindow::setupToolBar()
     m_urlInput = new URLLineEdit(this);
     connect(m_urlInput, &URLLineEdit::returnPressed, this, &MainWindow::goToURL);
     connect(m_urlInput, &URLLineEdit::viewSecurityInfo, this, &MainWindow::onClickSecurityInfo);
+    connect(m_urlInput, &URLLineEdit::toggleBookmarkStatus, this, &MainWindow::onClickBookmarkIcon);
 
     // Quick search tool
     m_searchEngineLineEdit = new SearchEngineLineEdit(this);
@@ -344,7 +345,9 @@ void MainWindow::checkPageForBookmark()
     if (!view)
         return;
 
-    ui->menuBookmarks->setCurrentPageBookmarked(m_bookmarkManager->isBookmarked(view->url().toString()));
+    const bool isBookmarked = m_bookmarkManager->isBookmarked(view->url().toString());
+    ui->menuBookmarks->setCurrentPageBookmarked(isBookmarked);
+    m_urlInput->setCurrentPageBookmarked(isBookmarked);
 }
 
 void MainWindow::onTabChanged(int index)
@@ -518,14 +521,15 @@ void MainWindow::addPageToBookmarks()
     m_addBookmarkDialog->show();
 }
 
-void MainWindow::removePageFromBookmarks()
+void MainWindow::removePageFromBookmarks(bool showDialog)
 {
     WebView *view = m_tabWidget->currentWebView();
     if (!view)
         return;
 
     m_bookmarkManager->removeBookmark(view->url().toString());
-    QMessageBox::information(this, tr("Bookmark"), tr("Page removed from bookmarks."));
+    if (showDialog)
+        QMessageBox::information(this, tr("Bookmark"), tr("Page removed from bookmarks."));
     sBrowserApplication->updateBookmarkMenus();
 }
 
@@ -724,6 +728,21 @@ void MainWindow::printTabContents()
     dialog.setWindowTitle(tr("Print Document"));
     connect(&dialog, &QPrintPreviewDialog::paintRequested, currentView->page()->mainFrame(), &QWebFrame::print);
     dialog.exec();
+}
+
+void MainWindow::onClickBookmarkIcon()
+{
+    WebView *currentView = m_tabWidget->currentWebView();
+    if (!currentView)
+        return;
+
+    const bool isBookmarked = m_bookmarkManager->isBookmarked(currentView->url().toString());
+    if (isBookmarked)
+        removePageFromBookmarks(false);
+    else
+        addPageToBookmarks();
+
+    m_urlInput->setCurrentPageBookmarked(!isBookmarked);
 }
 
 WebView *MainWindow::getNewTabWebView()
