@@ -23,12 +23,17 @@ QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operati
         BlockedNetworkReply *blockedReply = adBlockMgr.getBlockedReply(request);
         if (blockedReply != nullptr)
             return blockedReply;
-
-        /*
-        AdBlocker &adBlock = AdBlocker::instance();
-        BlockedNetworkReply *blockedReply = adBlock.getBlockedReply(request);
-        if (blockedReply != nullptr)
-            return blockedReply;*/
+    }
+    else if (op == NetworkAccessManager::PostOperation)
+    {
+        // Check for existence of content-type header, set to application/x-www-form-urlencoded if not found to prevent warning
+        const QByteArray contentTypeHeader("content-type");
+        if (!request.hasRawHeader(contentTypeHeader))
+        {
+            QNetworkRequest modifiedRequest(request);
+            modifiedRequest.setRawHeader(contentTypeHeader, QByteArray("application/x-www-form-urlencoded"));
+            return QNetworkAccessManager::createRequest(op, modifiedRequest, outgoingData);
+        }
     }
     return QNetworkAccessManager::createRequest(op, request, outgoingData);
 }

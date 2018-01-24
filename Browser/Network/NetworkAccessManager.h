@@ -10,7 +10,7 @@
  * @class NetworkAccessManager
  * @brief Handles all network requests - defaulting to the \ref QNetworkAccessManager
  *        implementation for all requests with the exception of a few types of activity
- *        such as the blocking of unwanted ads (via \ref AdBlocker class)
+ *        such as the blocking of unwanted ads (via \ref AdBlockManager class)
  */
 class NetworkAccessManager : public QNetworkAccessManager
 {
