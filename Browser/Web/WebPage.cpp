@@ -129,8 +129,10 @@ void WebPage::onLoadStarted()
 void WebPage::onLoadFinished(bool ok)
 {
     QWebFrame *frame = qobject_cast<QWebFrame*>(sender());
-    if (ok && (frame != nullptr))
-        injectUserJavaScript(frame, ScriptInjectionTime::DocumentEnd);
+    if (!ok || frame == nullptr)
+        return;
+
+    injectUserJavaScript(frame, ScriptInjectionTime::DocumentEnd);
 
     if (frame == mainFrame())
     {
@@ -140,8 +142,6 @@ void WebPage::onLoadFinished(bool ok)
         QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(url);
         if (!adBlockJS.isEmpty())
             frame->evaluateJavaScript(adBlockJS);
-        //frame->documentElement().appendInside(
-        //    QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(frame->baseUrl())));
     }
 }
 
