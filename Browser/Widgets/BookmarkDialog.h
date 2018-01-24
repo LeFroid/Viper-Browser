@@ -1,33 +1,39 @@
-#ifndef ADDBOOKMARKDIALOG_H
-#define ADDBOOKMARKDIALOG_H
+#ifndef BOOKMARKDIALOG_H
+#define BOOKMARKDIALOG_H
 
 #include "BookmarkManager.h"
 #include <QDialog>
 #include <QString>
 
 namespace Ui {
-    class AddBookmarkDialog;
+    class BookmarkDialog;
 }
 
 /**
- * @class AddBookmarkDialog
+ * @class BookmarkDialog
  * @brief Shown when the user adds a new bookmark to their collection through a menu
- *        option in the main window. Allows the user to change the bookmark name, its
- *        parent folder, and the may also remove the bookmark
+ *        option in the main window. Also used for editing and/or removing an existing
+ *        bookmark. Allows the user to change the bookmark name and its parent folder.
  */
-class AddBookmarkDialog : public QDialog
+class BookmarkDialog : public QDialog
 {
     Q_OBJECT
 
 public:
     /// Constructs the dialog given a pointer to the bookmark manager and optionally a parent widget
-    explicit AddBookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent = 0);
+    explicit BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent = 0);
 
     /// Dialog destructor
-    ~AddBookmarkDialog();
+    ~BookmarkDialog();
+
+    /// Aligns the bookmark dialog beneath the URL bar and towards its right side, showing the dialog after alignment
+    void alignAndShow(const QRect &windowGeom, const QRect &toolbarGeom, const QRect &urlBarGeom);
+
+    /// Sets the text of the dialog's header. Should be "Bookmark Added" or "Bookmark"
+    void setDialogHeader(const QString &text);
 
     /// Sets the information fields of the newly added bookmark that will be displayed in the dialog
-    void setBookmarkInfo(const QString &bookmarkName, const QString &bookmarkUrl);
+    void setBookmarkInfo(const QString &bookmarkName, const QString &bookmarkUrl, BookmarkNode *parentFolder = nullptr);
 
 signals:
     /// Emitted when browser windows should update their bookmark menu
@@ -42,7 +48,7 @@ private slots:
 
 private:
     /// UI elements
-    Ui::AddBookmarkDialog *ui;
+    Ui::BookmarkDialog *ui;
 
     /// Bookmark manager
     BookmarkManager *m_bookmarkManager;
@@ -51,4 +57,4 @@ private:
     QString m_currentUrl;
 };
 
-#endif // ADDBOOKMARKDIALOG_H
+#endif // BOOKMARKDIALOG_H

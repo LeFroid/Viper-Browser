@@ -92,7 +92,6 @@ SOURCES += \
     Network/CertificateGeneralTab.cpp \
     Preferences/ContentTab.cpp \
     Highlighters/HTMLHighlighter.cpp \
-    Widgets/AddBookmarkDialog.cpp \
     Widgets/BrowserTabBar.cpp \
     Bookmarks/BookmarkNode.cpp \
     Widgets/WebLinkLabel.cpp \
@@ -120,7 +119,8 @@ SOURCES += \
     Bookmarks/BookmarkMenu.cpp \
     AdBlock/AdBlockFilterParser.cpp \
     AdBlock/AdBlockSubscribeDialog.cpp \
-    AdBlock/CustomFilterEditor.cpp
+    AdBlock/CustomFilterEditor.cpp \
+    Widgets/BookmarkDialog.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -174,7 +174,6 @@ HEADERS += \
     Network/CertificateGeneralTab.h \
     Preferences/ContentTab.h \
     Highlighters/HTMLHighlighter.h \
-    Widgets/AddBookmarkDialog.h \
     Widgets/BrowserTabBar.h \
     Bookmarks/BookmarkNode.h \
     Widgets/WebLinkLabel.h \
@@ -203,7 +202,8 @@ HEADERS += \
     Bookmarks/BookmarkMenu.h \
     AdBlock/AdBlockFilterParser.h \
     AdBlock/AdBlockSubscribeDialog.h \
-    AdBlock/CustomFilterEditor.h
+    AdBlock/CustomFilterEditor.h \
+    Widgets/BookmarkDialog.h
 
 FORMS += \
         mainwindow.ui \
@@ -224,11 +224,11 @@ FORMS += \
     Preferences/AddSearchEngineDialog.ui \
     Network/CertificateGeneralTab.ui \
     Preferences/ContentTab.ui \
-    Widgets/AddBookmarkDialog.ui \
     UserAgents/UserAgentsWindow.ui \
     UserScripts/UserScriptWidget.ui \
     UserScripts/UserScriptEditor.ui \
     AdBlock/AdBlockWidget.ui \
     UserScripts/AddUserScriptDialog.ui \
     AdBlock/AdBlockSubscribeDialog.ui \
-    AdBlock/CustomFilterEditor.ui
+    AdBlock/CustomFilterEditor.ui \
+    Widgets/BookmarkDialog.ui

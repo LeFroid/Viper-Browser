@@ -37,7 +37,7 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     });
 
     // Style common to both tool buttons in line edit
-    const QString toolButtonStyle = QStringLiteral("QToolButton { border: none; padding: 0px; }");
+    const QString toolButtonStyle = QStringLiteral("QToolButton { border: none; padding: 0px; } QToolButton:hover { background-color: #E6E6E6; }");
 
     // Setup tool button
     m_securityButton = new QToolButton(this);
@@ -78,7 +78,7 @@ void URLLineEdit::setBookmarkIcon(BookmarkIcon iconType)
             return;
         case BookmarkIcon::Bookmarked:
             m_bookmarkButton->setIcon(QIcon(":/bookmarked.png"));
-            m_bookmarkButton->setToolTip(tr("Remove this bookmark"));
+            m_bookmarkButton->setToolTip(tr("Edit this bookmark"));
             return;
         case BookmarkIcon::NotBookmarked:
             m_bookmarkButton->setIcon(QIcon(":/not_bookmarked.png"));
@@ -124,6 +124,6 @@ void URLLineEdit::resizeEvent(QResizeEvent *event)
     const QSize bookmarkSize = m_bookmarkButton->sizeHint();
     const QRect widgetRect = rect();
 
-    m_securityButton->move(widgetRect.left(), (widgetRect.bottom() + 1 - securitySize.height()) / 2);
-    m_bookmarkButton->move(widgetRect.right() - bookmarkSize.width() - 2, (widgetRect.bottom() + 1 - bookmarkSize.height()) / 2);
+    m_securityButton->move(widgetRect.left() + 1, (widgetRect.bottom() + 1 - securitySize.height()) / 2);
+    m_bookmarkButton->move(widgetRect.right() - bookmarkSize.width() - 1, (widgetRect.bottom() + 1 - bookmarkSize.height()) / 2);
 }

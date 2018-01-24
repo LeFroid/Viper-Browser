@@ -1,0 +1,108 @@
+#include "BookmarkDialog.h"
+#include "ui_BookmarkDialog.h"
+#include "BookmarkNode.h"
+
+#include <QQueue>
+
+BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::BookmarkDialog),
+    m_bookmarkManager(bookmarkMgr),
+    m_currentUrl()
+{
+    ui->setupUi(this);
+    setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+
+    // Populate combo box with each folder in the bookmark collection
+    bool isRoot = true;
+    QQueue<BookmarkNode*> q;
+    q.enqueue(m_bookmarkManager->getRoot());
+    while (!q.empty())
+    {
+        BookmarkNode *f = q.dequeue();
+
+        if (!isRoot)
+            ui->comboBoxFolder->addItem(f->getName(), qVariantFromValue((void *)f));
+        else
+            isRoot = false;
+
+        int numChildren = f->getNumChildren();
+        for (int i = 0; i < numChildren; ++i)
+        {
+            BookmarkNode *n = f->getNode(i);
+            if (n->getType() == BookmarkNode::Folder)
+                q.enqueue(n);
+        }
+    }
+    ui->comboBoxFolder->setCurrentIndex(0);
+
+    // Connect UI signals to slots
+    connect(ui->pushButtonRemove, &QPushButton::clicked, this, &BookmarkDialog::onRemoveBookmark);
+    connect(ui->pushButtonDone,   &QPushButton::clicked, this, &BookmarkDialog::saveAndClose);
+}
+
+BookmarkDialog::~BookmarkDialog()
+{
+    delete ui;
+}
+
+void BookmarkDialog::alignAndShow(const QRect &windowGeom, const QRect &toolbarGeom, const QRect &urlBarGeom)
+{
+    QPoint dialogPos;
+    dialogPos.setX(windowGeom.x() + toolbarGeom.x() + urlBarGeom.x() + urlBarGeom.width() - width());
+    dialogPos.setY(windowGeom.y() + toolbarGeom.y() + toolbarGeom.height() + (urlBarGeom.height() * 2 / 3));
+
+    move(dialogPos);
+    show();
+}
+
+void BookmarkDialog::setDialogHeader(const QString &text)
+{
+    ui->labelDialogHeader->setText(text);
+}
+
+void BookmarkDialog::setBookmarkInfo(const QString &bookmarkName, const QString &bookmarkUrl, BookmarkNode *parentFolder)
+{
+    m_currentUrl = bookmarkUrl;
+
+    // Set name field
+    ui->lineEditName->setText(bookmarkName);
+
+    // Set parent in combobox if parentFolder was specified
+    if (parentFolder != nullptr)
+    {
+        const int numFolders = ui->comboBoxFolder->count();
+        for (int i = 0; i < numFolders; ++i)
+        {
+            BookmarkNode *itemPtr = (BookmarkNode*)ui->comboBoxFolder->itemData(i, Qt::UserRole).value<void*>();
+            if (itemPtr == parentFolder)
+            {
+                ui->comboBoxFolder->setCurrentIndex(i);
+                return;
+            }
+        }
+    }
+}
+
+void BookmarkDialog::onRemoveBookmark()
+{
+    if (m_currentUrl.isEmpty())
+        return;
+
+    m_bookmarkManager->removeBookmark(m_currentUrl);
+    emit updateBookmarkMenu();
+    close();
+}
+
+void BookmarkDialog::saveAndClose()
+{
+    if (m_currentUrl.isEmpty())
+        return;
+
+    // Remove bookmark and re-add it with current name, url and parent folder values
+    m_bookmarkManager->removeBookmark(m_currentUrl);
+    BookmarkNode *parentNode = (BookmarkNode*) ui->comboBoxFolder->currentData().value<void*>();
+    m_bookmarkManager->appendBookmark(ui->lineEditName->text(), m_currentUrl, parentNode);
+    emit updateBookmarkMenu();
+    close();
+}

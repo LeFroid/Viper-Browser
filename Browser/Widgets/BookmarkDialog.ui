@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddBookmarkDialog</class>
- <widget class="QDialog" name="AddBookmarkDialog">
+ <class>BookmarkDialog</class>
+ <widget class="QDialog" name="BookmarkDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -18,7 +18,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="labelBookmarkAdded">
+    <widget class="QLabel" name="labelDialogHeader">
      <property name="font">
       <font>
        <pointsize>18</pointsize>

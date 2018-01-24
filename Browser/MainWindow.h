@@ -21,7 +21,7 @@ class QSslError;
 class QToolButton;
 class QWebInspector;
 class AdBlockWidget;
-class AddBookmarkDialog;
+class BookmarkDialog;
 class BookmarkWidget;
 class BrowserTabWidget;
 class ClearHistoryDialog;
@@ -64,6 +64,9 @@ signals:
 private:
     /// Sets the proper functionality of the bookmarks menu and bookmarks bar
     void setupBookmarks();
+
+    /// Instantiates the window's \ref BookmarkDialog
+    void setupBookmarkDialog();
 
     /// Initializes the actions belonging to the menu bar (except bookmarks, history and plugins)
     void setupMenuBar();
@@ -239,8 +242,8 @@ private:
     /// Preferences window
     Preferences *m_preferences;
 
-    /// Dialog that is shown when a bookmark is added through the bookmark menu option
-    AddBookmarkDialog *m_addBookmarkDialog;
+    /// Dialog that is shown when a bookmark is added or is being modified by the user
+    BookmarkDialog *m_bookmarkDialog;
 
     /// User script management widget
     UserScriptWidget *m_userScriptWidget;

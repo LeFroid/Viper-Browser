@@ -125,7 +125,7 @@ bool BookmarkManager::isBookmarked(const QString &url)
 
 void BookmarkManager::removeBookmark(const QString &url)
 {
-    // Search DB rather than traverse tree
+    // Search DB for bookmark's parent folder id
     QSqlQuery query(m_database);
     query.prepare("SELECT FolderID FROM Bookmarks WHERE URL = (:url)");
     query.bindValue(":url", url);
@@ -327,6 +327,35 @@ BookmarkNode *BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNod
     folder->setIcon(folderIcon);
     loadFolder(folder);
     return folder;
+}
+
+BookmarkNode *BookmarkManager::getBookmark(const QString &url)
+{
+    // Search DB for parent's folder ID. If query does not yield a result, bookmark is not in the collection
+    int parentID = -1;
+    QSqlQuery query(m_database);
+    query.prepare("SELECT ParentID FROM Bookmarks WHERE URL = (:url)");
+    query.bindValue(":url", url);
+    if (query.exec() && query.next())
+        parentID = query.value(0).toInt();
+    else
+        return nullptr;
+
+    // Get parent folder and search children for the target bookmark
+    BookmarkNode *parentFolder = findFolder(parentID);
+    if (parentFolder == nullptr)
+        return nullptr;
+
+    int numChildren = parentFolder->getNumChildren();
+    for (int i = 0; i < numChildren; ++i)
+    {
+        BookmarkNode *subNode = parentFolder->getNode(i);
+        if (subNode->getType() == BookmarkNode::Bookmark
+                && subNode->getURL().compare(url) == 0)
+            return subNode;
+    }
+
+    return nullptr;
 }
 
 void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID)

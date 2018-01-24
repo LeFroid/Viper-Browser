@@ -3,7 +3,7 @@
 #include "MainWindow.h"
 #include "ui_mainwindow.h"
 #include "AdBlockWidget.h"
-#include "AddBookmarkDialog.h"
+#include "BookmarkDialog.h"
 #include "BookmarkBar.h"
 #include "BookmarkNode.h"
 #include "BookmarkWidget.h"
@@ -59,7 +59,7 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     m_cookieUI(nullptr),
     m_tabWidget(nullptr),
     m_preferences(nullptr),
-    m_addBookmarkDialog(nullptr),
+    m_bookmarkDialog(nullptr),
     m_userScriptWidget(nullptr),
     m_adBlockWidget(nullptr)
 {
@@ -95,8 +95,8 @@ MainWindow::~MainWindow()
     if (m_preferences)
         delete m_preferences;
 
-    if (m_addBookmarkDialog)
-        delete m_addBookmarkDialog;
+    if (m_bookmarkDialog)
+        delete m_bookmarkDialog;
 
     if (m_userScriptWidget)
         delete m_userScriptWidget;
@@ -150,6 +150,12 @@ void MainWindow::setupBookmarks()
     connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewWindow, [=](const QUrl &url){
         m_tabWidget->openLinkInNewWindow(url, m_privateWindow);
     });
+}
+
+void MainWindow::setupBookmarkDialog()
+{
+    m_bookmarkDialog = new BookmarkDialog(m_bookmarkManager);
+    connect(m_bookmarkDialog, &BookmarkDialog::updateBookmarkMenu, sBrowserApplication, &BrowserApplication::updateBookmarkMenus);
 }
 
 void MainWindow::setupMenuBar()
@@ -501,24 +507,14 @@ void MainWindow::addPageToBookmarks()
         return;
     m_bookmarkManager->appendBookmark(bookmarkName, bookmarkUrl);
 
-    if (!m_addBookmarkDialog)
-    {
-        m_addBookmarkDialog = new AddBookmarkDialog(m_bookmarkManager);
-        connect(m_addBookmarkDialog, &AddBookmarkDialog::updateBookmarkMenu, sBrowserApplication, &BrowserApplication::updateBookmarkMenus);
-    }
-    m_addBookmarkDialog->setBookmarkInfo(bookmarkName, bookmarkUrl);
+    if (!m_bookmarkDialog)
+        setupBookmarkDialog();
+
+    m_bookmarkDialog->setDialogHeader(tr("Bookmark Added"));
+    m_bookmarkDialog->setBookmarkInfo(bookmarkName, bookmarkUrl);
 
     // Set position of add bookmark dialog to align just under the URL bar on the right side
-    QPoint dialogPos;
-    const QRect winGeom = frameGeometry();
-    const QRect toolbarGeom = ui->toolBar->frameGeometry();
-    const QRect urlBarGeom = m_urlInput->frameGeometry();
-    dialogPos.setX(winGeom.x() + toolbarGeom.x() + urlBarGeom.x()
-                   + urlBarGeom.width() - m_addBookmarkDialog->width());
-    dialogPos.setY(winGeom.y() + toolbarGeom.y() + toolbarGeom.height() + (urlBarGeom.height() * 2 / 3));
-    m_addBookmarkDialog->move(dialogPos);
-
-    m_addBookmarkDialog->show();
+    m_bookmarkDialog->alignAndShow(frameGeometry(), ui->toolBar->frameGeometry(), m_urlInput->frameGeometry());
 }
 
 void MainWindow::removePageFromBookmarks(bool showDialog)
@@ -736,13 +732,22 @@ void MainWindow::onClickBookmarkIcon()
     if (!currentView)
         return;
 
-    const bool isBookmarked = m_bookmarkManager->isBookmarked(currentView->url().toString());
-    if (isBookmarked)
-        removePageFromBookmarks(false);
-    else
+    // Search for bookmark already existing, if not found, add to bookmarks, otherwise edit the existing bookmark
+    BookmarkNode *node = m_bookmarkManager->getBookmark(currentView->url().toString());
+    if (node == nullptr)
         addPageToBookmarks();
+    else
+    {
+        if (!m_bookmarkDialog)
+            setupBookmarkDialog();
 
-    m_urlInput->setCurrentPageBookmarked(!isBookmarked);
+        m_bookmarkDialog->setDialogHeader(tr("Bookmark"));
+        m_bookmarkDialog->setBookmarkInfo(node->getName(), node->getURL(), node->getParent());
+
+        // Set position of add bookmark dialog to align just under the URL bar on the right side
+        m_bookmarkDialog->alignAndShow(frameGeometry(), ui->toolBar->frameGeometry(), m_urlInput->frameGeometry());
+    }
+    //m_urlInput->setCurrentPageBookmarked(!isBookmarked);
 }
 
 WebView *MainWindow::getNewTabWebView()

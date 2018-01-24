@@ -78,6 +78,13 @@ public:
      */
     BookmarkNode *setFolderParent(BookmarkNode *folder, BookmarkNode *newParent);
 
+    /**
+     * @brief Searches for a bookmark that is assigned the given URL
+     * @param url URL of the bookmark node
+     * @return A pointer to the bookmark node if found, otherwise returns a nullptr
+     */
+    BookmarkNode *getBookmark(const QString &url);
+
 protected:
     /// Called by the BookmarkTableModel when the URL and/or name of a bookmark has been modified
     void updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID);
