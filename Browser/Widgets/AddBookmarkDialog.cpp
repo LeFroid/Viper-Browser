@@ -13,13 +13,12 @@ AddBookmarkDialog::AddBookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *pare
     ui->setupUi(this);
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 
-    // Populate combo box with up to 15 folders, by performing a BFS from the root folder
-    int foldersAdded = 0;
+    // Populate combo box with each folder in the bookmark collection
     bool isRoot = true;
     BookmarkNode *f = nullptr;
     QQueue<BookmarkNode*> q;
     q.enqueue(m_bookmarkManager->getRoot());
-    while (!q.empty() && foldersAdded < 16)
+    while (!q.empty())
     {
         f = q.dequeue();
         if (isRoot)
@@ -33,7 +32,6 @@ AddBookmarkDialog::AddBookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *pare
             if (n->getType() == BookmarkNode::Folder)
                 q.enqueue(n);
         }
-        ++foldersAdded;
     }
     ui->comboBoxFolder->setCurrentIndex(0);
 
