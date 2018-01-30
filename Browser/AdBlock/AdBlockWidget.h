@@ -40,6 +40,9 @@ private slots:
     /// Spawns a \ref CustomFilterEditor window so the user may create and/or modify their own blocking filters
     void editUserFilters();
 
+    /// Removes the selected subscriptions from the user's ad block profile and deletes them from storage
+    void deleteSelectedSubscriptions();
+
 private:
     /// Pointer to the user interface items
     Ui::AdBlockWidget *ui;

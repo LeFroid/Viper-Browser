@@ -366,8 +366,28 @@ void AdBlockManager::toggleSubscriptionEnabled(int index)
     sub.setEnabled(!sub.isEnabled());
 
     // Reset filter data
-    clearFilters();
-    extractFilters();
+    reloadSubscriptions();
+}
+
+void AdBlockManager::removeSubscription(int index)
+{
+    if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
+        return;
+
+    // Point iterator to subscription
+    auto it = m_subscriptions.cbegin() + index;
+
+    // Delete the subscription file before removal
+    QFile subFile(it->getFilePath());
+    if (subFile.exists())
+    {
+        if (!subFile.remove())
+            qDebug() << "[Advertisement Blocker]: Could not remove subscription file " << subFile.fileName();
+    }
+
+    m_subscriptions.erase(it);
+
+    reloadSubscriptions();
 }
 
 void AdBlockManager::reloadSubscriptions()

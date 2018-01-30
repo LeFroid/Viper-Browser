@@ -5,6 +5,9 @@
 #include "AdBlockSubscribeDialog.h"
 #include "CustomFilterEditor.h"
 
+#include <algorithm>
+#include <vector>
+
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
@@ -24,10 +27,11 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
     // Setup "Add Subscription" menu
     QMenu *addMenu = new QMenu(ui->toolButtonAddSubscription);
     addMenu->addAction(tr("Select from list"), this, &AdBlockWidget::addSubscriptionFromList);
-    addMenu->addAction(tr("Install by URL"), this, &AdBlockWidget::addSubscriptionFromURL);
+    addMenu->addAction(tr("Install by URL"),   this, &AdBlockWidget::addSubscriptionFromURL);
     ui->toolButtonAddSubscription->setMenu(addMenu);
 
-    connect(ui->pushButtonCustomFilters, &QPushButton::clicked, this, &AdBlockWidget::editUserFilters);
+    connect(ui->pushButtonCustomFilters,      &QPushButton::clicked, this, &AdBlockWidget::editUserFilters);
+    connect(ui->pushButtonDeleteSubscription, &QPushButton::clicked, this, &AdBlockWidget::deleteSelectedSubscriptions);
 }
 
 AdBlockWidget::~AdBlockWidget()
@@ -46,9 +50,9 @@ void AdBlockWidget::resizeEvent(QResizeEvent *event)
     ui->tableView->setColumnWidth(3, tableWidth / 2);   // Source of subscription
 }
 
-void AdBlockWidget::onItemClicked(const QModelIndex &/*index*/)
+void AdBlockWidget::onItemClicked(const QModelIndex &index)
 {
-    ui->pushButtonDeleteSubscription->setEnabled(true);
+    ui->pushButtonDeleteSubscription->setEnabled(index.isValid());
 }
 
 void AdBlockWidget::addSubscriptionFromList()
@@ -97,4 +101,35 @@ void AdBlockWidget::editUserFilters()
         AdBlockManager::instance().reloadSubscriptions();
     });
     editor->show();
+}
+
+void AdBlockWidget::deleteSelectedSubscriptions()
+{
+    QModelIndexList selection = ui->tableView->selectionModel()->selectedIndexes();
+    if (selection.empty())
+        return;
+
+    // Get user confirmation before deleting subscriptions
+    QMessageBox::StandardButton answer =
+            QMessageBox::question(this, tr("Confirm"), tr("Are you sure you want to delete the selected subscription(s)?"),
+                                  QMessageBox::Yes|QMessageBox::No);
+    if (answer == QMessageBox::No)
+        return;
+
+    // Get rows from selection without duplicates (in case multiple columns of same row(s) are selected)
+    std::vector<int> selectedRows;
+    for (const QModelIndex &idx : selection)
+    {
+        int row = idx.row();
+        auto it = std::find(selectedRows.begin(), selectedRows.end(), row);
+        if (it == selectedRows.end())
+            selectedRows.push_back(row);
+    }
+    // Sort rows in descending order
+    std::sort(selectedRows.begin(), selectedRows.end(), std::greater<int>());
+
+    // Remove subscriptions
+    AdBlockModel *model = qobject_cast<AdBlockModel*>(ui->tableView->model());
+    for (int row : selectedRows)
+        model->removeRow(row);
 }

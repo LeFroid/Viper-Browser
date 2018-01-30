@@ -158,17 +158,17 @@ bool UserScriptModel::insertRows(int row, int count, const QModelIndex &parent)
 
 bool UserScriptModel::removeRows(int row, int count, const QModelIndex &parent)
 {
+    if (row + count > rowCount())
+        return false;
+
     beginRemoveRows(parent, row, row + count - 1);
-    if (row + count <= rowCount())
+    for (auto it = m_scripts.begin() + row; it != m_scripts.begin() + row + count; ++it)
     {
-        for (auto it = m_scripts.begin() + row; it != m_scripts.begin() + row + count; ++it)
-        {
-            // Delete file and remove from script container
-            QFile f(it->m_fileName);
-            if (f.exists())
-                f.remove();
-            m_scripts.erase(it);
-        }
+        // Delete file and remove from script container
+        QFile f(it->m_fileName);
+        if (f.exists())
+            f.remove();
+        m_scripts.erase(it);
     }
     endRemoveRows();
     return true;

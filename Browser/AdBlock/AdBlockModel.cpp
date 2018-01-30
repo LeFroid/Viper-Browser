@@ -89,3 +89,16 @@ bool AdBlockModel::insertRows(int row, int count, const QModelIndex &parent)
 
     return true;
 }
+
+bool AdBlockModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    if (row + count > rowCount())
+        return false;
+
+    beginRemoveRows(parent, row, row + count - 1);
+    for (int i = row; i < row + count; ++i)
+        m_adBlockManager->removeSubscription(i);
+    endRemoveRows();
+
+    return true;
+}

@@ -89,6 +89,9 @@ protected:
     /// Toggles the state of the subscription at the given index (enabled <--> disabled)
     void toggleSubscriptionEnabled(int index);
 
+    /// Removes the subscription at the given index, if the index is within range, and reloads existing subscriptions
+    void removeSubscription(int index);
+
 // Called by AdBlockWidget:
     /// Reloads the ad blocking subscriptions
     void reloadSubscriptions();

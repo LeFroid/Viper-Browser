@@ -41,6 +41,9 @@ public:
     /// Inserts subscriptions into the model
     bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
+    /// Removes subscriptions from the model and the user's locaol storage
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+
 private:
     /// Pointer to the ad block manager
     AdBlockManager *m_adBlockManager;

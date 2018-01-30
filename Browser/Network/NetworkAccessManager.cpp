@@ -16,7 +16,7 @@ QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operati
 {
     if (op == NetworkAccessManager::GetOperation)
     {
-        if (request.url().scheme().compare("viper") == 0)
+        if (request.url().scheme().compare(QStringLiteral("viper")) == 0)
             return new ViperNetworkReply(request, this);
 
         AdBlockManager &adBlockMgr = AdBlockManager::instance();
