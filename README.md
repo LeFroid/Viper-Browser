@@ -1,5 +1,7 @@
 # Viper Browser
 
+![Coverity Scan Build Status](https://scan.coverity.com/projects/14853/badge.svg?flat=1 "Coverity Scan Build Status")
+
 A lightweight web browser built with the Qt framework and WebKit
 
 Licensed under GPLv3
