@@ -40,9 +40,18 @@ FaviconStorage::~FaviconStorage()
 
 QIcon FaviconStorage::getFavicon(const QUrl &url) const
 {
+    // Truncate page url if it contains a '?' or '#' towards the end of the string
+    QString pageUrl = url.toString();
+    if (pageUrl.contains(QChar('#')))
+        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('#')));
+    if (pageUrl.contains(QChar('?')))
+        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('?')));
+
+    // Three step icon fetch process:
+    // First, search DB for exact URL match.
     QSqlQuery query(m_database);
-    query.prepare("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))");
-    query.bindValue(":url", QString("%%1%").arg(url.host()));
+    query.prepare(QStringLiteral("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL = (:url))"));
+    query.bindValue(QStringLiteral(":url"), pageUrl);
     if (query.exec() && query.first())
     {
         QString iconURL = query.value(0).toString();
@@ -50,11 +59,31 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
         if (it != m_favicons.end())
             return it->icon;
     }
+    else
+    {
+        // Second, search DB for host match.
+        query.prepare(QStringLiteral("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))"));
+        query.bindValue(QStringLiteral(":url"), QString("%%1%").arg(url.host()));
+        if (query.exec() && query.first())
+        {
+            QString iconURL = query.value(0).toString();
+            auto it = m_favicons.find(iconURL);
+            if (it != m_favicons.end())
+                return it->icon;
+        }
+    }
+    // Lastly, default to QWebSettings::iconForUrl
     return QWebSettings::iconForUrl(url);
 }
 
-void FaviconStorage::updateIcon(const QString &iconHRef, const QString &pageUrl)
+void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl)
 {
+    // Truncate page url if it contains a '?' or '#' towards the end of the string
+    if (pageUrl.contains(QChar('#')))
+        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('#')));
+    if (pageUrl.contains(QChar('?')))
+        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('?')));
+
     auto it = m_favicons.find(iconHRef);
     if (it != m_favicons.end())
         it->urlSet.insert(pageUrl);

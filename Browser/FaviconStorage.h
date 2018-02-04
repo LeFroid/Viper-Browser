@@ -55,7 +55,7 @@ public:
 
     /// Updates the database (if applicable) about a favicon existing at the given location and being
     /// referred to by the page URL
-    void updateIcon(const QString &iconHRef, const QString &pageUrl);
+    void updateIcon(const QString &iconHRef, QString pageUrl);
 
 private slots:
     /// Called after the request for a favicon has been completed
