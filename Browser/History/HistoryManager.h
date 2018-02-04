@@ -35,7 +35,7 @@ struct WebHistoryItem
     /// Returns true if the two WebHistoryItem objects are the same, false if else
     bool operator ==(const WebHistoryItem &other) const
     {
-        return (this->URL.toString().compare(other.URL.toString(), Qt::CaseInsensitive) == 0);
+        return (this->URL.toString().compare(other.URL.toString(), Qt::CaseSensitive) == 0);
     }
 };
 
