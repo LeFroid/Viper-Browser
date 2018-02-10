@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "MainWindow.h"
 #include "SecurityManager.h"
 #include "URLLineEdit.h"
 #include "URLSuggestionModel.h"
@@ -13,8 +14,11 @@
 URLLineEdit::URLLineEdit(QWidget *parent) :
     QLineEdit(parent)
 {
+    m_parentWindow = static_cast<MainWindow*>(parent);
+
     QSizePolicy policy = sizePolicy();
-    setSizePolicy(QSizePolicy::MinimumExpanding, policy.verticalPolicy());
+    //setSizePolicy(QSizePolicy::MinimumExpanding, policy.verticalPolicy());
+    setSizePolicy(QSizePolicy::Maximum, policy.verticalPolicy());
 
     // Set completion model
     QCompleter *urlCompleter = new QCompleter(parent);
@@ -114,6 +118,15 @@ void URLLineEdit::setURL(const QUrl &url)
     if (url.scheme().compare(QStringLiteral("https")) == 0)
         secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
     setSecurityIcon(secureIcon);
+}
+
+QSize URLLineEdit::sizeHint() const
+{
+    QSize defaultSize = QLineEdit::sizeHint();
+
+    // Change height to be same as browser toolbar height
+    defaultSize.setHeight(m_parentWindow->getToolbarHeight());
+    return defaultSize;
 }
 
 void URLLineEdit::resizeEvent(QResizeEvent *event)

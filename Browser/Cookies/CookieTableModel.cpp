@@ -29,8 +29,8 @@ QVariant CookieTableModel::headerData(int section, Qt::Orientation orientation, 
         switch (section)
         {
             case 0: return QVariant();
-            case 1: return "Domain";
-            case 2: return "Name";
+            case 1: return QString("Domain");
+            case 2: return QString("Name");
         }
     }
 

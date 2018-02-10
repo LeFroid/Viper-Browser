@@ -760,6 +760,11 @@ BrowserTabWidget *MainWindow::getTabWidget() const
     return m_tabWidget;
 }
 
+int MainWindow::getToolbarHeight() const
+{
+    return ui->toolBar->height();
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (!m_privateWindow)

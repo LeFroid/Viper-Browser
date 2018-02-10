@@ -4,6 +4,7 @@
 #include <QLineEdit>
 #include <QUrl>
 
+class MainWindow;
 class QToolButton;
 
 /// Security icon types used by the url line edit
@@ -52,6 +53,9 @@ public:
     /// Sets the URL to be displayed with a security status icon in the line edit widget
     void setURL(const QUrl &url);
 
+    /// Returns a recommended size for the widget.
+    QSize sizeHint() const override;
+
 signals:
     /// Called when the user requests to view the security information regarding the current page
     void viewSecurityInfo();
@@ -73,6 +77,9 @@ private:
 
     /// Button that indicates the bookmark status of the page and allows the user to add or remove the page from their bookmark collection
     QToolButton *m_bookmarkButton;
+
+    /// Pointer to the browser window that created the line edit - used for convenience in sizeHint method
+    MainWindow *m_parentWindow;
 };
 
 #endif // URLLINEEDIT_H

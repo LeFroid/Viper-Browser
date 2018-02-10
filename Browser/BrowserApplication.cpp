@@ -33,6 +33,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Load settings
     m_settings = std::make_shared<Settings>();
 
+    // Set global web settings
+    setWebSettings();
+
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QStringLiteral("FaviconPath")));
 
@@ -73,12 +76,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QStringLiteral("SearchEnginesFile")));
 
-    // Set global web settings
-    setWebSettings();
-
     // Load ad block subscriptions (will do nothing if disabled)
     AdBlockManager::instance().loadSubscriptions();
 
+    // Set browser's saved sessions file
     m_sessionMgr.setSessionFile(m_settings->getPathValue(QStringLiteral("SessionFile")));
 
     // Connect aboutToQuit signal to browser's session management slot

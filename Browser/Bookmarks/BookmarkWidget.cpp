@@ -13,14 +13,12 @@
 #include <QMenu>
 #include <QRegExp>
 #include <QResizeEvent>
-#include <QSortFilterProxyModel>
 #include <QDebug>
 
 BookmarkWidget::BookmarkWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::BookmarkWidget),
     m_bookmarkManager(nullptr),
-    m_proxyModel(new QSortFilterProxyModel(this)),
     m_folderBackHistory(),
     m_folderForwardHistory()
 {
@@ -49,10 +47,6 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     // Drag and drop in bookmark table
     ui->tableView->setDropIndicatorShown(true);
     ui->tableView->setDragDropOverwriteMode(false);
-
-    // Set properties of proxy model used for bookmark searches
-    m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    m_proxyModel->setFilterKeyColumn(-1); // -1 applies search terms to all columns
 
     // Enable search for bookmarks
     connect(ui->lineEditSearch, &QLineEdit::textChanged, this, &BookmarkWidget::searchBookmarks);
@@ -83,8 +77,7 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
     m_bookmarkManager = bookmarkManager;
 
     BookmarkTableModel *tableModel = new BookmarkTableModel(bookmarkManager, this);
-    m_proxyModel->setSourceModel(tableModel);
-    ui->tableView->setModel(m_proxyModel);
+    ui->tableView->setModel(tableModel);
 
     // Add context menu to bookmark view
     ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -118,7 +111,7 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
 
 void BookmarkWidget::reloadBookmarks()
 {
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(m_bookmarkManager->getRoot());
 
     BookmarkFolderModel *folderModel =  static_cast<BookmarkFolderModel*>(ui->treeView->model());
@@ -129,7 +122,7 @@ void BookmarkWidget::reloadBookmarks()
 void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
 {
     QModelIndex index = ui->tableView->indexAt(pos);
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     bool isBookmarkNode = false;
 
     QMenu menu(this);
@@ -165,8 +158,11 @@ void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
         }
     }
 
-    menu.addAction(tr("New bookmark..."), this, &BookmarkWidget::addBookmark);
-    menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
+    if (!model->isInSearchMode())
+    {
+        menu.addAction(tr("New bookmark..."), this, &BookmarkWidget::addBookmark);
+        menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
+    }
 
     if (isBookmarkNode)
     {
@@ -216,7 +212,7 @@ void BookmarkWidget::onChangeFolderSelection(const QModelIndex &index)
 
     // Get the pointer to the new folder and update the tabel model
     BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(f);
 
     m_folderBackHistory.push_back(ui->treeView->currentIndex());
@@ -297,7 +293,7 @@ void BookmarkWidget::openInNewWindow()
 
 void BookmarkWidget::addBookmark()
 {
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->insertRow(model->rowCount());
 }
 
@@ -315,7 +311,7 @@ void BookmarkWidget::addTopLevelFolder()
 
 void BookmarkWidget::deleteBookmarkSelection()
 {
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     QModelIndexList items = ui->tableView->selectionModel()->selectedIndexes();
 
     // Selection mode is by rows, so remove duplicate items
@@ -330,7 +326,7 @@ void BookmarkWidget::deleteBookmarkSelection()
 void BookmarkWidget::deleteFolderSelection()
 {
     // Make sure the table model is not using the any of the folder selections
-    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
     tableModel->setCurrentFolder(m_bookmarkManager->getBookmarksBar());
 
     BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
@@ -347,7 +343,8 @@ void BookmarkWidget::deleteFolderSelection()
 
 void BookmarkWidget::searchBookmarks(const QString &term)
 {
-    m_proxyModel->setFilterRegExp(term);
+    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
+    tableModel->searchFor(term);
 }
 
 void BookmarkWidget::resetFolderModel()
@@ -368,7 +365,7 @@ void BookmarkWidget::resetFolderModel()
 void BookmarkWidget::resetTableModel()
 {
     // Tell the table model to load the bookmarks bar folder to avoid null pointer references
-    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
     tableModel->setCurrentFolder(tableModel->getCurrentFolder());
 
     // Clear history items
@@ -381,7 +378,7 @@ void BookmarkWidget::resetTableModel()
 void BookmarkWidget::onFolderMoved(BookmarkNode *folder, BookmarkNode *updatedPtr)
 {
     // Check if the folder was being displayed in the table, and if so, update the pointer
-    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
     if (tableModel->getCurrentFolder() == folder)
         tableModel->setCurrentFolder(updatedPtr);
 
@@ -411,7 +408,7 @@ void BookmarkWidget::onClickBackButton()
 
     // Get the pointer to the folder and update the tabel model
     BookmarkNode *f = static_cast<BookmarkNode*>(idx.internalPointer());
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(f);
 
     ui->treeView->setCurrentIndex(idx);
@@ -436,7 +433,7 @@ void BookmarkWidget::onClickForwardButton()
 
     // Get the pointer to the folder and update the tabel model
     BookmarkNode *f = static_cast<BookmarkNode*>(idx.internalPointer());
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(m_proxyModel->sourceModel());
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(f);
 
     m_folderForwardHistory.pop_back();
@@ -448,6 +445,7 @@ void BookmarkWidget::onClickForwardButton()
 QUrl BookmarkWidget::getUrlForSelection()
 {
     int row = ui->tableView->currentIndex().row();
-    QString link = m_proxyModel->data(m_proxyModel->index(row, 1)).toString();
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
+    QString link = model->data(model->index(row, 1)).toString();
     return QUrl::fromUserInput(link);
 }

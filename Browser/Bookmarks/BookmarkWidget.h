@@ -10,8 +10,6 @@ namespace Ui {
 class BookmarkWidget;
 }
 
-class QSortFilterProxyModel;
-
 /**
  * @class BookmarkWidget
  * @brief Provides a graphical interface for managing the user's bookmarks
@@ -133,9 +131,6 @@ private:
 
     /// Pointer to the user's bookmark manager
     BookmarkManager *m_bookmarkManager;
-
-    /// Proxy model used for searching bookmarks
-    QSortFilterProxyModel *m_proxyModel;
 
     /// Stores the indices of previous selections made in the folder view. Used for the back button feature
     std::deque<QModelIndex> m_folderBackHistory;

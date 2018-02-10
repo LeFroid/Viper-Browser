@@ -3,12 +3,13 @@
 
 #include "BookmarkManager.h"
 #include <QAbstractTableModel>
+#include <vector>
 
 class QMimeData;
 
 /**
  * @class BookmarkTableModel
- * @brief Model that displays the bookmarks belonging to whatever
+ * @brief Model that displays the bookmarks belonging to the
  *        bookmark folder that is being selected in the bookmark folder view
  */
 class BookmarkTableModel : public QAbstractTableModel
@@ -52,9 +53,21 @@ public:
     /// Returns a pointer to the current folder being used by the model
     BookmarkNode *getCurrentFolder() const;
 
+    /// Returns true if the model is displaying the results of a search operation, false if else
+    bool isInSearchMode() const;
+
 signals:
     /// Emitted when a folder has been moved. Used so that the BookmarkFolderModel can update itself appropriately
     void movedFolder();
+
+public slots:
+    /// Searches for bookmarks with either a page title or domain containing the given string, displaying
+    /// the matching results in the model
+    void searchFor(const QString &text);
+
+private:
+    /// Returns a pointer to the bookmark at the given row
+    BookmarkNode *getBookmark(int row) const;
 
 private:
     /// Bookmark manager
@@ -62,6 +75,12 @@ private:
 
     /// Current folder
     BookmarkNode *m_folder;
+
+    /// True if the model is displaying the results of a bookmark search, false if else
+    bool m_searchModeOn;
+
+    /// Contains bookmark nodes that matched the criteria of a search query. Displayed by the model when search mode flag is enabled
+    std::vector<BookmarkNode*> m_searchResults;
 };
 
 #endif // BOOKMARKTABLEMODEL_H

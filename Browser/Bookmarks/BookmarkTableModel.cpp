@@ -1,7 +1,8 @@
 #include "BookmarkTableModel.h"
 #include "BrowserApplication.h"
 #include "FaviconStorage.h"
-#include <vector>
+
+#include <deque>
 
 #include <QByteArray>
 #include <QDataStream>
@@ -14,7 +15,9 @@
 BookmarkTableModel::BookmarkTableModel(BookmarkManager *bookmarkMgr, QObject *parent) :
     QAbstractTableModel(parent),
     m_bookmarkMgr(bookmarkMgr),
-    m_folder(bookmarkMgr->getBookmarksBar())
+    m_folder(bookmarkMgr->getBookmarksBar()),
+    m_searchModeOn(false),
+    m_searchResults()
 {
 }
 
@@ -27,8 +30,8 @@ QVariant BookmarkTableModel::headerData(int section, Qt::Orientation orientation
     {
         switch (section)
         {
-            case 0: return "Name";
-            case 1: return "Location";
+            case 0: return QString("Name");
+            case 1: return QString("Location");
         }
     }
 
@@ -37,6 +40,9 @@ QVariant BookmarkTableModel::headerData(int section, Qt::Orientation orientation
 
 int BookmarkTableModel::rowCount(const QModelIndex &/*parent*/) const
 {
+    if (m_searchModeOn)
+        return static_cast<int>(m_searchResults.size());
+
     return (m_folder) ? m_folder->getNumChildren() : 0;
 }
 
@@ -48,51 +54,52 @@ int BookmarkTableModel::columnCount(const QModelIndex &/*parent*/) const
 
 QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || !m_folder)
+    if (!index.isValid())
         return QVariant();
 
-    if (index.row() < m_folder->getNumChildren())
-    {
-        BookmarkNode *b = m_folder->getNode(index.row());
-        switch (index.column())
-        {
-            case 0:
-            {
-                if (role == Qt::EditRole || role == Qt::DisplayRole)
-                    return b->getName();
+    BookmarkNode *b = getBookmark(index.row());
+    if (b == nullptr)
+        return QVariant();
 
-                // Try to display icon next to name
-                QIcon nodeIcon;
-                switch (b->getType())
-                {
-                    case BookmarkNode::Folder:
-                        nodeIcon = b->getIcon();
-                        break;
-                    case BookmarkNode::Bookmark:
-                        nodeIcon = sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(b->getURL()));
-                        break;
-                }
-                if (role == Qt::DecorationRole)
-                    return nodeIcon.pixmap(16, 16);
-                if (role == Qt::SizeHintRole)
-                    return QSize(16, 16);
-                break;
+    switch (index.column())
+    {
+        case 0:
+        {
+            if (role == Qt::EditRole || role == Qt::DisplayRole)
+                return b->getName();
+
+            // Try to display icon next to name
+            QIcon nodeIcon;
+            switch (b->getType())
+            {
+                case BookmarkNode::Folder:
+                    nodeIcon = b->getIcon();
+                    break;
+                case BookmarkNode::Bookmark:
+                    nodeIcon = sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(b->getURL()));
+                    break;
             }
-            case 1:
-                if (role == Qt::DisplayRole || role == Qt::EditRole)
-                    return b->getURL();
-                break;
+            if (role == Qt::DecorationRole)
+                return nodeIcon.pixmap(16, 16);
+            if (role == Qt::SizeHintRole)
+                return QSize(16, 16);
+            break;
         }
+        case 1:
+            if (role == Qt::DisplayRole || role == Qt::EditRole)
+                return b->getURL();
+            break;
     }
+
     return QVariant();
 }
 
 bool BookmarkTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (index.isValid() && role == Qt::EditRole && m_folder->getNumChildren() > index.row())
+    if (index.isValid() && role == Qt::EditRole && rowCount() > index.row())
     {
-        BookmarkNode *b = m_folder->getNode(index.row());
-        if (!b)
+        BookmarkNode *b = getBookmark(index.row());
+        if (b == nullptr || b->getType() != BookmarkNode::Bookmark)
             return false;
 
         // Copy contents of bookmark before modifying, so the old record can be found in the DB
@@ -105,7 +112,7 @@ bool BookmarkTableModel::setData(const QModelIndex &index, const QVariant &value
             case 1: b->setURL(value.toString()); break;
         }
 
-        m_bookmarkMgr->updatedBookmark(b, oldValue, m_folder->getFolderId());
+        m_bookmarkMgr->updatedBookmark(b, oldValue, b->getParent()->getFolderId());
         emit dataChanged(index, index);
         return true;
     }
@@ -118,22 +125,26 @@ Qt::ItemFlags BookmarkTableModel::flags(const QModelIndex &index) const
         return Qt::NoItemFlags;
 
     Qt::ItemFlags flags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | QAbstractItemModel::flags(index);
-    BookmarkNode *b = m_folder->getNode(index.row());
-    if (b->getType() == BookmarkNode::Bookmark) //|| (b->getType() == BookmarkNode::Folder && index.column() == 0))
+
+    BookmarkNode *bookmark = getBookmark(index.row());
+    if (bookmark != nullptr && bookmark->getType() == BookmarkNode::Bookmark)
         flags |= Qt::ItemIsEditable;
+
     return flags;
 }
 
 bool BookmarkTableModel::insertRows(int row, int count, const QModelIndex &parent)
 {
-    if (!m_folder)
+    if (!m_folder || m_searchModeOn)
         return false;
 
     QString name("New Bookmark");
+
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
         m_bookmarkMgr->insertBookmark(name, QString("Location %1").arg(i), m_folder, row + i);
     endInsertRows();
+
     return true;
 }
 
@@ -143,12 +154,19 @@ bool BookmarkTableModel::removeRows(int row, int count, const QModelIndex &paren
         return false;
 
     beginRemoveRows(parent, row, row + count - 1);
+
     for (int i = 0; i < count; ++i)
     {
-        BookmarkNode *n = m_folder->getNode(row + i);
-        m_bookmarkMgr->removeBookmark(n);
+        BookmarkNode *n = getBookmark(row + i);
+        if (n != nullptr)
+            m_bookmarkMgr->removeBookmark(n);
     }
+
+    if (m_searchModeOn)
+        m_searchResults.erase(m_searchResults.begin() + row, m_searchResults.begin() + row + count);
+
     endRemoveRows();
+
     return true;
 }
 
@@ -171,26 +189,30 @@ QMimeData *BookmarkTableModel::mimeData(const QModelIndexList &indexes) const
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
     for (const QModelIndex &index : indexes)
     {
-        if (index.isValid() && m_folder->getNumChildren() > index.row())
+        if (index.isValid())
         {
-            BookmarkNode *n = m_folder->getNode(index.row());
-            stream << n;
+            BookmarkNode *n = getBookmark(index.row());
+            if (n != nullptr)
+                stream << n;
         }
     }
-    mimeData->setData("application/x-bookmark-data", encodedData);
+    mimeData->setData(QStringLiteral("application/x-bookmark-data"), encodedData);
     return mimeData;
 }
 
 bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int /*row*/, int /*column*/, const QModelIndex &parent)
 {
+    if (m_searchModeOn)
+        return false;
+
     if (!data || action != Qt::MoveAction)
         return false;
 
-    if (!data->hasFormat("application/x-bookmark-data"))
+    if (!data->hasFormat(QStringLiteral("application/x-bookmark-data")))
         return false;
 
     // retrieve rows from serialized data
-    QByteArray encodedData = data->data("application/x-bookmark-data");
+    QByteArray encodedData = data->data(QStringLiteral("application/x-bookmark-data"));
     QDataStream stream(&encodedData, QIODevice::ReadOnly);
 
     std::vector<BookmarkNode*> nodes;
@@ -225,10 +247,76 @@ void BookmarkTableModel::setCurrentFolder(BookmarkNode *folder)
 {
     beginResetModel();
     m_folder = folder;
+    m_searchModeOn = false;
+    m_searchResults.clear();
     endResetModel();
 }
 
 BookmarkNode *BookmarkTableModel::getCurrentFolder() const
 {
     return m_folder;
+}
+
+bool BookmarkTableModel::isInSearchMode() const
+{
+    return m_searchModeOn;
+}
+
+void BookmarkTableModel::searchFor(const QString &text)
+{
+    beginResetModel();
+
+    m_searchResults.clear();
+
+    // If empty string, return to normal view
+    if (text.isEmpty())
+    {
+        m_searchModeOn = false;
+        return;
+    }
+
+    m_searchModeOn = true;
+
+    // Make term lowercase (case-insensitive search)
+    QString query = text.toLower();
+
+    // Search from root bookmark folder down, comparing title and url of each bookmark to search term
+    std::deque<BookmarkNode*> nodes;
+    nodes.push_back(m_bookmarkMgr->getRoot());
+    while (!nodes.empty())
+    {
+        BookmarkNode *folder = nodes.front();
+
+        int numChildren = folder->getNumChildren();
+        for (int i = 0; i < numChildren; ++i)
+        {
+            BookmarkNode *subNode = folder->getNode(i);
+
+            // Add sub-folders to queue, but still include them in the search
+            if (subNode->getType() == BookmarkNode::Folder)
+                nodes.push_back(subNode);
+
+            // If either the title or url is a partial match, add to search results
+            if (subNode->getName().toLower().contains(query)
+                    || subNode->getURL().toLower().contains(query))
+            {
+                m_searchResults.push_back(subNode);
+            }
+        }
+
+        nodes.pop_front();
+    }
+
+    endResetModel();
+}
+
+BookmarkNode *BookmarkTableModel::getBookmark(int row) const
+{
+    if (rowCount() < row)
+        return nullptr;
+
+    if (!m_searchModeOn && m_folder == nullptr)
+        return nullptr;
+
+    return m_searchModeOn ? m_searchResults.at(row) : m_folder->getNode(row);
 }

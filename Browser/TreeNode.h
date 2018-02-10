@@ -83,7 +83,7 @@ public:
     }
 
     /// Returns a pointer to the child node at the given index, or a nullptr if index is out of bounds
-    T *getNode(int index)
+    T *getNode(int index) const
     {
         if (index < 0 || index >= static_cast<int>(m_children.size()))
             return nullptr;
