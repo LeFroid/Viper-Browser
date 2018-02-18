@@ -108,8 +108,11 @@ private slots:
     /// Resets the bookmark folder model
     void resetFolderModel();
 
-    /// Resets the bookmark table model
-    void resetTableModel();
+    /// Begins a reset operation on the bookmark table model
+    void beginResetTableModel();
+
+    /// Ends a reset operation on the bookmark table model
+    void endResetTableModel();
 
     /// Called when a bookmark folder has moved from one parent folder to another. If it was being displayed in the table model, the
     /// data must be updated

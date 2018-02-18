@@ -14,6 +14,8 @@ class QMimeData;
  */
 class BookmarkTableModel : public QAbstractTableModel
 {
+    friend class BookmarkWidget;
+
     Q_OBJECT
 
 public:

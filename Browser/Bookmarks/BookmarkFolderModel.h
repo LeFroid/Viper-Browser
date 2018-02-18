@@ -48,8 +48,11 @@ public:
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
 signals:
-    /// Emitted when a bookmark was dropped from one folder into another, so that the \ref BookmarkTableModel can update its data
-    void movedBookmark();
+    /// Emitted when one or more bookmarks are about to be dropped from one folder into another, so that the \ref BookmarkTableModel can update its data
+    void beginMovingBookmarks();
+
+    /// Emitted when one or more bookmarks are finished being dropped from one folder into another, so that the \ref BookmarkTableModel can update its data
+    void endMovingBookmarks();
 
     /// Emitted when a folder was moved to a new parent node, so the \ref BookmarkTableModel can update its data if necessary
     void movedFolder(BookmarkNode *folder, BookmarkNode *updatedPtr);

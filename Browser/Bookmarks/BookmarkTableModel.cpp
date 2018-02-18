@@ -272,6 +272,7 @@ void BookmarkTableModel::searchFor(const QString &text)
     if (text.isEmpty())
     {
         m_searchModeOn = false;
+        endResetModel();
         return;
     }
 

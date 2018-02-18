@@ -29,6 +29,17 @@ public:
     /// Loads the resource of the blank page into the view
     void loadBlankPage();
 
+    /**
+     * @brief Returns the title of the web page being viewed
+     *
+     * Returns the title of the web page being viewed. If there is no title
+     * for the page, and the path of the URL is not empty or the root path,
+     * the path following the last '/' will be returned as the title. If only
+     * the root path is available, the host will be returned as the title
+     * @return The title of the web page being viewed
+     */
+    QString getTitle() const;
+
 public slots:
     /// Resets the zoom factor to its base value
     void resetZoom();

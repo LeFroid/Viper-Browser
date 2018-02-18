@@ -501,7 +501,7 @@ void MainWindow::addPageToBookmarks()
     if (!view)
         return;
 
-    const QString bookmarkName = view->title();
+    const QString bookmarkName = view->getTitle();
     const QString bookmarkUrl = view->url().toString();
     if (m_bookmarkManager->isBookmarked(bookmarkUrl))
         return;
@@ -602,7 +602,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
     if (!view)
         return;
 
-    const QString pageTitle = view->title();
+    const QString pageTitle = view->getTitle();
     updateTabIcon(QWebSettings::iconForUrl(view->url()), m_tabWidget->indexOf(view));
     updateTabTitle(pageTitle, m_tabWidget->indexOf(view));
 
@@ -682,7 +682,7 @@ void MainWindow::onRequestViewSource()
         return;
 
     QString pageSource = currentView->page()->mainFrame()->toHtml();
-    QString pageTitle = currentView->title();
+    QString pageTitle = currentView->getTitle();
     CodeEditor *view = new CodeEditor;
     view->setPlainText(pageSource);
     HTMLHighlighter *h = new HTMLHighlighter;

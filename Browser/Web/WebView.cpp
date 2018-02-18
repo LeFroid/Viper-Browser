@@ -59,6 +59,29 @@ void WebView::loadBlankPage()
         setHtml(QString::fromUtf8(resource.readAll().constData()));
 }
 
+QString WebView::getTitle() const
+{
+    QString pageTitle = title();
+
+    if (!pageTitle.isEmpty())
+        return pageTitle;
+
+    QUrl pageUrl = url();
+
+    // Try to extract end of path
+    pageTitle = pageUrl.path();
+    if (pageTitle.size() > 1)
+    {
+        if (pageTitle.contains(QLatin1Char('/')))
+            return pageTitle.mid(pageTitle.lastIndexOf(QLatin1Char('/')) + 1);
+
+        return pageTitle;
+    }
+
+    // Default to host
+    return pageUrl.host();
+}
+
 void WebView::resetZoom()
 {
     setZoomFactor(1.0);

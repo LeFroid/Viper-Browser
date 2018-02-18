@@ -105,8 +105,9 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
     connect(tableModel, &BookmarkTableModel::movedFolder, this, &BookmarkWidget::resetFolderModel);
 
     // Connect changes in bookmark data via folder model to an update in the table model
-    connect(treeViewModel, &BookmarkFolderModel::movedBookmark, this, &BookmarkWidget::resetTableModel);
-    connect(treeViewModel, &BookmarkFolderModel::movedFolder, this, &BookmarkWidget::onFolderMoved);
+    connect(treeViewModel, &BookmarkFolderModel::beginMovingBookmarks, this, &BookmarkWidget::beginResetTableModel);
+    connect(treeViewModel, &BookmarkFolderModel::endMovingBookmarks,   this, &BookmarkWidget::endResetTableModel);
+    connect(treeViewModel, &BookmarkFolderModel::movedFolder,          this, &BookmarkWidget::onFolderMoved);
 }
 
 void BookmarkWidget::reloadBookmarks()
@@ -362,10 +363,17 @@ void BookmarkWidget::resetFolderModel()
     ui->buttonForward->setEnabled(false);
 }
 
-void BookmarkWidget::resetTableModel()
+void BookmarkWidget::beginResetTableModel()
+{
+    BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
+    tableModel->beginResetModel();
+}
+
+void BookmarkWidget::endResetTableModel()
 {
     // Tell the table model to load the bookmarks bar folder to avoid null pointer references
     BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
+    tableModel->endResetModel();
     tableModel->setCurrentFolder(tableModel->getCurrentFolder());
 
     // Clear history items

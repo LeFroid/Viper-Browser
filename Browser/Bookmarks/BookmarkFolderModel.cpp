@@ -33,10 +33,9 @@ QModelIndex BookmarkFolderModel::index(int row, int column, const QModelIndex &p
         return QModelIndex();
 
     int folderIdx = 0;
-    BookmarkNode *n;
     for (int i = 0; i < numChildren; ++i)
     {
-        n = parentFolder->getNode(i);
+        BookmarkNode *n = parentFolder->getNode(i);
         if (n->getType() == BookmarkNode::Folder)
         {
             if (folderIdx == row)
@@ -220,6 +219,7 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
     // Handle each dropped node depending on its type
     //  - For folders, adjust their parent and/or position.
     //  - For bookmarks, if dropped onto root folder, ignore, otherwise change their parent folder
+    emit beginMovingBookmarks();
     beginResetModel();
     for (BookmarkNode *n : droppedNodes)
     {
@@ -243,8 +243,7 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
         }
     }
     endResetModel();
-
-    emit movedBookmark();
+    emit endMovingBookmarks();
 
     return true;
 }
