@@ -1,11 +1,14 @@
 #ifndef URLLINEEDIT_H
 #define URLLINEEDIT_H
 
+#include <unordered_map>
 #include <QLineEdit>
+#include <QString>
 #include <QUrl>
 
 class MainWindow;
 class QToolButton;
+class WebView;
 
 /// Security icon types used by the url line edit
 enum class SecurityIcon
@@ -56,6 +59,10 @@ public:
     /// Returns a recommended size for the widget.
     QSize sizeHint() const override;
 
+    /// Called when the browser window's tab has changed - stores any user text in a hash map so the contents
+    /// will not be lost if they go back to the tab
+    void tabChanged(WebView *newView);
+
 signals:
     /// Called when the user requests to view the security information regarding the current page
     void viewSecurityInfo();
@@ -80,6 +87,12 @@ private:
 
     /// Pointer to the browser window that created the line edit - used for convenience in sizeHint method
     MainWindow *m_parentWindow;
+
+    /// Hashmap of WebView pointers and any text set by the user while the view was last active
+    std::unordered_map<WebView*, QString> m_userTextMap;
+
+    /// Pointer to the active web view
+    WebView *m_activeWebView;
 };
 
 #endif // URLLINEEDIT_H

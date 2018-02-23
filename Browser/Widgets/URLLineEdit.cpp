@@ -3,6 +3,7 @@
 #include "SecurityManager.h"
 #include "URLLineEdit.h"
 #include "URLSuggestionModel.h"
+#include "WebView.h"
 
 #include <QCompleter>
 #include <QIcon>
@@ -12,10 +13,13 @@
 #include <QToolButton>
 
 URLLineEdit::URLLineEdit(QWidget *parent) :
-    QLineEdit(parent)
+    QLineEdit(parent),
+    m_securityButton(nullptr),
+    m_bookmarkButton(nullptr),
+    m_parentWindow(static_cast<MainWindow*>(parent)),
+    m_userTextMap(),
+    m_activeWebView(nullptr)
 {
-    m_parentWindow = static_cast<MainWindow*>(parent);
-
     QSizePolicy policy = sizePolicy();
     //setSizePolicy(QSizePolicy::MinimumExpanding, policy.verticalPolicy());
     setSizePolicy(QSizePolicy::Maximum, policy.verticalPolicy());
@@ -127,6 +131,20 @@ QSize URLLineEdit::sizeHint() const
     // Change height to be same as browser toolbar height
     defaultSize.setHeight(m_parentWindow->getToolbarHeight());
     return defaultSize;
+}
+
+void URLLineEdit::tabChanged(WebView *newView)
+{
+    if (m_activeWebView != nullptr)
+        m_userTextMap[m_activeWebView] = text();
+
+    auto it = m_userTextMap.find(newView);
+    if (it == m_userTextMap.end())
+        setURL(QUrl());
+    else
+        setText(it->second);
+
+    m_activeWebView = newView;
 }
 
 void URLLineEdit::resizeEvent(QResizeEvent *event)

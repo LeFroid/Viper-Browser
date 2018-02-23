@@ -365,7 +365,13 @@ void MainWindow::onTabChanged(int index)
     // Update UI elements to reflect current view
     ui->widgetFindText->setWebView(view);
     ui->widgetFindText->hide();
-    m_urlInput->setURL(view->url());
+
+    // Save text in URL line edit, set widget's contents to the current URL, or if the URL is empty,
+    // set to user text input
+    m_urlInput->tabChanged(view);
+    const QUrl &viewUrl = view->url();
+    if (!viewUrl.isEmpty())
+        m_urlInput->setURL(view->url());
 
     if (ui->dockWidget->isVisible())
         view->inspectElement();
