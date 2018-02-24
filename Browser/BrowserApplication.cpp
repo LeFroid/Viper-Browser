@@ -194,11 +194,11 @@ MainWindow *BrowserApplication::getNewWindow()
     // the startup mode behavior depending on the user's configuration setting
     if (firstWindow)
     {
-        StartupMode mode = m_settings->getValue("StartupMode").value<StartupMode>();
+        StartupMode mode = m_settings->getValue(QStringLiteral("StartupMode")).value<StartupMode>();
         switch (mode)
         {
             case StartupMode::LoadHomePage:
-                w->loadUrl(QUrl::fromUserInput(m_settings->getValue("HomePage").toString()));
+                w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QStringLiteral("HomePage")).toString()));
                 break;
             case StartupMode::LoadBlankPage:
                 w->loadBlankPage();
@@ -215,7 +215,7 @@ MainWindow *BrowserApplication::getNewWindow()
         // Treat new window as a new tab, and check if new tab behavior is set to
         // open a blank page or load a home page URL
         if (m_settings->getValue("NewTabsLoadHomePage").toBool())
-            w->loadUrl(QUrl::fromUserInput(m_settings->getValue("HomePage").toString()));
+            w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QStringLiteral("HomePage")).toString()));
         else
             w->loadBlankPage();
     }
@@ -298,43 +298,44 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
 void BrowserApplication::setWebSettings()
 {
     // Check if custom user agent is used
-    if (m_settings->getValue("CustomUserAgent").toBool())
+    if (m_settings->getValue(QStringLiteral("CustomUserAgent")).toBool())
         WebPage::setUserAgent(m_userAgentMgr->getUserAgent().Value);
 
     QWebSettings *settings = QWebSettings::globalSettings();
-    settings->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
-    settings->setAttribute(QWebSettings::JavascriptEnabled, m_settings->getValue("EnableJavascript").toBool());
-    settings->setAttribute(QWebSettings::JavascriptCanOpenWindows, m_settings->getValue("EnableJavascriptPopups").toBool());
-    settings->setAttribute(QWebSettings::AutoLoadImages, m_settings->getValue("AutoLoadImages").toBool());
-    settings->setAttribute(QWebSettings::PluginsEnabled, m_settings->getValue("EnablePlugins").toBool());
-    settings->setAttribute(QWebSettings::XSSAuditingEnabled, m_settings->getValue("EnableXSSAudit").toBool());
-    settings->setAttribute(QWebSettings::MediaSourceEnabled, true);
-    settings->setAttribute(QWebSettings::LocalStorageEnabled, true);
-    settings->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
+    settings->setAttribute(QWebSettings::JavascriptEnabled,        m_settings->getValue(QStringLiteral("EnableJavascript")).toBool());
+    settings->setAttribute(QWebSettings::JavascriptCanOpenWindows, m_settings->getValue(QStringLiteral("EnableJavascriptPopups")).toBool());
+    settings->setAttribute(QWebSettings::AutoLoadImages,           m_settings->getValue(QStringLiteral("AutoLoadImages")).toBool());
+    settings->setAttribute(QWebSettings::PluginsEnabled,           m_settings->getValue(QStringLiteral("EnablePlugins")).toBool());
+    settings->setAttribute(QWebSettings::XSSAuditingEnabled,       m_settings->getValue(QStringLiteral("EnableXSSAudit")).toBool());
+
+    settings->setAttribute(QWebSettings::DeveloperExtrasEnabled,            true);
+    settings->setAttribute(QWebSettings::MediaSourceEnabled,                true);
+    settings->setAttribute(QWebSettings::LocalStorageEnabled,               true);
+    settings->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled,     true);
     settings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
 
-    settings->setFontFamily(QWebSettings::StandardFont, m_settings->getValue("StandardFont").toString());
-    settings->setFontFamily(QWebSettings::SerifFont, m_settings->getValue("SerifFont").toString());
-    settings->setFontFamily(QWebSettings::SansSerifFont, m_settings->getValue("SansSerifFont").toString());
-    settings->setFontFamily(QWebSettings::CursiveFont, m_settings->getValue("CursiveFont").toString());
-    settings->setFontFamily(QWebSettings::FantasyFont, m_settings->getValue("FantasyFont").toString());
-    settings->setFontFamily(QWebSettings::FixedFont, m_settings->getValue("FixedFont").toString());
+    settings->setFontFamily(QWebSettings::StandardFont,       m_settings->getValue(QStringLiteral("StandardFont")).toString());
+    settings->setFontFamily(QWebSettings::SerifFont,          m_settings->getValue(QStringLiteral("SerifFont")).toString());
+    settings->setFontFamily(QWebSettings::SansSerifFont,      m_settings->getValue(QStringLiteral("SansSerifFont")).toString());
+    settings->setFontFamily(QWebSettings::CursiveFont,        m_settings->getValue(QStringLiteral("CursiveFont")).toString());
+    settings->setFontFamily(QWebSettings::FantasyFont,        m_settings->getValue(QStringLiteral("FantasyFont")).toString());
+    settings->setFontFamily(QWebSettings::FixedFont,          m_settings->getValue(QStringLiteral("FixedFont")).toString());
 
-    settings->setFontSize(QWebSettings::DefaultFontSize, m_settings->getValue("StandardFontSize").toInt());
-    settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings->getValue("FixedFontSize").toInt());
+    settings->setFontSize(QWebSettings::DefaultFontSize,      m_settings->getValue(QStringLiteral("StandardFontSize")).toInt());
+    settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings->getValue(QStringLiteral("FixedFontSize")).toInt());
 
-    QDir cachePath(QDir::homePath() + QDir::separator() + ".cache" + QDir::separator() + "Vaccarelli");
+    QDir cachePath(QDir::homePath() + QDir::separator() + QStringLiteral(".cache") + QDir::separator() + QStringLiteral("Vaccarelli"));
     if (!cachePath.exists())
         cachePath.mkpath(cachePath.absolutePath());
     QWebSettings::setIconDatabasePath(cachePath.absolutePath());
     QWebSettings::enablePersistentStorage(cachePath.absolutePath());
-    settings->setLocalStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg("LocalStorage"));
-    settings->setOfflineStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg("OfflineStorage"));
+    settings->setLocalStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("LocalStorage")));
+    settings->setOfflineStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("OfflineStorage")));
 }
 
 void BrowserApplication::beforeBrowserQuit()
 {
-    StartupMode mode = m_settings->getValue("StartupMode").value<StartupMode>();
+    StartupMode mode = m_settings->getValue(QStringLiteral("StartupMode")).value<StartupMode>();
     if (mode != StartupMode::RestoreSession && m_sessionMgr.alreadySaved())
         return;
 
