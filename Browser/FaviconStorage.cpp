@@ -7,7 +7,6 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QSqlError>
-#include <QSqlQuery>
 #include <QSqlRecord>
 #include <QWebSettings>
 #include <QDebug>
@@ -20,21 +19,28 @@ FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
     m_favicons(),
     m_newFaviconID(0),
     m_newDataID(0),
-    m_queryInsertFavicon(nullptr),
-    m_queryInsertIconData(nullptr)
+    m_queryMap()
 {
-    m_queryInsertFavicon = new QSqlQuery(m_database);
-    m_queryInsertFavicon->prepare(QStringLiteral("INSERT OR REPLACE INTO Favicons(FaviconID, URL) VALUES(:iconId, :url)"));
+    // Prepare commonly used queries and store in the query map
+    auto savedQuery = std::make_unique<QSqlQuery>(m_database);
+    savedQuery->prepare(QLatin1String("INSERT OR REPLACE INTO Favicons(FaviconID, URL) VALUES(:iconId, :url)"));
+    m_queryMap[StoredQuery::InsertFavicon] = std::move(savedQuery);
 
-    m_queryInsertIconData = new QSqlQuery(m_database);
-    m_queryInsertIconData->prepare(QStringLiteral("INSERT OR REPLACE INTO FaviconData(DataID, FaviconID, Data) VALUES(:dataId, :iconId, :data)"));
+    savedQuery = std::make_unique<QSqlQuery>(m_database);
+    savedQuery->prepare(QLatin1String("INSERT OR REPLACE INTO FaviconData(DataID, FaviconID, Data) VALUES(:dataId, :iconId, :data)"));
+    m_queryMap[StoredQuery::InsertIconData] = std::move(savedQuery);
+
+    savedQuery = std::make_unique<QSqlQuery>(m_database);
+    savedQuery->prepare(QLatin1String("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL = (:url))"));
+    m_queryMap[StoredQuery::FindIconExactURL] = std::move(savedQuery);
+
+    savedQuery = std::make_unique<QSqlQuery>(m_database);
+    savedQuery->prepare(QLatin1String("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))"));
+    m_queryMap[StoredQuery::FindIconLikeURL] = std::move(savedQuery);
 }
 
 FaviconStorage::~FaviconStorage()
 {
-    delete m_queryInsertFavicon;
-    delete m_queryInsertIconData;
-
     save();
 }
 
@@ -49,12 +55,11 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
 
     // Three step icon fetch process:
     // First, search DB for exact URL match.
-    QSqlQuery query(m_database);
-    query.prepare(QStringLiteral("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL = (:url))"));
-    query.bindValue(QStringLiteral(":url"), pageUrl);
-    if (query.exec() && query.first())
+    QSqlQuery *query = m_queryMap.at(StoredQuery::FindIconExactURL).get();
+    query->bindValue(QLatin1String(":url"), pageUrl);
+    if (query->exec() && query->first())
     {
-        QString iconURL = query.value(0).toString();
+        QString iconURL = query->value(0).toString();
         auto it = m_favicons.find(iconURL);
         if (it != m_favicons.end())
             return it->icon;
@@ -62,11 +67,11 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
     else
     {
         // Second, search DB for host match.
-        query.prepare(QStringLiteral("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))"));
-        query.bindValue(QStringLiteral(":url"), QString("%%1%").arg(url.host()));
-        if (query.exec() && query.first())
+        query = m_queryMap.at(StoredQuery::FindIconLikeURL).get();
+        query->bindValue(QLatin1String(":url"), QString("%%1%").arg(url.host()));
+        if (query->exec() && query->first())
         {
-            QString iconURL = query.value(0).toString();
+            QString iconURL = query->value(0).toString();
             auto it = m_favicons.find(iconURL);
             if (it != m_favicons.end())
                 return it->icon;
@@ -183,18 +188,20 @@ QByteArray FaviconStorage::iconToBase64(QIcon icon)
 
 void FaviconStorage::saveToDB(const QString &faviconUrl, const FaviconInfo &favicon)
 {
-    m_queryInsertFavicon->bindValue(QStringLiteral(":iconId"), favicon.iconID);
-    m_queryInsertFavicon->bindValue(QStringLiteral(":url"), faviconUrl);
-    if (!m_queryInsertFavicon->exec())
+    QSqlQuery *query = m_queryMap.at(StoredQuery::InsertFavicon).get();
+    query->bindValue(QLatin1String(":iconId"), favicon.iconID);
+    query->bindValue(QLatin1String(":url"), faviconUrl);
+    if (!query->exec())
         qDebug() << "In FaviconStorage::saveToDB - could not add favicon metadata to Favicons table. Message: "
-                 << m_queryInsertFavicon->lastError().text();
+                 << query->lastError().text();
 
-    m_queryInsertIconData->bindValue(QStringLiteral(":dataId"), favicon.dataID);
-    m_queryInsertIconData->bindValue(QStringLiteral(":iconId"), favicon.iconID);
-    m_queryInsertIconData->bindValue(QStringLiteral(":data"), iconToBase64(favicon.icon));
-    if (!m_queryInsertIconData->exec())
+    query = m_queryMap.at(StoredQuery::InsertIconData).get();
+    query->bindValue(QLatin1String(":dataId"), favicon.dataID);
+    query->bindValue(QLatin1String(":iconId"), favicon.iconID);
+    query->bindValue(QLatin1String(":data"), iconToBase64(favicon.icon));
+    if (!query->exec())
         qDebug() << "In FaviconStorage::saveToDB - could not add favicon icon data to FaviconData table. Message: "
-                 << m_queryInsertIconData->lastError().text();
+                 << query->lastError().text();
 }
 
 bool FaviconStorage::hasProperStructure()

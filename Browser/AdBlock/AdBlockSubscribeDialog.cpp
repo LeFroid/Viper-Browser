@@ -41,7 +41,7 @@ std::vector<AdBlockSubscriptionInfo> AdBlockSubscribeDialog::getSubscriptions() 
 
 void AdBlockSubscribeDialog::load()
 {
-    QFile f(QStringLiteral(":/adblock_recommended.json"));
+    QFile f(QLatin1String(":/adblock_recommended.json"));
     if (!f.exists() || !f.open(QIODevice::ReadOnly))
         return;
 
@@ -57,10 +57,10 @@ void AdBlockSubscribeDialog::load()
         subInfo.Name = it.key();
 
         QJsonObject itemInfoObj = it.value().toObject();
-        subInfo.SubscriptionURL = QUrl(itemInfoObj.value(QStringLiteral("source")).toString());
+        subInfo.SubscriptionURL = QUrl(itemInfoObj.value(QLatin1String("source")).toString());
 
-        if (itemInfoObj.contains(QStringLiteral("resource")))
-            subInfo.ResourceURL = QUrl(itemInfoObj.value(QStringLiteral("resource")).toString());
+        if (itemInfoObj.contains(QLatin1String("resource")))
+            subInfo.ResourceURL = QUrl(itemInfoObj.value(QLatin1String("resource")).toString());
 
         m_subscriptions.push_back(subInfo);
     }

@@ -162,7 +162,7 @@ void AdBlockManager::createUserSubscription()
     // Associate new subscription with file "custom.txt"
     QString userFile = m_subscriptionDir;
     userFile.append(QDir::separator());
-    userFile.append(QStringLiteral("custom.txt"));
+    userFile.append(QLatin1String("custom.txt"));
     QString userFileUrl = QString("file://%1").arg(QFileInfo(userFile).absoluteFilePath());
 
     AdBlockSubscription subscription(userFile);
@@ -231,7 +231,7 @@ const QString &AdBlockManager::getDomainStylesheet(const QUrl &url)
             if (numStylesheetRules > 1000)
             {
                 stylesheet = stylesheet.left(stylesheet.size() - 1);
-                stylesheet.append(QStringLiteral("{ display: none !important; } "));
+                stylesheet.append(QLatin1String("{ display: none !important; } "));
                 numStylesheetRules = 0;
             }
             ++numStylesheetRules;
@@ -241,7 +241,7 @@ const QString &AdBlockManager::getDomainStylesheet(const QUrl &url)
     if (numStylesheetRules > 0)
     {
         stylesheet = stylesheet.left(stylesheet.size() - 1);
-        stylesheet.append(QStringLiteral("{ display: none !important; } "));
+        stylesheet.append(QLatin1String("{ display: none !important; } "));
     }
 
     // Check for custom stylesheet rules
@@ -275,7 +275,7 @@ QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
     if (!javascript.isEmpty())
     {
         QString result = m_cosmeticJSTemplate;
-        result.replace(QStringLiteral("{{ADBLOCK_INTERNAL}}"), javascript);
+        result.replace(QLatin1String("{{ADBLOCK_INTERNAL}}"), javascript);
         return result;
     }
 
@@ -411,17 +411,17 @@ ElementType AdBlockManager::getElementTypeMask(const QNetworkRequest &request, c
         type |= ElementType::WebSocket;
 
     QByteArray acceptHeader = request.rawHeader(QByteArray("Accept"));
-    if (acceptHeader.contains("text/css") || requestPath.endsWith(QStringLiteral(".css")))
+    if (acceptHeader.contains("text/css") || requestPath.endsWith(QLatin1String(".css")))
         type |= ElementType::Stylesheet;
     if (acceptHeader.contains("text/javascript") || acceptHeader.contains("application/javascript")
-            || acceptHeader.contains("script/") || requestPath.endsWith(QStringLiteral(".js")))
+            || acceptHeader.contains("script/") || requestPath.endsWith(QLatin1String(".js")))
         type |= ElementType::Script;
-    if (acceptHeader.contains("image/") || requestPath.endsWith(QStringLiteral(".jpg")) || requestPath.endsWith(QStringLiteral(".jpeg"))
-            || requestPath.endsWith(QStringLiteral(".png")) || requestPath.endsWith(QStringLiteral(".gif")))
+    if (acceptHeader.contains("image/") || requestPath.endsWith(QLatin1String(".jpg")) || requestPath.endsWith(QLatin1String(".jpeg"))
+            || requestPath.endsWith(QLatin1String(".png")) || requestPath.endsWith(QLatin1String(".gif")))
         type |= ElementType::Image;
     if (((type & ElementType::Subdocument) != ElementType::Subdocument)
             && (acceptHeader.contains("text/html") || acceptHeader.contains("application/xhtml+xml") || acceptHeader.contains("application/xml")
-                || requestPath.endsWith(QStringLiteral(".html")) || requestPath.endsWith(QStringLiteral(".htm"))))
+                || requestPath.endsWith(QLatin1String(".html")) || requestPath.endsWith(QLatin1String(".htm"))))
         type |= ElementType::Subdocument;
     if (acceptHeader.contains("object"))
         type |= ElementType::Object;
@@ -450,7 +450,7 @@ QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const
 
 void AdBlockManager::loadDynamicTemplate()
 {
-    QFile templateFile(QStringLiteral(":/AdBlock.js"));
+    QFile templateFile(QLatin1String(":/AdBlock.js"));
     if (!templateFile.open(QIODevice::ReadOnly))
         return;
 
@@ -460,7 +460,7 @@ void AdBlockManager::loadDynamicTemplate()
 
 void AdBlockManager::loadUBOResources()
 {
-    QDir resourceDir(QString("%1%2%3").arg(m_subscriptionDir).arg(QDir::separator()).arg(QStringLiteral("resources")));
+    QDir resourceDir(QString("%1%2%3").arg(m_subscriptionDir).arg(QDir::separator()).arg(QLatin1String("resources")));
     if (!resourceDir.exists())
         resourceDir.mkpath(QStringLiteral("."));
 
@@ -509,7 +509,7 @@ void AdBlockManager::loadResourceFile(const QString &path)
             if (!line.isEmpty())
             {
                 currentValue.append(line);
-                if (mimeType.contains(QStringLiteral("javascript")))
+                if (mimeType.contains(QLatin1String("javascript")))
                     currentValue.append('\n');
             }
             else
@@ -545,16 +545,16 @@ void AdBlockManager::loadSubscriptions()
         AdBlockSubscription subscription(it.key());
 
         subscriptionObj = it.value().toObject();
-        subscription.setEnabled(subscriptionObj.value(QStringLiteral("enabled")).toBool());
+        subscription.setEnabled(subscriptionObj.value(QLatin1String("enabled")).toBool());
 
         // Get last update as unix epoch value
         bool ok;
-        uint lastUpdateUInt = subscriptionObj.value(QStringLiteral("last_update")).toVariant().toUInt(&ok);
+        uint lastUpdateUInt = subscriptionObj.value(QLatin1String("last_update")).toVariant().toUInt(&ok);
         QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromTime_t(lastUpdateUInt) : QDateTime::currentDateTime());
         subscription.setLastUpdate(lastUpdate);
 
         // Attempt to get next update time as unix epoch value
-        uint nextUpdateUInt = subscriptionObj.value(QStringLiteral("next_update")).toVariant().toUInt(&ok);
+        uint nextUpdateUInt = subscriptionObj.value(QLatin1String("next_update")).toVariant().toUInt(&ok);
         if (ok && nextUpdateUInt > 0)
         {
             QDateTime nextUpdate = QDateTime::fromTime_t(nextUpdateUInt);
@@ -562,7 +562,7 @@ void AdBlockManager::loadSubscriptions()
         }
 
         // Get source URL of the subscription
-        QString source = subscriptionObj.value(QStringLiteral("source")).toString();
+        QString source = subscriptionObj.value(QLatin1String("source")).toString();
         if (!source.isEmpty())
             subscription.setSourceUrl(QUrl(source));
 
@@ -698,7 +698,7 @@ void AdBlockManager::extractFilters()
         if (numStylesheetRules > 1000)
         {
             m_stylesheet = m_stylesheet.left(m_stylesheet.size() - 1);
-            m_stylesheet.append(QStringLiteral("{ display: none !important; } "));
+            m_stylesheet.append(QLatin1String("{ display: none !important; } "));
             numStylesheetRules = 0;
         }
 
@@ -710,9 +710,9 @@ void AdBlockManager::extractFilters()
     if (numStylesheetRules > 0)
     {
         m_stylesheet = m_stylesheet.left(m_stylesheet.size() - 1);
-        m_stylesheet.append(QStringLiteral("{ display: none !important; } "));
+        m_stylesheet.append(QLatin1String("{ display: none !important; } "));
     }
-    m_stylesheet.append(QStringLiteral("</style>"));
+    m_stylesheet.append(QLatin1String("</style>"));
 }
 
 void AdBlockManager::save()
@@ -730,10 +730,10 @@ void AdBlockManager::save()
     for (auto it = m_subscriptions.cbegin(); it != m_subscriptions.cend(); ++it)
     {
         QJsonObject subscriptionObj;
-        subscriptionObj.insert(QStringLiteral("enabled"), it->isEnabled());
-        subscriptionObj.insert(QStringLiteral("last_update"), QJsonValue::fromVariant(QVariant(it->getLastUpdate().toTime_t())));
-        subscriptionObj.insert(QStringLiteral("next_update"), QJsonValue::fromVariant(QVariant(it->getNextUpdate().toTime_t())));
-        subscriptionObj.insert(QStringLiteral("source"), it->getSourceUrl().toString(QUrl::FullyEncoded));
+        subscriptionObj.insert(QLatin1String("enabled"), it->isEnabled());
+        subscriptionObj.insert(QLatin1String("last_update"), QJsonValue::fromVariant(QVariant(it->getLastUpdate().toTime_t())));
+        subscriptionObj.insert(QLatin1String("next_update"), QJsonValue::fromVariant(QVariant(it->getNextUpdate().toTime_t())));
+        subscriptionObj.insert(QLatin1String("source"), it->getSourceUrl().toString(QUrl::FullyEncoded));
 
         configObj.insert(it->getFilePath(), QJsonValue(subscriptionObj));
     }

@@ -22,9 +22,9 @@ CustomFilterEditor::CustomFilterEditor(QWidget *parent) :
 
     ui->setupUi(this);
 
-    m_filePath = sBrowserApplication->getSettings()->getPathValue(QStringLiteral("AdBlockPlusDataDir"));
+    m_filePath = sBrowserApplication->getSettings()->getPathValue(QLatin1String("AdBlockPlusDataDir"));
     m_filePath.append(QDir::separator());
-    m_filePath.append(QStringLiteral("custom.txt"));
+    m_filePath.append(QLatin1String("custom.txt"));
 
     ui->widgetFindText->hide();
 

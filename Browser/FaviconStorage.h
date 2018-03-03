@@ -3,15 +3,17 @@
 
 #include "DatabaseWorker.h"
 
+#include <map>
+#include <memory>
 #include <QHash>
 #include <QIcon>
 #include <QSet>
+#include <QSqlQuery>
 #include <QString>
 #include <QUrl>
 
 class NetworkAccessManager;
 class QNetworkReply;
-class QSqlQuery;
 
 /// Stores information about a favicon
 struct FaviconInfo
@@ -86,6 +88,16 @@ protected:
     void load() override;
 
 private:
+    /// Used to access prepared database queries allocated on the heap
+    enum class StoredQuery
+    {
+        InsertFavicon,
+        InsertIconData,
+        FindIconExactURL,
+        FindIconLikeURL
+    };
+
+private:
     /// Network access manager - used to fetch favicons
     NetworkAccessManager *m_accessMgr;
 
@@ -101,8 +113,8 @@ private:
     /// Used when adding new records to the favicon data table
     int m_newDataID;
 
-    /// Prepared statements for inserting a new favicon into the database
-    QSqlQuery *m_queryInsertFavicon, *m_queryInsertIconData;
+    /// Map of query types to pointers of commonly used prepared statements
+    std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
 };
 
 #endif // FAVICONSTORAGE_H
