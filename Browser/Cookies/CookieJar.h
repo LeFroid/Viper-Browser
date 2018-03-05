@@ -2,8 +2,11 @@
 #define COOKIEJAR_H
 
 #include "DatabaseWorker.h"
+#include <map>
+#include <memory>
 #include <QDateTime>
 #include <QNetworkCookieJar>
+#include <QSqlQuery>
 
 /**
  * @class CookieJar
@@ -63,12 +66,22 @@ protected:
     void load() override;
 
 private:
+    /// Used to access prepared database queries
+    enum class StoredQuery
+    {
+        InsertCookie,
+        DeleteCookie
+    };
+
     /// Removes expired cookies from both the database and the list in memory
     void removeExpired();
 
 private:
     /// True if private browsing cookie jar (e.g., no persistence), false if standard cookie jar
     bool m_privateJar;
+
+    /// Map of commonly-used prepared database statements
+    std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
 };
 
 #endif // COOKIEJAR_H
