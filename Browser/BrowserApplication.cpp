@@ -33,9 +33,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Load settings
     m_settings = std::make_shared<Settings>();
 
-    // Set global web settings
-    setWebSettings();
-
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QStringLiteral("FaviconPath")));
 
@@ -293,44 +290,6 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
 
     // Reload URLs in the suggestion model
     m_suggestionModel->loadURLs();
-}
-
-void BrowserApplication::setWebSettings()
-{
-    // Check if custom user agent is used
-    if (m_settings->getValue(QStringLiteral("CustomUserAgent")).toBool())
-        WebPage::setUserAgent(m_userAgentMgr->getUserAgent().Value);
-
-    QWebSettings *settings = QWebSettings::globalSettings();
-    settings->setAttribute(QWebSettings::JavascriptEnabled,        m_settings->getValue(QStringLiteral("EnableJavascript")).toBool());
-    settings->setAttribute(QWebSettings::JavascriptCanOpenWindows, m_settings->getValue(QStringLiteral("EnableJavascriptPopups")).toBool());
-    settings->setAttribute(QWebSettings::AutoLoadImages,           m_settings->getValue(QStringLiteral("AutoLoadImages")).toBool());
-    settings->setAttribute(QWebSettings::PluginsEnabled,           m_settings->getValue(QStringLiteral("EnablePlugins")).toBool());
-    settings->setAttribute(QWebSettings::XSSAuditingEnabled,       m_settings->getValue(QStringLiteral("EnableXSSAudit")).toBool());
-
-    settings->setAttribute(QWebSettings::DeveloperExtrasEnabled,            true);
-    settings->setAttribute(QWebSettings::MediaSourceEnabled,                true);
-    settings->setAttribute(QWebSettings::LocalStorageEnabled,               true);
-    settings->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled,     true);
-    settings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
-
-    settings->setFontFamily(QWebSettings::StandardFont,       m_settings->getValue(QStringLiteral("StandardFont")).toString());
-    settings->setFontFamily(QWebSettings::SerifFont,          m_settings->getValue(QStringLiteral("SerifFont")).toString());
-    settings->setFontFamily(QWebSettings::SansSerifFont,      m_settings->getValue(QStringLiteral("SansSerifFont")).toString());
-    settings->setFontFamily(QWebSettings::CursiveFont,        m_settings->getValue(QStringLiteral("CursiveFont")).toString());
-    settings->setFontFamily(QWebSettings::FantasyFont,        m_settings->getValue(QStringLiteral("FantasyFont")).toString());
-    settings->setFontFamily(QWebSettings::FixedFont,          m_settings->getValue(QStringLiteral("FixedFont")).toString());
-
-    settings->setFontSize(QWebSettings::DefaultFontSize,      m_settings->getValue(QStringLiteral("StandardFontSize")).toInt());
-    settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings->getValue(QStringLiteral("FixedFontSize")).toInt());
-
-    QDir cachePath(QDir::homePath() + QDir::separator() + QStringLiteral(".cache") + QDir::separator() + QStringLiteral("Vaccarelli"));
-    if (!cachePath.exists())
-        cachePath.mkpath(cachePath.absolutePath());
-    QWebSettings::setIconDatabasePath(cachePath.absolutePath());
-    QWebSettings::enablePersistentStorage(cachePath.absolutePath());
-    settings->setLocalStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("LocalStorage")));
-    settings->setOfflineStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("OfflineStorage")));
 }
 
 void BrowserApplication::beforeBrowserQuit()

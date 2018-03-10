@@ -104,9 +104,6 @@ public slots:
     /// Updates all browser windows' bookmark menus / toolbars
     void updateBookmarkMenus();
 
-    /// Sets the global web settings of the application - called during initialization and on settings update
-    void setWebSettings();
-
 private slots:
     /// Called when the aboutToQuit signal is emitted. If the user has enabled the session restore feature, their
     /// current windows and tabs will be saved so they can be opened at the start of the next browsing session

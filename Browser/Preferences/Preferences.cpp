@@ -88,7 +88,7 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(QStringLiteral("StandardFontSize"), ui->tabContent->getStandardFontSize());
     m_settings->setValue(QStringLiteral("FixedFontSize"), ui->tabContent->getFixedFontSize());
 
-    sBrowserApplication->setWebSettings();
+    m_settings->applyWebSettings();
 
     close();
 }

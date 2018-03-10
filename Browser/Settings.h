@@ -26,6 +26,9 @@ public:
     /// Returns true if the settings have been created in this session, false if else
     bool firstRun() const;
 
+    /// Applies the web engine settings to the QWebSettings instance
+    void applyWebSettings();
+
 private:
     /// Sets the default browser settings
     void setDefaults();

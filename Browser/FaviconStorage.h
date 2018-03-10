@@ -88,7 +88,7 @@ protected:
     void load() override;
 
 private:
-    /// Used to access prepared database queries allocated on the heap
+    /// Used to access prepared database queries
     enum class StoredQuery
     {
         InsertFavicon,

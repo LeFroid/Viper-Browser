@@ -1,6 +1,8 @@
 #include "Settings.h"
 
 #include "BrowserApplication.h"
+#include "UserAgentManager.h"
+#include "WebPage.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QWebSettings>
@@ -15,6 +17,8 @@ Settings::Settings() :
         setDefaults();
 
     m_storagePath = m_settings.value(QStringLiteral("StoragePath")).toString();
+
+    applyWebSettings();
 }
 
 QString Settings::getPathValue(const QString &key)
@@ -35,6 +39,44 @@ void Settings::setValue(const QString &key, const QVariant &value)
 bool Settings::firstRun() const
 {
     return m_firstRun;
+}
+
+void Settings::applyWebSettings()
+{
+    // Check if custom user agent is used
+    if (getValue(QStringLiteral("CustomUserAgent")).toBool())
+        WebPage::setUserAgent(sBrowserApplication->getUserAgentManager()->getUserAgent().Value);
+
+    QWebSettings *settings = QWebSettings::globalSettings();
+    settings->setAttribute(QWebSettings::JavascriptEnabled,        m_settings.value(QStringLiteral("EnableJavascript")).toBool());
+    settings->setAttribute(QWebSettings::JavascriptCanOpenWindows, m_settings.value(QStringLiteral("EnableJavascriptPopups")).toBool());
+    settings->setAttribute(QWebSettings::AutoLoadImages,           m_settings.value(QStringLiteral("AutoLoadImages")).toBool());
+    settings->setAttribute(QWebSettings::PluginsEnabled,           m_settings.value(QStringLiteral("EnablePlugins")).toBool());
+    settings->setAttribute(QWebSettings::XSSAuditingEnabled,       m_settings.value(QStringLiteral("EnableXSSAudit")).toBool());
+
+    settings->setAttribute(QWebSettings::DeveloperExtrasEnabled,            true);
+    settings->setAttribute(QWebSettings::MediaSourceEnabled,                true);
+    settings->setAttribute(QWebSettings::LocalStorageEnabled,               true);
+    settings->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled,     true);
+    settings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
+
+    settings->setFontFamily(QWebSettings::StandardFont,       m_settings.value(QStringLiteral("StandardFont")).toString());
+    settings->setFontFamily(QWebSettings::SerifFont,          m_settings.value(QStringLiteral("SerifFont")).toString());
+    settings->setFontFamily(QWebSettings::SansSerifFont,      m_settings.value(QStringLiteral("SansSerifFont")).toString());
+    settings->setFontFamily(QWebSettings::CursiveFont,        m_settings.value(QStringLiteral("CursiveFont")).toString());
+    settings->setFontFamily(QWebSettings::FantasyFont,        m_settings.value(QStringLiteral("FantasyFont")).toString());
+    settings->setFontFamily(QWebSettings::FixedFont,          m_settings.value(QStringLiteral("FixedFont")).toString());
+
+    settings->setFontSize(QWebSettings::DefaultFontSize,      m_settings.value(QStringLiteral("StandardFontSize")).toInt());
+    settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings.value(QStringLiteral("FixedFontSize")).toInt());
+
+    QDir cachePath(QDir::homePath() + QDir::separator() + QStringLiteral(".cache") + QDir::separator() + QStringLiteral("Vaccarelli"));
+    if (!cachePath.exists())
+        cachePath.mkpath(cachePath.absolutePath());
+    QWebSettings::setIconDatabasePath(cachePath.absolutePath());
+    QWebSettings::enablePersistentStorage(cachePath.absolutePath());
+    settings->setLocalStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("LocalStorage")));
+    settings->setOfflineStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("OfflineStorage")));
 }
 
 void Settings::setDefaults()
