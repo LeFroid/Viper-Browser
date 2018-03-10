@@ -30,6 +30,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
+    // Setup user agent manager before settings
+    m_userAgentMgr = new UserAgentManager(m_settings);
+
     // Load settings
     m_settings = std::make_shared<Settings>();
 
@@ -63,9 +66,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_privateNetworkAccessMgr = new NetworkAccessManager;
     CookieJar *privateJar = new CookieJar(QString("%1.fake").arg(m_settings->getPathValue(QStringLiteral("CookiePath"))), QStringLiteral("FakeCookies"), true);
     m_privateNetworkAccessMgr->setCookieJar(privateJar);
-
-    // Setup user agent manager
-    m_userAgentMgr = new UserAgentManager(m_settings);
 
     // Setup user script manager
     m_userScriptMgr = new UserScriptManager(m_settings);
