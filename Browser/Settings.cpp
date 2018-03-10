@@ -17,8 +17,6 @@ Settings::Settings() :
         setDefaults();
 
     m_storagePath = m_settings.value(QStringLiteral("StoragePath")).toString();
-
-    applyWebSettings();
 }
 
 QString Settings::getPathValue(const QString &key)

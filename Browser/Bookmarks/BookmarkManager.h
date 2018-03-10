@@ -2,9 +2,11 @@
 #define BOOKMARKMANAGER_H
 
 #include "DatabaseWorker.h"
-#include <QString>
 #include <list>
+#include <map>
 #include <memory>
+#include <QSqlQuery>
+#include <QString>
 
 class BookmarkNode;
 
@@ -135,6 +137,27 @@ protected:
 protected:
     /// Root bookmark folder
     std::unique_ptr<BookmarkNode> m_rootNode;
+
+/*
+private:
+    Used to access prepared database queries
+    enum class StoredQuery
+    {
+        CreateFolder,
+        CreateBookmark,
+        UpdateNodePositions,
+        IsBookmarked,
+        RemoveFolder,
+        ChangeParentFolder,
+        FindParentFolderID,
+        UpdateBookmarkName,
+        UpdateFolderName,
+        ValidateFolderID,
+    };
+
+    Map of query types to their corresponding prepared statements
+    std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
+*/
 };
 
 #endif // BOOKMARKMANAGER_H
