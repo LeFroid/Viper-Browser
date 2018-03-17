@@ -281,31 +281,15 @@ void BookmarkTableModel::searchFor(const QString &text)
     // Make term lowercase (case-insensitive search)
     QString query = text.toLower();
 
-    // Search from root bookmark folder down, comparing title and url of each bookmark to search term
-    std::deque<BookmarkNode*> nodes;
-    nodes.push_back(m_bookmarkMgr->getRoot());
-    while (!nodes.empty())
+    // Iterate through bookmark collection for any bookmark titles or urls containing the search term
+    for (auto it = m_bookmarkMgr->begin(); it != m_bookmarkMgr->end(); ++it)
     {
-        BookmarkNode *folder = nodes.front();
-
-        int numChildren = folder->getNumChildren();
-        for (int i = 0; i < numChildren; ++i)
+        BookmarkNode *node = *it;
+        if (node->getName().toLower().contains(query)
+                || node->getURL().toLower().contains(query))
         {
-            BookmarkNode *subNode = folder->getNode(i);
-
-            // Add sub-folders to queue, but still include them in the search
-            if (subNode->getType() == BookmarkNode::Folder)
-                nodes.push_back(subNode);
-
-            // If either the title or url is a partial match, add to search results
-            if (subNode->getName().toLower().contains(query)
-                    || subNode->getURL().toLower().contains(query))
-            {
-                m_searchResults.push_back(subNode);
-            }
+            m_searchResults.push_back(node);
         }
-
-        nodes.pop_front();
     }
 
     endResetModel();

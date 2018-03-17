@@ -49,7 +49,7 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     ui->tableView->setDragDropOverwriteMode(false);
 
     // Enable search for bookmarks
-    connect(ui->lineEditSearch, &QLineEdit::textChanged, this, &BookmarkWidget::searchBookmarks);
+    connect(ui->lineEditSearch, &QLineEdit::returnPressed, this, &BookmarkWidget::searchBookmarks);
 }
 
 BookmarkWidget::~BookmarkWidget()
@@ -342,8 +342,9 @@ void BookmarkWidget::deleteFolderSelection()
         ui->buttonForward->setEnabled(false);
 }
 
-void BookmarkWidget::searchBookmarks(const QString &term)
+void BookmarkWidget::searchBookmarks()
 {
+    const QString term = ui->lineEditSearch->text();
     BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
     tableModel->searchFor(term);
 }

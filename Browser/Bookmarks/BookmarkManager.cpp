@@ -11,7 +11,8 @@
 
 BookmarkManager::BookmarkManager(const QString &databaseFile) :
     DatabaseWorker(databaseFile, "Bookmarks"),
-    m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QString("Bookmarks")))
+    m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QString("Bookmarks"))),
+    m_nodeList()
 {
 }
 
@@ -69,6 +70,7 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
     BookmarkNode *f = parent->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, name));
     f->setFolderId(folderId);
     f->setIcon(QIcon::fromTheme("folder"));
+    resetBookmarkList();
     return f;
 }
 
@@ -85,6 +87,8 @@ void BookmarkManager::appendBookmark(const QString &name, const QString &url, Bo
     // Add bookmark to the database
     if (!addBookmarkToDB(b, folder))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
+
+    resetBookmarkList();
 }
 
 void BookmarkManager::insertBookmark(const QString &name, const QString &url, BookmarkNode *folder, int position)
@@ -113,43 +117,39 @@ void BookmarkManager::insertBookmark(const QString &name, const QString &url, Bo
     // Add bookmark to the database
     if (!addBookmarkToDB(b, folder))
         qDebug() << "[Warning]: Could not insert new bookmark into the database";
+
+    resetBookmarkList();
 }
 
 bool BookmarkManager::isBookmarked(const QString &url)
 {
-    QSqlQuery query(m_database);
-    query.prepare("SELECT FolderID FROM Bookmarks WHERE URL = (:url)");
-    query.bindValue(":url", url);
-    return (query.exec() && query.next());
+    if (url.isEmpty())
+        return false;
+
+    for (BookmarkNode *node : m_nodeList)
+    {
+        if (node->m_url.compare(url) == 0)
+            return true;
+    }
+    return false;
 }
 
 void BookmarkManager::removeBookmark(const QString &url)
 {
-    // Search DB for bookmark's parent folder id
-    QSqlQuery query(m_database);
-    query.prepare("SELECT FolderID FROM Bookmarks WHERE URL = (:url)");
-    query.bindValue(":url", url);
-    if (!query.exec() || !query.first())
-        qDebug() << "[Warning]: In BookmarkManager::removeBookmark(..) - could not search database for bookmark with url " << url;
-
-    int folderId = query.value(0).toInt();
-    BookmarkNode *folder = findFolder(folderId);
-    if (folder == nullptr)
-    {
-        qDebug() << "[Warning]: In BookmarkManager::removeBookmark(..) - found bookmark, could not find folder it belongs to";
+    if (url.isEmpty())
         return;
-    }
 
-    for (auto &node : folder->m_children)
+    for (BookmarkNode *node : m_nodeList)
     {
-        BookmarkNode *b = node.get();
-        if (b->m_url.compare(url, Qt::CaseInsensitive) == 0)
+        // Bookmark URLs are unique, once match is found, remove bookmark and return
+        if (node->m_url.compare(url) == 0)
         {
-            if (!removeBookmarkFromDB(b))
+            if (!removeBookmarkFromDB(node))
                 qDebug() << "Could not remove bookmark from DB";
-
-            folder->removeNode(b);
-            break;
+            if (BookmarkNode *parent = node->getParent())
+                parent->removeNode(node);
+            resetBookmarkList();
+            return;
         }
     }
 }
@@ -164,7 +164,10 @@ void BookmarkManager::removeBookmark(BookmarkNode *item)
         qDebug() << "Could not remove bookmark from DB";
 
     if (BookmarkNode *parent = item->getParent())
+    {
         parent->removeNode(item);
+        resetBookmarkList();
+    }
 }
 
 void BookmarkManager::removeFolder(BookmarkNode *folder)
@@ -196,6 +199,9 @@ void BookmarkManager::removeFolder(BookmarkNode *folder)
     // Remove folder from parent
     if (BookmarkNode *parent = folder->getParent())
         parent->removeNode(folder);
+
+    // Re-create bookmark list
+    resetBookmarkList();
 }
 
 void BookmarkManager::setNodePosition(BookmarkNode *node, int position)
@@ -268,6 +274,7 @@ void BookmarkManager::setNodePosition(BookmarkNode *node, int position)
         ++position;
     static_cast<void>(parent->insertNode(std::make_unique<BookmarkNode>(std::move(*node)), position));
     parent->removeNode(node);
+    resetBookmarkList();
 }
 
 BookmarkNode *BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNode *newParent)
@@ -326,33 +333,22 @@ BookmarkNode *BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNod
     folder->setFolderId(folderId);
     folder->setIcon(folderIcon);
     loadFolder(folder);
+
+    resetBookmarkList();
+
     return folder;
 }
 
 BookmarkNode *BookmarkManager::getBookmark(const QString &url)
 {
-    // Search DB for parent's folder ID. If query does not yield a result, bookmark is not in the collection
-    int parentID = -1;
-    QSqlQuery query(m_database);
-    query.prepare("SELECT ParentID FROM Bookmarks WHERE URL = (:url)");
-    query.bindValue(":url", url);
-    if (query.exec() && query.next())
-        parentID = query.value(0).toInt();
-    else
+    if (url.isEmpty())
         return nullptr;
 
-    // Get parent folder and search children for the target bookmark
-    BookmarkNode *parentFolder = findFolder(parentID);
-    if (parentFolder == nullptr)
-        return nullptr;
-
-    int numChildren = parentFolder->getNumChildren();
-    for (int i = 0; i < numChildren; ++i)
+    for (BookmarkNode *node : m_nodeList)
     {
-        BookmarkNode *subNode = parentFolder->getNode(i);
-        if (subNode->getType() == BookmarkNode::Bookmark
-                && subNode->getURL().compare(url) == 0)
-            return subNode;
+        if (node->getType() == BookmarkNode::Bookmark
+                && node->getURL().compare(url) == 0)
+            return node;
     }
 
     return nullptr;
@@ -553,6 +549,29 @@ bool BookmarkManager::removeBookmarkFromDB(BookmarkNode *bookmark)
     return ok;
 }
 
+void BookmarkManager::resetBookmarkList()
+{
+    m_nodeList.clear();
+
+    std::deque<BookmarkNode*> queue;
+    queue.push_back(m_rootNode.get());
+    while (!queue.empty())
+    {
+        BookmarkNode *n = queue.front();
+
+        for (auto &node : n->m_children)
+        {   
+            BookmarkNode *childNode = node.get();
+            m_nodeList.push_back(childNode);
+
+            if (childNode->getType() == BookmarkNode::Folder)
+                queue.push_back(childNode);
+        }
+
+        queue.pop_front();
+    }
+}
+
 bool BookmarkManager::hasProperStructure()
 {
     // Verify existence of Bookmarks table
@@ -595,4 +614,5 @@ void BookmarkManager::setup()
 void BookmarkManager::load()
 {
     loadFolder(m_rootNode.get());
+    resetBookmarkList(); 
 }

@@ -5,6 +5,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <vector>
 #include <QSqlQuery>
 #include <QString>
 
@@ -23,6 +24,9 @@ class BookmarkManager : private DatabaseWorker
     friend class DatabaseFactory;
 
 public:
+    typedef typename std::vector<BookmarkNode*>::iterator iterator;
+    typedef typename std::vector<BookmarkNode*>::const_iterator const_iterator;
+
     /// Bookmark constructor - loads database information into memory
     explicit BookmarkManager(const QString &databaseFile);
 
@@ -87,6 +91,12 @@ public:
      */
     BookmarkNode *getBookmark(const QString &url);
 
+    /// Returns an iterator pointing to the first bookmark in the collection
+    iterator begin() { return m_nodeList.begin(); }
+
+    /// Returns an iterator at the end of the bookmark collection
+    iterator end() { return m_nodeList.end(); }
+
 protected:
     /// Called by the BookmarkTableModel when the URL and/or name of a bookmark has been modified
     void updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID);
@@ -120,6 +130,9 @@ private:
      */
     bool removeBookmarkFromDB(BookmarkNode *bookmark);
 
+    /// Resets the flat list of bookmark node pointers, used for iteration & bookmark searches
+    void resetBookmarkList();
+
 protected:
     /// Returns true if the bookmark database contains the table structure(s) needed for it to function properly,
     /// false if else.
@@ -137,6 +150,10 @@ protected:
 protected:
     /// Root bookmark folder
     std::unique_ptr<BookmarkNode> m_rootNode;
+
+private:
+    /// Container of bookmark node pointers, flattened version of tree structure used for bookmark iteration
+    std::vector<BookmarkNode*> m_nodeList;
 
 /*
 private:
