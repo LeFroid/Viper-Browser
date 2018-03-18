@@ -69,40 +69,41 @@ void BookmarkBar::refresh()
     BookmarkNode *folder = m_bookmarkManager->getBookmarksBar();
     int numChildren = folder->getNumChildren();
 
+    QFontMetrics fMetrics = fontMetrics();
+    const int maxTextWidth = fMetrics.width(QLatin1Char('R')) * 16;
+
     // Show contents of bookmarks bar
     for (int i = 0; i < numChildren; ++i)
     {
         BookmarkNode *child = folder->getNode(i);
+        const QString childText = fMetrics.elidedText(child->getName(), Qt::ElideRight, maxTextWidth);
+
+        // Set common properties of button before folder or bookmark specific properties
+        QToolButton *button = new QToolButton(this);
+        button->setText(childText);
+        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        button->setProperty("BookmarkNode", QVariant::fromValue<BookmarkNode*>(child));
+        button->setSizePolicy(QSizePolicy::Minimum, button->sizePolicy().verticalPolicy());
+        button->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(button, &QToolButton::customContextMenuRequested, this, &BookmarkBar::showBookmarkContextMenu);
+
         if (child->getType() == BookmarkNode::Folder)
         {
-            QToolButton *button = new QToolButton(this);
             button->setPopupMode(QToolButton::InstantPopup);
             //button->setArrowType(Qt::DownArrow);
-            button->setText(child->getName());
             button->setIcon(child->getIcon());
 
             QMenu *menu = new QMenu(this);
             addFolderItems(menu, child, iconStorage);
-
             button->setMenu(menu);
-            button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-            button->setProperty("BookmarkNode", QVariant::fromValue<BookmarkNode*>(child));
-            button->setContextMenuPolicy(Qt::CustomContextMenu);
-            connect(button, &QToolButton::customContextMenuRequested, this, &BookmarkBar::showBookmarkContextMenu);
-            addWidget(button);
         }
         else
         {
-            QToolButton *button = new QToolButton(this);
-            button->setText(child->getName());
             button->setIcon(iconStorage->getFavicon(QUrl(child->getURL())));
-            button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-            button->setContextMenuPolicy(Qt::CustomContextMenu);
-            button->setProperty("BookmarkNode", QVariant::fromValue<BookmarkNode*>(child));
             connect(button, &QToolButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(child->getURL())); });
-            connect(button, &QToolButton::customContextMenuRequested, this, &BookmarkBar::showBookmarkContextMenu);
-            addWidget(button);
         }
+
+        addWidget(button);
     }
 }
 
