@@ -38,9 +38,6 @@ public slots:
     void reloadBookmarks();
 
 protected:
-    /// Called when the bookmarks manager is closed
-    virtual void closeEvent(QCloseEvent *event) override;
-
     /// Called to adjust the proportions of the columns belonging to the table view
     virtual void resizeEvent(QResizeEvent *event) override;
 
@@ -53,9 +50,6 @@ signals:
 
     /// Signal for the browser to open a bookmark into a new window
     void openBookmarkNewWindow(const QUrl &link);
-
-    /// Called when the window is closed, signals the main window so that it can recreate the bookmarks menu
-    void managerClosed();
 
 private slots:
     /// Creates a context menu for the table view at the position of the cursor

@@ -35,10 +35,6 @@ public:
     /// Sets the information fields of the newly added bookmark that will be displayed in the dialog
     void setBookmarkInfo(const QString &bookmarkName, const QString &bookmarkUrl, BookmarkNode *parentFolder = nullptr);
 
-signals:
-    /// Emitted when browser windows should update their bookmark menu
-    void updateBookmarkMenu();
-
 private slots:
     /// Called when the user asks to remove the bookmark. Will close the dialog after removal
     void onRemoveBookmark();

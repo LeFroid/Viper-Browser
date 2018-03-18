@@ -2,10 +2,12 @@
 #define BOOKMARKMANAGER_H
 
 #include "DatabaseWorker.h"
-#include <list>
+
 #include <map>
 #include <memory>
 #include <vector>
+
+#include <QObject>
 #include <QSqlQuery>
 #include <QString>
 
@@ -17,8 +19,10 @@ class BookmarkNode;
  *        an interface for the user to view or modify their bookmark
  *        collection
  */
-class BookmarkManager : private DatabaseWorker
+class BookmarkManager : public QObject, private DatabaseWorker
 {
+    Q_OBJECT
+
     friend class BookmarkTableModel;
     friend class BookmarkFolderModel;
     friend class DatabaseFactory;
@@ -28,7 +32,9 @@ public:
     typedef typename std::vector<BookmarkNode*>::const_iterator const_iterator;
 
     /// Bookmark constructor - loads database information into memory
-    explicit BookmarkManager(const QString &databaseFile);
+    explicit BookmarkManager(const QString &databaseFile, QObject *parent = nullptr);
+
+    ~BookmarkManager();
 
     /// Returns the root bookmark container
     BookmarkNode *getRoot();
@@ -97,6 +103,10 @@ public:
     /// Returns an iterator at the end of the bookmark collection
     iterator end() { return m_nodeList.end(); }
 
+signals:
+    /// Emitted when there has been a change to the bookmark tree
+    void bookmarksChanged();
+
 protected:
     /// Called by the BookmarkTableModel when the URL and/or name of a bookmark has been modified
     void updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID);
@@ -105,15 +115,8 @@ protected:
     void updatedFolderName(BookmarkNode *folder);
 
 private:
-    /// Returns true if the given folder id exists in the bookmarks database, false if else
-    bool isValidFolderID(int id);
-
     /// Loads bookmark information from the database
     void loadFolder(BookmarkNode *folder);
-
-    /// Searches for the folder with the given ID by performing a BFS from the root bookmark node
-    /// Returns a nullptr if the folder cannot be found, otherwise returns a pointer to the folder
-    BookmarkNode *findFolder(int id);
 
     /**
      * @brief addBookmarkToDB Inserts a new bookmark into the database
@@ -129,6 +132,9 @@ private:
      * @return True on success, false on failure
      */
     bool removeBookmarkFromDB(BookmarkNode *bookmark);
+
+    /// Called when the bookmark tree has changed - resets the bookmark list for iteration, and emits the bookmarksChanged() signal
+    void onBookmarksChanged();
 
     /// Resets the flat list of bookmark node pointers, used for iteration & bookmark searches
     void resetBookmarkList();

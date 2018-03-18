@@ -66,9 +66,6 @@ private:
     /// Sets the proper functionality of the bookmarks menu and bookmarks bar
     void setupBookmarks();
 
-    /// Instantiates the window's \ref BookmarkDialog
-    void setupBookmarkDialog();
-
     /// Initializes the actions belonging to the menu bar (except bookmarks, history and plugins)
     void setupMenuBar();
 

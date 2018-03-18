@@ -138,6 +138,8 @@ void MainWindow::openLinkNewWindow(const QUrl &url)
 
 void MainWindow::setupBookmarks()
 {
+    connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged,     this, &MainWindow::refreshBookmarkMenu);
+
     connect(ui->menuBookmarks, &BookmarkMenu::manageBookmarkRequest,   this, &MainWindow::openBookmarkWidget);
     connect(ui->menuBookmarks, &BookmarkMenu::loadUrlRequest,          this, &MainWindow::loadUrl);
     connect(ui->menuBookmarks, &BookmarkMenu::addPageToBookmarks,      this, &MainWindow::addPageToBookmarks);
@@ -150,12 +152,6 @@ void MainWindow::setupBookmarks()
     connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewWindow, [=](const QUrl &url){
         m_tabWidget->openLinkInNewWindow(url, m_privateWindow);
     });
-}
-
-void MainWindow::setupBookmarkDialog()
-{
-    m_bookmarkDialog = new BookmarkDialog(m_bookmarkManager);
-    connect(m_bookmarkDialog, &BookmarkDialog::updateBookmarkMenu, sBrowserApplication, &BrowserApplication::updateBookmarkMenus);
 }
 
 void MainWindow::setupMenuBar()
@@ -395,7 +391,6 @@ void MainWindow::openBookmarkWidget()
         // Setup bookmark manager UI
         m_bookmarkUI = new BookmarkWidget;
         m_bookmarkUI->setBookmarkManager(m_bookmarkManager);
-        connect(m_bookmarkUI, &BookmarkWidget::managerClosed, sBrowserApplication, &BrowserApplication::updateBookmarkMenus);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewWindow, this, &MainWindow::openLinkNewWindow);
@@ -514,7 +509,7 @@ void MainWindow::addPageToBookmarks()
     m_bookmarkManager->appendBookmark(bookmarkName, bookmarkUrl);
 
     if (!m_bookmarkDialog)
-        setupBookmarkDialog();
+        m_bookmarkDialog = new BookmarkDialog(m_bookmarkManager);
 
     m_bookmarkDialog->setDialogHeader(tr("Bookmark Added"));
     m_bookmarkDialog->setBookmarkInfo(bookmarkName, bookmarkUrl);
@@ -532,7 +527,6 @@ void MainWindow::removePageFromBookmarks(bool showDialog)
     m_bookmarkManager->removeBookmark(view->url().toString());
     if (showDialog)
         QMessageBox::information(this, tr("Bookmark"), tr("Page removed from bookmarks."));
-    sBrowserApplication->updateBookmarkMenus();
 }
 
 void MainWindow::toggleBookmarkBar(bool enabled)
@@ -745,7 +739,7 @@ void MainWindow::onClickBookmarkIcon()
     else
     {
         if (!m_bookmarkDialog)
-            setupBookmarkDialog();
+            m_bookmarkDialog = new BookmarkDialog(m_bookmarkManager);
 
         m_bookmarkDialog->setDialogHeader(tr("Bookmark"));
         m_bookmarkDialog->setBookmarkInfo(node->getName(), node->getURL(), node->getParent());

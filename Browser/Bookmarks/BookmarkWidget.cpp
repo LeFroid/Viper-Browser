@@ -57,12 +57,6 @@ BookmarkWidget::~BookmarkWidget()
     delete ui;
 }
 
-void BookmarkWidget::closeEvent(QCloseEvent *event)
-{
-    emit managerClosed();
-    QWidget::closeEvent(event);
-}
-
 void BookmarkWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);

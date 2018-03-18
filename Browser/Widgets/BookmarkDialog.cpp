@@ -90,7 +90,6 @@ void BookmarkDialog::onRemoveBookmark()
         return;
 
     m_bookmarkManager->removeBookmark(m_currentUrl);
-    emit updateBookmarkMenu();
     close();
 }
 
@@ -103,6 +102,5 @@ void BookmarkDialog::saveAndClose()
     m_bookmarkManager->removeBookmark(m_currentUrl);
     BookmarkNode *parentNode = (BookmarkNode*) ui->comboBoxFolder->currentData().value<void*>();
     m_bookmarkManager->appendBookmark(ui->lineEditName->text(), m_currentUrl, parentNode);
-    emit updateBookmarkMenu();
     close();
 }

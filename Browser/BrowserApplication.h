@@ -101,9 +101,6 @@ public slots:
     /// Spawns a new browser window, setting it to private browsing mode before returning a pointer to the window
     MainWindow *getNewPrivateWindow();
 
-    /// Updates all browser windows' bookmark menus / toolbars
-    void updateBookmarkMenus();
-
 private slots:
     /// Called when the aboutToQuit signal is emitted. If the user has enabled the session restore feature, their
     /// current windows and tabs will be saved so they can be opened at the start of the next browsing session
