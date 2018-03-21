@@ -14,26 +14,13 @@ BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
 
     // Populate combo box with each folder in the bookmark collection
-    bool isRoot = true;
-    QQueue<BookmarkNode*> q;
-    q.enqueue(m_bookmarkManager->getRoot());
-    while (!q.empty())
+    const BookmarkNode *rootNode = m_bookmarkManager->getRoot();
+    for (auto it : *m_bookmarkManager)
     {
-        BookmarkNode *f = q.dequeue();
-
-        if (!isRoot)
-            ui->comboBoxFolder->addItem(f->getName(), qVariantFromValue((void *)f));
-        else
-            isRoot = false;
-
-        int numChildren = f->getNumChildren();
-        for (int i = 0; i < numChildren; ++i)
-        {
-            BookmarkNode *n = f->getNode(i);
-            if (n->getType() == BookmarkNode::Folder)
-                q.enqueue(n);
-        }
+        if (it != rootNode && it->getType() == BookmarkNode::Folder)
+            ui->comboBoxFolder->addItem(it->getName(), qVariantFromValue((void *)it));
     }
+
     ui->comboBoxFolder->setCurrentIndex(0);
 
     // Connect UI signals to slots
