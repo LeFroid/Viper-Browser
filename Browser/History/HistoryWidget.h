@@ -14,12 +14,13 @@ class QSortFilterProxyModel;
 /// Range of times used to narrow browser history shown in the table
 enum class HistoryRange
 {
-    Week      = 0,
-    Fortnight = 1,
-    Month     = 2,
-    Year      = 3,
-    All       = 4,
-    RangeMax  = 5
+    Day       = 0,
+    Week      = 1,
+    Fortnight = 2,
+    Month     = 3,
+    Year      = 4,
+    All       = 5,
+    RangeMax  = 6
 };
 
 /**

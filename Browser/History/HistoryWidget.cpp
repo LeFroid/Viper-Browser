@@ -16,7 +16,7 @@ HistoryWidget::HistoryWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::HistoryWidget),
     m_proxyModel(new QSortFilterProxyModel(this)),
-    m_timeRange(HistoryRange::Week)
+    m_timeRange(HistoryRange::Day)
 {
     ui->setupUi(this);
 
@@ -102,7 +102,8 @@ void HistoryWidget::searchHistory()
 void HistoryWidget::setupCriteriaList()
 {
     QStringList listItems;
-    listItems << "Last 7 days"
+    listItems << "Today"
+              << "Last 7 days"
               << "Last 14 days"
               << "Last month"
               << "Last year"
@@ -111,14 +112,16 @@ void HistoryWidget::setupCriteriaList()
 
     // Associate user data type (HistoryTypes) with widget items
     QListWidgetItem *item = ui->listWidgetCriteria->item(0);
-    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Week));
+    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Day));
     item = ui->listWidgetCriteria->item(1);
-    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Fortnight));
+    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Week));
     item = ui->listWidgetCriteria->item(2);
-    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Month));
+    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Fortnight));
     item = ui->listWidgetCriteria->item(3);
-    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Year));
+    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Month));
     item = ui->listWidgetCriteria->item(4);
+    item->setData(Qt::UserRole, static_cast<int>(HistoryRange::Year));
+    item = ui->listWidgetCriteria->item(5);
     item->setData(Qt::UserRole, static_cast<int>(HistoryRange::All));
 
     ui->listWidgetCriteria->setCurrentRow(0);
@@ -132,6 +135,7 @@ QDateTime HistoryWidget::getLoadDate()
     qint64 timeSubtract = 0;
     switch (m_timeRange)
     {
+        case HistoryRange::Day: return QDateTime(retDate.date(), QTime(0, 0));
         case HistoryRange::Week: timeSubtract = -7; break;
         case HistoryRange::Fortnight: timeSubtract = -14; break;
         case HistoryRange::Month: timeSubtract = -31; break;
