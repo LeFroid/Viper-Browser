@@ -11,6 +11,7 @@
 #include "SearchEngineManager.h"
 #include "Settings.h"
 #include "NetworkAccessManager.h"
+#include "RequestInterceptor.h"
 #include "URLSuggestionModel.h"
 #include "UserAgentManager.h"
 #include "UserScriptManager.h"
@@ -20,6 +21,7 @@
 #include <QDir>
 #include <QUrl>
 #include <QDebug>
+#include <QWebEngineProfile>
 
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
@@ -32,6 +34,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Load settings
     m_settings = std::make_shared<Settings>();
+
 
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QStringLiteral("FaviconPath")));
@@ -72,6 +75,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Apply web settings
     m_settings->applyWebSettings();
+    
+    // Setup request interceptor and attach to the default web profile
+    m_requestInterceptor = new RequestInterceptor;
+    auto webProfile = QWebEngineProfile::defaultProfile();
+    webProfile->setRequestInterceptor(m_requestInterceptor);
 
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QStringLiteral("SearchEnginesFile")));
@@ -107,6 +115,7 @@ BrowserApplication::~BrowserApplication()
     delete m_historyWidget;
     delete m_userAgentMgr;
     delete m_userScriptMgr;
+    delete m_requestInterceptor;
 }
 
 BrowserApplication *BrowserApplication::instance()

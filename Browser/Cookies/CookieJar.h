@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include <QNetworkCookieJar>
 #include <QSqlQuery>
+#include <QWebEngineCookieStore>
 
 /**
  * @class CookieJar
@@ -82,6 +83,9 @@ private:
 
     /// Map of commonly-used prepared database statements
     std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
+
+    /// Pointer to the web engine's cookie store
+    QWebEngineCookieStore *m_store;
 };
 
 #endif // COOKIEJAR_H

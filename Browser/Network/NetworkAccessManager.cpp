@@ -2,8 +2,6 @@
 #include "NetworkAccessManager.h"
 #include "ViperNetworkReply.h"
 
-#include "AdBlockManager.h"
-
 #include <QNetworkRequest>
 #include <QUrl>
 
@@ -18,11 +16,6 @@ QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operati
     {
         if (request.url().scheme().compare(QStringLiteral("viper")) == 0)
             return new ViperNetworkReply(request, this);
-
-        AdBlockManager &adBlockMgr = AdBlockManager::instance();
-        BlockedNetworkReply *blockedReply = adBlockMgr.getBlockedReply(request);
-        if (blockedReply != nullptr)
-            return blockedReply;
     }
     else if (op == NetworkAccessManager::PostOperation)
     {

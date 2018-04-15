@@ -281,61 +281,113 @@ QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
     return QString();
 }
 
-BlockedNetworkReply *AdBlockManager::getBlockedReply(const QNetworkRequest &request)
+bool AdBlockManager::shouldBlockRequest(const QWebEngineUrlRequestInfo &info)
 {
     if (!m_enabled)
-        return nullptr;
+        return false;
 
-    QUrl requestUrlObj = request.url();
-
-    // Attempt to get base url, defaulting to the request url if cannot be obtained
-    QString baseUrl;
-    QWebFrame *frame = qobject_cast<QWebFrame*>(request.originatingObject());
-    if (frame != nullptr)
-    {
-        while (frame->parentFrame() != nullptr)
-            frame = frame->parentFrame();
-        baseUrl = frame->baseUrl().toString(QUrl::FullyEncoded).toLower();
-    }
-    else
-        baseUrl = requestUrlObj.toString(QUrl::FullyEncoded).toLower();
-
-    // Get request url in string form, as well as its domain string
-    QString requestUrl = requestUrlObj.toString(QUrl::FullyEncoded).toLower();
+    // Get request URL and the originating URL
+    QString requestUrl = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
+    QString baseUrl = info.firstPartyUrl().toString(QUrl::FullyEncoded).toLower();
 
     if (baseUrl.isEmpty())
         baseUrl = requestUrl;
 
-    // Determine element type(s) of request
-    ElementType elemType = getElementTypeMask(request, requestUrlObj.path());
-
-    // Document type and third party type checking are done outside of getElementTypeMask
+    // Convert QWebEngine request info type to ours
+    ElementType elemType = ElementType::None;
+    switch (info.resourceType())
+    {
+        case QWebEngineUrlRequestInfo::ResourceTypeMainFrame:
+            elemType |= ElementType::Document;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeSubFrame:
+            elemType |= ElementType::Subdocument;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeStylesheet:
+            elemType |= ElementType::Stylesheet;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeScript:
+            elemType |= ElementType::Script;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeImage:
+            elemType |= ElementType::Image;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeFontResource:
+            elemType |= ElementType::Other;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeSubResource:
+            if (requestUrl.endsWith(QLatin1String("htm"))
+                || requestUrl.endsWith(QLatin1String("html"))
+                || requestUrl.endsWith(QLatin1String("xml")))
+            {
+                elemType |= ElementType::Subdocument;
+            }
+            break;
+        //left off here
+        case QWebEngineUrlRequestInfo::ResourceTypeObject:
+            elemType |= ElementType::Object;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeMedia:
+            elemType |= ElementType::ObjectSubrequest;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeWorker:
+            elemType |= ElementType::Script;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeSharedWorker:
+            elemType |= ElementType::Script;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypePrefetch:
+            elemType |= ElementType::Other;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeFavicon:
+            elemType |= ElementType::Other;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeXhr:
+            elemType |= ElementType::XMLHTTPRequest;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypePing:
+            elemType |= ElementType::Ping;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeServiceWorker:
+            elemType |= ElementType::Script;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeCspReport:
+            elemType |= ElementType::Other;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypePluginResource:
+            elemType |= ElementType::ObjectSubrequest;
+            break;
+        default:
+            elemType |= ElementType::Other;
+            break; 
+    }
+    
+    // Perform document type and third party type checking
     if (requestUrl.compare(baseUrl) == 0)
         elemType |= ElementType::Document;
-    QString secondLevelDomain = getSecondLevelDomain(requestUrlObj);
+    QString secondLevelDomain = getSecondLevelDomain(info.requestUrl());
     if (secondLevelDomain.isEmpty())
-        secondLevelDomain = requestUrlObj.host();
+        secondLevelDomain = info.requestUrl().host();
     if (secondLevelDomain == getSecondLevelDomain(QUrl(baseUrl)))
         elemType |= ElementType::ThirdParty;
-
+    
     // Compare to filters
     for (AdBlockFilter *filter : m_importantBlockFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
-            return new BlockedNetworkReply(request, filter->getRule(), this);
+            return true;
     }
     for (AdBlockFilter *filter : m_allowFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
-            return nullptr;
+            return false;
     }
     for (AdBlockFilter *filter : m_blockFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
-            return new BlockedNetworkReply(request, filter->getRule(), this);
+            return true;
     }
-
-    return nullptr;
+    return false;
 }
 
 QString AdBlockManager::getResource(const QString &key) const
@@ -393,39 +445,6 @@ void AdBlockManager::reloadSubscriptions()
 {
     clearFilters();
     extractFilters();
-}
-
-ElementType AdBlockManager::getElementTypeMask(const QNetworkRequest &request, const QString &requestPath)
-{
-    ElementType type = ElementType::None;
-
-    if (QWebFrame *frame = qobject_cast<QWebFrame*>(request.originatingObject()))
-    {
-        if (frame->parentFrame() != nullptr)
-            type |= ElementType::Subdocument;
-    }
-    if (request.rawHeader("X-Requested-With") == QByteArray("XMLHttpRequest"))
-        type |= ElementType::XMLHTTPRequest;
-    if (request.hasRawHeader("Sec-WebSocket-Protocol"))
-        type |= ElementType::WebSocket;
-
-    QByteArray acceptHeader = request.rawHeader(QByteArray("Accept"));
-    if (acceptHeader.contains("text/css") || requestPath.endsWith(QLatin1String(".css")))
-        type |= ElementType::Stylesheet;
-    if (acceptHeader.contains("text/javascript") || acceptHeader.contains("application/javascript")
-            || acceptHeader.contains("script/") || requestPath.endsWith(QLatin1String(".js")))
-        type |= ElementType::Script;
-    if (acceptHeader.contains("image/") || requestPath.endsWith(QLatin1String(".jpg")) || requestPath.endsWith(QLatin1String(".jpeg"))
-            || requestPath.endsWith(QLatin1String(".png")) || requestPath.endsWith(QLatin1String(".gif")))
-        type |= ElementType::Image;
-    if (((type & ElementType::Subdocument) != ElementType::Subdocument)
-            && (acceptHeader.contains("text/html") || acceptHeader.contains("application/xhtml+xml") || acceptHeader.contains("application/xml")
-                || requestPath.endsWith(QLatin1String(".html")) || requestPath.endsWith(QLatin1String(".htm"))))
-        type |= ElementType::Subdocument;
-    if (acceptHeader.contains("object"))
-        type |= ElementType::Object;
-
-    return type;
 }
 
 QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const

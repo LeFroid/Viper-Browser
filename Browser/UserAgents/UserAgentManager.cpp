@@ -2,7 +2,6 @@
 #include "AddUserAgentDialog.h"
 #include "Settings.h"
 #include "UserAgentsWindow.h"
-#include "WebPage.h"
 
 #include <QByteArray>
 #include <QFile>
@@ -10,6 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QWebEngineProfile>
 
 UserAgentManager::UserAgentManager(std::shared_ptr<Settings> settings, QObject *parent) :
     QObject(parent),
@@ -48,7 +48,7 @@ void UserAgentManager::setActiveAgent(const QString &category, const UserAgent &
     m_activeAgentCategory = category;
     m_activeAgent = agent;
     m_settings->setValue("CustomUserAgent", true);
-    WebPage::setUserAgent(m_activeAgent.Value);
+    QWebEngineProfile::defaultProfile()->setHttpUserAgent(m_activeAgent.Value);
 }
 
 void UserAgentManager::clearUserAgents()
@@ -71,7 +71,7 @@ void UserAgentManager::disableActiveAgent()
     m_activeAgent = UserAgent();
     m_activeAgentCategory.clear();
     m_settings->setValue("CustomUserAgent", false);
-    WebPage::setUserAgent(QString());
+    QWebEngineProfile::defaultProfile()->setHttpUserAgent(QString());
 }
 
 void UserAgentManager::addUserAgent()

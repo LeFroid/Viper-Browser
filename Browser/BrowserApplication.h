@@ -18,6 +18,7 @@ class FaviconStorage;
 class HistoryManager;
 class HistoryWidget;
 class MainWindow;
+class RequestInterceptor;
 class Settings;
 class URLSuggestionModel;
 class UserAgentManager;
@@ -160,6 +161,9 @@ private:
 
     /// Browsing session manager
     SessionManager m_sessionMgr;
+
+    /// Request interceptor
+    RequestInterceptor *m_requestInterceptor;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

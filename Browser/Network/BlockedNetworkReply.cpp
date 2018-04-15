@@ -5,7 +5,6 @@
 #include <QFile>
 #include <QTextStream>
 #include <QTimer>
-#include <QWebFrame>
 
 BlockedNetworkReply::BlockedNetworkReply(const QNetworkRequest &request, const QString &filter, QObject *parent) :
     QNetworkReply(parent)

@@ -21,13 +21,6 @@ public:
     /// Sets the network access manager to the browser's private browsing one
     void enablePrivateBrowsing();
 
-    /// Sets the user agent to be sent with all requests
-    static void setUserAgent(const QString &userAgent);
-
-protected:
-    /// Returns the user agent for a given url. If no user agent has been manually specified, the default agent will be sent
-    QString userAgentForUrl(const QUrl &url) const;
-
 private slots:
     /// Attempts to handle unsupported network replies
 //    void onUnsupportedContent(QNetworkReply *reply);
@@ -43,10 +36,6 @@ private slots:
 
     /// Injects any javascript into the page, if applicable
     void injectUserJavaScript(ScriptInjectionTime injectionTime);
-
-protected:
-    /// Custom user agent string. Empty if default UA is used
-    static QString m_userAgent;
 
 private:
     /// Stores the host of the main frame's URL. Used to prevent excessive requests to fetch the AdBlockManager's domain-specific cosmetic filters

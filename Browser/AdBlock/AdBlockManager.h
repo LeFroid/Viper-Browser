@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QObject>
 #include <QString>
+#include <QWebEngineUrlRequestInfo>
 #include <vector>
 
 class AdBlockModel;
@@ -50,9 +51,8 @@ public:
     /// Returns the domain-specific blocking javascript, or an empty string if not applicable
     QString getDomainJavaScript(const QUrl &url) const;
 
-    /// Determines if the network request should be blocked, returning a BlockedNetworkReply if so, or a
-    /// nullptr if the request is allowed
-    BlockedNetworkReply *getBlockedReply(const QNetworkRequest &request);
+    /// Returns true if the given request should be blocked, false if else
+    bool shouldBlockRequest(const QWebEngineUrlRequestInfo &info);
 
 public slots:
     /// Attempt to update ad block subscriptions
@@ -106,10 +106,6 @@ private slots:
     void loadResourceFile(const QString &path);
 
 private:
-    /// Attempts to determine the type of element being requested, returning the corresponding \ref ElementType
-    /// after searching the HTTP headers. Will return ElementType::None if could not be determined or not applicable
-    ElementType getElementTypeMask(const QNetworkRequest &request, const QString &requestPath);
-
     /// Returns the second-level domain string of the given url
     QString getSecondLevelDomain(const QUrl &url) const;
 

@@ -8,8 +8,6 @@
 
 #include <QFile>
 
-QString WebPage::m_userAgent = QString();
-
 WebPage::WebPage(QObject *parent) :
     QWebEnginePage(parent),
     m_mainFrameHost(),
@@ -29,20 +27,6 @@ WebPage::WebPage(QObject *parent) :
 void WebPage::enablePrivateBrowsing()
 {
     //setNetworkAccessManager(sBrowserApplication->getPrivateNetworkAccessManager());
-}
-
-void WebPage::setUserAgent(const QString &userAgent)
-{
-    m_userAgent = userAgent;
-}
-
-QString WebPage::userAgentForUrl(const QUrl &/*url*/) const
-{
-    if (!m_userAgent.isNull())
-        return m_userAgent;
-
-    return QString();
-    //return QWebPage::userAgentForUrl(url);
 }
 
 /*void WebPage::onUnsupportedContent(QNetworkReply *reply)

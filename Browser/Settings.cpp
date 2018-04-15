@@ -5,6 +5,7 @@
 #include "WebPage.h"
 #include <QDir>
 #include <QFileInfo>
+#include <QWebEngineProfile>
 #include <QWebEngineSettings>
 
 Settings::Settings() :
@@ -41,10 +42,6 @@ bool Settings::firstRun() const
 
 void Settings::applyWebSettings()
 {
-    // Check if custom user agent is used
-    if (getValue(QStringLiteral("CustomUserAgent")).toBool())
-        WebPage::setUserAgent(sBrowserApplication->getUserAgentManager()->getUserAgent().Value);
-
     QWebEngineSettings *settings = QWebEngineSettings::defaultSettings();
     settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QStringLiteral("EnableJavascript")).toBool());
     settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QStringLiteral("EnableJavascriptPopups")).toBool());
@@ -67,6 +64,14 @@ void Settings::applyWebSettings()
     QDir cachePath(QDir::homePath() + QDir::separator() + QStringLiteral(".cache") + QDir::separator() + QStringLiteral("Vaccarelli"));
     if (!cachePath.exists())
         cachePath.mkpath(cachePath.absolutePath());
+    
+    auto defaultProfile = QWebEngineProfile::defaultProfile();
+    defaultProfile->setCachePath(cachePath.absolutePath());
+    defaultProfile->setPersistentStoragePath(cachePath.absolutePath());
+
+    // Check if custom user agent is used
+    if (getValue(QStringLiteral("CustomUserAgent")).toBool())
+        defaultProfile->setHttpUserAgent(sBrowserApplication->getUserAgentManager()->getUserAgent().Value);
 }
 
 void Settings::setDefaults()
