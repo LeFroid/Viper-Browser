@@ -6,8 +6,8 @@
 #include "WebView.h"
 
 #include <QMenu>
-#include <QWebHistory>
-#include <QWebHistoryItem>
+#include <QWebEngineHistory>
+#include <QWebEngineHistoryItem>
 
 BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *parent) :
     QTabWidget(parent),
@@ -233,13 +233,13 @@ void BrowserTabWidget::resetHistoryButtonMenus(bool /*ok*/)
     m_forwardMenu->clear();
 
     int maxMenuSize = 10;
-    QWebHistory *hist = m_activeView->page()->history();
+    QWebEngineHistory *hist = m_activeView->page()->history();
     QAction *histAction = nullptr, *prevAction = nullptr;
     FaviconStorage *faviconStorage = sBrowserApplication->getFaviconStorage();
 
     // Setup back button history menu
-    QList<QWebHistoryItem> histItems = hist->backItems(maxMenuSize);
-    for (const QWebHistoryItem &item : histItems)
+    QList<QWebEngineHistoryItem> histItems = hist->backItems(maxMenuSize);
+    for (const QWebEngineHistoryItem &item : histItems)
     {
         QIcon icon = faviconStorage->getFavicon(item.url());
 
@@ -260,9 +260,10 @@ void BrowserTabWidget::resetHistoryButtonMenus(bool /*ok*/)
     // Setup forward button history menu
     histItems = hist->forwardItems(maxMenuSize);
     histAction = nullptr, prevAction = nullptr;
-    for (const QWebHistoryItem &item : histItems)
+    for (const QWebEngineHistoryItem &item : histItems)
     {
         QIcon icon = faviconStorage->getFavicon(item.url());
+
         if (prevAction == nullptr)
             histAction = m_forwardMenu->addAction(icon, item.title());
         else

@@ -14,7 +14,6 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QNetworkRequest>
-#include <QWebFrame>
 
 AdBlockManager::AdBlockManager(QObject *parent) :
     QObject(parent),

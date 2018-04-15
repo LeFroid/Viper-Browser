@@ -21,7 +21,7 @@ WebDialog::WebDialog(QWidget *parent) :
     connect(m_view, &WebView::titleChanged, this, &QWidget::setWindowTitle);
 }
 
-QWebView *WebDialog::getView() const
+QWebEngineView *WebDialog::getView() const
 {
-    return static_cast<QWebView*>(m_view);
+    return static_cast<QWebEngineView*>(m_view);
 }

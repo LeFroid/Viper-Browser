@@ -7,7 +7,7 @@
 #include <QTextCharFormat>
 #include <QTextCursor>
 #include <QTextDocument>
-#include <QWebFrame>
+//#include <QWebFrame>
 
 FindTextWidget::FindTextWidget(QWidget *parent) :
     QWidget(parent),
@@ -94,16 +94,29 @@ void FindTextWidget::onFindNext()
     bool foundNext = false;
     if (m_view != nullptr)
     {
-        QFlags<QWebPage::FindFlag> flags = QWebPage::FindWrapsAroundDocument;
+        auto flags = QFlags<QWebEnginePage::FindFlag>();
+/*
         if (m_highlightAll)
         {
-            m_view->findText(QString(), QWebPage::HighlightAllOccurrences);
+            m_view->findText(QString());
             flags |= QWebPage::HighlightAllOccurrences;
         }
+*/
         if (m_matchCase)
-            flags |= QWebPage::FindCaseSensitively;
+            flags |= QWebEnginePage::FindCaseSensitively;
 
-        foundNext = m_view->findText(ui->lineEdit->text(), flags);
+        m_view->findText(ui->lineEdit->text(), flags, [=](bool result){
+            if (!result)
+            {
+                if (m_searchTerm.isNull())
+                    ui->labelMatches->setText(QString());
+                else
+                    ui->labelMatches->setText(QString("Phrase not found"));
+            }
+            else
+                setMatchCountLabel(true);
+        });
+        return;
     }
     else if (m_editor != nullptr)
         foundNext = findInEditor(true);
@@ -124,16 +137,29 @@ void FindTextWidget::onFindPrev()
     bool foundPrev = false;
     if (m_view != nullptr)
     {
-        QFlags<QWebPage::FindFlag> flags = QWebPage::FindBackward | QWebPage::FindWrapsAroundDocument;
+        QFlags<QWebEnginePage::FindFlag> flags = QWebEnginePage::FindBackward;
+/*
         if (m_highlightAll)
         {
             m_view->findText(QString(), QWebPage::HighlightAllOccurrences);
             flags |= QWebPage::HighlightAllOccurrences;
         }
+*/
         if (m_matchCase)
-            flags |= QWebPage::FindCaseSensitively;
+            flags |= QWebEnginePage::FindCaseSensitively;
 
-        foundPrev = m_view->findText(ui->lineEdit->text(), flags);
+        m_view->findText(ui->lineEdit->text(), flags, [=](bool result){
+            if (!result)
+            {
+                if (m_searchTerm.isNull())
+                    ui->labelMatches->setText(QString());
+                else
+                    ui->labelMatches->setText(QString("Phrase not found"));
+            }
+            else
+                setMatchCountLabel(false);
+        });
+        return;
     }
     else if (m_editor != nullptr)
         foundPrev = findInEditor(false);
@@ -255,21 +281,40 @@ void FindTextWidget::setMatchCountLabel(bool searchForNext)
     }
 
     // Check if we need to search the page again to find the number of occurrences
-    QString plainText;
-    Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
     if (m_searchTerm.compare(term) != 0)
     {
         m_searchTerm = term;
         m_occurrenceCounter = 0;
 
         if (m_view != nullptr)
-            plainText = m_view->page()->mainFrame()->toPlainText();
+        {
+            m_view->page()->toPlainText([=](const QString &result){
+                setMatchCountLabelCallback(searchForNext, result);
+            });
+            return;
+        }
         else if (m_editor != nullptr)
-            plainText = m_editor->document()->toPlainText();
+            setMatchCountLabelCallback(searchForNext, m_editor->document()->toPlainText());
 
-        m_numOccurrences = plainText.count(m_searchTerm, caseSensitivity);
+        return;
     }
 
+    // Update position counter
+    int positionModifier = searchForNext ? 1 : -1;
+    m_occurrenceCounter = (m_occurrenceCounter + positionModifier) % (m_numOccurrences + 1);
+    if (m_occurrenceCounter == 0)
+        m_occurrenceCounter = searchForNext ? 1 : m_numOccurrences;
+
+    // Update the label
+    ui->labelMatches->setText(QString("%1 of %2 matches").arg(m_occurrenceCounter).arg(m_numOccurrences));
+}
+
+void FindTextWidget::setMatchCountLabelCallback(bool searchForNext, const QString &documentText)
+{
+    Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
+
+    m_numOccurrences = documentText.count(m_searchTerm, caseSensitivity);
+    
     // Update position counter
     int positionModifier = searchForNext ? 1 : -1;
     m_occurrenceCounter = (m_occurrenceCounter + positionModifier) % (m_numOccurrences + 1);

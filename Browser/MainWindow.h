@@ -9,7 +9,7 @@
 #include <QIcon>
 #include <QList>
 #include <QMainWindow>
-#include <QWebPage>
+#include <QWebEnginePage>
 
 namespace Ui {
 class MainWindow;
@@ -80,7 +80,7 @@ private:
     void checkPageForBookmark();
 
     /// Binds the given WebAction of any active web page with a local user interface action
-    inline void addWebProxyAction(QWebPage::WebAction webAction, QAction *windowAction)
+    inline void addWebProxyAction(QWebEnginePage::WebAction webAction, QAction *windowAction)
     {
         m_webActions.append(new WebActionProxy(webAction, windowAction, this));
     }
@@ -251,6 +251,9 @@ private:
 
     /// Advertisement blocking management widget
     AdBlockWidget *m_adBlockWidget;
+
+    /// Stores javascript code that attempts to extract favicon path from a page
+    QString m_faviconScript;
 };
 
 #endif // MAINWINDOW_H

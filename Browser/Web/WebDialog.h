@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-class QWebView;
+class QWebEngineView;
 class WebView;
 
 /**
@@ -17,7 +17,7 @@ public:
     explicit WebDialog(QWidget *parent = nullptr);
 
     /// Returns the view associated with the dialog
-    QWebView *getView() const;
+    QWebEngineView *getView() const;
 
 /*
 public slots:

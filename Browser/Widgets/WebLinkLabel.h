@@ -2,6 +2,7 @@
 #define WEBLINKLABEL_H
 
 #include <QLabel>
+#include <QUrl>
 
 class WebPage;
 
@@ -27,7 +28,7 @@ protected:
 
 private slots:
     /// Called when the user hovers over a link, in order to display its location
-    void showLinkRef(const QString &link, const QString &title, const QString &context);
+    void showLinkRef(const QUrl &link);
 
 private:
     /// Flag set to true when showing a link. Used for edge cases where label is not hidden between

@@ -8,7 +8,7 @@
 #include <QNetworkReply>
 #include <QSqlError>
 #include <QSqlRecord>
-#include <QWebSettings>
+#include <QWebEngineSettings>
 #include <QDebug>
 
 FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
@@ -77,11 +77,12 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
                 return it->icon;
         }
     }
+    return QIcon();
     // Lastly, default to QWebSettings::iconForUrl
-    return QWebSettings::iconForUrl(url);
+    //return QWebEngineSettings::iconForUrl(url);
 }
 
-void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl)
+void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon)
 {
     // Truncate page url if it contains a '?' or '#' towards the end of the string
     if (pageUrl.contains(QChar('#')))
@@ -98,7 +99,7 @@ void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl)
         FaviconInfo info;
         info.iconID = m_newFaviconID++;
         info.dataID = m_newDataID++;
-        info.icon = QWebSettings::iconForUrl(pageUrl);
+        info.icon = pageIcon;
         info.urlSet.insert(pageUrl);
         m_favicons.insert(iconHRef, info);
 

@@ -3,14 +3,14 @@
 
 #include "UserScript.h"
 #include <QString>
-#include <QWebPage>
+#include <QWebEnginePage>
 
 /**
  * @class WebPage
  * @brief Wrapper class for QT's QWebPage, used in order to
  *        handle cookies properly
  */
-class WebPage : public QWebPage
+class WebPage : public QWebEnginePage
 {
     Q_OBJECT
 
@@ -26,11 +26,11 @@ public:
 
 protected:
     /// Returns the user agent for a given url. If no user agent has been manually specified, the default agent will be sent
-    QString userAgentForUrl(const QUrl &url) const override;
+    QString userAgentForUrl(const QUrl &url) const;
 
 private slots:
     /// Attempts to handle unsupported network replies
-    void onUnsupportedContent(QNetworkReply *reply);
+//    void onUnsupportedContent(QNetworkReply *reply);
 
     /// Called when the URL of the main frame has changed
     void onMainFrameUrlChanged(const QUrl &url);
@@ -41,8 +41,8 @@ private slots:
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
 
-    /// Injects any javascript into the frame, if applicable
-    void injectUserJavaScript(QWebFrame *frame, ScriptInjectionTime injectionTime);
+    /// Injects any javascript into the page, if applicable
+    void injectUserJavaScript(ScriptInjectionTime injectionTime);
 
 protected:
     /// Custom user agent string. Empty if default UA is used

@@ -1,7 +1,7 @@
 #include "WebActionProxy.h"
 #include <QAction>
 
-WebActionProxy::WebActionProxy(QWebPage::WebAction action, QAction *proxyAction, QObject *parent) :
+WebActionProxy::WebActionProxy(QWebEnginePage::WebAction action, QAction *proxyAction, QObject *parent) :
     QObject(parent),
     m_proxyAction(proxyAction),
     m_page(nullptr),
@@ -15,13 +15,13 @@ WebActionProxy::WebActionProxy(QWebPage::WebAction action, QAction *proxyAction,
     connect(m_proxyAction, &QAction::destroyed, this, &WebActionProxy::onProxyDestroyed);
 }
 
-void WebActionProxy::setPage(QWebPage *page)
+void WebActionProxy::setPage(QWebEnginePage *page)
 {
     if (!page || !m_proxyAction)
         return;
 
     if (m_page)
-        disconnect(m_page, &QWebPage::destroyed, this, &WebActionProxy::onPageDestroyed);
+        disconnect(m_page, &QWebEnginePage::destroyed, this, &WebActionProxy::onPageDestroyed);
 
     m_page = page;
 
@@ -30,7 +30,7 @@ void WebActionProxy::setPage(QWebPage *page)
     m_proxyAction->setEnabled(action->isEnabled());
 
     connect(action, &QAction::changed, this, &WebActionProxy::onChange);
-    connect(m_page, &QWebPage::destroyed, this, &WebActionProxy::onPageDestroyed);
+    connect(m_page, &QWebEnginePage::destroyed, this, &WebActionProxy::onPageDestroyed);
 }
 
 void WebActionProxy::triggerOnPage()

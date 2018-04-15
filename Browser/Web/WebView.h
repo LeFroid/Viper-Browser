@@ -1,7 +1,7 @@
 #ifndef WEBVIEW_H
 #define WEBVIEW_H
 
-#include <QWebView>
+#include <QWebEngineView>
 
 class WebLinkLabel;
 class WebPage;
@@ -12,7 +12,7 @@ class QMenu;
  * @class WebView
  * @brief A widget that is used to view and edit web documents.
  */
-class WebView : public QWebView
+class WebView : public QWebEngineView
 {
     Q_OBJECT
 
@@ -52,7 +52,7 @@ public slots:
 
 private slots:
     /// Called when a download is requested
-    void requestDownload(const QNetworkRequest &request);
+//    void requestDownload(const QNetworkRequest &request);
 
 protected:
     /// Event handler for context menu displays
@@ -65,7 +65,7 @@ protected:
     virtual void wheelEvent(QWheelEvent *event) override;
 
     /// Creates a new popup window on request
-    virtual QWebView *createWindow(QWebPage::WebWindowType type) override;
+    virtual QWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override;
 
     /// Handles drag events
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
@@ -86,9 +86,9 @@ signals:
     /// Called when the user requests to inspect an element
     void inspectElement();
 
-private:
+//private:
     /// Adds a developer inspector option to the given menu, if the developer setting is enabled
-    void addInspectorIfEnabled(QMenu *menu);
+//    void addInspectorIfEnabled(QMenu *menu);
 
 private:
     /// Label used to display the url of a link being hovered on by the user

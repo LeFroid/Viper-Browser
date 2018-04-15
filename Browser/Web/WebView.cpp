@@ -7,10 +7,10 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QUrl>
-#include <QWebHitTestResult>
 #include <QWheelEvent>
 
 #include "BrowserApplication.h"
+#include "BrowserTabWidget.h"
 #include "DownloadManager.h"
 #include "MainWindow.h"
 #include "SearchEngineManager.h"
@@ -21,7 +21,7 @@
 #include "WebPage.h"
 
 WebView::WebView(QWidget *parent) :
-    QWebView(parent),
+    QWebEngineView(parent),
     m_page(new WebPage(this)),
     m_progress(0)
 {
@@ -36,14 +36,14 @@ WebView::WebView(QWidget *parent) :
     });
 
     // Connect QWebPage signals to slots in the web view
-    connect(m_page, &WebPage::downloadRequested, this, &WebView::requestDownload);
+//    connect(m_page, &WebPage::downloadRequested, this, &WebView::requestDownload);
 }
 
 void WebView::setPrivate(bool value)
 {
-    settings()->setAttribute(QWebSettings::PrivateBrowsingEnabled, value);
-    if (value)
-        m_page->enablePrivateBrowsing(); // handles private browsing mode cookies
+    //settings()->setAttribute(QWebSettings::PrivateBrowsingEnabled, value);
+    //if (value)
+    //    m_page->enablePrivateBrowsing(); // handles private browsing mode cookies
 }
 
 int WebView::getProgress() const
@@ -98,18 +98,19 @@ void WebView::zoomOut()
     setZoomFactor(std::max(currentZoom - 0.1, 0.1));
 }
 
-void WebView::requestDownload(const QNetworkRequest &request)
+/*void WebView::requestDownload(const QNetworkRequest &request)
 {
     BrowserApplication *app = sBrowserApplication;
     bool askWhereToSave = app->getSettings()->getValue("AskWhereToSaveDownloads").toBool();
     app->getDownloadManager()->download(request, askWhereToSave);
-}
+}*/
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
-    QWebHitTestResult res = page()->mainFrame()->hitTestContent(event->pos());
-
-    QMenu menu(this);
+    QMenu *menu = page()->createStandardContextMenu();
+    menu->popup(event->globalPos());
+    return;
+/*
 
     // Check if context menu includes links
     if (!res.linkUrl().isEmpty())
@@ -180,6 +181,7 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     menu.addAction(pageAction(QWebPage::Reload));
     addInspectorIfEnabled(&menu);
     menu.exec(mapToGlobal(event->pos()));
+	    */
 }
 
 void WebView::resizeEvent(QResizeEvent *event)
@@ -188,20 +190,25 @@ void WebView::resizeEvent(QResizeEvent *event)
     QPoint labelPos(0, std::max(parentWidget()->geometry().height() - 17, 0));
     m_labelLinkRef->move(labelPos);
 
-    QWebView::resizeEvent(event);
+    QWebEngineView::resizeEvent(event);
 }
 
 void WebView::wheelEvent(QWheelEvent *event)
 {
     m_labelLinkRef->hide();
-    QWebView::wheelEvent(event);
+    QWebEngineView::wheelEvent(event);
 }
 
-QWebView *WebView::createWindow(QWebPage::WebWindowType type)
+QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
 {
     switch (type)
     {
-        case QWebPage::WebBrowserWindow:    // Open a new tab
+        case QWebEnginePage::WebBrowserWindow:    // Open a new window
+	{
+	    auto win = sBrowserApplication->getNewWindow();
+	    return win->getTabWidget()->currentWebView();
+        }	
+	case QWebEnginePage::WebBrowserTab:
         {
             // Get main window
             QObject *obj = parent();
@@ -214,14 +221,15 @@ QWebView *WebView::createWindow(QWebPage::WebWindowType type)
             }
             break;
         }
-        case QWebPage::WebModalDialog:     // Open a web dialog
+        case QWebEnginePage::WebDialog:     // Open a web dialog
         {
             WebDialog *dialog = new WebDialog;
             dialog->show();
             return dialog->getView();
         }
+	default: break;
     }
-    return QWebView::createWindow(type);
+    return QWebEngineView::createWindow(type);
 }
 
 void WebView::dragEnterEvent(QDragEnterEvent *event)
@@ -232,7 +240,7 @@ void WebView::dragEnterEvent(QDragEnterEvent *event)
         return;
     }
 
-    QWebView::dragEnterEvent(event);
+    QWebEngineView::dragEnterEvent(event);
 }
 
 void WebView::dropEvent(QDropEvent *event)
@@ -243,9 +251,10 @@ void WebView::dropEvent(QDropEvent *event)
         return;
     }
 
-    QWebView::dropEvent(event);
+    QWebEngineView::dropEvent(event);
 }
 
+/*
 void WebView::addInspectorIfEnabled(QMenu *menu)
 {
     if (!menu || !page()->settings()->testAttribute(QWebSettings::DeveloperExtrasEnabled))
@@ -253,4 +262,4 @@ void WebView::addInspectorIfEnabled(QMenu *menu)
 
     menu->addSeparator();
     menu->addAction(tr("Inspect element"), this, &WebView::inspectElement);
-}
+}*/

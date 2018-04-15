@@ -55,9 +55,13 @@ public:
     /// returns an empty icon
     QIcon getFavicon(const QUrl &url) const;
 
-    /// Updates the database (if applicable) about a favicon existing at the given location and being
-    /// referred to by the page URL
-    void updateIcon(const QString &iconHRef, QString pageUrl);
+    /**
+     * @brief Attempts to update the database about the favicon associated with a given page.
+     * @param iconHRef Reference to the HTTP location where the favicon is stored.
+     * @param pageUrl The URL of the page, in string form.
+     * @param pageIcon The icon of the page, or a null icon if it could not be directly taken from the page.
+     */
+    void updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon = QIcon());
 
 private slots:
     /// Called after the request for a favicon has been completed

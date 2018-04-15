@@ -35,7 +35,7 @@ QSize WebLinkLabel::sizeHint() const
     return hint;
 }
 
-void WebLinkLabel::showLinkRef(const QString &link, const QString &/*title*/, const QString &/*context*/)
+void WebLinkLabel::showLinkRef(const QUrl &link)
 {
     // Hide tooltip if parameter is empty
     if (link.isEmpty())
@@ -46,7 +46,7 @@ void WebLinkLabel::showLinkRef(const QString &link, const QString &/*title*/, co
         return;
     }
 
-    setText(link);
+    setText(link.toString());
     if (m_showingLink)
         hide();
     show();

@@ -9,7 +9,6 @@
 #include <QIcon>
 #include <QList>
 #include <QUrl>
-#include <QWebHistoryInterface>
 
 #include <deque>
 #include <vector>
@@ -44,7 +43,7 @@ struct WebHistoryItem
  * @brief Implements the QWebHistory interface to save the user's browsing
  *        history
  */
-class HistoryManager : public QWebHistoryInterface, private DatabaseWorker
+class HistoryManager : public QObject, private DatabaseWorker
 {
     friend class DatabaseFactory;
 
@@ -58,7 +57,7 @@ public:
     virtual ~HistoryManager();
 
     /// Adds an entry to the browser's history
-    void addHistoryEntry(const QString &url) override;
+    void addHistoryEntry(const QString &url);
 
     /// Clears all browsing history
     void clearAllHistory();
@@ -71,7 +70,7 @@ public:
 
     /// Returns true if the history contains the given url, false if else. Will return
     /// false if private browsing mode is enabled
-    bool historyContains(const QString &url) const override;
+    bool historyContains(const QString &url) const;
 
     /// Sets the title and associated with the given url
     void setTitleForURL(const QString &url, const QString &title);

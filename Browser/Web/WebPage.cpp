@@ -7,36 +7,28 @@
 #include "WebPage.h"
 
 #include <QFile>
-#include <QWebElement>
-#include <QWebFrame>
-#include <QWebSecurityOrigin>
 
 QString WebPage::m_userAgent = QString();
 
 WebPage::WebPage(QObject *parent) :
-    QWebPage(parent),
+    QWebEnginePage(parent),
     m_mainFrameHost(),
     m_domainFilterStyle()
 {
-    setNetworkAccessManager(sBrowserApplication->getNetworkAccessManager());
-    setForwardUnsupportedContent(true);
+//    setNetworkAccessManager(sBrowserApplication->getNetworkAccessManager());
+//    setForwardUnsupportedContent(true);
 
-    connect(this, &WebPage::unsupportedContent, this, &WebPage::onUnsupportedContent);
+    //connect(this, &WebPage::unsupportedContent, this, &WebPage::onUnsupportedContent);
 
     // Add frame event handlers for script injection
-    QWebFrame *pageMainFrame = mainFrame();
-    connect(pageMainFrame, &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
-    connect(pageMainFrame, &QWebFrame::javaScriptWindowObjectCleared, this, &WebPage::onLoadStarted);
-    connect(this, &WebPage::frameCreated, [=](QWebFrame *frame) {
-        connect(frame, &QWebFrame::loadFinished, this, &WebPage::onLoadFinished);
-        connect(frame, &QWebFrame::javaScriptWindowObjectCleared, this, &WebPage::onLoadStarted);
-    });
-    connect(pageMainFrame, &QWebFrame::urlChanged, this, &WebPage::onMainFrameUrlChanged);
+    connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
+    connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
+    connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
 void WebPage::enablePrivateBrowsing()
 {
-    setNetworkAccessManager(sBrowserApplication->getPrivateNetworkAccessManager());
+    //setNetworkAccessManager(sBrowserApplication->getPrivateNetworkAccessManager());
 }
 
 void WebPage::setUserAgent(const QString &userAgent)
@@ -44,15 +36,16 @@ void WebPage::setUserAgent(const QString &userAgent)
     m_userAgent = userAgent;
 }
 
-QString WebPage::userAgentForUrl(const QUrl &url) const
+QString WebPage::userAgentForUrl(const QUrl &/*url*/) const
 {
     if (!m_userAgent.isNull())
         return m_userAgent;
 
-    return QWebPage::userAgentForUrl(url);
+    return QString();
+    //return QWebPage::userAgentForUrl(url);
 }
 
-void WebPage::onUnsupportedContent(QNetworkReply *reply)
+/*void WebPage::onUnsupportedContent(QNetworkReply *reply)
 {
     if (reply->error() != QNetworkReply::NoError)
     {
@@ -98,6 +91,7 @@ void WebPage::onUnsupportedContent(QNetworkReply *reply)
 
     reply->deleteLater();
 }
+*/
 
 void WebPage::onMainFrameUrlChanged(const QUrl &url)
 {
@@ -111,55 +105,34 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
 
 void WebPage::onLoadStarted()
 {
-    if (QWebFrame *frame = qobject_cast<QWebFrame*>(sender()))
-    {
-        //if (frame == mainFrame() && m_mainFrameHost == frame->baseUrl().host())
-        //    frame->documentElement().appendInside(m_domainFilterStyle);
-
-        //bool isMainFrame = (frame == mainFrame());
-        //QString extensionJS = m_extensionMgr->getScriptsFor(frame->url(), isMainFrame);
-        //if (!extensionJS.isEmpty()) {
-        //    frame->addToJavaScriptWindowObject("chrome", m_extensionMgr);
-        //    frame->evaluateJavaScript(extensionJS);
-        //}
-        injectUserJavaScript(frame, ScriptInjectionTime::DocumentStart);
-    }
+    injectUserJavaScript(ScriptInjectionTime::DocumentStart);
 }
 
 void WebPage::onLoadFinished(bool ok)
 {
-    QWebFrame *frame = qobject_cast<QWebFrame*>(sender());
-    if (!ok || frame == nullptr)
+    if (!ok)
         return;
 
-    injectUserJavaScript(frame, ScriptInjectionTime::DocumentEnd);
+    injectUserJavaScript(ScriptInjectionTime::DocumentEnd);
 
-    if (frame == mainFrame())
-    {
-        QUrl url = frame->baseUrl();
-        frame->documentElement().appendInside(AdBlockManager::instance().getStylesheet(url));
-        frame->documentElement().appendInside(m_domainFilterStyle);
-        QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(url);
-        if (!adBlockJS.isEmpty())
-            frame->evaluateJavaScript(adBlockJS);
-    }
+    QUrl pageUrl = url();
+
+    runJavaScript(QString("document.body.innerHTML += '%1';").arg(AdBlockManager::instance().getStylesheet(pageUrl)));
+    runJavaScript(QString("document.body.innerHTML += '%1';").arg(m_domainFilterStyle));
+
+    QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(pageUrl);
+    if (!adBlockJS.isEmpty())
+        runJavaScript(adBlockJS);
 }
 
-void WebPage::injectUserJavaScript(QWebFrame *frame, ScriptInjectionTime injectionTime)
+void WebPage::injectUserJavaScript(ScriptInjectionTime injectionTime)
 {
     // Attempt to get URL associated with frame
-    QUrl url = frame->url();
-    if (url.isEmpty())
-        url = frame->requestedUrl();
-
-    // If URL still not obtained, do nothing
-    if (url.isEmpty())
+    QUrl pageUrl = url();
+    if (pageUrl.isEmpty())
         return;
 
-    bool isMainFrame = (frame == mainFrame());
-    QString userJS = sBrowserApplication->getUserScriptManager()->getScriptsFor(url, injectionTime, isMainFrame);
+    QString userJS = sBrowserApplication->getUserScriptManager()->getScriptsFor(pageUrl, injectionTime, true);
     if (!userJS.isEmpty())
-    {
-        frame->evaluateJavaScript(userJS);
-    }
+        runJavaScript(userJS);
 }

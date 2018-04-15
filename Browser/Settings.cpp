@@ -5,7 +5,7 @@
 #include "WebPage.h"
 #include <QDir>
 #include <QFileInfo>
-#include <QWebSettings>
+#include <QWebEngineSettings>
 
 Settings::Settings() :
     m_firstRun(false),
@@ -45,36 +45,28 @@ void Settings::applyWebSettings()
     if (getValue(QStringLiteral("CustomUserAgent")).toBool())
         WebPage::setUserAgent(sBrowserApplication->getUserAgentManager()->getUserAgent().Value);
 
-    QWebSettings *settings = QWebSettings::globalSettings();
-    settings->setAttribute(QWebSettings::JavascriptEnabled,        m_settings.value(QStringLiteral("EnableJavascript")).toBool());
-    settings->setAttribute(QWebSettings::JavascriptCanOpenWindows, m_settings.value(QStringLiteral("EnableJavascriptPopups")).toBool());
-    settings->setAttribute(QWebSettings::AutoLoadImages,           m_settings.value(QStringLiteral("AutoLoadImages")).toBool());
-    settings->setAttribute(QWebSettings::PluginsEnabled,           m_settings.value(QStringLiteral("EnablePlugins")).toBool());
-    settings->setAttribute(QWebSettings::XSSAuditingEnabled,       m_settings.value(QStringLiteral("EnableXSSAudit")).toBool());
+    QWebEngineSettings *settings = QWebEngineSettings::defaultSettings();
+    settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QStringLiteral("EnableJavascript")).toBool());
+    settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QStringLiteral("EnableJavascriptPopups")).toBool());
+    settings->setAttribute(QWebEngineSettings::AutoLoadImages,           m_settings.value(QStringLiteral("AutoLoadImages")).toBool());
+    settings->setAttribute(QWebEngineSettings::PluginsEnabled,           m_settings.value(QStringLiteral("EnablePlugins")).toBool());
+    settings->setAttribute(QWebEngineSettings::XSSAuditingEnabled,       m_settings.value(QStringLiteral("EnableXSSAudit")).toBool());
 
-    settings->setAttribute(QWebSettings::DeveloperExtrasEnabled,            true);
-    settings->setAttribute(QWebSettings::MediaSourceEnabled,                true);
-    settings->setAttribute(QWebSettings::LocalStorageEnabled,               true);
-    settings->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled,     true);
-    settings->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled, true);
+    settings->setAttribute(QWebEngineSettings::LocalStorageEnabled,               true);
 
-    settings->setFontFamily(QWebSettings::StandardFont,       m_settings.value(QStringLiteral("StandardFont")).toString());
-    settings->setFontFamily(QWebSettings::SerifFont,          m_settings.value(QStringLiteral("SerifFont")).toString());
-    settings->setFontFamily(QWebSettings::SansSerifFont,      m_settings.value(QStringLiteral("SansSerifFont")).toString());
-    settings->setFontFamily(QWebSettings::CursiveFont,        m_settings.value(QStringLiteral("CursiveFont")).toString());
-    settings->setFontFamily(QWebSettings::FantasyFont,        m_settings.value(QStringLiteral("FantasyFont")).toString());
-    settings->setFontFamily(QWebSettings::FixedFont,          m_settings.value(QStringLiteral("FixedFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::StandardFont,       m_settings.value(QStringLiteral("StandardFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::SerifFont,          m_settings.value(QStringLiteral("SerifFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::SansSerifFont,      m_settings.value(QStringLiteral("SansSerifFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::CursiveFont,        m_settings.value(QStringLiteral("CursiveFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::FantasyFont,        m_settings.value(QStringLiteral("FantasyFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::FixedFont,          m_settings.value(QStringLiteral("FixedFont")).toString());
 
-    settings->setFontSize(QWebSettings::DefaultFontSize,      m_settings.value(QStringLiteral("StandardFontSize")).toInt());
-    settings->setFontSize(QWebSettings::DefaultFixedFontSize, m_settings.value(QStringLiteral("FixedFontSize")).toInt());
+    settings->setFontSize(QWebEngineSettings::DefaultFontSize,      m_settings.value(QStringLiteral("StandardFontSize")).toInt());
+    settings->setFontSize(QWebEngineSettings::DefaultFixedFontSize, m_settings.value(QStringLiteral("FixedFontSize")).toInt());
 
     QDir cachePath(QDir::homePath() + QDir::separator() + QStringLiteral(".cache") + QDir::separator() + QStringLiteral("Vaccarelli"));
     if (!cachePath.exists())
         cachePath.mkpath(cachePath.absolutePath());
-    QWebSettings::setIconDatabasePath(cachePath.absolutePath());
-    QWebSettings::enablePersistentStorage(cachePath.absolutePath());
-    settings->setLocalStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("LocalStorage")));
-    settings->setOfflineStoragePath(QString("%1%2%3").arg(cachePath.absolutePath()).arg(QDir::separator()).arg(QStringLiteral("OfflineStorage")));
 }
 
 void Settings::setDefaults()
@@ -111,16 +103,16 @@ void Settings::setDefaults()
     m_settings.setValue(QStringLiteral("UserScriptsEnabled"), true);
     m_settings.setValue(QStringLiteral("AdBlockPlusEnabled"), true);
 
-    QWebSettings *webSettings = QWebSettings::globalSettings();
-    m_settings.setValue(QStringLiteral("StandardFont"), webSettings->fontFamily(QWebSettings::StandardFont));
-    m_settings.setValue(QStringLiteral("SerifFont"), webSettings->fontFamily(QWebSettings::SerifFont));
-    m_settings.setValue(QStringLiteral("SansSerifFont"), webSettings->fontFamily(QWebSettings::SansSerifFont));
-    m_settings.setValue(QStringLiteral("CursiveFont"), webSettings->fontFamily(QWebSettings::CursiveFont));
-    m_settings.setValue(QStringLiteral("FantasyFont"), webSettings->fontFamily(QWebSettings::FantasyFont));
-    m_settings.setValue(QStringLiteral("FixedFont"), webSettings->fontFamily(QWebSettings::FixedFont));
+    QWebEngineSettings *webSettings = QWebEngineSettings::defaultSettings();
+    m_settings.setValue(QStringLiteral("StandardFont"), webSettings->fontFamily(QWebEngineSettings::StandardFont));
+    m_settings.setValue(QStringLiteral("SerifFont"), webSettings->fontFamily(QWebEngineSettings::SerifFont));
+    m_settings.setValue(QStringLiteral("SansSerifFont"), webSettings->fontFamily(QWebEngineSettings::SansSerifFont));
+    m_settings.setValue(QStringLiteral("CursiveFont"), webSettings->fontFamily(QWebEngineSettings::CursiveFont));
+    m_settings.setValue(QStringLiteral("FantasyFont"), webSettings->fontFamily(QWebEngineSettings::FantasyFont));
+    m_settings.setValue(QStringLiteral("FixedFont"), webSettings->fontFamily(QWebEngineSettings::FixedFont));
 
-    m_settings.setValue(QStringLiteral("StandardFontSize"), webSettings->fontSize(QWebSettings::DefaultFontSize));
-    m_settings.setValue(QStringLiteral("FixedFontSize"), webSettings->fontSize(QWebSettings::DefaultFixedFontSize));
+    m_settings.setValue(QStringLiteral("StandardFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFontSize));
+    m_settings.setValue(QStringLiteral("FixedFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFixedFontSize));
 
     // Todo: Store settings such as whether or not to store history
 }

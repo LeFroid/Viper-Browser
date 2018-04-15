@@ -4,9 +4,9 @@
 #include <utility>
 #include <QFile>
 #include <QQueue>
-#include <QWebElement>
-#include <QWebFrame>
-#include <QWebPage>
+//#include <QWebElement>
+//#include <QWebFrame>
+//#include <QWebEnginePage>
 
 BookmarkImporter::BookmarkImporter(BookmarkManager *bookmarkMgr) :
     m_bookmarkManager(bookmarkMgr)
@@ -28,13 +28,16 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
     if (contents.isEmpty() || contents.isNull())
         return false;
 
+    //TODO: Parse without using a webpage
+    //QString pageHtml = QString::fromUtf8(contents);
+    //XML/HTML handler on pageHtml string
+
     // Load contents into a QWebPage to process bookmarks in its tree structure
-    QWebPage page;
-    QWebFrame *pageFrame = page.mainFrame();
-    pageFrame->setHtml(QString::fromUtf8(contents));
+ //   QWebEnginePage page;
+ //   page->setHtml(QString::fromUtf8(contents));
 
     // Fetch root folder in bookmark page, add its first child to queue, and traverse the bookmark tree
-    QWebElement folderElem = pageFrame->findFirstElement("DL");
+   /* QWebElement folderElem = pageFrame->findFirstElement("DL");
     QWebElement subFolder = folderElem.firstChild();
 
     QQueue< std::pair<QWebElement, BookmarkNode*> > q;
@@ -79,6 +82,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
                 folderElem = folderElem.nextSibling();
         }
     }
+*/
 
     return true;
 }

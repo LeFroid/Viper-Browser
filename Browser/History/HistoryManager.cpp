@@ -12,7 +12,7 @@
 #include <QDebug>
 
 HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
-    QWebHistoryInterface(parent),
+    QObject(parent),
     DatabaseWorker(databaseFile, QStringLiteral("HistoryDB")),
     m_lastVisitID(0),
     m_historyItems(),
@@ -20,7 +20,6 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     m_queryHistoryItem(nullptr),
     m_queryVisit(nullptr)
 {
-    QWebHistoryInterface::setDefaultInterface(this);
 }
 
 HistoryManager::~HistoryManager()

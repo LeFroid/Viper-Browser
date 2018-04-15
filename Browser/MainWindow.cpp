@@ -33,6 +33,7 @@
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QFile>
 #include <QFileDialog>
 #include <QKeySequence>
 #include <QMessageBox>
@@ -44,9 +45,7 @@
 #include <QSplitter>
 #include <QTimer>
 #include <QToolButton>
-#include <QWebElement>
-#include <QWebFrame>
-#include <QWebInspector>
+//#include <QWebInspector>
 
 MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, QWidget *parent) :
     QMainWindow(parent),
@@ -61,11 +60,20 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     m_preferences(nullptr),
     m_bookmarkDialog(nullptr),
     m_userScriptWidget(nullptr),
-    m_adBlockWidget(nullptr)
+    m_adBlockWidget(nullptr),
+    m_faviconScript()
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
     setAcceptDrops(true);
+
+    // load favicon script
+    QFile f(":/GetFavicon.js");
+    if (f.open(QIODevice::ReadOnly))
+    {
+        m_faviconScript = f.readAll();
+        f.close();
+    }
 
     ui->setupUi(this);
 
@@ -174,14 +182,14 @@ void MainWindow::setupMenuBar()
     connect(ui->action_Find, &QAction::triggered, this, &MainWindow::onFindTextAction);
 
     // Add proxy functionality to edit menu actions
-    addWebProxyAction(QWebPage::Undo, ui->action_Undo);
-    addWebProxyAction(QWebPage::Redo, ui->action_Redo);
-    addWebProxyAction(QWebPage::Cut, ui->actionCu_t);
-    addWebProxyAction(QWebPage::Copy, ui->action_Copy);
-    addWebProxyAction(QWebPage::Paste, ui->action_Paste);
+    addWebProxyAction(QWebEnginePage::Undo, ui->action_Undo);
+    addWebProxyAction(QWebEnginePage::Redo, ui->action_Redo);
+    addWebProxyAction(QWebEnginePage::Cut, ui->actionCu_t);
+    addWebProxyAction(QWebEnginePage::Copy, ui->action_Copy);
+    addWebProxyAction(QWebEnginePage::Paste, ui->action_Paste);
 
     // Add proxy for reload action in menu bar
-    addWebProxyAction(QWebPage::Reload, ui->actionReload);
+    addWebProxyAction(QWebEnginePage::Reload, ui->actionReload);
 
     // Zoom in / out / reset slots
     connect(ui->actionZoom_In, &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomInCurrentView);
@@ -244,7 +252,7 @@ void MainWindow::setupMenuBar()
     // Set web page for proxy actions (called automatically during onTabChanged event after all UI elements are set up)
     if (WebView *view = m_tabWidget->getWebView(0))
     {
-        QWebPage *page = view->page();
+        QWebEnginePage *page = view->page();
         for (WebActionProxy *proxy : m_webActions)
             proxy->setPage(page);
     }
@@ -282,7 +290,7 @@ void MainWindow::setupToolBar()
     QMenu *buttonHistMenu = new QMenu(this);
     m_prevPage->setMenu(buttonHistMenu);
     connect(m_prevPage, &QToolButton::clicked, prevPageAction, &QAction::trigger);
-    addWebProxyAction(QWebPage::Back, prevPageAction);
+    addWebProxyAction(QWebEnginePage::Back, prevPageAction);
 
     // Next Page Button
     m_nextPage = new QToolButton(ui->toolBar);
@@ -292,7 +300,7 @@ void MainWindow::setupToolBar()
     buttonHistMenu = new QMenu(this);
     m_nextPage->setMenu(buttonHistMenu);
     connect(m_nextPage, &QToolButton::clicked, nextPageAction, &QAction::trigger);
-    addWebProxyAction(QWebPage::Forward, nextPageAction);
+    addWebProxyAction(QWebEnginePage::Forward, nextPageAction);
 
     // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
@@ -375,7 +383,7 @@ void MainWindow::onTabChanged(int index)
     checkPageForBookmark();
 
     // Change current page for web proxies
-    QWebPage *page = view->page();
+    QWebEnginePage *page = view->page();
     for (WebActionProxy *proxy : m_webActions)
         proxy->setPage(page);
 
@@ -603,7 +611,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
         return;
 
     const QString pageTitle = view->getTitle();
-    updateTabIcon(QWebSettings::iconForUrl(view->url()), m_tabWidget->indexOf(view));
+    updateTabIcon(view->icon(), m_tabWidget->indexOf(view));
     updateTabTitle(pageTitle, m_tabWidget->indexOf(view));
 
     if (m_tabWidget->currentWebView() == view)
@@ -618,18 +626,20 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
     {
         BrowserApplication *browserApp = sBrowserApplication;
 
+        QIcon favicon = view->icon();
         QString pageUrl = view->url().toString();
-        QWebElement faviconElement = view->page()->mainFrame()->findFirstElement(QStringLiteral("link[rel*='icon']"));
-        if (!faviconElement.isNull())
-        {
-            QString iconRef = faviconElement.attribute("href");
-            if (!iconRef.isNull())
-            {
-                if (iconRef.startsWith('/'))
-                    iconRef.prepend(view->url().toString(QUrl::RemovePath));
-                browserApp->getFaviconStorage()->updateIcon(iconRef, pageUrl);
-            }
-        }
+        QString pageUrlNoPath = view->url().toString(QUrl::RemovePath);
+
+        // Attempt to fetch the URL of the favicon from the page
+        view->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
+            if (v.isNull() || !v.canConvert<QString>())
+                return;
+
+            QString iconRef = v.toString();
+            if (iconRef.startsWith('/'))
+                iconRef.prepend(pageUrlNoPath);
+            sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
+        });
         if (!pageTitle.isEmpty())
             browserApp->getHistoryManager()->setTitleForURL(pageUrl, pageTitle);
     }
@@ -659,12 +669,14 @@ void MainWindow::onNewTabCreated(WebView *view)
         onLoadFinished(view, ok);
     });
     connect(view, &WebView::titleChanged, [=](const QString &title){ updateTabTitle(title, m_tabWidget->indexOf(view));} );
+/*
     connect(view, &WebView::inspectElement, [=]() {
         QWebInspector *inspector = new QWebInspector(ui->dockWidget);
         inspector->setPage(view->page());
         ui->dockWidget->setWidget(inspector);
         ui->dockWidget->show();
     });
+*/
 }
 
 void MainWindow::onClickSecurityInfo()
@@ -681,10 +693,9 @@ void MainWindow::onRequestViewSource()
     if (!currentView)
         return;
 
-    QString pageSource = currentView->page()->mainFrame()->toHtml();
     QString pageTitle = currentView->getTitle();
     CodeEditor *view = new CodeEditor;
-    view->setPlainText(pageSource);
+    currentView->page()->toHtml([view](const QString &result){ view->setPlainText(result); });
     HTMLHighlighter *h = new HTMLHighlighter;
     h->setDocument(view->document());
     view->setReadOnly(true);
@@ -722,7 +733,9 @@ void MainWindow::printTabContents()
     printer.setFullPage(true);
     QPrintPreviewDialog dialog(&printer, this);
     dialog.setWindowTitle(tr("Print Document"));
-    connect(&dialog, &QPrintPreviewDialog::paintRequested, currentView->page()->mainFrame(), &QWebFrame::print);
+    connect(&dialog, &QPrintPreviewDialog::paintRequested, [=](QPrinter *p){
+        currentView->page()->print(p, [](bool){});
+    });
     dialog.exec();
 }
 
