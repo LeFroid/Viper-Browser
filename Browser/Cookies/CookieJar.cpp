@@ -179,8 +179,6 @@ void CookieJar::load()
     if (m_privateJar)
         return;
 
-    m_store->deleteAllCookies();
-
     QList<QNetworkCookie> cookies;
 
     // Load cookies and remove any that have expired
