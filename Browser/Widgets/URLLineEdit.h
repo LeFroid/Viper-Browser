@@ -63,6 +63,9 @@ public:
     /// will not be lost if they go back to the tab
     void tabChanged(WebView *newView);
 
+    /// Updates the parent window pointer, called on MainWindow destructor
+    void releaseParentPtr();
+
 signals:
     /// Called when the user requests to view the security information regarding the current page
     void viewSecurityInfo();

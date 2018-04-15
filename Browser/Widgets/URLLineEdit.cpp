@@ -129,8 +129,14 @@ QSize URLLineEdit::sizeHint() const
     QSize defaultSize = QLineEdit::sizeHint();
 
     // Change height to be same as browser toolbar height
-    defaultSize.setHeight(m_parentWindow->getToolbarHeight());
+    if (m_parentWindow)
+        defaultSize.setHeight(m_parentWindow->getToolbarHeight());
     return defaultSize;
+}
+
+void URLLineEdit::releaseParentPtr()
+{
+    m_parentWindow = nullptr;
 }
 
 void URLLineEdit::tabChanged(WebView *newView)

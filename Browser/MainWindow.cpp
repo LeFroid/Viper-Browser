@@ -89,6 +89,7 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
 
 MainWindow::~MainWindow()
 {
+    m_urlInput->releaseParentPtr();
     delete ui;
 
     for (WebActionProxy *proxy : m_webActions)

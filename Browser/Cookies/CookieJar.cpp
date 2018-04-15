@@ -42,7 +42,10 @@ CookieJar::CookieJar(const QString &databaseFile, QString name, bool privateJar,
 CookieJar::~CookieJar()
 {
     if (!m_privateJar)
+    {
         save();
+        disconnect(m_store, 0, 0, 0);
+    }
 }
 
 bool CookieJar::hasCookiesFor(const QString &host) const
