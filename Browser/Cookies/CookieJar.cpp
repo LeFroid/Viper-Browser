@@ -19,6 +19,7 @@ CookieJar::CookieJar(const QString &databaseFile, QString name, bool privateJar,
     if (!m_privateJar)
     {
         m_store = QWebEngineProfile::defaultProfile()->cookieStore();
+        m_store->loadAllCookies();
         connect(m_store, &QWebEngineCookieStore::cookieAdded, [=](const QNetworkCookie &cookie){
             static_cast<void>(insertCookie(cookie));
         });

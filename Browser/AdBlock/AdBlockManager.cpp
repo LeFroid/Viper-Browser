@@ -323,42 +323,37 @@ bool AdBlockManager::shouldBlockRequest(const QWebEngineUrlRequestInfo &info)
                 elemType |= ElementType::Subdocument;
             }
             break;
-        //left off here
         case QWebEngineUrlRequestInfo::ResourceTypeObject:
+        case QWebEngineUrlRequestInfo::ResourceTypeMedia:
             elemType |= ElementType::Object;
             break;
-        case QWebEngineUrlRequestInfo::ResourceTypeMedia:
-            elemType |= ElementType::ObjectSubrequest;
-            break;
+/*
         case QWebEngineUrlRequestInfo::ResourceTypeWorker:
             elemType |= ElementType::Script;
             break;
         case QWebEngineUrlRequestInfo::ResourceTypeSharedWorker:
             elemType |= ElementType::Script;
             break;
-        case QWebEngineUrlRequestInfo::ResourceTypePrefetch:
-            elemType |= ElementType::Other;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeFavicon:
-            elemType |= ElementType::Other;
-            break;
+*/
         case QWebEngineUrlRequestInfo::ResourceTypeXhr:
             elemType |= ElementType::XMLHTTPRequest;
             break;
         case QWebEngineUrlRequestInfo::ResourceTypePing:
             elemType |= ElementType::Ping;
             break;
+/*
         case QWebEngineUrlRequestInfo::ResourceTypeServiceWorker:
             elemType |= ElementType::Script;
             break;
         case QWebEngineUrlRequestInfo::ResourceTypeCspReport:
             elemType |= ElementType::Other;
             break;
+*/
         case QWebEngineUrlRequestInfo::ResourceTypePluginResource:
             elemType |= ElementType::ObjectSubrequest;
             break;
         default:
-            elemType |= ElementType::Other;
+ //           elemType |= ElementType::Other;
             break; 
     }
     
