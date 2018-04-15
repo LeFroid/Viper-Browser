@@ -44,7 +44,6 @@ var matchesCSS = function (selector, text, root) {
     if (root === undefined) {
         root = document;
     }
-
     var output = [];
     var nodes = root.querySelectorAll(selector), i, colonIdx, attrName, attrVal;
     if (!nodes || !nodes.length) { return output; }
@@ -115,8 +114,7 @@ function hideNodes(cb, cbSubj, cbTarget) {
     } else {
         nodes = cb;
     }
-    if (nodes === null)
-        return;
+    if (nodes === null) { return; }
     var i;
     for (i = 0; i < nodes.length; ++i) {
         if (nodes[i] !== null) {

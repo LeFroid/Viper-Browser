@@ -3,4 +3,4 @@
     if (lnk !== undefined && lnk !== null)
         return lnk.getAttribute("href");
     return null;
-}());
+})();
