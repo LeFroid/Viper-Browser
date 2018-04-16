@@ -626,23 +626,15 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
     if (!m_privateWindow)
     {
         BrowserApplication *browserApp = sBrowserApplication;
+        HistoryManager *historyMgr = browserApp->getHistoryManager();
 
         QIcon favicon = view->icon();
         QString pageUrl = view->url().toString();
-        QString pageUrlNoPath = view->url().toString(QUrl::RemovePath);
+        sBrowserApplication->getFaviconStorage()->updateIcon(view->iconUrl().toString(), pageUrl, favicon);
 
-        // Attempt to fetch the URL of the favicon from the page
-        view->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
-            if (v.isNull() || !v.canConvert<QString>())
-                return;
-
-            QString iconRef = v.toString();
-            if (iconRef.startsWith('/'))
-                iconRef.prepend(pageUrlNoPath);
-            sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
-        });
+        historyMgr->addHistoryEntry(pageUrl);
         if (!pageTitle.isEmpty())
-            browserApp->getHistoryManager()->setTitleForURL(pageUrl, pageTitle);
+            historyMgr->setTitleForURL(pageUrl, pageTitle);
     }
 }
 
