@@ -24,6 +24,7 @@ class URLSuggestionModel;
 class UserAgentManager;
 class UserScriptManager;
 class NetworkAccessManager;
+class ViperSchemeHandler;
 
 /// Potential modes of operation for the browser startup routine (ie load a home page, restore session, etc)
 enum class StartupMode
@@ -164,6 +165,9 @@ private:
 
     /// Request interceptor
     RequestInterceptor *m_requestInterceptor;
+
+    /// viper:// scheme handler
+    ViperSchemeHandler *m_viperSchemeHandler;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

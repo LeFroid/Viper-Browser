@@ -15,6 +15,7 @@
 #include "URLSuggestionModel.h"
 #include "UserAgentManager.h"
 #include "UserScriptManager.h"
+#include "ViperSchemeHandler.h"
 #include "WebPage.h"
 
 #include <vector>
@@ -81,6 +82,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     auto webProfile = QWebEngineProfile::defaultProfile();
     webProfile->setRequestInterceptor(m_requestInterceptor);
 
+    // Instantiate viper scheme handler and add to the web engine profile
+    m_viperSchemeHandler = new ViperSchemeHandler(this);
+    webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QStringLiteral("SearchEnginesFile")));
 
@@ -116,6 +121,7 @@ BrowserApplication::~BrowserApplication()
     delete m_userAgentMgr;
     delete m_userScriptMgr;
     delete m_requestInterceptor;
+    delete m_viperSchemeHandler;
 }
 
 BrowserApplication *BrowserApplication::instance()

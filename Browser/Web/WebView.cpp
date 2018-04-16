@@ -107,8 +107,9 @@ void WebView::zoomOut()
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
-    QMenu *menu = page()->createStandardContextMenu();
-    menu->popup(event->globalPos());
+    //QMenu *menu = page()->createStandardContextMenu();
+    //menu->popup(event->globalPos());
+    QWebEngineView::contextMenuEvent(event);
     return;
 /*
 
