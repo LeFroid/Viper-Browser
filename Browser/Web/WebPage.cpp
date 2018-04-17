@@ -7,6 +7,8 @@
 #include "WebPage.h"
 
 #include <QFile>
+#include <QWebEngineScript>
+#include <iostream>
 
 WebPage::WebPage(QObject *parent) :
     QWebEnginePage(parent),
@@ -27,6 +29,11 @@ WebPage::WebPage(QObject *parent) :
 void WebPage::enablePrivateBrowsing()
 {
     //setNetworkAccessManager(sBrowserApplication->getPrivateNetworkAccessManager());
+}
+
+void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel /*level*/, const QString &message, int lineId, const QString &sourceId)
+{
+    std::cout << "[JS Console] [Source " << sourceId.toStdString() << "] Line " << lineId << ", message: " << message.toStdString() << std::endl; 
 }
 
 /*void WebPage::onUnsupportedContent(QNetworkReply *reply)
@@ -84,6 +91,7 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
     {
         m_mainFrameHost = urlHost;
         m_domainFilterStyle = QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(url));
+        m_domainFilterStyle.replace("'", "\\'");
     }
 }
 
@@ -101,8 +109,10 @@ void WebPage::onLoadFinished(bool ok)
 
     QUrl pageUrl = url();
 
-    runJavaScript(QString("document.body.innerHTML += '%1';").arg(AdBlockManager::instance().getStylesheet(pageUrl)));
-    runJavaScript(QString("document.body.innerHTML += '%1';").arg(m_domainFilterStyle));
+    QString adBlockStylesheet = AdBlockManager::instance().getStylesheet(pageUrl);
+    adBlockStylesheet.replace("'", "\\'");
+    runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(adBlockStylesheet));
+    runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
 
     QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(pageUrl);
     if (!adBlockJS.isEmpty())

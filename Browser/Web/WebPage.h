@@ -21,6 +21,10 @@ public:
     /// Sets the network access manager to the browser's private browsing one
     void enablePrivateBrowsing();
 
+protected:
+    /// Called when a JavaScript program attempts to print the given message to the browser console
+    void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId);
+
 private slots:
     /// Attempts to handle unsupported network replies
 //    void onUnsupportedContent(QNetworkReply *reply);
