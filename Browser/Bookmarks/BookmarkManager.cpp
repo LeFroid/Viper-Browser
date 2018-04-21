@@ -578,23 +578,17 @@ void BookmarkManager::setup()
     if (!query.exec())
             qDebug() << "Error inserting root bookmark folder. Message: " << query.lastError().text();
 
+    m_rootNode->setFolderId(rootFolderId);
+
     // Insert bookmarks bar folder
     BookmarkNode *bookmarkBar = addFolder("Bookmarks Bar", m_rootNode.get());
 
     // Insert bookmark for search engine
-    query.prepare("INSERT OR IGNORE INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderID, :parentID, :type, :name, :url, :position)");
-    query.bindValue(":folderID", bookmarkBar->getFolderId());
-    query.bindValue(":parentID", bookmarkBar->getFolderId());
-    query.bindValue(":type", QVariant::fromValue(BookmarkNode::Bookmark));
-    query.bindValue(":name", "Search Engine");
-    query.bindValue(":url", "https://www.ixquick.com/");
-    query.bindValue(":position", 0);
-    if (!query.exec())
-        qDebug() << "Error inserting bookmark. Message: " << query.lastError().text();
+    appendBookmark(QLatin1String("Search Engine"), QLatin1String("https://www.ixquick.com"), bookmarkBar);
 }
 
 void BookmarkManager::load()
 {
     loadFolder(m_rootNode.get());
-    resetBookmarkList(); 
+    resetBookmarkList();
 }

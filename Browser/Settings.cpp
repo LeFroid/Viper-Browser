@@ -81,8 +81,15 @@ void Settings::setDefaults()
 {
     m_firstRun = true;
 
-    QString storageFolder = QFileInfo(m_settings.fileName()).absoluteDir().absolutePath() + QDir::separator();
-    m_settings.setValue(QStringLiteral("StoragePath"), storageFolder);
+    QFileInfo settingsFileInfo(m_settings.fileName());
+
+    QDir settingsDir = settingsFileInfo.absoluteDir();
+    QString settingsPath = settingsDir.absolutePath();
+    if (!settingsDir.exists())
+        settingsDir.mkpath(settingsPath);
+    settingsPath.append(QDir::separator());
+
+    m_settings.setValue(QStringLiteral("StoragePath"), settingsPath);
     m_settings.setValue(QStringLiteral("BookmarkPath"), QStringLiteral("bookmarks.db"));
     m_settings.setValue(QStringLiteral("CookiePath"), QStringLiteral("cookies.db"));
     m_settings.setValue(QStringLiteral("HistoryPath"), QStringLiteral("history.db"));
