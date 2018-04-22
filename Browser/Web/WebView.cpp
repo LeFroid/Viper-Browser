@@ -107,10 +107,19 @@ void WebView::zoomOut()
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
-    //QMenu *menu = page()->createStandardContextMenu();
-    //menu->popup(event->globalPos());
-    QWebEngineView::contextMenuEvent(event);
-    return;
+    QMenu *menu = m_page->createStandardContextMenu();
+    const auto actions = menu->actions();
+    auto it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
+    if (it != actions.end())
+    {
+        (*it)->setText(tr("Open link"));
+        ++it;
+
+        QAction *before = (it == actions.cend() ? nullptr: *it);
+        menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewTab));
+        menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewWindow));
+    }
+    menu->popup(event->globalPos());
 /*
 
     // Check if context menu includes links
