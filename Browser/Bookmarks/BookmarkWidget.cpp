@@ -7,6 +7,8 @@
 #include "BookmarkNode.h"
 
 #include <algorithm>
+#include <set>
+#include <vector>
 #include <QCloseEvent>
 #include <QDir>
 #include <QFileDialog>
@@ -106,6 +108,9 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
 
 void BookmarkWidget::reloadBookmarks()
 {
+    if (!isHidden())
+        return;
+
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(m_bookmarkManager->getRoot());
 
@@ -309,13 +314,19 @@ void BookmarkWidget::deleteBookmarkSelection()
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     QModelIndexList items = ui->tableView->selectionModel()->selectedIndexes();
 
-    // Selection mode is by rows, so remove duplicate items
-    QSet<int> rows;
+    // Selection mode is by rows, so remove duplicate items if multiple columns of same row are selected
+    std::set<int> rowSet;
     for (auto index : items)
-        rows << index.row();
+        rowSet.insert(index.row());
 
-    for (auto r : rows)
-        model->removeRow(r);
+    // Sort rows in descending order
+    std::vector<int> rows;
+    for (int r : rowSet)
+        rows.push_back(r);
+    std::sort(rows.begin(), rows.end(), std::greater<int>());
+
+    for (int r : rows)
+        model->removeRows(r, 1);
 }
 
 void BookmarkWidget::deleteFolderSelection()

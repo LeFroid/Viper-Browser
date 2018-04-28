@@ -297,7 +297,7 @@ void BookmarkTableModel::searchFor(const QString &text)
 
 BookmarkNode *BookmarkTableModel::getBookmark(int row) const
 {
-    if (rowCount() < row)
+    if (row >= rowCount())
         return nullptr;
 
     if (!m_searchModeOn && m_folder == nullptr)
