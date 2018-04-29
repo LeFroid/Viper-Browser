@@ -16,6 +16,9 @@ public:
     /// Default constructor. Node is made with no parent or data
     TreeNode() = default;
 
+    /// TreeNode destructor
+    virtual ~TreeNode() = default;
+
     /// Appends the given node to this node, returning a raw pointer to the child node
     virtual T *appendNode(std::unique_ptr<T> node)
     {
