@@ -119,6 +119,18 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewTab));
         menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewWindow));
     }
+    it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::InspectElement));
+    if (it == actions.end())
+    {
+        menu->addSeparator();
+        menu->addAction(tr("Inspect element"), this, &WebView::inspectElement);
+    }
+    else
+    {
+        menu->addAction(tr("Open inspector"), this, &WebView::inspectElement);
+        menu->removeAction((*it));
+        menu->insertAction(nullptr, m_page->action(QWebEnginePage::InspectElement));
+    }
     menu->popup(event->globalPos());
 /*
 

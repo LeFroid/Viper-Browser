@@ -114,6 +114,7 @@ void Settings::setDefaults()
     m_settings.setValue(QStringLiteral("CustomUserAgent"), false);
     m_settings.setValue(QStringLiteral("UserScriptsEnabled"), true);
     m_settings.setValue(QStringLiteral("AdBlockPlusEnabled"), true);
+    m_settings.setValue(QStringLiteral("InspectorPort"), 9477);
 
     QWebEngineSettings *webSettings = QWebEngineSettings::defaultSettings();
     m_settings.setValue(QStringLiteral("StandardFont"), webSettings->fontFamily(QWebEngineSettings::StandardFont));

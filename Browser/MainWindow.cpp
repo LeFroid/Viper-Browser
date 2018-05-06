@@ -45,7 +45,6 @@
 #include <QSplitter>
 #include <QTimer>
 #include <QToolButton>
-//#include <QWebInspector>
 
 MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, QWidget *parent) :
     QMainWindow(parent),
@@ -662,14 +661,17 @@ void MainWindow::onNewTabCreated(WebView *view)
         onLoadFinished(view, ok);
     });
     connect(view, &WebView::titleChanged, [=](const QString &title){ updateTabTitle(title, m_tabWidget->indexOf(view));} );
-/*
     connect(view, &WebView::inspectElement, [=]() {
-        QWebInspector *inspector = new QWebInspector(ui->dockWidget);
-        inspector->setPage(view->page());
-        ui->dockWidget->setWidget(inspector);
-        ui->dockWidget->show();
+        WebView *inspectorView = dynamic_cast<WebView*>(ui->dockWidget->widget());
+        if (!inspectorView)
+        {
+            inspectorView = new WebView(ui->dockWidget);
+            ui->dockWidget->setWidget(inspectorView);
+        }
+        QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue("InspectorPort").toString());
+        inspectorView->load(QUrl(inspectorUrl));
+            ui->dockWidget->show();
     });
-*/
 }
 
 void MainWindow::onClickSecurityInfo()
