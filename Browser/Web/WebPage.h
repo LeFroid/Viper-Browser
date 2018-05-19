@@ -5,6 +5,8 @@
 #include <QString>
 #include <QWebEnginePage>
 
+class QWebEngineProfile;
+
 /**
  * @class WebPage
  * @brief Wrapper class for QT's QWebPage, used in order to
@@ -16,10 +18,10 @@ class WebPage : public QWebEnginePage
 
 public:
     /// WebPage constructor
-    WebPage(QObject *parent = 0);
+    WebPage(QObject *parent = nullptr);
 
-    /// Sets the network access manager to the browser's private browsing one
-    void enablePrivateBrowsing();
+    /// Constructs the web page with a specific browsing profile and a parent
+    WebPage(QWebEngineProfile *profile, QObject *parent = nullptr);
 
 protected:
     /// Called when a JavaScript program attempts to print the given message to the browser console

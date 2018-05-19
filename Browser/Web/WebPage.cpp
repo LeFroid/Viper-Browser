@@ -7,6 +7,7 @@
 #include "WebPage.h"
 
 #include <QFile>
+#include <QWebEngineProfile>
 #include <QWebEngineScript>
 #include <iostream>
 
@@ -15,20 +16,21 @@ WebPage::WebPage(QObject *parent) :
     m_mainFrameHost(),
     m_domainFilterStyle()
 {
-//    setNetworkAccessManager(sBrowserApplication->getNetworkAccessManager());
-//    setForwardUnsupportedContent(true);
-
-    //connect(this, &WebPage::unsupportedContent, this, &WebPage::onUnsupportedContent);
-
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
     connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
-void WebPage::enablePrivateBrowsing()
+WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
+    QWebEnginePage(profile, parent),
+    m_mainFrameHost(),
+    m_domainFilterStyle()
 {
-    //setNetworkAccessManager(sBrowserApplication->getPrivateNetworkAccessManager());
+    // Add frame event handlers for script injection
+    connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
+    connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
+    connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
 void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel /*level*/, const QString &message, int lineId, const QString &sourceId)

@@ -46,10 +46,10 @@
 #include <QTimer>
 #include <QToolButton>
 
-MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, QWidget *parent) :
+MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_privateWindow(false),
+    m_privateWindow(privateWindow),
     m_settings(settings),
     m_bookmarkManager(bookmarkManager),
     m_bookmarkUI(nullptr),
@@ -66,15 +66,10 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
     setAcceptDrops(true);
 
-    // load favicon script
-    QFile f(":/GetFavicon.js");
-    if (f.open(QIODevice::ReadOnly))
-    {
-        m_faviconScript = f.readAll();
-        f.close();
-    }
-
     ui->setupUi(this);
+
+    if (m_privateWindow)
+        setWindowTitle("Web Browser - Private Browsing");
 
     setupToolBar();
     setupTabWidget();
@@ -113,15 +108,6 @@ MainWindow::~MainWindow()
 bool MainWindow::isPrivate() const
 {
     return m_privateWindow;
-}
-
-void MainWindow::setPrivate(bool value)
-{
-    m_privateWindow = value;
-    m_tabWidget->setPrivateMode(value);
-
-    if (m_privateWindow)
-        setWindowTitle("Web Browser - Private Browsing");
 }
 
 void MainWindow::loadBlankPage()
@@ -261,7 +247,7 @@ void MainWindow::setupMenuBar()
 void MainWindow::setupTabWidget()
 {
     // Create tab widget and insert into the layout
-    m_tabWidget = new BrowserTabWidget(m_settings, this);
+    m_tabWidget = new BrowserTabWidget(m_settings, m_privateWindow, this);
     ui->verticalLayout->insertWidget(ui->verticalLayout->indexOf(ui->widgetFindText), m_tabWidget);
 
     // Add change tab slot after removing dummy tabs to avoid segfaulting

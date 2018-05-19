@@ -36,7 +36,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Load settings
     m_settings = std::make_shared<Settings>();
 
-
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QStringLiteral("FaviconPath")));
 
@@ -86,6 +85,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_viperSchemeHandler = new ViperSchemeHandler(this);
     webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
 
+    // Setup the private browsing profile
+    m_privateProfile = new QWebEngineProfile(this);
+    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
+    m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QStringLiteral("SearchEnginesFile")));
 
@@ -120,6 +124,7 @@ BrowserApplication::~BrowserApplication()
     delete m_historyWidget;
     delete m_userAgentMgr;
     delete m_userScriptMgr;
+    delete m_privateProfile;
     delete m_requestInterceptor;
     delete m_viperSchemeHandler;
 }
@@ -180,6 +185,11 @@ NetworkAccessManager *BrowserApplication::getPrivateNetworkAccessManager()
     return m_privateNetworkAccessMgr;
 }
 
+QWebEngineProfile *BrowserApplication::getPrivateBrowsingProfile()
+{
+    return m_privateProfile;
+}
+
 URLSuggestionModel *BrowserApplication::getURLSuggestionModel()
 {
     return m_suggestionModel;
@@ -199,7 +209,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get());
+    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
 
@@ -240,11 +250,9 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get());
+    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), true);
     m_browserWindows.append(w);
 
-    // Set to private, show window and return pointer
-    w->setPrivate(true);
     w->show();
     return w;
 }

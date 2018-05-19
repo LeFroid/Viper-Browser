@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QUrl>
+#include <QWebEngineProfile>
 #include <QWheelEvent>
 
 #include "BrowserApplication.h"
@@ -20,12 +21,22 @@
 #include "WebLinkLabel.h"
 #include "WebPage.h"
 
-WebView::WebView(QWidget *parent) :
+WebView::WebView(bool privateView, QWidget *parent) :
     QWebEngineView(parent),
-    m_page(new WebPage(this)),
-    m_progress(0)
+    m_page(nullptr),
+    m_progress(0),
+    m_privateView(privateView)
 {
     setAcceptDrops(true);
+
+    if (privateView)
+    {
+        auto profile = sBrowserApplication->getPrivateBrowsingProfile();
+        m_page = new WebPage(profile, this); 
+    }
+    else
+        m_page = new WebPage(this);
+
     setPage(m_page);
 
     // Setup link hover label
@@ -37,13 +48,6 @@ WebView::WebView(QWidget *parent) :
 
     // Connect QWebPage signals to slots in the web view
 //    connect(m_page, &WebPage::downloadRequested, this, &WebView::requestDownload);
-}
-
-void WebView::setPrivate(bool value)
-{
-    //settings()->setAttribute(QWebSettings::PrivateBrowsingEnabled, value);
-    //if (value)
-    //    m_page->enablePrivateBrowsing(); // handles private browsing mode cookies
 }
 
 int WebView::getProgress() const
@@ -226,11 +230,11 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
     switch (type)
     {
         case QWebEnginePage::WebBrowserWindow:    // Open a new window
-	{
-	    auto win = sBrowserApplication->getNewWindow();
-	    return win->getTabWidget()->currentWebView();
+        {
+            MainWindow *win = m_privateView ? sBrowserApplication->getNewPrivateWindow() : sBrowserApplication->getNewWindow();
+            return win->getTabWidget()->currentWebView();
         }	
-	case QWebEnginePage::WebBrowserTab:
+        case QWebEnginePage::WebBrowserTab:
         {
             // Get main window
             QObject *obj = parent();
@@ -249,7 +253,7 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
             dialog->show();
             return dialog->getView();
         }
-	default: break;
+        default: break;
     }
     return QWebEngineView::createWindow(type);
 }

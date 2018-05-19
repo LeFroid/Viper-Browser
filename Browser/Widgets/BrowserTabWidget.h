@@ -24,16 +24,13 @@ class BrowserTabWidget : public QTabWidget
 
 public:
     /// Constructs the browser tab widget with the given parent
-    BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *parent = nullptr);
+    BrowserTabWidget(std::shared_ptr<Settings> settings, bool privateMode, QWidget *parent = nullptr);
 
     /// Returns a pointer to the current web view
     WebView *currentWebView() const;
 
     /// Returns the web view at the given tab index, or a nullptr if tabIndex is invalid
     WebView *getWebView(int tabIndex) const;
-
-    /// Sets private mode on if boolean passed is true, otherwise disables private mode
-    void setPrivateMode(bool value);
 
 signals:
     /// Emitted when a new tab is created, passing along a pointer to the associated web view

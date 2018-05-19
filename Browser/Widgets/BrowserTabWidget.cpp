@@ -9,10 +9,10 @@
 #include <QWebEngineHistory>
 #include <QWebEngineHistoryItem>
 
-BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, QWidget *parent) :
+BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool privateMode, QWidget *parent) :
     QTabWidget(parent),
     m_settings(settings),
-    m_privateBrowsing(false),
+    m_privateBrowsing(privateMode),
     m_newTabPage(settings->getValue("NewTabsLoadHomePage").toBool() ? HomePage : BlankPage),
     m_activeView(nullptr),
     m_tabBar(new BrowserTabBar(this)),
@@ -52,21 +52,6 @@ WebView *BrowserTabWidget::getWebView(int tabIndex) const
     return nullptr;
 }
 
-void BrowserTabWidget::setPrivateMode(bool value)
-{
-    if (m_privateBrowsing == value)
-        return;
-
-    m_privateBrowsing = value;
-
-    int numViews = count();
-    for (int i = 0; i < numViews; ++i)
-    {
-        if (m_tabBar->isTabEnabled(i))
-            getWebView(i)->setPrivate(value);
-    }
-}
-
 void BrowserTabWidget::closeTab(int index)
 {
     int numTabs = count();
@@ -101,9 +86,8 @@ void BrowserTabWidget::closeTab(int index)
 
 WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
 {
-    WebView *view = new WebView(parentWidget());
+    WebView *view = new WebView(m_privateBrowsing, parentWidget());
     view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    view->setPrivate(m_privateBrowsing);
 
     QString tabLabel;
     if (!skipHomePage)
@@ -125,7 +109,7 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     connect(view, &WebView::iconChanged, this, &BrowserTabWidget::onIconChanged);
     connect(view, &WebView::openRequest, this, &BrowserTabWidget::loadUrl);
     connect(view, &WebView::openInNewTabRequest, this, &BrowserTabWidget::openLinkInNewTab);
-    connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
+//    connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
 
     //addTab(view, tabLabel);
@@ -166,10 +150,9 @@ void BrowserTabWidget::openLinkInNewTab(const QUrl &url, bool makeCurrent)
 
 void BrowserTabWidget::openLinkInNewWindow(const QUrl &url, bool privateWindow)
 {
-    MainWindow *newWin = sBrowserApplication->getNewWindow();
+    MainWindow *newWin = privateWindow ? sBrowserApplication->getNewPrivateWindow() : sBrowserApplication->getNewWindow();
     if (!newWin)
         return;
-    newWin->setPrivate(privateWindow);
     newWin->loadUrl(url);
 }
 

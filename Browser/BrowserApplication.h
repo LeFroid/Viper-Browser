@@ -26,6 +26,8 @@ class UserScriptManager;
 class NetworkAccessManager;
 class ViperSchemeHandler;
 
+class QWebEngineProfile;
+
 /// Potential modes of operation for the browser startup routine (ie load a home page, restore session, etc)
 enum class StartupMode
 {
@@ -82,6 +84,9 @@ public:
 
     /// Returns a network access manager for private browsing
     NetworkAccessManager *getPrivateNetworkAccessManager();
+
+    /// Returns a pointer to the private web browsing profile
+    QWebEngineProfile *getPrivateBrowsingProfile();
 
     /// Returns a pointer to the model used for suggesting URLs for the user to visit
     URLSuggestionModel *getURLSuggestionModel();
@@ -168,6 +173,9 @@ private:
 
     /// viper:// scheme handler
     ViperSchemeHandler *m_viperSchemeHandler;
+
+    /// Private browsing profile
+    QWebEngineProfile *m_privateProfile;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

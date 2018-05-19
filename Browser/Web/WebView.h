@@ -18,10 +18,7 @@ class WebView : public QWebEngineView
 
 public:
     /// Constructs a web view
-    explicit WebView(QWidget* parent = 0);
-
-    /// Toggles private browsing mode
-    void setPrivate(bool value);
+    explicit WebView(bool privateView, QWidget* parent = 0);
 
     /// Returns the loading progress percentage value of the page as an integer in the range [0,100]
     int getProgress() const;
@@ -99,6 +96,9 @@ private:
 
     /// Load progress
     int m_progress;
+
+    /// True if the view is a private browsing view, false if else
+    bool m_privateView;
 };
 
 #endif // WEBVIEW_H
