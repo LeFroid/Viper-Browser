@@ -33,9 +33,10 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
-void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel /*level*/, const QString &message, int lineId, const QString &sourceId)
+void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId)
 {
-    std::cout << "[JS Console] [Source " << sourceId.toStdString() << "] Line " << lineId << ", message: " << message.toStdString() << std::endl; 
+    QWebEnginePage::javaScriptConsoleMessage(level, message, lineId, sourceId);
+    //std::cout << "[JS Console] [Source " << sourceId.toStdString() << "] Line " << lineId << ", message: " << message.toStdString() << std::endl;
 }
 
 /*void WebPage::onUnsupportedContent(QNetworkReply *reply)

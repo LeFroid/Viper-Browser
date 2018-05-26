@@ -354,16 +354,14 @@ bool AdBlockFilterParser::parseScriptInjection(AdBlockFilter *filter) const
     if (injectionArgs.size() < 2)
         return true;
 
-    // For each item with index > 0 in injectionArgs list, replace first {{index}}
+    // For each item with index > 0 in injectionArgs list, replace each {{index}}
     // string in resource with injectionArgs[index]
     for (int i = 1; i < injectionArgs.size(); ++i)
     {
         QString arg = injectionArgs.at(i).trimmed();
         arg.replace(QChar('\''), QStringLiteral("\\'"));
         QString term = QString("{{%1}}").arg(i);
-        int argIdx = filter->m_evalString.indexOf(term);
-        if (argIdx >= 0)
-            filter->m_evalString.replace(argIdx, term.size(), arg);
+        filter->m_evalString.replace(term, arg);
     }
 
     return true;
