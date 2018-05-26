@@ -25,7 +25,6 @@ class BookmarkDialog;
 class BookmarkWidget;
 class BrowserTabWidget;
 class ClearHistoryDialog;
-class CookieWidget;
 class Preferences;
 class SearchEngineLineEdit;
 class URLLineEdit;
@@ -212,9 +211,6 @@ private:
 
     /// Dialog used to clear recent history, cookies, etc.
     ClearHistoryDialog *m_clearHistoryDialog;
-
-    /// Cookie manager interface
-    CookieWidget *m_cookieUI;
 
     /// Browser tab widget
     BrowserTabWidget *m_tabWidget;

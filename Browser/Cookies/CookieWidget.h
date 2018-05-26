@@ -24,6 +24,9 @@ public:
     explicit CookieWidget(QWidget *parent = 0);
     ~CookieWidget();
 
+    /// Resets the checkbox states in the table view
+    void resetUI();
+
 protected:
     /// Called to adjust the proportions of the columns belonging to the table views
     virtual void resizeEvent(QResizeEvent *event) override;

@@ -13,6 +13,7 @@
 
 class BookmarkManager;
 class CookieJar;
+class CookieWidget;
 class DownloadManager;
 class FaviconStorage;
 class HistoryManager;
@@ -97,6 +98,9 @@ public:
     /// Returns a pointer to the user script manager
     UserScriptManager *getUserScriptManager();
 
+    /// Returns the cookie manager
+    CookieWidget *getCookieManager();
+
 signals:
     /// Emitted when each browsing window's history menu should reset its contents
     void resetHistoryMenu();
@@ -176,6 +180,9 @@ private:
 
     /// Private browsing profile
     QWebEngineProfile *m_privateProfile;
+
+    /// Cookie manager
+    CookieWidget *m_cookieUI;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

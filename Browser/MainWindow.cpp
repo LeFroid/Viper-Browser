@@ -54,7 +54,6 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     m_bookmarkManager(bookmarkManager),
     m_bookmarkUI(nullptr),
     m_clearHistoryDialog(nullptr),
-    m_cookieUI(nullptr),
     m_tabWidget(nullptr),
     m_preferences(nullptr),
     m_bookmarkDialog(nullptr),
@@ -91,9 +90,6 @@ MainWindow::~MainWindow()
 
     if (m_bookmarkUI)
         delete m_bookmarkUI;
-
-    if (m_cookieUI)
-        delete m_cookieUI;
 
     if (m_preferences)
         delete m_preferences;
@@ -419,14 +415,7 @@ void MainWindow::goToURL()
 
 void MainWindow::openCookieManager()
 {
-    if (!m_cookieUI)
-    {
-        m_cookieUI = new CookieWidget;
-        connect(m_cookieUI, &CookieWidget::destroyed, [=]() {
-            this->m_cookieUI = nullptr;
-        });
-    }
-    m_cookieUI->show();
+    sBrowserApplication->getCookieManager()->show();
 }
 
 void MainWindow::openDownloadManager()

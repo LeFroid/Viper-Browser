@@ -6,6 +6,7 @@
 #include <QNetworkCookie>
 
 class CookieJar;
+class QWebEngineCookieStore;
 
 /**
  * @class CookieTableModel
@@ -55,14 +56,23 @@ public slots:
     /// the matching subset of cookies in the model
     void searchFor(const QString &text);
 
-private slots:
     /// Reloads the local copy of the browser's cookies
     void loadCookies();
 
+private slots:
     /// Called when the cookies have been erased
     void eraseCookies();
 
+    /// Called when a cookie has been added to the cookie store
+    void onCookieAdded(const QNetworkCookie &cookie);
+
+    /// Called when a cookie has been removed from the cookie store
+    void onCookieRemoved(const QNetworkCookie &cookie);
+
 private:
+    /// Cookie store
+    QWebEngineCookieStore *m_cookieStore;
+
     /// Cookie jar (container)
     CookieJar *m_cookieJar;
 

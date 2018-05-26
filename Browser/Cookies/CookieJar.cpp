@@ -15,8 +15,13 @@ CookieJar::CookieJar(const QString &databaseFile, QString name, bool privateJar,
     m_queryMap(),
     m_store(nullptr)
 {
+    /*if (!m_privateJar)
+    {
+        m_store = QWebEngineProfile::defaultProfile()->cookieStore();
+        m_store->loadAllCookies();
+    }*/
     // If not in private mode, load cookies from storage
-    if (!m_privateJar)
+   /* if (!m_privateJar)
     {
         m_store = QWebEngineProfile::defaultProfile()->cookieStore();
         m_store->loadAllCookies();
@@ -26,7 +31,7 @@ CookieJar::CookieJar(const QString &databaseFile, QString name, bool privateJar,
         connect(m_store, &QWebEngineCookieStore::cookieRemoved, [=](const QNetworkCookie &cookie){
             static_cast<void>(deleteCookie(cookie));
         });
-    }
+    }*/
     // Prepare commonly used queries and store in the query map
     auto savedQuery = std::make_unique<QSqlQuery>(m_database);
     savedQuery->prepare(QLatin1String("INSERT OR REPLACE INTO Cookies(Domain, Name, Path, EncryptedOnly, HttpOnly, "
@@ -44,7 +49,7 @@ CookieJar::~CookieJar()
     if (!m_privateJar)
     {
         save();
-        disconnect(m_store, 0, 0, 0);
+        //disconnect(m_store, 0, 0, 0);
     }
 }
 
@@ -129,8 +134,8 @@ bool CookieJar::deleteCookie(const QNetworkCookie &cookie)
     {
         if (m_privateJar)
             return true;
-        else
-            m_store->deleteCookie(cookie);
+        //else
+        //    m_store->deleteCookie(cookie);
 
         QSqlQuery *query = m_queryMap.at(StoredQuery::DeleteCookie).get();
         query->bindValue(QLatin1String(":domain"), cookie.domain());
@@ -147,7 +152,7 @@ void CookieJar::eraseAllCookies()
 
     if (!m_privateJar)
     {
-        m_store->deleteAllCookies();
+        //m_store->deleteAllCookies();
         if (!exec("DELETE FROM Cookies"))
             qDebug() << "[Warning]: In CookieJar::eraseAllCookies() - could not delete cookies from database.";
     }
@@ -207,7 +212,7 @@ void CookieJar::load()
             cookie.setExpirationDate(QDateTime::fromString(query.value(idExpDate).toString()));
             cookies.append(cookie);
 
-            m_store->setCookie(cookie);
+            //m_store->setCookie(cookie);
         }
     }
     else
@@ -243,7 +248,7 @@ void CookieJar::removeExpired()
         if (!query.exec())
             qDebug() << "[Error]: In CookieJar::removeExpired - unable to remove expired cookie from database. Message: " << query.lastError().text();
 
-        m_store->deleteCookie(cookie);
+        //m_store->deleteCookie(cookie);
         cookies.removeAt(i);
     }
 

@@ -2,6 +2,7 @@
 #include "AdBlockManager.h"
 #include "BookmarkManager.h"
 #include "CookieJar.h"
+#include "CookieWidget.h"
 #include "DatabaseFactory.h"
 #include "DownloadManager.h"
 #include "FaviconStorage.h"
@@ -22,6 +23,7 @@
 #include <QDir>
 #include <QUrl>
 #include <QDebug>
+#include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
 
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
@@ -32,6 +34,24 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QCoreApplication::setApplicationVersion(QStringLiteral("0.5"));
 
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
+
+    // Setup request interceptor and attach to the default web profile
+    m_requestInterceptor = new RequestInterceptor;
+    auto webProfile = QWebEngineProfile::defaultProfile();
+    webProfile->setRequestInterceptor(m_requestInterceptor);
+
+    // Setup cookie manager
+    m_cookieUI = new CookieWidget();
+    webProfile->cookieStore()->loadAllCookies();
+
+    // Instantiate viper scheme handler and add to the web engine profile
+    m_viperSchemeHandler = new ViperSchemeHandler(this);
+    webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+
+    // Setup the private browsing profile
+    m_privateProfile = new QWebEngineProfile(this);
+    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
+    m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
 
     // Load settings
     m_settings = std::make_shared<Settings>();
@@ -75,20 +95,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Apply web settings
     m_settings->applyWebSettings();
-    
-    // Setup request interceptor and attach to the default web profile
-    m_requestInterceptor = new RequestInterceptor;
-    auto webProfile = QWebEngineProfile::defaultProfile();
-    webProfile->setRequestInterceptor(m_requestInterceptor);
-
-    // Instantiate viper scheme handler and add to the web engine profile
-    m_viperSchemeHandler = new ViperSchemeHandler(this);
-    webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
-
-    // Setup the private browsing profile
-    m_privateProfile = new QWebEngineProfile(this);
-    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
-    m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
 
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QStringLiteral("SearchEnginesFile")));
@@ -127,6 +133,7 @@ BrowserApplication::~BrowserApplication()
     delete m_privateProfile;
     delete m_requestInterceptor;
     delete m_viperSchemeHandler;
+    delete m_cookieUI;
 }
 
 BrowserApplication *BrowserApplication::instance()
@@ -203,6 +210,12 @@ UserAgentManager *BrowserApplication::getUserAgentManager()
 UserScriptManager *BrowserApplication::getUserScriptManager()
 {
     return m_userScriptMgr;
+}
+
+CookieWidget *BrowserApplication::getCookieManager()
+{
+    m_cookieUI->resetUI();
+    return m_cookieUI;
 }
 
 MainWindow *BrowserApplication::getNewWindow()

@@ -1,13 +1,14 @@
 #include <QNetworkAccessManager>
+#include <QWebEngineCookieStore>
+#include <QWebEngineProfile>
 
 #include "BrowserApplication.h"
 #include "CookieTableModel.h"
-#include "CookieJar.h"
 #include "NetworkAccessManager.h"
 
 CookieTableModel::CookieTableModel(QObject *parent) :
     QAbstractTableModel(parent),
-    m_cookieJar(sBrowserApplication->getCookieJar()),
+    m_cookieStore(QWebEngineProfile::defaultProfile()->cookieStore()),
     m_checkedState(),
     m_cookies(),
     m_searchResults(),
@@ -15,8 +16,8 @@ CookieTableModel::CookieTableModel(QObject *parent) :
 {
     loadCookies();
 
-    connect(m_cookieJar, &CookieJar::cookieAdded, this, &CookieTableModel::loadCookies);
-    connect(m_cookieJar, &CookieJar::cookiesRemoved, this, &CookieTableModel::eraseCookies);
+    connect(m_cookieStore, &QWebEngineCookieStore::cookieAdded, this, &CookieTableModel::onCookieAdded);
+    connect(m_cookieStore, &QWebEngineCookieStore::cookieRemoved, this, &CookieTableModel::onCookieRemoved);
 }
 
 QVariant CookieTableModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -45,7 +46,7 @@ int CookieTableModel::rowCount(const QModelIndex &parent) const
     if (m_searchModeOn)
         return m_searchResults.size();
 
-    return m_cookieJar->allCookies().size();
+    return m_cookies.size();
 }
 
 int CookieTableModel::columnCount(const QModelIndex &parent) const
@@ -133,7 +134,7 @@ bool CookieTableModel::removeRows(int row, int count, const QModelIndex &parent)
     for (int i = 0; i < count; ++i)
     {
         QNetworkCookie cookie = (m_searchModeOn ? m_searchResults.at(row + i) : m_cookies.at(row + i));
-        m_cookieJar->deleteCookie(cookie);
+        m_cookieStore->deleteCookie(cookie);
         if (m_searchModeOn)
             m_searchResults.removeAt(row + i);
         else
@@ -213,8 +214,6 @@ void CookieTableModel::searchFor(const QString &text)
 
 void CookieTableModel::loadCookies()
 {
-    m_cookies = m_cookieJar->allCookies();
-
     int checkboxSize = m_checkedState.size();
     int cookieSize = m_cookies.size();
     if (checkboxSize < m_cookies.size())
@@ -230,4 +229,23 @@ void CookieTableModel::eraseCookies()
     m_cookies.clear();
     m_checkedState.clear();
     emit dataChanged(index(0, 0), index(numCookies - 1, 2));
+}
+
+void CookieTableModel::onCookieAdded(const QNetworkCookie &cookie)
+{
+    int rowNum = m_cookies.size();
+    beginInsertRows(QModelIndex(), rowNum, rowNum);;
+    m_cookies.append(cookie);
+    endInsertRows();
+}
+
+void CookieTableModel::onCookieRemoved(const QNetworkCookie &cookie)
+{
+    int index = m_cookies.indexOf(cookie);
+    if (index < 0)
+        return;
+
+    beginRemoveRows(QModelIndex(), index, index);
+    m_cookies.removeAt(index);
+    endRemoveRows();
 }

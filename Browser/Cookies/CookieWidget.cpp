@@ -9,6 +9,8 @@
 
 #include <QList>
 #include <QMessageBox>
+#include <QWebEngineCookieStore>
+#include <QWebEngineProfile>
 
 CookieWidget::CookieWidget(QWidget *parent) :
     QWidget(parent),
@@ -16,7 +18,6 @@ CookieWidget::CookieWidget(QWidget *parent) :
     m_cookieDialog(new CookieModifyDialog(this)),
     m_dialogEditMode(false)
 {
-    setAttribute(Qt::WA_DeleteOnClose, true);
     ui->setupUi(this);
 
     ui->tableViewCookies->setModel(new CookieTableModel(this));
@@ -43,6 +44,11 @@ CookieWidget::CookieWidget(QWidget *parent) :
 CookieWidget::~CookieWidget()
 {
     delete ui;
+}
+
+void CookieWidget::resetUI()
+{
+    static_cast<CookieTableModel*>(ui->tableViewCookies->model())->loadCookies();
 }
 
 void CookieWidget::resizeEvent(QResizeEvent *event)
@@ -143,11 +149,14 @@ void CookieWidget::onCookieDialogFinished(int result)
     if (result == QDialog::Rejected)
         return;
 
-    CookieTableModel *model = static_cast<CookieTableModel*>(ui->tableViewCookies->model());
-    CookieJar *jar = sBrowserApplication->getCookieJar();
+    //CookieTableModel *model = static_cast<CookieTableModel*>(ui->tableViewCookies->model());
+    //CookieJar *jar = sBrowserApplication->getCookieJar();
+    auto cookieStore = QWebEngineProfile::defaultProfile()->cookieStore();
     const QNetworkCookie &cookie = m_cookieDialog->getCookie();
-    if (m_dialogEditMode)
+    cookieStore->setCookie(cookie);
+    /*if (m_dialogEditMode)
     {
+
         if (!jar->updateCookie(cookie))
         {
             jar->insertCookie(cookie);
@@ -160,5 +169,5 @@ void CookieWidget::onCookieDialogFinished(int result)
     {
         jar->insertCookie(cookie);
         model->insertRow(model->rowCount());
-    }
+    }*/
 }
