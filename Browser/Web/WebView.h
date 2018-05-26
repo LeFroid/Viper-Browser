@@ -46,10 +46,6 @@ public slots:
     /// Decreases the zoom factor of the view by 10% of the base value
     void zoomOut();
 
-private slots:
-    /// Called when a download is requested
-//    void requestDownload(const QNetworkRequest &request);
-
 protected:
     /// Event handler for context menu displays
     virtual void contextMenuEvent(QContextMenuEvent *event) override;

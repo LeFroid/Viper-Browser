@@ -3,9 +3,9 @@
 
 #include <QGridLayout>
 
-WebDialog::WebDialog(QWidget *parent) :
+WebDialog::WebDialog(bool isPrivate, QWidget *parent) :
     QWidget(parent),
-    m_view(new WebView(this))
+    m_view(new WebView(isPrivate, this))
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);

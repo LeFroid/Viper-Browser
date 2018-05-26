@@ -11,8 +11,10 @@ class DownloadManager;
 }
 
 class DownloadItem;
+class InternalDownloadItem;
 class NetworkAccessManager;
 class QNetworkReply;
+class QWebEngineDownloadItem;
 
 /**
  * @class DownloadManager
@@ -42,13 +44,10 @@ public:
 
 public slots:
     /// Called when a download request is initiated
-    void download(const QNetworkRequest &request, bool askForFileName = true);
+    void onDownloadRequest(QWebEngineDownloadItem *item);
 
     /// Used for internal downloads (not explictly requested by the user)
-    DownloadItem *downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName = false, bool writeOverExisting = true);
-
-    /// Handles content that cannot directly be rendered by a web view
-    void handleUnsupportedContent(QNetworkReply *reply, bool askForFileName = true);
+    InternalDownloadItem *downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName = false, bool writeOverExisting = true);
 
 private:
     /// User interface

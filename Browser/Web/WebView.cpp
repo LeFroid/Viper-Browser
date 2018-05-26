@@ -12,7 +12,6 @@
 
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
-#include "DownloadManager.h"
 #include "MainWindow.h"
 #include "SearchEngineManager.h"
 #include "Settings.h"
@@ -44,9 +43,6 @@ WebView::WebView(bool privateView, QWidget *parent) :
     connect(this, &WebView::loadProgress, [=](int value){
        m_progress = value;
     });
-
-    // Connect QWebPage signals to slots in the web view
-//    connect(m_page, &WebPage::downloadRequested, this, &WebView::requestDownload);
 }
 
 int WebView::getProgress() const
@@ -100,13 +96,6 @@ void WebView::zoomOut()
     qreal currentZoom = zoomFactor();
     setZoomFactor(std::max(currentZoom - 0.1, 0.1));
 }
-
-/*void WebView::requestDownload(const QNetworkRequest &request)
-{
-    BrowserApplication *app = sBrowserApplication;
-    bool askWhereToSave = app->getSettings()->getValue("AskWhereToSaveDownloads").toBool();
-    app->getDownloadManager()->download(request, askWhereToSave);
-}*/
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
@@ -240,7 +229,7 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
         }
         case QWebEnginePage::WebDialog:     // Open a web dialog
         {
-            WebDialog *dialog = new WebDialog;
+            WebDialog *dialog = new WebDialog(m_privateView);
             dialog->show();
             return dialog->getView();
         }

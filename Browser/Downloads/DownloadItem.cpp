@@ -6,8 +6,6 @@
 
 #include <QDesktopServices>
 #include <QDir>
-#include <QFileDialog>
-#include <QFile>
 #include <QFileInfo>
 #include <QList>
 #include <QMimeDatabase>
@@ -16,25 +14,22 @@
 
 QMimeDatabase mimeDB;
 
-DownloadItem::DownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, bool writeOverExisting, QWidget *parent) :
+DownloadItem::DownloadItem(QWebEngineDownloadItem *item, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DownloadItem),
-    m_reply(reply),
-    m_askForFileName(askForFileName),
-    m_writeOverExisting(writeOverExisting),
-    m_downloadDir(downloadDir),
+    m_download(item),
+    m_downloadDir(),
     m_bytesReceived(0),
-    m_file(),
-    m_inProgress(false),
-    m_finished(false)
+    m_inProgress(false)
 {
     ui->setupUi(this);
+
+    m_downloadDir = QFileInfo(m_download->path()).absoluteDir().absolutePath();
 
     // Connect "Open download folder" button to slot
     connect(ui->pushButtonOpenFolder, &QPushButton::clicked, this, &DownloadItem::openDownloadFolder);
 
-    if (m_reply != nullptr)
-        setupItem();
+    setupItem();
 }
 
 DownloadItem::~DownloadItem()
@@ -45,77 +40,23 @@ DownloadItem::~DownloadItem()
 void DownloadItem::setupItem()
 {
     m_inProgress = false;
-    m_finished = false;
-    m_reply->setParent(this);
 
-    ui->labelDownloadName->setText(QString());
+    ui->labelDownloadName->setText(QFileInfo(m_download->path()).fileName());
     ui->labelDownloadSize->setText(QString());
     ui->progressBarDownload->show();
+    ui->labelDownloadSource->setText(m_download->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash));
     ui->pushButtonOpenFolder->hide();
 
     // Setup network slots
-    connect(m_reply, &QNetworkReply::readyRead, this, &DownloadItem::onReadyRead);
-    connect(m_reply, &QNetworkReply::downloadProgress, this, &DownloadItem::onDownloadProgress);
-    connect(m_reply, &QNetworkReply::finished, this, &DownloadItem::onFinished);
-    connect(m_reply, &QNetworkReply::metaDataChanged, this, &DownloadItem::onMetaDataChanged);
-    connect(m_reply, static_cast<void(QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &DownloadItem::onError);
-
-    // Get file info
-    QFileInfo info(m_reply->url().path());
-    QString externalName = info.baseName();
-
-    // Request file name for download if needed
-    QString fileNameDefault = QString("%1%2").arg(m_downloadDir).arg(QDir::separator());
-    if (!m_writeOverExisting)
-    {
-        fileNameDefault = getDefaultFileName(QString("%1%2").arg(fileNameDefault).arg((externalName.isEmpty() ? "unknown" : externalName)),
-                                             info.completeSuffix());
-    }
-    else
-        fileNameDefault = QString("%1%2.%3").arg(fileNameDefault).arg((externalName.isEmpty() ? "unknown" : externalName)).arg(info.completeSuffix());
-
-    QString fileName = fileNameDefault;
-    if (m_askForFileName)
-    {
-        fileName = QFileDialog::getSaveFileName(this, tr("Save File As..."), fileNameDefault);
-        if (fileName.isEmpty())
-        {
-            m_reply->close();
-            ui->labelDownloadName->setText(fileNameDefault + " - Canceled");
-            return;
-        }
-        // Update download directory in manager class
-        sBrowserApplication->getDownloadManager()->setDownloadDir(QFileInfo(fileName).absoluteDir().absolutePath());
-    }
-
-    // Create file on disk
-    m_file.setFileName(fileName);
-    QFileInfo localFileInfo(m_file.fileName());
+    connect(m_download, &QWebEngineDownloadItem::downloadProgress, this, &DownloadItem::onDownloadProgress);
+    connect(m_download, &QWebEngineDownloadItem::finished, this, &DownloadItem::onFinished);
 
     // Set icon for the download item
-    setIconForItem(localFileInfo.fileName());
+    setIconForItem(QFileInfo(m_download->path()).fileName());
 
-    // Set file name label
-    ui->labelDownloadName->setText(localFileInfo.fileName());
-
-    // Create parent directory if does not exist
-    QDir parentDir = localFileInfo.dir();
-    if (!parentDir.exists())
-    {
-        if (!parentDir.mkpath(parentDir.absolutePath()))
-        {
-            ui->labelDownloadSize->setText(tr("Canceled - Unable to create download directory"));
-            return;
-        }
-    }
-
-    if (m_askForFileName)
-        onReadyRead();
-
-    if (m_reply->error() != QNetworkReply::NoError)
+    if (m_download->state() == QWebEngineDownloadItem::DownloadCompleted)
     {
         onFinished();
-        onError(m_reply->error());
     }
 }
 
@@ -138,35 +79,6 @@ void DownloadItem::setIconForItem(const QString &fileName)
     ui->labelFileTypeIcon->setPixmap(style()->standardIcon(QStyle::SP_FileIcon).pixmap(48, 48));
 }
 
-void DownloadItem::onReadyRead()
-{
-    if (m_askForFileName && m_file.fileName().isEmpty())
-        return;
-
-    // Check if output file is not opened yet
-    if (!m_file.isOpen())
-    {
-        if (!m_file.open(QIODevice::WriteOnly))
-        {
-            ui->labelDownloadSize->setText("Error opening output file");
-            m_reply->abort();
-            return;
-        }
-    }
-
-    if (m_file.write(m_reply->readAll()) == -1)
-    {
-        ui->labelDownloadSize->setText("Error saving file");
-        m_reply->abort();
-    }
-    else
-    {
-        m_inProgress = true;
-        if (m_finished)
-            onFinished();
-    }
-}
-
 void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 {
     m_bytesReceived = bytesReceived;
@@ -180,61 +92,32 @@ void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void DownloadItem::onFinished()
 {
-    const bool hadError = m_reply->error() != QNetworkReply::NoError;
+    ui->progressBarDownload->setValue(100);
+    ui->progressBarDownload->setDisabled(true);
+    ui->labelDownloadSize->setText(getUserByteString(m_bytesReceived));
+    ui->pushButtonOpenFolder->show();
+}
 
-    if (!hadError && (m_file.size() == 0 || (m_bytesReceived > 0 && m_file.size() < m_bytesReceived)))
-        onReadyRead();
-
-    m_finished = true;
-    ui->progressBarDownload->hide();
-    QString urlString = m_reply->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash);
-    ui->labelDownloadSize->setText(QString("%1 - %2").arg(getUserByteString(m_bytesReceived)).arg(urlString));
-
-    m_file.close();
-
-    if (!hadError)
+void DownloadItem::onStateChanged(QWebEngineDownloadItem::DownloadState state)
+{
+    if (state == QWebEngineDownloadItem::DownloadCancelled)
     {
-        ui->pushButtonOpenFolder->show();
-        emit downloadFinished(QFileInfo(m_file).absoluteFilePath());
+        ui->progressBarDownload->setValue(0);
+        ui->progressBarDownload->setDisabled(true);
+        ui->labelDownloadSize->setText(QString("Cancelled - %1 downloaded").arg(getUserByteString(m_bytesReceived)));
     }
-}
-
-void DownloadItem::onError(QNetworkReply::NetworkError /*errorCode*/)
-{
-    ui->labelDownloadSize->setText(QString("Network error: %1").arg(m_reply->errorString()));
-}
-
-void DownloadItem::onMetaDataChanged()
-{
-    QVariant locHeader = m_reply->header(QNetworkRequest::LocationHeader);
-    if (!locHeader.isValid())
-        return;
-
-    m_reply->deleteLater();
-    m_reply = sBrowserApplication->getNetworkAccessManager()->get(QNetworkRequest(locHeader.toUrl()));
-    setupItem();
+    else if (state == QWebEngineDownloadItem::DownloadInterrupted)
+    {
+        ui->progressBarDownload->setValue(0);
+        ui->progressBarDownload->setDisabled(true);
+        ui->labelDownloadSize->setText(QString("Interrupted - %1").arg(m_download->interruptReasonString()));
+    }
 }
 
 void DownloadItem::openDownloadFolder()
 {
     QString folderUrlStr = QString("file://%1").arg(m_downloadDir);
     static_cast<void>(QDesktopServices::openUrl(QUrl(folderUrlStr, QUrl::TolerantMode)));
-}
-
-QString DownloadItem::getDefaultFileName(const QString &pathWithoutSuffix, const QString &completeSuffix) const
-{
-    int attempts = 0;
-    QString fileAttempt = QString("%1.%2").arg(pathWithoutSuffix).arg(completeSuffix);
-
-    while (QFile::exists(fileAttempt))
-    {
-        // Attempt to avoid conflicts, but don't try forever
-        if (attempts > 1000000)
-            return fileAttempt;
-
-        fileAttempt = pathWithoutSuffix + " (" + QString::number(++attempts) + ")." + completeSuffix;
-    }
-    return fileAttempt;
 }
 
 QString DownloadItem::getUserByteString(qint64 value) const

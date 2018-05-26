@@ -63,6 +63,7 @@ SOURCES += \
     Bookmarks/BookmarkTableModel.cpp \
     Bookmarks/BookmarkWidget.cpp \
     Downloads/DownloadItem.cpp \
+    Downloads/InternalDownloadItem.cpp \
     Downloads/DownloadManager.cpp \
     Widgets/FindTextWidget.cpp \
     Web/WebActionProxy.cpp \
@@ -146,6 +147,7 @@ HEADERS += \
     Bookmarks/BookmarkTableModel.h \
     Bookmarks/BookmarkWidget.h \
     Downloads/DownloadItem.h \
+    Downloads/InternalDownloadItem.h \
     Downloads/DownloadManager.h \
     Widgets/FindTextWidget.h \
     Web/WebActionProxy.h \

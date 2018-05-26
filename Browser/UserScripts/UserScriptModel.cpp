@@ -1,7 +1,7 @@
 #include "UserScriptModel.h"
 #include "BrowserApplication.h"
 #include "DownloadManager.h"
-#include "DownloadItem.h"
+#include "InternalDownloadItem.h"
 
 #include <QDir>
 #include <QDirIterator>
@@ -270,8 +270,8 @@ void UserScriptModel::loadDependencies(int scriptIdx)
 
             QNetworkRequest request;
             request.setUrl(QUrl(depFile));
-            DownloadItem *item = downloadMgr->downloadInternal(request, m_scriptDepDir, false);
-            connect(item, &DownloadItem::downloadFinished, [=](const QString &filePath){
+            InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_scriptDepDir, false);
+            connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
                 QFile tmp(filePath);
                 QByteArray tmpData;
                 if (tmp.open(QIODevice::ReadOnly))

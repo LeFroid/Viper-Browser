@@ -1,6 +1,5 @@
 #include "AdBlockManager.h"
 #include "BrowserApplication.h"
-#include "DownloadManager.h"
 #include "NetworkAccessManager.h"
 #include "Settings.h"
 #include "UserScriptManager.h"

@@ -62,6 +62,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLabel" name="labelDownloadSource">
+       <property name="text">
+        <string>Download Origin</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

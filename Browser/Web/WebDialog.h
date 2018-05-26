@@ -14,14 +14,10 @@ class WebDialog : public QWidget
 {
     Q_OBJECT
 public:
-    explicit WebDialog(QWidget *parent = nullptr);
+    explicit WebDialog(bool isPrivate, QWidget *parent = nullptr);
 
     /// Returns the view associated with the dialog
     QWebEngineView *getView() const;
-
-/*
-public slots:
-*/
 
 private:
     /// Web view associated with the dialog

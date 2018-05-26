@@ -2,7 +2,7 @@
 #include "AdBlockModel.h"
 #include "Bitfield.h"
 #include "BrowserApplication.h"
-#include "DownloadItem.h"
+#include "InternalDownloadItem.h"
 #include "DownloadManager.h"
 #include "Settings.h"
 #include "WebPage.h"
@@ -98,8 +98,8 @@ void AdBlockManager::updateSubscriptions()
                 QNetworkRequest request;
                 request.setUrl(srcUrl);
 
-                DownloadItem *item = sBrowserApplication->getDownloadManager()->downloadInternal(request, m_subscriptionDir, false, true);
-                connect(item, &DownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath){
+                InternalDownloadItem *item = sBrowserApplication->getDownloadManager()->downloadInternal(request, m_subscriptionDir, false, true);
+                connect(item, &InternalDownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath){
                     if (filePath != subPtr->getFilePath())
                     {
                         QFile oldFile(subPtr->getFilePath());
@@ -124,8 +124,8 @@ void AdBlockManager::installResource(const QUrl &url)
     request.setUrl(url);
 
     DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    DownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
-    connect(item, &DownloadItem::downloadFinished, this, &AdBlockManager::loadResourceFile);
+    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
+    connect(item, &InternalDownloadItem::downloadFinished, this, &AdBlockManager::loadResourceFile);
 }
 
 void AdBlockManager::installSubscription(const QUrl &url)
@@ -137,8 +137,8 @@ void AdBlockManager::installSubscription(const QUrl &url)
     request.setUrl(url);
 
     DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    DownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
-    connect(item, &DownloadItem::downloadFinished, [=](const QString &filePath){
+    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
+    connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
         AdBlockSubscription subscription(filePath);
         subscription.setSourceUrl(url);
 

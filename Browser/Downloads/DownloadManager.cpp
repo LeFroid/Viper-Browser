@@ -1,10 +1,14 @@
 #include "DownloadManager.h"
 #include "ui_downloadmanager.h"
 #include "DownloadItem.h"
+#include "InternalDownloadItem.h"
 #include "NetworkAccessManager.h"
 
 #include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QNetworkReply>
+#include <QWebEngineDownloadItem>
 
 DownloadManager::DownloadManager(QWidget *parent) :
     QWidget(parent),
@@ -36,15 +40,34 @@ void DownloadManager::setNetworkAccessManager(NetworkAccessManager *manager)
     m_accessMgr = manager;
 }
 
-void DownloadManager::download(const QNetworkRequest &request, bool askForFileName)
+void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
 {
-    if (!m_accessMgr || request.url().isEmpty())
+    if (!item || item->state() != QWebEngineDownloadItem::DownloadRequested)
         return;
 
-    handleUnsupportedContent(m_accessMgr->get(request), askForFileName);
+    // Get file path for download
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save as..."), item->path());
+    if (fileName.isEmpty())
+        return;
+
+    setDownloadDir(QFileInfo(fileName).absoluteDir().absolutePath());
+
+    item->setPath(fileName);
+    item->accept();
+
+    DownloadItem *dlItem = new DownloadItem(item, this);
+    int downloadRow = m_downloads.size();
+    m_downloads.append(dlItem);
+    ui->tableWidget->insertRow(downloadRow);
+    ui->tableWidget->setCellWidget(downloadRow, 0, dlItem);
+    ui->tableWidget->setRowHeight(downloadRow, dlItem->sizeHint().height());
+
+    // Show download manager if hidden
+    if (!isVisible())
+        show();
 }
 
-DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName, bool writeOverExisting)
+InternalDownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName, bool writeOverExisting)
 {
     if (!m_accessMgr || request.url().isEmpty())
         return nullptr;
@@ -57,28 +80,6 @@ DownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &request, 
     if (castOk && !contentLen)
         return nullptr;
 
-    DownloadItem *item = new DownloadItem(reply, downloadDir, askForFileName, writeOverExisting, this);
+    InternalDownloadItem *item = new InternalDownloadItem(reply, downloadDir, askForFileName, writeOverExisting, this);
     return item;
-}
-
-void DownloadManager::handleUnsupportedContent(QNetworkReply *reply, bool askForFileName)
-{
-    // Make sure content is not empty
-    QVariant lenHeader = reply->header(QNetworkRequest::ContentLengthHeader);
-    bool castOk;
-    int contentLen = lenHeader.toInt(&castOk);
-    if (castOk && !contentLen)
-        return;
-
-    // Add to table
-    DownloadItem *item = new DownloadItem(reply, m_downloadDir, askForFileName, false, this);
-    int downloadRow = m_downloads.size();
-    m_downloads.append(item);
-    ui->tableWidget->insertRow(downloadRow);
-    ui->tableWidget->setCellWidget(downloadRow, 0, item);
-    ui->tableWidget->setRowHeight(downloadRow, item->sizeHint().height());
-
-    // Show download manager if hidden
-    if (!isVisible())
-        show();
 }

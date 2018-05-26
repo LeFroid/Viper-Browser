@@ -2,7 +2,7 @@
 #include "UserScriptModel.h"
 #include "BrowserApplication.h"
 #include "DownloadManager.h"
-#include "DownloadItem.h"
+#include "InternalDownloadItem.h"
 
 #include <QDir>
 #include <QFile>
@@ -89,8 +89,8 @@ void UserScriptManager::installScript(const QUrl &url)
     request.setUrl(url);
 
     DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    DownloadItem *item = downloadMgr->downloadInternal(request, m_model->m_userScriptDir, false);
-    connect(item, &DownloadItem::downloadFinished, [=](const QString &filePath){
+    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_model->m_userScriptDir, false);
+    connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
         UserScript script;
         if (script.load(filePath, m_model->m_scriptTemplate))
             m_model->addScript(std::move(script));
