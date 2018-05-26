@@ -179,6 +179,7 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew_Window">
    <property name="text">
     <string>&amp;New Window</string>

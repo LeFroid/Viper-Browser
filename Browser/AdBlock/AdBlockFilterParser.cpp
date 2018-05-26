@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <QRegularExpression>
+#include <QDebug>
 
 QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("script"), ElementType::Script },                 { QStringLiteral("image"), ElementType::Image },
@@ -41,7 +42,7 @@ std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) con
 
     // Check if filter options are set
     int pos = rule.indexOf(QChar('$'));
-    if (pos >= 0 && rule.at(rule.size() - 1).isLetter())
+    if (pos >= 0 && pos + 1 < rule.size() && rule.at(pos + 1).isLetter())
     {
         parseOptions(rule.mid(pos + 1), filterPtr);
         rule = rule.left(pos);

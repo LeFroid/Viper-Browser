@@ -3,7 +3,6 @@
 
 #include <QWebEngineView>
 
-class WebLinkLabel;
 class WebPage;
 class QLabel;
 class QMenu;
@@ -55,9 +54,6 @@ protected:
     /// Event handler for context menu displays
     virtual void contextMenuEvent(QContextMenuEvent *event) override;
 
-    /// Called to adjust the position of the link ref label
-    virtual void resizeEvent(QResizeEvent *event) override;
-
     /// Called to hide the link ref label when the wheel is moved
     virtual void wheelEvent(QWheelEvent *event) override;
 
@@ -83,14 +79,10 @@ signals:
     /// Called when the user requests to inspect an element
     void inspectElement();
 
-//private:
-    /// Adds a developer inspector option to the given menu, if the developer setting is enabled
-//    void addInspectorIfEnabled(QMenu *menu);
+    /// Emitted when a link is hovered over by the user
+    void linkHovered(const QUrl &url);
 
 private:
-    /// Label used to display the url of a link being hovered on by the user
-    WebLinkLabel *m_labelLinkRef;
-
     /// Web page
     WebPage *m_page;
 

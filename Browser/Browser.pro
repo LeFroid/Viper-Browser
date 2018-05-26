@@ -95,7 +95,6 @@ SOURCES += \
     Highlighters/HTMLHighlighter.cpp \
     Widgets/BrowserTabBar.cpp \
     Bookmarks/BookmarkNode.cpp \
-    Widgets/WebLinkLabel.cpp \
     UserAgents/UserAgentsWindow.cpp \
     SessionManager.cpp \
     Network/ViperNetworkReply.cpp \
@@ -179,7 +178,6 @@ HEADERS += \
     Highlighters/HTMLHighlighter.h \
     Widgets/BrowserTabBar.h \
     Bookmarks/BookmarkNode.h \
-    Widgets/WebLinkLabel.h \
     UserAgents/UserAgentsWindow.h \
     SessionManager.h \
     Network/ViperNetworkReply.h \

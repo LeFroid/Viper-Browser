@@ -15,6 +15,8 @@
 #include <QJsonValue>
 #include <QNetworkRequest>
 
+#include <QDebug>
+
 AdBlockManager::AdBlockManager(QObject *parent) :
     QObject(parent),
     m_enabled(true),
@@ -271,7 +273,6 @@ QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
         if (filter->isDomainStyleMatch(domain))
             javascript.append(filter->getEvalString());
     }
-
     if (!javascript.isEmpty())
     {
         QString result = m_cosmeticJSTemplate;
@@ -368,10 +369,13 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         elemType |= ElementType::ThirdParty;
     
     // Compare to filters
+    /*this won't work here - CSP must be set in response, not request*/
     for (AdBlockFilter *filter : m_cspFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+        {
             info.setHttpHeader("Content-Security-Policy", filter->getContentSecurityPolicy());
+        }
     }
     for (AdBlockFilter *filter : m_importantBlockFilters)
     {

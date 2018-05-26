@@ -36,6 +36,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QKeySequence>
+#include <QLabel>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPrinter>
@@ -59,7 +60,8 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     m_bookmarkDialog(nullptr),
     m_userScriptWidget(nullptr),
     m_adBlockWidget(nullptr),
-    m_faviconScript()
+    m_faviconScript(),
+    m_linkHoverLabel(nullptr)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
@@ -74,6 +76,7 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     setupTabWidget();
     setupBookmarks();
     setupMenuBar();
+    setupStatusBar();
 
     ui->dockWidget->hide();
     ui->widgetFindText->hide();
@@ -329,6 +332,12 @@ void MainWindow::setupToolBar()
 
     ui->toolBar->addAction(m_stopRefresh);
     ui->toolBar->addWidget(splitter);
+}
+
+void MainWindow::setupStatusBar()
+{
+    m_linkHoverLabel = new QLabel(this);
+    ui->statusBar->addPermanentWidget(m_linkHoverLabel, 1);
 }
 
 void MainWindow::checkPageForBookmark()
@@ -647,6 +656,7 @@ void MainWindow::onNewTabCreated(WebView *view)
         inspectorView->load(QUrl(inspectorUrl));
             ui->dockWidget->show();
     });
+    connect(view, &WebView::linkHovered, this, &MainWindow::onLinkHovered);
 }
 
 void MainWindow::onClickSecurityInfo()
@@ -789,4 +799,13 @@ void MainWindow::dropEvent(QDropEvent *event)
         m_tabWidget->openLinkInNewTab(tabUrl);
 
     event->acceptProposedAction();
+}
+
+void MainWindow::onLinkHovered(const QUrl &url)
+{
+    // Hide if url is empty
+    if (url.isEmpty())
+        m_linkHoverLabel->setText(QString());
+    else
+        m_linkHoverLabel->setText(url.toString());
 }

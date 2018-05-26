@@ -16,6 +16,7 @@ class MainWindow;
 }
 
 class QActionGroup;
+class QLabel;
 class QNetworkReply;
 class QSslError;
 class QToolButton;
@@ -70,6 +71,9 @@ private:
 
     /// Initializes the widgets belonging to the main tool bar
     void setupToolBar();
+
+    /// Initializes the widgets belonging to the status bar
+    void setupStatusBar();
 
     /// Checks if the page on the active tab is bookmarked, setting the appropriate action in
     /// the bookmark menu after checking the database
@@ -173,6 +177,9 @@ private slots:
     /// Called when the bookmark icon is clicked by the user
     void onClickBookmarkIcon();
 
+    /// Called when a link is hovered by the user
+    void onLinkHovered(const QUrl &url);
+
 protected slots:
     /// Called by a \ref WebView when it is requested that some content be opened in a new window. This opens it in a new tab and returns the tab's WebView
     WebView *getNewTabWebView();
@@ -247,6 +254,9 @@ private:
 
     /// Stores javascript code that attempts to extract favicon path from a page
     QString m_faviconScript;
+
+    /// Displays the link being hovered by the user in the status bar
+    QLabel *m_linkHoverLabel;
 };
 
 #endif // MAINWINDOW_H

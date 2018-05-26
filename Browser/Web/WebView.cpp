@@ -18,7 +18,6 @@
 #include "Settings.h"
 #include "WebDialog.h"
 #include "WebView.h"
-#include "WebLinkLabel.h"
 #include "WebPage.h"
 
 WebView::WebView(bool privateView, QWidget *parent) :
@@ -39,8 +38,8 @@ WebView::WebView(bool privateView, QWidget *parent) :
 
     setPage(m_page);
 
-    // Setup link hover label
-    m_labelLinkRef = new WebLinkLabel(this, m_page);
+    // Setup link hover signal
+    connect(m_page, &WebPage::linkHovered, this, &WebView::linkHovered);
 
     connect(this, &WebView::loadProgress, [=](int value){
        m_progress = value;
@@ -210,18 +209,10 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
 	    */
 }
 
-void WebView::resizeEvent(QResizeEvent *event)
-{
-    // move label
-    QPoint labelPos(0, std::max(parentWidget()->geometry().height() - 17, 0));
-    m_labelLinkRef->move(labelPos);
-
-    QWebEngineView::resizeEvent(event);
-}
-
 void WebView::wheelEvent(QWheelEvent *event)
 {
-    m_labelLinkRef->hide();
+    QUrl emptyUrl;
+    emit linkHovered(emptyUrl);
     QWebEngineView::wheelEvent(event);
 }
 
@@ -279,13 +270,3 @@ void WebView::dropEvent(QDropEvent *event)
 
     QWebEngineView::dropEvent(event);
 }
-
-/*
-void WebView::addInspectorIfEnabled(QMenu *menu)
-{
-    if (!menu || !page()->settings()->testAttribute(QWebSettings::DeveloperExtrasEnabled))
-        return;
-
-    menu->addSeparator();
-    menu->addAction(tr("Inspect element"), this, &WebView::inspectElement);
-}*/
