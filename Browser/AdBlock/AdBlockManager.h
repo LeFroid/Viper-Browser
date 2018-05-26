@@ -52,7 +52,7 @@ public:
     QString getDomainJavaScript(const QUrl &url) const;
 
     /// Returns true if the given request should be blocked, false if else
-    bool shouldBlockRequest(const QWebEngineUrlRequestInfo &info);
+    bool shouldBlockRequest(QWebEngineUrlRequestInfo &info);
 
 public slots:
     /// Attempt to update ad block subscriptions
@@ -163,6 +163,9 @@ private:
 
     /// Container of domain-specific filters for which the generic element hiding rules (in m_stylesheet) do not apply
     std::vector<AdBlockFilter*> m_genericHideFilters;
+
+    /// Container of filters that set the content security policy for a matching domain
+    std::vector<AdBlockFilter*> m_cspFilters;
 
     /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
     QHash<QString, QString> m_resourceMap;

@@ -436,6 +436,7 @@ std::vector< std::tuple<int, CosmeticFilter, int> > AdBlockFilterParser::getChai
 
     return filters;
 }
+
 void AdBlockFilterParser::parseDomains(const QString &domainString, QChar delimiter, AdBlockFilter *filter) const
 {
     QStringList domainList = domainString.split(delimiter, QString::SkipEmptyParts);
@@ -482,11 +483,20 @@ void AdBlockFilterParser::parseOptions(const QString &optionString, AdBlockFilte
         {
             parseDomains(option.mid(7), QChar('|'), filter);
         }
+        else if (option.startsWith(QStringLiteral("csp=")))
+        {
+            filter->m_blockedTypes |= ElementType::CSP;
+            filter->setContentSecurityPolicy(option.mid(4));
+        }
         // Handle options specific to uBlock Origin
         else if (option.compare(QStringLiteral("first-party")) == 0)
+        {
             filter->m_blockedTypes |= ElementType::ThirdParty;
+        }
         else if (!filter->m_exception && (option.compare(QStringLiteral("important")) == 0))
+        {
             filter->m_important = true;
+        }
     }
 
     // Check if BadFilter option was set, and remove the badfilter string from original rule

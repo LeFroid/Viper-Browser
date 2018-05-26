@@ -30,6 +30,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_domainJSFilters(),
     m_customStyleFilters(),
     m_genericHideFilters(),
+    m_cspFilters(),
     m_resourceMap(),
     m_domainStylesheetCache(24),
     m_emptyStr(),
@@ -281,7 +282,7 @@ QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
     return QString();
 }
 
-bool AdBlockManager::shouldBlockRequest(const QWebEngineUrlRequestInfo &info)
+bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 {
     if (!m_enabled)
         return false;
@@ -367,6 +368,11 @@ bool AdBlockManager::shouldBlockRequest(const QWebEngineUrlRequestInfo &info)
         elemType |= ElementType::ThirdParty;
     
     // Compare to filters
+    for (AdBlockFilter *filter : m_cspFilters)
+    {
+        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+            info.setHttpHeader("Content-Security-Policy", filter->getContentSecurityPolicy());
+    }
     for (AdBlockFilter *filter : m_importantBlockFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
@@ -595,6 +601,7 @@ void AdBlockManager::clearFilters()
     m_domainJSFilters.clear();
     m_customStyleFilters.clear();
     m_genericHideFilters.clear();
+    m_cspFilters.clear();
 }
 
 void AdBlockManager::extractFilters()
@@ -640,6 +647,10 @@ void AdBlockManager::extractFilters()
             else if (filter->hasElementType(filter->m_blockedTypes, ElementType::BadFilter))
             {
                 badFilters.insert(filter->getRule());
+            }
+            else if (filter->hasElementType(filter->m_blockedTypes, ElementType::CSP))
+            {
+                m_cspFilters.push_back(filter);
             }
             else
             {

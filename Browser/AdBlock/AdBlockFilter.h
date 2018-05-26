@@ -33,8 +33,10 @@ enum class ElementType : uint32_t
     MatchCase        = 0x00010000,
     Collapse         = 0x00020000,
     BadFilter        = 0x00040000,
-    Other            = 0x00080000
+    CSP              = 0x00080000,
+    Other            = 0x00100000
 };
+
 template<>
 struct EnableBitfield<ElementType>
 {
@@ -125,6 +127,9 @@ public:
     /// Returns the evaluation string of the rule
     const QString &getEvalString() const;
 
+    /// Returns the content security policy associated with the filter
+    const QByteArray &getContentSecurityPolicy() const;
+
     /// Returns true if the filter is an exception, false if it is a standard blocking filter
     bool isException() const;
 
@@ -169,6 +174,9 @@ protected:
     /// Calculates the hash value of the evaluation string and the difference hash variable, used in Rabin-Karp string matching algorithm
     void hashEvalString();
 
+    /// Sets the content security policy of the filter
+    void setContentSecurityPolicy(const QString &csp);
+
 private:
     /// Returns true if the given domain matches the base domain string, false if else
     bool isDomainMatch(QString base, const QString &domainStr) const;
@@ -189,6 +197,9 @@ protected:
 
     /// Comparison string for evaluating rules (only used if category of filter is not RegExp)
     QString m_evalString;
+
+    /// Content security policy for filters with blocking type CSP
+    QByteArray m_contentSecurityPolicy;
 
     /// True if the filter is an exception, false if it is a standard blocking rule
     bool m_exception;

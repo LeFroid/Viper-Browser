@@ -6,6 +6,7 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_category(FilterCategory::None),
     m_ruleString(rule),
     m_evalString(),
+    m_contentSecurityPolicy(),
     m_exception(false),
     m_important(false),
     m_disabled(false),
@@ -25,6 +26,7 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
     m_category(other.m_category),
     m_ruleString(other.m_ruleString),
     m_evalString(other.m_evalString),
+    m_contentSecurityPolicy(other.m_contentSecurityPolicy),
     m_exception(other.m_exception),
     m_important(other.m_important),
     m_disabled(other.m_disabled),
@@ -44,6 +46,7 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
     m_category(other.m_category),
     m_ruleString(other.m_ruleString),
     m_evalString(other.m_evalString),
+    m_contentSecurityPolicy(other.m_contentSecurityPolicy),
     m_exception(other.m_exception),
     m_important(other.m_important),
     m_disabled(other.m_disabled),
@@ -66,6 +69,7 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
         m_category = other.m_category;
         m_ruleString = other.m_ruleString;
         m_evalString = other.m_evalString;
+        m_contentSecurityPolicy = other.m_contentSecurityPolicy;
         m_exception = other.m_exception;
         m_important = other.m_important;
         m_disabled = other.m_disabled;
@@ -90,6 +94,7 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
         m_category = other.m_category;
         m_ruleString = other.m_ruleString;
         m_evalString = other.m_evalString;
+        m_contentSecurityPolicy = other.m_contentSecurityPolicy;
         m_exception = other.m_exception;
         m_important = other.m_important;
         m_disabled = other.m_disabled;
@@ -128,6 +133,11 @@ const QString &AdBlockFilter::getRule() const
 const QString &AdBlockFilter::getEvalString() const
 {
     return m_evalString;
+}
+
+const QByteArray &AdBlockFilter::getContentSecurityPolicy() const
+{
+    return m_contentSecurityPolicy;
 }
 
 bool AdBlockFilter::isException() const
@@ -364,4 +374,11 @@ void AdBlockFilter::hashEvalString()
 
     for (int index = 0; index < needleLength; ++index)
         m_evalStringHash = (radixLength * m_evalStringHash + (needlePtr + index)->toLatin1()) % prime;
+}
+
+void AdBlockFilter::setContentSecurityPolicy(const QString &csp)
+{
+    QByteArray tmp;
+    tmp.append(csp);
+    m_contentSecurityPolicy = tmp;
 }
