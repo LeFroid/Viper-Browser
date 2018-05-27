@@ -1,15 +1,21 @@
 #include "BookmarkImporter.h"
 #include "BookmarkNode.h"
 
+#include <stack>
 #include <utility>
 #include <QFile>
 #include <QQueue>
-//#include <QWebElement>
-//#include <QWebFrame>
-//#include <QWebEnginePage>
 
 BookmarkImporter::BookmarkImporter(BookmarkManager *bookmarkMgr) :
-    m_bookmarkManager(bookmarkMgr)
+    m_bookmarkManager(bookmarkMgr),
+    m_folderStartTag("<DL><p>"),
+    m_folderEndTag("</DL><p>"),
+    m_folderNameStartTag("<DT><H3"),
+    m_folderNameEndTag("</H3>"),
+    m_bookmarkStartTag("<DT><A"),
+    m_bookmarkEndTag("</A>"),
+    m_startTag('<'),
+    m_endTag('>')
 {
 }
 
@@ -28,13 +34,34 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
     if (contents.isEmpty() || contents.isNull())
         return false;
 
-    //TODO: Parse without using a webpage
-    //QString pageHtml = QString::fromUtf8(contents);
-    //XML/HTML handler on pageHtml string
+    QString pageHtml = QString::fromUtf8(contents);
 
-    // Load contents into a QWebPage to process bookmarks in its tree structure
- //   QWebEnginePage page;
- //   page->setHtml(QString::fromUtf8(contents));
+    // Find first <DL><p> for root folder (which will be importFolder for bookmark import)
+    int startPos = pageHtml.indexOf(m_folderStartTag, 0, Qt::CaseInsensitive);
+    if (startPos == -1)
+        return false;
+
+    int endPos = pageHtml.lastIndexOf(m_folderEndTag, -1, Qt::CaseInsensitive);
+    if (endPos == -1)
+        return false;
+
+    QString innerRootHtml = pageHtml.mid(startPos, endPos - startPos);
+    int htmlSize = innerRootHtml.size();
+
+    std::stack<BookmarkNode*> s;
+    s.push(importFolder);
+
+    //todo: keep track of the parser state, such as State::ReadingStartTag, State::ReadingEndTag, State::ReadingElementValue, etc.
+    // set i += length of attributes while reading attributes of elements
+    // the current folder with which bookmarks and subfolders will be appended is at the top of stack s.
+    // when the closing tag of a folder is found, pop the top element from the stack
+    // when the stack is empty, stop importing bookmarks
+    /*
+    for (int i = 0; i < htmlSize; ++i)
+    {
+        const QChar c = innerRootHtml.at(i);
+    }
+    */
 
     // Fetch root folder in bookmark page, add its first child to queue, and traverse the bookmark tree
    /* QWebElement folderElem = pageFrame->findFirstElement("DL");

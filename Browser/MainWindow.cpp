@@ -67,6 +67,14 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
     setAcceptDrops(true);
 
+    // load favicon script
+    QFile f(":/GetFavicon.js");
+    if (f.open(QIODevice::ReadOnly))
+    {
+        m_faviconScript = f.readAll();
+        f.close();
+    }
+
     ui->setupUi(this);
 
     if (m_privateWindow)
@@ -611,15 +619,27 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
     if (!m_privateWindow)
     {
         BrowserApplication *browserApp = sBrowserApplication;
-        HistoryManager *historyMgr = browserApp->getHistoryManager();
 
         QIcon favicon = view->icon();
         QString pageUrl = view->url().toString();
-        sBrowserApplication->getFaviconStorage()->updateIcon(view->iconUrl().toString(), pageUrl, favicon);
+        QString pageUrlNoPath = view->url().toString(QUrl::RemovePath);
+        QString pageScheme = view->url().scheme();
+        // Attempt to fetch the URL of the favicon from the page
+        view->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
+            if (v.isNull() || !v.canConvert<QString>())
+                return;
 
-        historyMgr->addHistoryEntry(pageUrl);
+            QString iconRef = v.toString();
+            if (iconRef.startsWith(QLatin1String("//")))
+            {
+                iconRef.prepend(pageScheme + QChar(':'));
+            }
+            else if (iconRef.startsWith('/'))
+                iconRef.prepend(pageUrlNoPath);
+            sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
+        });
         if (!pageTitle.isEmpty())
-            historyMgr->setTitleForURL(pageUrl, pageTitle);
+            browserApp->getHistoryManager()->setTitleForURL(pageUrl, pageTitle);
     }
 }
 

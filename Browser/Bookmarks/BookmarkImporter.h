@@ -3,6 +3,8 @@
 
 #include "BookmarkManager.h"
 
+#include <QLatin1String>
+
 /**
  * @class BookmarkImporter
  * @brief Parses Netscape HTML formatted bookmarks, importing them
@@ -25,6 +27,22 @@ public:
 private:
     /// Bookmark manager
     BookmarkManager *m_bookmarkManager;
+
+    /// Folder element opening and closing tags
+    QLatin1String m_folderStartTag;
+    QLatin1String m_folderEndTag;
+
+    /// Folder name element opening and closing tags
+    QLatin1String m_folderNameStartTag;
+    QLatin1String m_folderNameEndTag;
+
+    /// Bookmark element opening and closing tags
+    QLatin1String m_bookmarkStartTag;
+    QLatin1String m_bookmarkEndTag;
+
+    /// XML element opening and closing characters
+    QChar m_startTag;
+    QChar m_endTag;
 };
 
 #endif // BOOKMARKIMPORTER_H
