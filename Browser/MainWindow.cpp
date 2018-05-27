@@ -379,7 +379,7 @@ void MainWindow::onTabChanged(int index)
         proxy->setPage(page);
 
     // Give focus to the url line edit widget when changing to a blank tab
-    if (m_urlInput->text().isEmpty())
+    if (m_urlInput->text().isEmpty() || m_urlInput->text().compare(QLatin1String("about:blank")) == 0)
         m_urlInput->setFocus();
 }
 
