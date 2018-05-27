@@ -99,6 +99,7 @@ void WebView::zoomOut()
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
+    // Add menu items missing from default context menu
     QMenu *menu = m_page->createStandardContextMenu();
     const auto actions = menu->actions();
     auto it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
@@ -111,6 +112,17 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewTab));
         menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewWindow));
     }
+    /*
+    it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::CopyImageUrlToClipboard));
+    if (it != actions.end())
+    {
+        auto actions = menu->actions();
+        QAction *openImageNewTabAction = new QAction(tr("Open image in a new tab"), menu);
+        connect(openImageNewTabAction, &QAction::triggered, [=](bool){
+
+        });
+        menu->insertAction(actions.at(0), openImageNewTabAction);
+    }*/
     it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::InspectElement));
     if (it == actions.end())
     {

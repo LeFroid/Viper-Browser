@@ -85,7 +85,6 @@ void HTMLHighlighter::highlightBlock(const QString &text)
     int prevBlockState = previousBlockState();
     startIdx = 0;
     endIdx = 0;
-    captureLen = 0;
 
     // If previous block state was none, search for first comment and determine the highlighting rule.
     // Otherwise, find a closing tag and then search for highlighting rules
@@ -119,8 +118,6 @@ void HTMLHighlighter::highlightBlock(const QString &text)
 
     while (startIdx >= 0)
     {
-        prevBlockState = HTMLHighlighter::None;
-
         auto match = m_commentEndExpr.match(text, startIdx);
         endIdx = match.capturedStart();
         captureLen = 0;

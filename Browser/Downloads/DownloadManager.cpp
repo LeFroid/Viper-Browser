@@ -46,7 +46,9 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
         return;
 
     // Get file path for download
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save as..."), item->path());
+    QString fileName = QFileInfo(item->path()).fileName();
+    QString downloadPath = QString(m_downloadDir + QDir::separator() + fileName);
+    fileName = QFileDialog::getSaveFileName(this, tr("Save as..."),  downloadPath);
     if (fileName.isEmpty())
         return;
 
