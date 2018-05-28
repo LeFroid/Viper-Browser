@@ -123,11 +123,13 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
     // Add menu items missing from default context menu
     QMenu *menu = m_page->createStandardContextMenu();
-    const auto actions = menu->actions();
+    auto actions = menu->actions();
+
     auto it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
+    const bool hasOpenLinkAction = it != actions.end();
     if (it != actions.end())
     {
-        (*it)->setText(tr("Open link"));
+        (*it)->setText(tr("Open Link"));
         ++it;
 
         QAction *before = (it == actions.cend() ? nullptr: *it);
@@ -140,23 +142,30 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         QString contextHelperScript = getContextMenuScript(event->pos());
         m_page->runJavaScriptNonBlocking(contextHelperScript, m_jsCallbackResult);
 
-        auto actions = menu->actions();
+        QAction *beforeAction = actions.at(0);
+        if (hasOpenLinkAction)
+        {
+            auto it2 = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
+            ++it2;
+            beforeAction = *it2;
+            menu->insertSeparator(beforeAction);
+        }
 
-        QAction *openImageNewTabAction = new QAction(tr("Open image in a new tab"), menu);
+        QAction *openImageNewTabAction = new QAction(tr("Open Image in a New Tab"), menu);
         connect(openImageNewTabAction, &QAction::triggered, [=](bool){
             QUrl imageUrl = QUrl(m_jsCallbackResult.toString());
             emit openInNewTabRequest(imageUrl);
         });
 
-        QAction *openImageThisTabAction = new QAction(tr("Open image in this tab"), menu);
+        QAction *openImageThisTabAction = new QAction(tr("Open Image"), menu);
         connect(openImageThisTabAction, &QAction::triggered, [=](bool){
             QUrl imageUrl = QUrl(m_jsCallbackResult.toString());
             emit openRequest(imageUrl);
         });
 
-        menu->insertAction(actions.at(0), openImageNewTabAction);
-        menu->insertAction(actions.at(0), openImageThisTabAction);
-        menu->insertSeparator(actions.at(0));
+        menu->insertAction(beforeAction, openImageNewTabAction);
+        menu->insertAction(beforeAction, openImageThisTabAction);
+        menu->insertSeparator(beforeAction);
     }
     it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::InspectElement));
     if (it == actions.end())
