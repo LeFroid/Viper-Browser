@@ -2,6 +2,8 @@
 #define WEBPAGE_H
 
 #include "UserScript.h"
+
+#include <future>
 #include <QString>
 #include <QWebEnginePage>
 
@@ -14,6 +16,8 @@ class QWebEngineProfile;
  */
 class WebPage : public QWebEnginePage
 {
+    friend class WebView;
+
     Q_OBJECT
 
 public:
@@ -24,6 +28,9 @@ public:
     WebPage(QWebEngineProfile *profile, QObject *parent = nullptr);
 
 protected:
+    /// Executes the given JavaScript code (in string form), storing the result in the given reference
+    void runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result);
+
     /// Called when a JavaScript program attempts to print the given message to the browser console
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId);
 

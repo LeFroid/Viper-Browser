@@ -10,6 +10,5 @@ int main(int argc, char *argv[])
     char *argv2[] = { argv[0], "--remote-debugging-port=9477" };
     BrowserApplication a(argc2, argv2);
     a.getNewWindow();
-    int val = a.exec();
-    return val;
+    return a.exec();
 }

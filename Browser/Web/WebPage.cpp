@@ -5,6 +5,10 @@
 #include "UserScriptManager.h"
 #include "WebPage.h"
 
+#include <QDebug>
+#include <QPointer>
+#include <QTimer>
+
 #include <QFile>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
@@ -30,6 +34,13 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
     connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
+}
+
+void WebPage::runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result)
+{
+    runJavaScript(scriptSource, [&](const QVariant &returnValue) {
+        result.setValue(returnValue);
+    });
 }
 
 void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId)

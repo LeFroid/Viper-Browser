@@ -62,6 +62,11 @@ protected:
     /// Handles drop events
     virtual void dropEvent(QDropEvent *event) override;
 
+private:
+    /// returns the context menu helper script source, with the template parameters
+    /// substituted for the coordinates given by parameter pos, scaled to the page's zoom factor
+    QString getContextMenuScript(const QPoint &pos);
+
 signals:
     /// Called when the user requests to open a link in the current web view / tab
     void openRequest(const QUrl &url);
@@ -87,6 +92,12 @@ private:
 
     /// True if the view is a private browsing view, false if else
     bool m_privateView;
+
+    /// Context menu helper script template
+    QString m_contextMenuHelper;
+
+    /// Stores the result of an asynchronous javascript callback
+    QVariant m_jsCallbackResult;
 };
 
 #endif // WEBVIEW_H

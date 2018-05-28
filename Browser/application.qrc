@@ -11,6 +11,7 @@
         <file alias="blank.html">HTML/blank.html</file>
         <file alias="GreaseMonkeyAPI.js">JavaScript/GreaseMonkeyAPI.js</file>
         <file alias="AdBlock.js">JavaScript/AdBlock.js</file>
+        <file alias="ContextMenuHelper.js">JavaScript/ContextMenuHelper.js</file>
         <file alias="GetFavicon.js">JavaScript/GetFavicon.js</file>
         <file alias="viewer.html">PDFJS/viewer.html</file>
         <file alias="viewer.css">PDFJS/viewer.css</file>
