@@ -123,7 +123,7 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
     // Add menu items missing from default context menu
     QMenu *menu = m_page->createStandardContextMenu();
-    auto actions = menu->actions();
+    const auto actions = menu->actions();
 
     auto it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
     const bool hasOpenLinkAction = it != actions.end();
