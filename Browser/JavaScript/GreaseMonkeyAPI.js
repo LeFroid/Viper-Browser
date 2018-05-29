@@ -123,6 +123,35 @@
         return '';
     }
 
+    function GM_log(text) {
+        console.log(text);
+    }
+
+    const GM = {};
+    GM.info = GM_info;
+    
+    const entries = {
+        'log': GM_log,
+        'addStyle': GM_addStyle,
+        'deleteValue': GM_deleteValue,
+        'getValue': GM_getValue,
+        'listValues': GM_listValues,
+        'openInTab': GM_openInTab,
+        'setValue': GM_setValue,
+        'xmlHttpRequest': GM_xmlhttpRequest,
+    }
+    for (newKey in entries) {
+        let oldKey = entries[newKey];
+        if (oldKey && (typeof GM[newKey] == 'undefined')) {
+            GM[newKey] = function(...args) {
+                return new Promise((resolve, reject) => {
+                    try { resolve(oldKey(...args)); }
+                    catch (e) { reject(e); }
+                });
+            };
+        }
+    };
+
     const unsafeWindow = window;
     
     {{USER_SCRIPT}}
