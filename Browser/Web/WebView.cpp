@@ -65,7 +65,7 @@ void WebView::loadBlankPage()
     QFile resource(":/blank.html");
     bool opened = resource.open(QIODevice::ReadOnly);
     if (opened)
-        setHtml(QString::fromUtf8(resource.readAll().constData()));
+        setHtml(QString::fromUtf8(resource.readAll().constData()), QUrl("about:blank"));
 }
 
 QString WebView::getTitle() const
