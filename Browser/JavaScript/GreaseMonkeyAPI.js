@@ -1,3 +1,4 @@
+
 (function() {
 
     const _uuid = '{{SCRIPT_UUID}}';

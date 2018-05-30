@@ -80,6 +80,51 @@ QString UserScriptManager::getScriptsFor(const QUrl &url, ScriptInjectionTime in
     return QString(resultBuffer);
 }
 
+std::vector<QWebEngineScript> UserScriptManager::getAllScriptsFor(const QUrl &url)
+{
+    std::vector<QWebEngineScript> result;
+    if (!m_model->m_enabled)
+        return result;
+
+    QString urlStr = url.toString(QUrl::FullyEncoded);
+    for (int i = 0; i < static_cast<int>(m_model->m_scripts.size()); ++i)
+    {
+        const UserScript &script = m_model->m_scripts.at(i);
+        if (!script.m_isEnabled)
+            continue;
+
+        bool isExclude = false, isInclude = false;
+        for (const QRegularExpression &expr : script.m_excludes)
+        {
+            if (expr.match(urlStr).hasMatch())
+            {
+                isExclude = true;
+                break;
+            }
+        }
+
+        if (isExclude)
+            continue;
+
+        for (const QRegularExpression &expr : script.m_includes)
+        {
+            if (expr.match(urlStr).hasMatch())
+            {
+                isInclude = true;
+                break;
+            }
+        }
+
+        if (isInclude)
+        {
+            auto it = m_model->m_webEngineScripts.find(i);
+            if (it != m_model->m_webEngineScripts.end())
+                result.push_back(it->second);
+        }
+    }
+    return result;
+}
+
 void UserScriptManager::installScript(const QUrl &url)
 {
     if (!url.isValid())

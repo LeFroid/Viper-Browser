@@ -34,6 +34,16 @@ const QString &UserScript::getVersion() const
     return m_version;
 }
 
+bool UserScript::isEnabledOnSubFrames() const
+{
+    return !m_noSubFrames;
+}
+
+ScriptInjectionTime UserScript::getInjectionTime() const
+{
+    return m_injectionTime;
+}
+
 bool UserScript::isEnabled() const
 {
     return m_isEnabled;
@@ -97,6 +107,8 @@ bool UserScript::load(const QString &file, const QString &templateData)
                         m_injectionTime = ScriptInjectionTime::DocumentEnd;
                     else if (value.compare("document-start") == 0)
                         m_injectionTime = ScriptInjectionTime::DocumentStart;
+                    else if (value.compare("document-idle") == 0)
+                        m_injectionTime = ScriptInjectionTime::DocumentIdle;
                 }
 
                 metaData.append(line.replace("'", "\\'"));

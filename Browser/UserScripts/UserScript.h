@@ -9,7 +9,8 @@
 enum class ScriptInjectionTime
 {
     DocumentEnd,
-    DocumentStart
+    DocumentStart,
+    DocumentIdle
 };
 
 /**
@@ -34,6 +35,12 @@ public:
 
     /// Returns the version string of the user script
     const QString &getVersion() const;
+
+    /// Returns true if the script is enabled to run on subframes, false if else
+    bool isEnabledOnSubFrames() const;
+
+    /// Returns the injection time of the script
+    ScriptInjectionTime getInjectionTime() const;
 
     /// Returns true if the script is enabled, false if else
     bool isEnabled() const;

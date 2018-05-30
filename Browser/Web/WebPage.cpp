@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
+#include <QWebEngineScriptCollection>
 #include <iostream>
 
 WebPage::WebPage(QObject *parent) :
@@ -21,7 +22,7 @@ WebPage::WebPage(QObject *parent) :
 {
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
-    connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
+    //connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
@@ -32,7 +33,7 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 {
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
-    connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
+    //connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
@@ -106,11 +107,17 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
         m_domainFilterStyle = QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(url));
         m_domainFilterStyle.replace("'", "\\'");
     }
+
+    QWebEngineScriptCollection &scriptCollection = scripts();
+    scriptCollection.clear();
+    auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
+    for (auto &script : pageScripts)
+        scriptCollection.insert(script);
 }
 
 void WebPage::onLoadStarted()
 {
-    injectUserJavaScript(ScriptInjectionTime::DocumentStart);
+    //injectUserJavaScript(ScriptInjectionTime::DocumentStart);
 }
 
 void WebPage::onLoadFinished(bool ok)
@@ -118,7 +125,7 @@ void WebPage::onLoadFinished(bool ok)
     if (!ok)
         return;
 
-    injectUserJavaScript(ScriptInjectionTime::DocumentEnd);
+    //injectUserJavaScript(ScriptInjectionTime::DocumentEnd);
 
     QUrl pageUrl = url();
 

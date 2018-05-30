@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
+#include <QWebEngineScript>
 
 class UserScriptModel;
 
@@ -40,6 +41,9 @@ public:
      * @return Concatenated user script data if one or more scripts are found, or an empty string if no scripts match the URL
      */
     QString getScriptsFor(const QUrl &url, ScriptInjectionTime injectionTime, bool isMainFrame);
+
+    /// Returns all of the user scripts associated with the given url
+    std::vector<QWebEngineScript> getAllScriptsFor(const QUrl &url);
 
 signals:
     /// Emitted when a user script has been created by the user and can be loaded into the script editor
