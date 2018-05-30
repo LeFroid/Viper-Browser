@@ -126,7 +126,6 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     const auto actions = menu->actions();
 
     auto it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
-    const bool hasOpenLinkAction = it != actions.end();
     if (it != actions.end())
     {
         (*it)->setText(tr("Open Link"));
@@ -143,12 +142,12 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         m_page->runJavaScriptNonBlocking(contextHelperScript, m_jsCallbackResult);
 
         QAction *beforeAction = actions.at(0);
-        if (hasOpenLinkAction)
+
+        auto it2 = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::CopyLinkToClipboard));
+        if (it2 != actions.end())
         {
-            auto it2 = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
-            ++it2;
+            --it2;
             beforeAction = *it2;
-            menu->insertSeparator(beforeAction);
         }
 
         QAction *openImageNewTabAction = new QAction(tr("Open Image in a New Tab"), menu);
