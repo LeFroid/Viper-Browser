@@ -37,6 +37,17 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
+bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
+{
+    QWebEngineScriptCollection &scriptCollection = scripts();
+    scriptCollection.clear();
+    auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
+    for (auto &script : pageScripts)
+        scriptCollection.insert(script);
+
+    return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+}
+
 void WebPage::runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result)
 {
     runJavaScript(scriptSource, [&](const QVariant &returnValue) {
@@ -107,12 +118,6 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
         m_domainFilterStyle = QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(url));
         m_domainFilterStyle.replace("'", "\\'");
     }
-
-    QWebEngineScriptCollection &scriptCollection = scripts();
-    scriptCollection.clear();
-    auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
-    for (auto &script : pageScripts)
-        scriptCollection.insert(script);
 }
 
 void WebPage::onLoadStarted()

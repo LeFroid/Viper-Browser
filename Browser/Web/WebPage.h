@@ -28,6 +28,9 @@ public:
     WebPage(QWebEngineProfile *profile, QObject *parent = nullptr);
 
 protected:
+    /// Called upon receiving a request to navigate to the specified url by means of the given navigation type. If the method returns true, the request is accepted
+    bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) override;
+
     /// Executes the given JavaScript code (in string form), storing the result in the given reference
     void runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result);
 
