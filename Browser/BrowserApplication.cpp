@@ -72,7 +72,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Instantiate the history manager
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QStringLiteral("HistoryPath")));
-
     m_historyWidget = nullptr;
 
     // Create url suggestion model
