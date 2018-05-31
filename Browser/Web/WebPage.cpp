@@ -18,7 +18,8 @@
 WebPage::WebPage(QObject *parent) :
     QWebEnginePage(parent),
     m_mainFrameHost(),
-    m_domainFilterStyle()
+    m_domainFilterStyle(),
+    m_lastUrl()
 {
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
@@ -29,7 +30,8 @@ WebPage::WebPage(QObject *parent) :
 WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
     m_mainFrameHost(),
-    m_domainFilterStyle()
+    m_domainFilterStyle(),
+    m_lastUrl()
 {
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
@@ -39,11 +41,16 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
-    QWebEngineScriptCollection &scriptCollection = scripts();
-    scriptCollection.clear();
-    auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
-    for (auto &script : pageScripts)
-        scriptCollection.insert(script);
+    if (url != m_lastUrl)
+    {
+        QWebEngineScriptCollection &scriptCollection = scripts();
+        scriptCollection.clear();
+        auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
+        for (auto &script : pageScripts)
+            scriptCollection.insert(script);
+
+        m_lastUrl = url;
+    }
 
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 }

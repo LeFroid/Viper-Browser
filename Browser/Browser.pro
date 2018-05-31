@@ -122,7 +122,8 @@ SOURCES += \
     AdBlock/AdBlockSubscribeDialog.cpp \
     AdBlock/CustomFilterEditor.cpp \
     Widgets/BookmarkDialog.cpp \
-    Network/ViperSchemeHandler.cpp
+    Network/ViperSchemeHandler.cpp \
+    UserScripts/WebEngineScriptAdapter.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -207,7 +208,8 @@ HEADERS += \
     AdBlock/AdBlockSubscribeDialog.h \
     AdBlock/CustomFilterEditor.h \
     Widgets/BookmarkDialog.h \
-    Network/ViperSchemeHandler.h
+    Network/ViperSchemeHandler.h \
+    UserScripts/WebEngineScriptAdapter.h
 
 FORMS += \
         mainwindow.ui \

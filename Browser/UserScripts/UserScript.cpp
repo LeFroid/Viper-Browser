@@ -54,6 +54,16 @@ void UserScript::setEnabled(bool value)
     m_isEnabled = value;
 }
 
+const QByteArray &UserScript::getDependencyData() const
+{
+    return m_dependencyData;
+}
+
+const QString &UserScript::getScriptData() const
+{
+    return m_scriptData;
+}
+
 bool UserScript::load(const QString &file, const QString &templateData)
 {
     QFile f(file);

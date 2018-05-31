@@ -13,13 +13,10 @@
 #include <QRegularExpression>
 #include <QUrl>
 #include <QNetworkRequest>
-#include <QWebEngineProfile>
-#include <QWebEngineScriptCollection>
 
 UserScriptModel::UserScriptModel(std::shared_ptr<Settings> settings, QObject *parent) :
     QAbstractTableModel(parent),
     m_scripts(),
-    m_webEngineScripts(),
     m_scriptTemplate(),
     m_scriptDepDir(),
     m_enabled(false),
@@ -283,7 +280,6 @@ void UserScriptModel::loadDependencies(int scriptIdx)
                     tmpData = tmp.readAll();
                     m_scripts[scriptIdx].m_dependencyData.append(tmpData);
                     tmp.close();
-                    setupWebEngineScript(scriptIdx);
                 }
                 item->deleteLater();
             });
@@ -294,9 +290,6 @@ void UserScriptModel::loadDependencies(int scriptIdx)
             f.close();
         }
     }
-
-    // Setup the QWebEngineScript
-    setupWebEngineScript(scriptIdx);
 }
 
 void UserScriptModel::save()
@@ -317,41 +310,3 @@ void UserScriptModel::save()
     dataFile.write(scriptMgrDoc.toJson());
     dataFile.close();
 }
-
-void UserScriptModel::setupWebEngineScript(int scriptIdx)
-{
-    if (scriptIdx < 0 || scriptIdx >= static_cast<int>(m_scripts.size()))
-        return;
-
-    UserScript &script = m_scripts.at(scriptIdx);
-
-    QWebEngineScript webEngineScript;
-    webEngineScript.setName(script.getName());
-    webEngineScript.setRunsOnSubFrames(script.isEnabledOnSubFrames());
-    webEngineScript.setWorldId(QWebEngineScript::MainWorld);
-
-    auto injectionTime = script.getInjectionTime();
-    QWebEngineScript::InjectionPoint webEngineInjectionPoint = QWebEngineScript::DocumentReady;
-    switch (injectionTime)
-    {
-        case ScriptInjectionTime::DocumentStart:
-            webEngineInjectionPoint = QWebEngineScript::DocumentCreation;
-            break;
-        case ScriptInjectionTime::DocumentEnd:
-            webEngineInjectionPoint = QWebEngineScript::DocumentReady;
-            break;
-        case ScriptInjectionTime::DocumentIdle:
-            webEngineInjectionPoint = QWebEngineScript::Deferred;
-            break;
-    }
-    webEngineScript.setInjectionPoint(webEngineInjectionPoint);
-
-    QByteArray codeBuffer;
-    codeBuffer.append(script.m_dependencyData);
-    codeBuffer.append(QChar('\n'));
-    codeBuffer.append(script.m_scriptData);
-
-    webEngineScript.setSourceCode(QString::fromUtf8(codeBuffer));
-    m_webEngineScripts[scriptIdx] = webEngineScript;
-}
-

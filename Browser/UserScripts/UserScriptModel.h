@@ -7,9 +7,6 @@
 #include <memory>
 #include <vector>
 #include <QAbstractTableModel>
-#include <QWebEngineScript>
-
-class QWebEngineScriptCollection;
 
 /**
  * @class UserScriptModel
@@ -77,15 +74,9 @@ private:
     /// Saves user script information to a user script configuration file
     void save();
 
-    /// Sets up the web engine version of the given user script (by index), adding it to the webengine profile script collections
-    void setupWebEngineScript(int scriptIdx);
-
 protected:
     /// Container used to store user scripts
     std::vector<UserScript> m_scripts;
-
-    /// Container used to store user scripts for webengine. Maps the index of the UserScript in m_scripts to the corresponding QWebEngineScript
-    std::map<int, QWebEngineScript> m_webEngineScripts;
 
     /// User script template file contents
     QString m_scriptTemplate;

@@ -59,6 +59,9 @@ private:
 
     /// Stores the current page's domain-specific cosmetic filters in string form
     QString m_domainFilterStyle;
+
+    /// Stores the last URL to be accepted or rejected by acceptNavigationRequest(...)
+    QUrl m_lastUrl;
 };
 
 #endif // WEBPAGE_H

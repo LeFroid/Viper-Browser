@@ -3,6 +3,7 @@
 #include "BrowserApplication.h"
 #include "DownloadManager.h"
 #include "InternalDownloadItem.h"
+#include "WebEngineScriptAdapter.h"
 
 #include <QDir>
 #include <QFile>
@@ -117,9 +118,8 @@ std::vector<QWebEngineScript> UserScriptManager::getAllScriptsFor(const QUrl &ur
 
         if (isInclude)
         {
-            auto it = m_model->m_webEngineScripts.find(i);
-            if (it != m_model->m_webEngineScripts.end())
-                result.push_back(it->second);
+            WebEngineScriptAdapter scriptAdapter(script);
+            result.push_back(scriptAdapter.getScript());
         }
     }
     return result;

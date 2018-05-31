@@ -48,6 +48,12 @@ public:
     /// Sets the state of the user script. If value is true, script will be enabled, otherwise script will be disabled
     void setEnabled(bool value);
 
+    /// Returns a QByteArray containing the JavaScript dependencies of the user script, concatenated together
+    const QByteArray &getDependencyData() const;
+
+    /// Returns the user script in string form
+    const QString &getScriptData() const;
+
 protected:
     /// Attempts to load and parse the user script file, given the user script template.
     /// Returns true on success, false on failure
