@@ -88,9 +88,8 @@ std::vector<QWebEngineScript> UserScriptManager::getAllScriptsFor(const QUrl &ur
         return result;
 
     QString urlStr = url.toString(QUrl::FullyEncoded);
-    for (int i = 0; i < static_cast<int>(m_model->m_scripts.size()); ++i)
+    for (const UserScript &script : m_model->m_scripts)
     {
-        const UserScript &script = m_model->m_scripts.at(i);
         if (!script.m_isEnabled)
             continue;
 
