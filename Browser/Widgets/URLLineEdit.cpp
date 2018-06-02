@@ -21,7 +21,6 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_activeWebView(nullptr)
 {
     QSizePolicy policy = sizePolicy();
-    //setSizePolicy(QSizePolicy::MinimumExpanding, policy.verticalPolicy());
     setSizePolicy(QSizePolicy::Maximum, policy.verticalPolicy());
 
     // Set completion model

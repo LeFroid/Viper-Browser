@@ -369,13 +369,16 @@ void MainWindow::onTabChanged(int index)
     ui->widgetFindText->setWebView(view);
     ui->widgetFindText->hide();
 
-    // Save text in URL line edit, set widget's contents to the current URL, or if the URL is empty,
+    // Save text in URL line edit, set widget's contents to the current URL, or if the URL is empty or "about:blank",
     // set to user text input
     m_urlInput->tabChanged(view);
+
+    const bool isOnBlankPage = view->isOnBlankPage();
     const QUrl &viewUrl = view->url();
-    if (!viewUrl.isEmpty())
+    if (!viewUrl.isEmpty() && !isOnBlankPage)
         m_urlInput->setURL(view->url());
 
+    // Show dock widget with dev tools UI if it was opened in the last tab
     if (ui->dockWidget->isVisible())
         view->inspectElement();
 
@@ -387,8 +390,13 @@ void MainWindow::onTabChanged(int index)
         proxy->setPage(page);
 
     // Give focus to the url line edit widget when changing to a blank tab
-    if (m_urlInput->text().isEmpty() || m_urlInput->text().compare(QLatin1String("about:blank")) == 0)
+    if (m_urlInput->text().isEmpty() || isOnBlankPage)
+    {
         m_urlInput->setFocus();
+
+        if (m_urlInput->text().compare(QLatin1String("about:blank")) == 0)
+            m_urlInput->selectAll();
+    }
     else
         view->setFocus();
 }
@@ -643,7 +651,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
             sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
         });
         if (!pageTitle.isEmpty())
-            browserApp->getHistoryManager()->setTitleForURL(pageUrl, pageTitle);
+            historyMgr->setTitleForURL(pageUrl, pageTitle);
     }
 }
 
