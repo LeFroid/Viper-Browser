@@ -39,7 +39,7 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
-    if (url != m_lastUrl)
+    if (isMainFrame && type != QWebEnginePage::NavigationTypeReload && url != m_lastUrl)
     {
         QWebEngineScriptCollection &scriptCollection = scripts();
         scriptCollection.clear();
