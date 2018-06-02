@@ -120,7 +120,6 @@ void ClearHistoryDialog::setupListWidget()
     QStringList listOptions;
     listOptions << "Download & Browsing History"
                 << "Form & Search History"
-                << "Cookies"
                 << "Cache";
     ui->listWidgetDetails->addItems(listOptions);
 
@@ -139,7 +138,5 @@ void ClearHistoryDialog::setupListWidget()
     item = ui->listWidgetDetails->item(1);
     item->setData(Qt::UserRole, static_cast<uint32_t>(HistoryType::Search));
     item = ui->listWidgetDetails->item(2);
-    item->setData(Qt::UserRole, static_cast<uint32_t>(HistoryType::Cookies));
-    item = ui->listWidgetDetails->item(3);
     item->setData(Qt::UserRole, static_cast<uint32_t>(HistoryType::Cache));
 }

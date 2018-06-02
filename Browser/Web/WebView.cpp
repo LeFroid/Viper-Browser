@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <exception>
 #include <QContextMenuEvent>
 #include <QDragEnterEvent>
 #include <QDropEvent>

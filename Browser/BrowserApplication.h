@@ -137,7 +137,7 @@ private:
     std::unique_ptr<BookmarkManager> m_bookmarks;
 
     /// Cookie jar
-    std::unique_ptr<CookieJar> m_cookieJar;
+    CookieJar *m_cookieJar;
 
     /// Download manager
     DownloadManager *m_downloadMgr;

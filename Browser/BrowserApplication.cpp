@@ -40,10 +40,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     auto webProfile = QWebEngineProfile::defaultProfile();
     webProfile->setRequestInterceptor(m_requestInterceptor);
 
-    // Setup cookie manager
-    m_cookieUI = new CookieWidget();
-    webProfile->cookieStore()->loadAllCookies();
-
     // Instantiate viper scheme handler and add to the web engine profile
     m_viperSchemeHandler = new ViperSchemeHandler(this);
     webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
@@ -62,8 +58,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Initialize bookmarks manager
     m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(QStringLiteral("BookmarkPath")));
 
-    // Initialize cookie jar
-    m_cookieJar = DatabaseFactory::createWorker<CookieJar>(m_settings->getPathValue(QStringLiteral("CookiePath")));
+    // Initialize cookie jar and cookie manager UI
+    m_cookieJar = new CookieJar;
+    m_cookieUI = new CookieWidget();
+    webProfile->cookieStore()->loadAllCookies();
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
@@ -79,12 +77,12 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Create network access managers
     m_networkAccessMgr = new NetworkAccessManager;
-    m_networkAccessMgr->setCookieJar(m_cookieJar.get());
+    m_networkAccessMgr->setCookieJar(m_cookieJar);
 
     m_downloadMgr->setNetworkAccessManager(m_networkAccessMgr);
 
     m_privateNetworkAccessMgr = new NetworkAccessManager;
-    CookieJar *privateJar = new CookieJar(QString("%1.fake").arg(m_settings->getPathValue(QStringLiteral("CookiePath"))), QStringLiteral("FakeCookies"), true);
+    CookieJar *privateJar = new CookieJar(true);
     m_privateNetworkAccessMgr->setCookieJar(privateJar);
 
     // Setup user agent manager before settings
@@ -120,9 +118,6 @@ BrowserApplication::~BrowserApplication()
             delete m.data();
     }
 
-    // Prevents network access manager from attempting to delete cookie jar and causing segfault
-    m_cookieJar->setParent(nullptr);
-
     delete m_downloadMgr;
     delete m_suggestionModel;
     delete m_networkAccessMgr;
@@ -148,7 +143,7 @@ BookmarkManager *BrowserApplication::getBookmarkManager()
 
 CookieJar *BrowserApplication::getCookieJar()
 {
-    return m_cookieJar.get();
+    return m_cookieJar;
 }
 
 std::shared_ptr<Settings> BrowserApplication::getSettings()
@@ -283,15 +278,6 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
         emit resetHistoryMenu();
     }
 
-    // Check if cookie flag is set
-    if ((histType & HistoryType::Cookies) == HistoryType::Cookies)
-    {
-        if (start.isNull())
-            m_cookieJar->eraseAllCookies();
-        else
-            m_cookieJar->clearCookiesFrom(start);
-    }
-
     //todo: support clearing form and search data
 
     // Reload URLs in the suggestion model
@@ -310,10 +296,6 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
         m_historyMgr->clearHistoryInRange(range);
         emit resetHistoryMenu();
     }
-
-    // Check if cookie flag is set
-    if ((histType & HistoryType::Cookies) == HistoryType::Cookies)
-        m_cookieJar->clearCookiesInRange(range);
 
     //todo: support clearing form and search data
 

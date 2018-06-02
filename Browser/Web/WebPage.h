@@ -3,7 +3,6 @@
 
 #include "UserScript.h"
 
-#include <future>
 #include <QString>
 #include <QWebEnginePage>
 
@@ -34,18 +33,15 @@ protected:
     /// Executes the given JavaScript code (in string form), storing the result in the given reference
     void runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result);
 
+    /// Executes the given JavaScript code (string form), and waits until the result can be returned
+    QVariant runJavaScriptBlocking(const QString &scriptSource);
+
     /// Called when a JavaScript program attempts to print the given message to the browser console
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId);
 
 private slots:
-    /// Attempts to handle unsupported network replies
-//    void onUnsupportedContent(QNetworkReply *reply);
-
     /// Called when the URL of the main frame has changed
     void onMainFrameUrlChanged(const QUrl &url);
-
-    /// Called when a frame has started loading
-    void onLoadStarted();
 
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);

@@ -10,8 +10,7 @@ enum class HistoryType : uint32_t
     None     = 0x0,    /// Nothing selected
     Browsing = 0x1,    /// Browsing and download history
     Search   = 0x2,    /// Form and search data
-    Cookies  = 0x4,    /// Cookies
-    Cache    = 0x8     /// Browser cache
+    Cache    = 0x4     /// Browser cache
 };
 constexpr enum HistoryType operator |(const enum HistoryType selfValue, const enum HistoryType inValue)
 {

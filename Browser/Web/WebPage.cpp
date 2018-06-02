@@ -23,7 +23,6 @@ WebPage::WebPage(QObject *parent) :
 {
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
-    //connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
@@ -35,7 +34,6 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 {
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
-    //connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
 
@@ -60,6 +58,22 @@ void WebPage::runJavaScriptNonBlocking(const QString &scriptSource, QVariant &re
     runJavaScript(scriptSource, [&](const QVariant &returnValue) {
         result.setValue(returnValue);
     });
+}
+
+QVariant WebPage::runJavaScriptBlocking(const QString &scriptSource)
+{
+    QEventLoop loop;
+    QVariant result;
+
+    runJavaScript(scriptSource, [&](const QVariant &returnValue){
+        result = returnValue;
+        loop.quit();
+    });
+
+    connect(this, &WebPage::destroyed, &loop, &QEventLoop::quit);
+
+    loop.exec();
+    return result;
 }
 
 void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId)
@@ -127,17 +141,10 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
     }
 }
 
-void WebPage::onLoadStarted()
-{
-    //injectUserJavaScript(ScriptInjectionTime::DocumentStart);
-}
-
 void WebPage::onLoadFinished(bool ok)
 {
     if (!ok)
         return;
-
-    //injectUserJavaScript(ScriptInjectionTime::DocumentEnd);
 
     QUrl pageUrl = url();
 
