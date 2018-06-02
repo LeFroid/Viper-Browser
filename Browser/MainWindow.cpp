@@ -684,6 +684,7 @@ void MainWindow::onNewTabCreated(WebView *view)
         if (!inspectorView)
         {
             inspectorView = new WebView(ui->dockWidget);
+            inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
             ui->dockWidget->setWidget(inspectorView);
         }
         QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue("InspectorPort").toString());

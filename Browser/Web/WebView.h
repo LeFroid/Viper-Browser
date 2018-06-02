@@ -65,7 +65,7 @@ protected:
     /// Handles drop events
     virtual void dropEvent(QDropEvent *event) override;
 
-private:
+protected:
     /// returns the context menu helper script source, with the template parameters
     /// substituted for the coordinates given by parameter pos, scaled to the page's zoom factor
     QString getContextMenuScript(const QPoint &pos);

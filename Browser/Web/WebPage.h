@@ -26,15 +26,15 @@ public:
     /// Constructs the web page with a specific browsing profile and a parent
     WebPage(QWebEngineProfile *profile, QObject *parent = nullptr);
 
-protected:
-    /// Called upon receiving a request to navigate to the specified url by means of the given navigation type. If the method returns true, the request is accepted
-    bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) override;
-
     /// Executes the given JavaScript code (in string form), storing the result in the given reference
     void runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result);
 
     /// Executes the given JavaScript code (string form), and waits until the result can be returned
     QVariant runJavaScriptBlocking(const QString &scriptSource);
+
+protected:
+    /// Called upon receiving a request to navigate to the specified url by means of the given navigation type. If the method returns true, the request is accepted
+    bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) override;
 
     /// Called when a JavaScript program attempts to print the given message to the browser console
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId);

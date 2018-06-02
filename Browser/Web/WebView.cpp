@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <exception>
+#include <QClipboard>
 #include <QContextMenuEvent>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -8,6 +8,7 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QUrl>
+#include <QWebEngineContextMenuData>
 #include <QWebEngineProfile>
 #include <QWheelEvent>
 
@@ -17,6 +18,7 @@
 #include "SearchEngineManager.h"
 #include "Settings.h"
 #include "WebDialog.h"
+#include "WebHitTestResult.h"
 #include "WebView.h"
 #include "WebPage.h"
 
@@ -28,7 +30,8 @@ WebView::WebView(bool privateView, QWidget *parent) :
     m_contextMenuHelper(),
     m_jsCallbackResult()
 {
-    setAcceptDrops(true);
+    //setAcceptDrops(true);
+    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     if (privateView)
     {
@@ -127,136 +130,112 @@ QString WebView::getContextMenuScript(const QPoint &pos)
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
-    // Add menu items missing from default context menu
-    QMenu *menu = m_page->createStandardContextMenu();
-    const auto actions = menu->actions();
+    auto contextMenuData = m_page->contextMenuData();
+    QMenu menu;
 
-    auto it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::OpenLinkInThisWindow));
-    if (it != actions.end())
-    {
-        (*it)->setText(tr("Open Link"));
-        ++it;
-
-        QAction *before = (it == actions.cend() ? nullptr: *it);
-        menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewTab));
-        menu->insertAction(before, m_page->action(QWebEnginePage::OpenLinkInNewWindow));
-    }
-    it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::CopyImageUrlToClipboard));
-    if (it != actions.end())
-    {
-        QString contextHelperScript = getContextMenuScript(event->pos());
-        m_page->runJavaScriptNonBlocking(contextHelperScript, m_jsCallbackResult);
-
-        QAction *beforeAction = actions.at(0);
-
-        auto it2 = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::CopyLinkToClipboard));
-        if (it2 != actions.end())
-        {
-            --it2;
-            beforeAction = *it2;
-        }
-
-        QAction *openImageNewTabAction = new QAction(tr("Open Image in a New Tab"), menu);
-        connect(openImageNewTabAction, &QAction::triggered, [=](bool){
-            QUrl imageUrl = QUrl(m_jsCallbackResult.toString());
-            emit openInNewTabRequest(imageUrl);
-        });
-
-        QAction *openImageThisTabAction = new QAction(tr("Open Image"), menu);
-        connect(openImageThisTabAction, &QAction::triggered, [=](bool){
-            QUrl imageUrl = QUrl(m_jsCallbackResult.toString());
-            emit openRequest(imageUrl);
-        });
-
-        menu->insertAction(beforeAction, openImageNewTabAction);
-        menu->insertAction(beforeAction, openImageThisTabAction);
-        menu->insertSeparator(beforeAction);
-    }
-    it = std::find(actions.cbegin(), actions.cend(), m_page->action(QWebEnginePage::InspectElement));
-    if (it == actions.end())
-    {
-        menu->addSeparator();
-        menu->addAction(tr("Inspect element"), this, &WebView::inspectElement);
-    }
-    else
-    {
-        menu->addAction(tr("Open inspector"), this, &WebView::inspectElement);
-        menu->removeAction((*it));
-        menu->insertAction(nullptr, m_page->action(QWebEnginePage::InspectElement));
-    }
-    menu->popup(event->globalPos());
-/*
-
-    // Check if context menu includes links
-    if (!res.linkUrl().isEmpty())
+    // Link menu options
+    if (!contextMenuData.linkUrl().isEmpty())
     {
         menu.addAction(tr("Open link in new tab"), [=](){
-            emit openInNewTabRequest(res.linkUrl());
+            emit openInNewTabRequest(contextMenuData.linkUrl());
         });
         menu.addAction(tr("Open link in new window"), [=](){
-            emit openInNewWindowRequest(res.linkUrl(), this->settings()->testAttribute(QWebSettings::PrivateBrowsingEnabled));
+            emit openInNewWindowRequest(contextMenuData.linkUrl(), m_privateView);
         });
         menu.addSeparator();
-        menu.addAction(pageAction(QWebPage::DownloadLinkToDisk));
-        menu.addAction(pageAction(QWebPage::CopyLinkToClipboard));
-        addInspectorIfEnabled(&menu);
-        menu.exec(mapToGlobal(event->pos()));
-        return;
     }
-    // Check if context menu is activated when mouse is on an image
-    if (!res.imageUrl().isEmpty())
+
+    auto mediaType = contextMenuData.mediaType();
+
+    // Image menu options
+    if (mediaType == QWebEngineContextMenuData::MediaTypeImage)
     {
-        menu.addAction(tr("Open image"), [=](){
-            emit openRequest(res.imageUrl());
-        });
         menu.addAction(tr("Open image in new tab"), [=](){
-            emit openInNewTabRequest(res.imageUrl());
+            emit openInNewTabRequest(contextMenuData.mediaUrl());
+        });
+        menu.addAction(tr("Open image"), [=](){
+            emit openRequest(contextMenuData.mediaUrl());
         });
         menu.addSeparator();
+
         menu.addAction(tr("Save image as..."), [=](){
-            pageAction(QWebPage::DownloadImageToDisk)->trigger();
+            pageAction(WebPage::DownloadImageToDisk);
         });
-        menu.addAction(tr("Copy image"), [=]() { pageAction(QWebPage::CopyImageToClipboard)->trigger(); });
-        menu.addAction(tr("Copy image address"), [=]() { pageAction(QWebPage::CopyImageUrlToClipboard)->trigger(); });
-        addInspectorIfEnabled(&menu);
-        menu.exec(mapToGlobal(event->pos()));
-        return;
+        menu.addAction(tr("Copy image"), [=]() { pageAction(WebPage::CopyImageToClipboard)->trigger(); });
+        menu.addAction(tr("Copy image address"), [=]() { pageAction(WebPage::CopyImageUrlToClipboard)->trigger(); });
+        menu.addSeparator();
     }
-    // Check if context menu is activated when there is a text selection
-    if (!page()->selectedText().isEmpty())
+    else if (mediaType == QWebEngineContextMenuData::MediaTypeVideo
+             || mediaType == QWebEngineContextMenuData::MediaTypeAudio)
     {
-        // Text selection menu
-        menu.addAction(pageAction(QWebPage::Copy));
+        menu.addAction(pageAction(WebPage::ToggleMediaPlayPause));
+        menu.addAction(pageAction(WebPage::ToggleMediaMute));
+        menu.addAction(pageAction(WebPage::ToggleMediaLoop));
+        menu.addAction(pageAction(WebPage::ToggleMediaControls));
+        menu.addSeparator();
+
+        menu.addAction(pageAction(WebPage::DownloadMediaToDisk));
+        menu.addAction(pageAction(WebPage::CopyMediaUrlToClipboard));
+        menu.addSeparator();
+    }
+
+    // Link menu options continued
+    if (!contextMenuData.linkUrl().isEmpty())
+    {
+        menu.addAction(pageAction(WebPage::DownloadLinkToDisk));
+        menu.addAction(pageAction(WebPage::CopyLinkToClipboard));
+        menu.addSeparator();
+    }
+
+    // Text selection options
+    if (!contextMenuData.selectedText().isEmpty())
+    {
+        const QString text = contextMenuData.selectedText();
+
+        const bool isEditable = contextMenuData.isContentEditable();
+        if (isEditable)
+            menu.addAction(pageAction(WebPage::Cut));
+        menu.addAction(pageAction(WebPage::Copy));
+        if (isEditable)
+        {
+            QClipboard *clipboard = sBrowserApplication->clipboard();
+            if (!clipboard->text(QClipboard::Clipboard).isEmpty())
+                menu.addAction(pageAction(WebPage::Paste));
+        }
 
         // Search for current selection menu option
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
         menu.addAction(tr("Search %1 for selected text").arg(searchMgr->getDefaultSearchEngine()), [=](){
             QString searchUrl = searchMgr->getQueryString(searchMgr->getDefaultSearchEngine());
-            searchUrl.replace("=%s", QString("=%1").arg(page()->selectedText()));
+            searchUrl.replace("=%s", QString("=%1").arg(text));
             emit openInNewTabRequest(QUrl::fromUserInput(searchUrl));
         });
 
-        // Check if selection could be a URL
-        QString selection = page()->selectedText();
-        QUrl selectionUrl = QUrl::fromUserInput(selection);
+        QUrl selectionUrl = QUrl::fromUserInput(text);
         if (selectionUrl.isValid())
         {
-            menu.addAction(tr("Go to %1").arg(selection), [=](){
+            menu.addAction(tr("Go to %1").arg(text), [=](){
                 emit openInNewTabRequest(selectionUrl, true);
             });
         }
 
-        addInspectorIfEnabled(&menu);
-        menu.exec(mapToGlobal(event->pos()));
-        return;
+        menu.addSeparator();
     }
-    // Default menu
-    menu.addAction(pageAction(QWebPage::Back));
-    menu.addAction(pageAction(QWebPage::Forward));
-    menu.addAction(pageAction(QWebPage::Reload));
-    addInspectorIfEnabled(&menu);
-    menu.exec(mapToGlobal(event->pos()));
-	    */
+
+    // Default menu options
+    if (contextMenuData.linkUrl().isEmpty()
+            && contextMenuData.selectedText().isEmpty()
+            && contextMenuData.mediaType() == QWebEngineContextMenuData::MediaTypeNone)
+    {
+        menu.addAction(pageAction(WebPage::Back));
+        menu.addAction(pageAction(WebPage::Forward));
+        menu.addAction(pageAction(WebPage::Reload));
+    }
+
+    // Web inspector
+    menu.addAction(tr("Inspect element"), this, &WebView::inspectElement);
+
+    menu.exec(event->globalPos());
 }
 
 void WebView::wheelEvent(QWheelEvent *event)

@@ -3,8 +3,10 @@
 #include "BrowserTabBar.h"
 #include "FaviconStorage.h"
 #include "MainWindow.h"
+#include "WebPage.h"
 #include "WebView.h"
 
+#include <algorithm>
 #include <QMenu>
 #include <QWebEngineHistory>
 #include <QWebEngineHistoryItem>
@@ -87,7 +89,6 @@ void BrowserTabWidget::closeTab(int index)
 WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
 {
     WebView *view = new WebView(m_privateBrowsing, parentWidget());
-    view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     QString tabLabel;
     if (!skipHomePage)
@@ -112,7 +113,6 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
 //    connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
 
-    //addTab(view, tabLabel);
     m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
     if (makeCurrent)
     {
@@ -261,3 +261,4 @@ void BrowserTabWidget::resetHistoryButtonMenus(bool /*ok*/)
         prevAction = histAction;
     }
 }
+
