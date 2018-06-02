@@ -68,6 +68,11 @@ void WebView::loadBlankPage()
         setHtml(QString::fromUtf8(resource.readAll().constData()), QUrl("about:blank"));
 }
 
+bool WebView::isOnBlankPage() const
+{
+    return url() == QUrl("about:blank");
+}
+
 QString WebView::getTitle() const
 {
     QString pageTitle = title();

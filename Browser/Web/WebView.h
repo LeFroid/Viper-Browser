@@ -25,6 +25,9 @@ public:
     /// Loads the resource of the blank page into the view
     void loadBlankPage();
 
+    /// Returns true if the view's page is blank, with no resources being loaded
+    bool isOnBlankPage() const;
+
     /**
      * @brief Returns the title of the web page being viewed
      *
