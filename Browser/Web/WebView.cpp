@@ -18,7 +18,6 @@
 #include "SearchEngineManager.h"
 #include "Settings.h"
 #include "WebDialog.h"
-#include "WebHitTestResult.h"
 #include "WebView.h"
 #include "WebPage.h"
 
@@ -134,13 +133,14 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     QMenu menu;
 
     // Link menu options
-    if (!contextMenuData.linkUrl().isEmpty())
+    const auto linkUrl = contextMenuData.linkUrl();
+    if (!linkUrl.isEmpty())
     {
         menu.addAction(tr("Open link in new tab"), [=](){
-            emit openInNewTabRequest(contextMenuData.linkUrl());
+            emit openInNewTabRequest(linkUrl);
         });
         menu.addAction(tr("Open link in new window"), [=](){
-            emit openInNewWindowRequest(contextMenuData.linkUrl(), m_privateView);
+            emit openInNewWindowRequest(linkUrl, m_privateView);
         });
         menu.addSeparator();
     }
@@ -158,11 +158,13 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         });
         menu.addSeparator();
 
-        menu.addAction(tr("Save image as..."), [=](){
-            pageAction(WebPage::DownloadImageToDisk);
-        });
-        menu.addAction(tr("Copy image"), [=]() { pageAction(WebPage::CopyImageToClipboard)->trigger(); });
-        menu.addAction(tr("Copy image address"), [=]() { pageAction(WebPage::CopyImageUrlToClipboard)->trigger(); });
+        QAction *a = pageAction(WebPage::DownloadImageToDisk);
+        a->setText(tr("Save image as..."));
+        menu.addAction(a);
+
+        menu.addAction(pageAction(WebPage::CopyImageToClipboard));
+        menu.addAction(pageAction(WebPage::CopyImageUrlToClipboard));
+
         menu.addSeparator();
     }
     else if (mediaType == QWebEngineContextMenuData::MediaTypeVideo
@@ -180,7 +182,7 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     }
 
     // Link menu options continued
-    if (!contextMenuData.linkUrl().isEmpty())
+    if (!linkUrl.isEmpty())
     {
         menu.addAction(pageAction(WebPage::DownloadLinkToDisk));
         menu.addAction(pageAction(WebPage::CopyLinkToClipboard));
@@ -223,13 +225,14 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     }
 
     // Default menu options
-    if (contextMenuData.linkUrl().isEmpty()
+    if (linkUrl.isEmpty()
             && contextMenuData.selectedText().isEmpty()
             && contextMenuData.mediaType() == QWebEngineContextMenuData::MediaTypeNone)
     {
         menu.addAction(pageAction(WebPage::Back));
         menu.addAction(pageAction(WebPage::Forward));
         menu.addAction(pageAction(WebPage::Reload));
+        menu.addSeparator();
     }
 
     // Web inspector
