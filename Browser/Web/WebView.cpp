@@ -129,6 +129,8 @@ QString WebView::getContextMenuScript(const QPoint &pos)
 
 void WebView::contextMenuEvent(QContextMenuEvent *event)
 {
+    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(QLatin1String("AskWhereToSaveDownloads")).toBool();
+
     auto contextMenuData = m_page->contextMenuData();
     QMenu menu;
 
@@ -159,7 +161,10 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
         menu.addSeparator();
 
         QAction *a = pageAction(WebPage::DownloadImageToDisk);
-        a->setText(tr("Save image as..."));
+
+        // Set text to 'save image as...' if setting is to always ask where to save
+        if (askWhereToSave)
+            a->setText(tr("Save image as..."));
         menu.addAction(a);
 
         menu.addAction(pageAction(WebPage::CopyImageToClipboard));
@@ -184,7 +189,11 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     // Link menu options continued
     if (!linkUrl.isEmpty())
     {
-        menu.addAction(pageAction(WebPage::DownloadLinkToDisk));
+        QAction *a = pageAction(WebPage::DownloadLinkToDisk);
+        if (askWhereToSave)
+            a->setText(tr("Save link as..."));
+        menu.addAction(a);
+
         menu.addAction(pageAction(WebPage::CopyLinkToClipboard));
         menu.addSeparator();
     }
