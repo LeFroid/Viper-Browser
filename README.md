@@ -2,7 +2,7 @@
 
 ![Coverity Scan Build Status](https://scan.coverity.com/projects/14853/badge.svg?flat=1 "Coverity Scan Build Status")
 
-A lightweight web browser built with the Qt framework and WebKit
+A lightweight web browser built with the Qt framework and QtWebEngine
 
 Licensed under GPLv3
 
@@ -14,7 +14,7 @@ Licensed under GPLv3
 * Ability to customize the user agent
 * Support for manual cookie addition / removal / modifications
 * Toggle JavaScript on or off in settings
-* Compatible with NPAPI plugins
+* Compatible with Pepper Plugin API
 
 # Building
 
