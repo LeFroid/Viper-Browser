@@ -73,9 +73,6 @@ private:
     /// Cookie store
     QWebEngineCookieStore *m_cookieStore;
 
-    /// Cookie jar (container)
-    CookieJar *m_cookieJar;
-
     /// Stores each row's checked state
     QList<int> m_checkedState;
 
