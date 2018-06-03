@@ -29,7 +29,7 @@ WebView::WebView(bool privateView, QWidget *parent) :
     m_contextMenuHelper(),
     m_jsCallbackResult()
 {
-    //setAcceptDrops(true);
+    setAcceptDrops(true);
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     if (privateView)
