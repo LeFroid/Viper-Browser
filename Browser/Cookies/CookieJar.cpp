@@ -1,24 +1,27 @@
+#include <algorithm>
 #include <QDateTime>
 #include <QNetworkCookie>
 #include <QWebEngineProfile>
-#include <QDebug>
+
+#include <QtGlobal>
+#include <QtWebEngineCoreVersion>
 
 #include "BrowserApplication.h"
 #include "CookieJar.h"
 
-CookieJar::CookieJar(bool privateJar, QObject *parent) :
+CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
     QNetworkCookieJar(parent),
+    m_enableCookies(enableCookies),
     m_privateJar(privateJar),
-    m_store(nullptr)
+    m_store(nullptr),
+    m_exemptParties()
 {
     if (!m_privateJar)
         m_store = QWebEngineProfile::defaultProfile()->cookieStore();
     else
         m_store = sBrowserApplication->getPrivateBrowsingProfile()->cookieStore();
 
-    connect(m_store, &QWebEngineCookieStore::cookieAdded, [=](const QNetworkCookie &cookie){
-        static_cast<void>(insertCookie(cookie));
-    });
+    connect(m_store, &QWebEngineCookieStore::cookieAdded, this, &CookieJar::onCookieAdded);
     connect(m_store, &QWebEngineCookieStore::cookieRemoved, [=](const QNetworkCookie &cookie){
         static_cast<void>(deleteCookie(cookie));
     });
@@ -52,8 +55,41 @@ void CookieJar::eraseAllCookies()
 {
     QList<QNetworkCookie> noCookies;
     setAllCookies(noCookies);
+    m_store->deleteAllCookies();
 
     emit cookiesRemoved();
+}
+
+void CookieJar::setCookiesEnabled(bool value)
+{
+    m_enableCookies = value;
+    if (!m_enableCookies)
+        eraseAllCookies();
+}
+
+void CookieJar::setThirdPartyCookiesEnabled(bool value)
+{
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    if (value)
+        m_store->setCookieFilter(nullptr);
+    else
+        m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) {
+            if (request.thirdParty && m_enableCookies)
+            {
+                std::string partyHost = request.origin.host(QUrl::EncodeUnicode).toStdString();
+                return std::find(m_exemptParties.begin(), m_exemptParties.end(), partyHost) != m_exemptParties.end();
+            }
+            return m_enableCookies;
+        });
+#endif
+}
+
+void CookieJar::onCookieAdded(const QNetworkCookie &cookie)
+{
+    if (m_enableCookies)
+        static_cast<void>(insertCookie(cookie));
+    else
+        m_store->deleteCookie(cookie);
 }
 
 void CookieJar::removeExpired()

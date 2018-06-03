@@ -38,6 +38,11 @@
        <string>Content</string>
       </attribute>
      </widget>
+     <widget class="PrivacyTab" name="tabPrivacy">
+      <attribute name="title">
+       <string>Privacy</string>
+      </attribute>
+     </widget>
     </widget>
    </item>
    <item row="1" column="0">
@@ -66,6 +71,12 @@
    <class>ContentTab</class>
    <extends>QWidget</extends>
    <header>Preferences/ContentTab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PrivacyTab</class>
+   <extends>QWidget</extends>
+   <header>Preferences/PrivacyTab.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

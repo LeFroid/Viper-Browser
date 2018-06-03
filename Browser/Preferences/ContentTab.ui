@@ -15,69 +15,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QCheckBox" name="checkBoxEnableAdBlock">
-     <property name="text">
-      <string>Block Advertisements</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line_4">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxBlockPopups">
-     <property name="text">
-      <string>Block pop-up windows</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxAutoLoadImages">
-     <property name="text">
-      <string>Load images automatically</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxEnableJavaScript">
-     <property name="text">
-      <string>Enable JavaScript</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line_3">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxEnablePlugins">
-     <property name="text">
-      <string>Enable Plug-Ins</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -91,17 +28,89 @@
     </spacer>
    </item>
    <item>
-    <widget class="Line" name="line_5">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+    <widget class="QGroupBox" name="groupBoxWebContent">
+     <property name="title">
+      <string>Web Content</string>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxEnableUserScripts">
-     <property name="text">
-      <string>Enable User Scripts</string>
-     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="checkBoxEnableAdBlock">
+        <property name="text">
+         <string>Block Advertisements</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxBlockPopups">
+        <property name="text">
+         <string>Block pop-up windows</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxAutoLoadImages">
+        <property name="text">
+         <string>Load images automatically</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxEnableJavaScript">
+        <property name="text">
+         <string>Enable JavaScript</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxEnablePlugins">
+        <property name="text">
+         <string>Enable Plug-Ins</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxEnableUserScripts">
+        <property name="text">
+         <string>Enable User Scripts</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

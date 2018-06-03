@@ -1,8 +1,11 @@
 #include "Settings.h"
 
 #include "BrowserApplication.h"
+#include "CookieJar.h"
+#include "HistoryManager.h"
 #include "UserAgentManager.h"
 #include "WebPage.h"
+
 #include <QDir>
 #include <QFileInfo>
 #include <QWebEngineProfile>
@@ -14,10 +17,10 @@ Settings::Settings() :
     m_storagePath()
 {
     // Check if defaults need to be set
-    if (!m_settings.contains(QStringLiteral("StoragePath")))
+    if (!m_settings.contains(QLatin1String("StoragePath")))
         setDefaults();
 
-    m_storagePath = m_settings.value(QStringLiteral("StoragePath")).toString();
+    m_storagePath = m_settings.value(QLatin1String("StoragePath")).toString();
 }
 
 QString Settings::getPathValue(const QString &key)
@@ -43,34 +46,47 @@ bool Settings::firstRun() const
 void Settings::applyWebSettings()
 {
     QWebEngineSettings *settings = QWebEngineSettings::defaultSettings();
-    settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QStringLiteral("EnableJavascript")).toBool());
-    settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QStringLiteral("EnableJavascriptPopups")).toBool());
-    settings->setAttribute(QWebEngineSettings::AutoLoadImages,           m_settings.value(QStringLiteral("AutoLoadImages")).toBool());
-    settings->setAttribute(QWebEngineSettings::PluginsEnabled,           m_settings.value(QStringLiteral("EnablePlugins")).toBool());
-    settings->setAttribute(QWebEngineSettings::XSSAuditingEnabled,       m_settings.value(QStringLiteral("EnableXSSAudit")).toBool());
+    settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QLatin1String("EnableJavascript")).toBool());
+    settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QLatin1String("EnableJavascriptPopups")).toBool());
+    settings->setAttribute(QWebEngineSettings::AutoLoadImages,           m_settings.value(QLatin1String("AutoLoadImages")).toBool());
+    settings->setAttribute(QWebEngineSettings::PluginsEnabled,           m_settings.value(QLatin1String("EnablePlugins")).toBool());
+    settings->setAttribute(QWebEngineSettings::XSSAuditingEnabled,       m_settings.value(QLatin1String("EnableXSSAudit")).toBool());
 
-    settings->setAttribute(QWebEngineSettings::LocalStorageEnabled,               true);
+    settings->setAttribute(QWebEngineSettings::LocalStorageEnabled,      true);
 
-    settings->setFontFamily(QWebEngineSettings::StandardFont,       m_settings.value(QStringLiteral("StandardFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::SerifFont,          m_settings.value(QStringLiteral("SerifFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::SansSerifFont,      m_settings.value(QStringLiteral("SansSerifFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::CursiveFont,        m_settings.value(QStringLiteral("CursiveFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::FantasyFont,        m_settings.value(QStringLiteral("FantasyFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::FixedFont,          m_settings.value(QStringLiteral("FixedFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::StandardFont,       m_settings.value(QLatin1String("StandardFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::SerifFont,          m_settings.value(QLatin1String("SerifFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::SansSerifFont,      m_settings.value(QLatin1String("SansSerifFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::CursiveFont,        m_settings.value(QLatin1String("CursiveFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::FantasyFont,        m_settings.value(QLatin1String("FantasyFont")).toString());
+    settings->setFontFamily(QWebEngineSettings::FixedFont,          m_settings.value(QLatin1String("FixedFont")).toString());
 
-    settings->setFontSize(QWebEngineSettings::DefaultFontSize,      m_settings.value(QStringLiteral("StandardFontSize")).toInt());
-    settings->setFontSize(QWebEngineSettings::DefaultFixedFontSize, m_settings.value(QStringLiteral("FixedFontSize")).toInt());
+    settings->setFontSize(QWebEngineSettings::DefaultFontSize,      m_settings.value(QLatin1String("StandardFontSize")).toInt());
+    settings->setFontSize(QWebEngineSettings::DefaultFixedFontSize, m_settings.value(QLatin1String("FixedFontSize")).toInt());
+
+    HistoryStoragePolicy historyPolicy = m_settings.value(QLatin1String("HistoryStoragePolicy")).value<HistoryStoragePolicy>();
+    sBrowserApplication->getHistoryManager()->setStoragePolicy(historyPolicy);
+
+    CookieJar *cookieJar = sBrowserApplication->getCookieJar();
+    cookieJar->setCookiesEnabled(m_settings.value(QLatin1String("EnableCookies")).toBool());
+    cookieJar->setThirdPartyCookiesEnabled(m_settings.value(QLatin1String("EnableThirdPartyCookies")).toBool());
+
+    QWebEngineProfile::PersistentCookiesPolicy cookiesPolicy = QWebEngineProfile::AllowPersistentCookies;
+    if (m_settings.value(QLatin1String("CookiesDeleteWithSession")).toBool())
+        cookiesPolicy = QWebEngineProfile::NoPersistentCookies;
+
+    auto defaultProfile = QWebEngineProfile::defaultProfile();
+    defaultProfile->setPersistentCookiesPolicy(cookiesPolicy);
 
     QDir cachePath(QDir::homePath() + QDir::separator() + QStringLiteral(".cache") + QDir::separator() + QStringLiteral("Vaccarelli"));
     if (!cachePath.exists())
         cachePath.mkpath(cachePath.absolutePath());
     
-    auto defaultProfile = QWebEngineProfile::defaultProfile();
     defaultProfile->setCachePath(cachePath.absolutePath());
     defaultProfile->setPersistentStoragePath(cachePath.absolutePath());
 
     // Check if custom user agent is used
-    if (getValue(QStringLiteral("CustomUserAgent")).toBool())
+    if (getValue(QLatin1String("CustomUserAgent")).toBool())
         defaultProfile->setHttpUserAgent(sBrowserApplication->getUserAgentManager()->getUserAgent().Value);
 }
 
@@ -86,46 +102,47 @@ void Settings::setDefaults()
         settingsDir.mkpath(settingsPath);
     settingsPath.append(QDir::separator());
 
-    m_settings.setValue(QStringLiteral("StoragePath"), settingsPath);
-    m_settings.setValue(QStringLiteral("BookmarkPath"), QStringLiteral("bookmarks.db"));
-    m_settings.setValue(QStringLiteral("CookiePath"), QStringLiteral("cookies.db"));
-    m_settings.setValue(QStringLiteral("HistoryPath"), QStringLiteral("history.db"));
-    m_settings.setValue(QStringLiteral("FaviconPath"), QStringLiteral("favicons.db"));
-    m_settings.setValue(QStringLiteral("UserAgentsFile"),  QStringLiteral("user_agents.json"));
-    m_settings.setValue(QStringLiteral("SearchEnginesFile"), QStringLiteral("search_engines.json"));
-    m_settings.setValue(QStringLiteral("SessionFile"), QStringLiteral("last_session.json"));
-    m_settings.setValue(QStringLiteral("UserScriptsDir"), QStringLiteral("UserScripts"));
-    m_settings.setValue(QStringLiteral("UserScriptsConfig"), QStringLiteral("user_scripts.json"));
-    m_settings.setValue(QStringLiteral("AdBlockPlusConfig"), QStringLiteral("adblock_plus.json"));
-    m_settings.setValue(QStringLiteral("AdBlockPlusDataDir"), QStringLiteral("AdBlockPlus"));
+    m_settings.setValue(QLatin1String("StoragePath"), settingsPath);
+    m_settings.setValue(QLatin1String("BookmarkPath"), QLatin1String("bookmarks.db"));
+    m_settings.setValue(QLatin1String("CookiePath"), QLatin1String("cookies.db"));
+    m_settings.setValue(QLatin1String("HistoryPath"), QLatin1String("history.db"));
+    m_settings.setValue(QLatin1String("FaviconPath"), QLatin1String("favicons.db"));
+    m_settings.setValue(QLatin1String("UserAgentsFile"),  QLatin1String("user_agents.json"));
+    m_settings.setValue(QLatin1String("SearchEnginesFile"), QLatin1String("search_engines.json"));
+    m_settings.setValue(QLatin1String("SessionFile"), QLatin1String("last_session.json"));
+    m_settings.setValue(QLatin1String("UserScriptsDir"), QLatin1String("UserScripts"));
+    m_settings.setValue(QLatin1String("UserScriptsConfig"), QLatin1String("user_scripts.json"));
+    m_settings.setValue(QLatin1String("AdBlockPlusConfig"), QLatin1String("adblock_plus.json"));
+    m_settings.setValue(QLatin1String("AdBlockPlusDataDir"), QLatin1String("AdBlockPlus"));
 
-    m_settings.setValue(QStringLiteral("HomePage"), QStringLiteral("https://www.ixquick.com/"));
-    m_settings.setValue(QStringLiteral("StartupMode"), QVariant::fromValue(StartupMode::LoadHomePage));
-    m_settings.setValue(QStringLiteral("NewTabsLoadHomePage"), true);
-    m_settings.setValue(QStringLiteral("DownloadDir"), QDir::homePath() + QDir::separator() + "Downloads");
-    m_settings.setValue(QStringLiteral("AskWhereToSaveDownloads"), false);
-    m_settings.setValue(QStringLiteral("EnableJavascript"), true);
-    m_settings.setValue(QStringLiteral("EnableJavascriptPopups"), false);
-    m_settings.setValue(QStringLiteral("AutoLoadImages"), true);
-    m_settings.setValue(QStringLiteral("EnablePlugins"), false);
-    m_settings.setValue(QStringLiteral("EnableCookies"), true);
-    m_settings.setValue(QStringLiteral("EnableXSSAudit"), true);
-    m_settings.setValue(QStringLiteral("EnableBookmarkBar"), false);
-    m_settings.setValue(QStringLiteral("CustomUserAgent"), false);
-    m_settings.setValue(QStringLiteral("UserScriptsEnabled"), true);
-    m_settings.setValue(QStringLiteral("AdBlockPlusEnabled"), true);
-    m_settings.setValue(QStringLiteral("InspectorPort"), 9477);
+    m_settings.setValue(QLatin1String("HomePage"), QLatin1String("https://www.ixquick.com/"));
+    m_settings.setValue(QLatin1String("StartupMode"), QVariant::fromValue(StartupMode::LoadHomePage));
+    m_settings.setValue(QLatin1String("NewTabsLoadHomePage"), true);
+    m_settings.setValue(QLatin1String("DownloadDir"), QDir::homePath() + QDir::separator() + "Downloads");
+    m_settings.setValue(QLatin1String("AskWhereToSaveDownloads"), false);
+    m_settings.setValue(QLatin1String("EnableJavascript"), true);
+    m_settings.setValue(QLatin1String("EnableJavascriptPopups"), false);
+    m_settings.setValue(QLatin1String("AutoLoadImages"), true);
+    m_settings.setValue(QLatin1String("EnablePlugins"), false);
+    m_settings.setValue(QLatin1String("EnableCookies"), true);
+    m_settings.setValue(QLatin1String("CookiesDeleteWithSession"), false);
+    m_settings.setValue(QLatin1String("EnableThirdPartyCookies"), true);
+    m_settings.setValue(QLatin1String("EnableXSSAudit"), true);
+    m_settings.setValue(QLatin1String("EnableBookmarkBar"), false);
+    m_settings.setValue(QLatin1String("CustomUserAgent"), false);
+    m_settings.setValue(QLatin1String("UserScriptsEnabled"), true);
+    m_settings.setValue(QLatin1String("AdBlockPlusEnabled"), true);
+    m_settings.setValue(QLatin1String("InspectorPort"), 9477);
+    m_settings.setValue(QLatin1String("HistoryStoragePolicy"), QVariant::fromValue(HistoryStoragePolicy::Remember));
 
     QWebEngineSettings *webSettings = QWebEngineSettings::defaultSettings();
-    m_settings.setValue(QStringLiteral("StandardFont"), webSettings->fontFamily(QWebEngineSettings::StandardFont));
-    m_settings.setValue(QStringLiteral("SerifFont"), webSettings->fontFamily(QWebEngineSettings::SerifFont));
-    m_settings.setValue(QStringLiteral("SansSerifFont"), webSettings->fontFamily(QWebEngineSettings::SansSerifFont));
-    m_settings.setValue(QStringLiteral("CursiveFont"), webSettings->fontFamily(QWebEngineSettings::CursiveFont));
-    m_settings.setValue(QStringLiteral("FantasyFont"), webSettings->fontFamily(QWebEngineSettings::FantasyFont));
-    m_settings.setValue(QStringLiteral("FixedFont"), webSettings->fontFamily(QWebEngineSettings::FixedFont));
+    m_settings.setValue(QLatin1String("StandardFont"), webSettings->fontFamily(QWebEngineSettings::StandardFont));
+    m_settings.setValue(QLatin1String("SerifFont"), webSettings->fontFamily(QWebEngineSettings::SerifFont));
+    m_settings.setValue(QLatin1String("SansSerifFont"), webSettings->fontFamily(QWebEngineSettings::SansSerifFont));
+    m_settings.setValue(QLatin1String("CursiveFont"), webSettings->fontFamily(QWebEngineSettings::CursiveFont));
+    m_settings.setValue(QLatin1String("FantasyFont"), webSettings->fontFamily(QWebEngineSettings::FantasyFont));
+    m_settings.setValue(QLatin1String("FixedFont"), webSettings->fontFamily(QWebEngineSettings::FixedFont));
 
-    m_settings.setValue(QStringLiteral("StandardFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFontSize));
-    m_settings.setValue(QStringLiteral("FixedFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFixedFontSize));
-
-    // Todo: Store settings such as whether or not to store history
+    m_settings.setValue(QLatin1String("StandardFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFontSize));
+    m_settings.setValue(QLatin1String("FixedFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFixedFontSize));
 }

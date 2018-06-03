@@ -47,6 +47,7 @@ class BrowserApplication : public QApplication
 {
     Q_OBJECT
 
+    friend class HistoryManager;
     friend class MainWindow;
 
 public:

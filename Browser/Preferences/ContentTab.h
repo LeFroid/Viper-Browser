@@ -18,7 +18,7 @@ class ContentTab : public QWidget
 
 public:
     /// Constructs the content tab
-    explicit ContentTab(QWidget *parent = 0);
+    explicit ContentTab(QWidget *parent = nullptr);
 
     /// Destructor
     ~ContentTab();

@@ -8,10 +8,21 @@
 #include <QHash>
 #include <QIcon>
 #include <QList>
+#include <QMetaType>
 #include <QUrl>
 
 #include <deque>
 #include <vector>
+
+/// Available policies for storage of browsing history data
+enum class HistoryStoragePolicy
+{
+    Remember    = 0,
+    SessionOnly = 1,
+    Never       = 2
+};
+
+Q_DECLARE_METATYPE(HistoryStoragePolicy)
 
 /**
  * @struct WebHistoryItem
@@ -93,6 +104,12 @@ public:
     /// Returns the number of times the user has visited the given website by its hostname
     int getTimesVisited(const QString &host);
 
+    /// Returns the history manager's storage policy
+    HistoryStoragePolicy getStoragePolicy() const;
+
+    /// Sets the policy to be followed for storing browsing history
+    void setStoragePolicy(HistoryStoragePolicy policy);
+
 signals:
     /// Emitted when a page has been visited
     void pageVisited(const QString &url, const QString &title);
@@ -129,6 +146,9 @@ private:
 
     /// Prepared query for a visit entry regarding a WebHistoryItem
     QSqlQuery *m_queryVisit;
+
+    /// History storage policy
+    HistoryStoragePolicy m_storagePolicy;
 };
 
 #endif // HISTORYMANAGER_H

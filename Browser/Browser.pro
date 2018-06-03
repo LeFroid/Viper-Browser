@@ -123,7 +123,8 @@ SOURCES += \
     AdBlock/CustomFilterEditor.cpp \
     Widgets/BookmarkDialog.cpp \
     Network/ViperSchemeHandler.cpp \
-    UserScripts/WebEngineScriptAdapter.cpp
+    UserScripts/WebEngineScriptAdapter.cpp \
+    Preferences/PrivacyTab.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -209,7 +210,8 @@ HEADERS += \
     AdBlock/CustomFilterEditor.h \
     Widgets/BookmarkDialog.h \
     Network/ViperSchemeHandler.h \
-    UserScripts/WebEngineScriptAdapter.h
+    UserScripts/WebEngineScriptAdapter.h \
+    Preferences/PrivacyTab.h
 
 FORMS += \
         mainwindow.ui \
@@ -237,4 +239,5 @@ FORMS += \
     UserScripts/AddUserScriptDialog.ui \
     AdBlock/AdBlockSubscribeDialog.ui \
     AdBlock/CustomFilterEditor.ui \
-    Widgets/BookmarkDialog.ui
+    Widgets/BookmarkDialog.ui \
+    Preferences/PrivacyTab.ui

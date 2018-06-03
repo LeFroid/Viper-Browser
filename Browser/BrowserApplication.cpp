@@ -59,7 +59,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(QStringLiteral("BookmarkPath")));
 
     // Initialize cookie jar and cookie manager UI
-    m_cookieJar = new CookieJar;
+    const bool enableCookies = m_settings->getValue(QLatin1String("EnableCookies")).toBool();
+    m_cookieJar = new CookieJar(enableCookies, false);
     m_cookieUI = new CookieWidget();
     webProfile->cookieStore()->loadAllCookies();
 
@@ -82,7 +83,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_downloadMgr->setNetworkAccessManager(m_networkAccessMgr);
 
     m_privateNetworkAccessMgr = new NetworkAccessManager;
-    CookieJar *privateJar = new CookieJar(true);
+    CookieJar *privateJar = new CookieJar(enableCookies, true);
     m_privateNetworkAccessMgr->setCookieJar(privateJar);
 
     // Setup user agent manager before settings

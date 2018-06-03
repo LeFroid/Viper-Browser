@@ -1,4 +1,6 @@
+#include "BrowserApplication.h"
 #include "HistoryManager.h"
+#include "Settings.h"
 
 #include <QBuffer>
 #include <QDateTime>
@@ -18,12 +20,25 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     m_historyItems(),
     m_recentItems(),
     m_queryHistoryItem(nullptr),
-    m_queryVisit(nullptr)
+    m_queryVisit(nullptr),
+    m_storagePolicy(HistoryStoragePolicy::Remember)
 {
+    m_storagePolicy = sBrowserApplication->getSettings()->getValue(QLatin1String("HistoryStoragePolicy")).value<HistoryStoragePolicy>();
 }
 
 HistoryManager::~HistoryManager()
 {
+    switch (m_storagePolicy)
+    {
+        case HistoryStoragePolicy::Remember:
+            break;
+        case HistoryStoragePolicy::SessionOnly:
+        case HistoryStoragePolicy::Never:
+        default:
+            clearAllHistory();
+            break;
+    }
+
     if (m_queryHistoryItem != nullptr)
     {
         delete m_queryHistoryItem;
@@ -34,7 +49,7 @@ HistoryManager::~HistoryManager()
 void HistoryManager::addHistoryEntry(const QString &url)
 {
     // Check if qrc:/ resource, and if so, ignore
-    if (url.startsWith("qrc:"))
+    if (url.startsWith("qrc:") || m_storagePolicy == HistoryStoragePolicy::Never)
         return;
 
     QDateTime visitTime = QDateTime::currentDateTime();
@@ -197,6 +212,22 @@ int HistoryManager::getTimesVisited(const QString &host)
         }
     }
     return timesVisited;
+}
+
+HistoryStoragePolicy HistoryManager::getStoragePolicy() const
+{
+    return m_storagePolicy;
+}
+
+void HistoryManager::setStoragePolicy(HistoryStoragePolicy policy)
+{
+    m_storagePolicy = policy;
+
+    if (policy == HistoryStoragePolicy::Never)
+    {
+        QDateTime invalidDate;
+        sBrowserApplication->clearHistory(HistoryType::Browsing, invalidDate);
+    }
 }
 
 bool HistoryManager::hasProperStructure()
