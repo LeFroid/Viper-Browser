@@ -1,8 +1,10 @@
+#include "BrowserApplication.h"
 #include "DownloadManager.h"
 #include "ui_downloadmanager.h"
 #include "DownloadItem.h"
 #include "InternalDownloadItem.h"
 #include "NetworkAccessManager.h"
+#include "Settings.h"
 
 #include <QDir>
 #include <QFileDialog>
@@ -45,12 +47,22 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
     if (!item || item->state() != QWebEngineDownloadItem::DownloadRequested)
         return;
 
+    QString fileName;
+
+    // Check settings to determine if download path should be set by the user or handled by the web engine
+    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(QLatin1String("AskWhereToSaveDownloads")).toBool();
+
     // Get file path for download
-    QString fileName = QFileInfo(item->path()).fileName();
-    QString downloadPath = QString(m_downloadDir + QDir::separator() + fileName);
-    fileName = QFileDialog::getSaveFileName(this, tr("Save as..."),  downloadPath);
-    if (fileName.isEmpty())
-        return;
+    if (askWhereToSave)
+    {
+        fileName = QFileInfo(item->path()).fileName();
+        QString downloadPath = QString(m_downloadDir + QDir::separator() + fileName);
+        fileName = QFileDialog::getSaveFileName(this, tr("Save as..."),  downloadPath);
+        if (fileName.isEmpty())
+            return;
+    }
+    else
+        fileName = item->path();
 
     setDownloadDir(QFileInfo(fileName).absoluteDir().absolutePath());
 
