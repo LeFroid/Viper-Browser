@@ -5,6 +5,7 @@
 
 #include <QString>
 #include <QWebEnginePage>
+#include <QtWebEngineCoreVersion>
 
 class QWebEngineProfile;
 

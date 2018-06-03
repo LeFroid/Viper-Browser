@@ -44,6 +44,7 @@
 #include <QPushButton>
 #include <QShortcut>
 #include <QSplitter>
+#include <QtGlobal>
 #include <QTimer>
 #include <QToolButton>
 
@@ -678,7 +679,7 @@ void MainWindow::onNewTabCreated(WebView *view)
     connect(view, &WebView::loadFinished, [=](bool ok) {
         onLoadFinished(view, ok);
     });
-    connect(view, &WebView::titleChanged, [=](const QString &title){ updateTabTitle(title, m_tabWidget->indexOf(view));} );
+    connect(view, &WebView::titleChanged, [=](const QString &title){ updateTabTitle(title, m_tabWidget->indexOf(view)); } );
     connect(view, &WebView::inspectElement, [=]() {
         WebView *inspectorView = dynamic_cast<WebView*>(ui->dockWidget->widget());
         if (!inspectorView)
@@ -686,10 +687,20 @@ void MainWindow::onNewTabCreated(WebView *view)
             inspectorView = new WebView(ui->dockWidget);
             inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
             ui->dockWidget->setWidget(inspectorView);
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+            inspectorView->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(inspectorView, &WebView::openRequest, this, &MainWindow::openLinkNewTab);
+            connect(inspectorView, &WebView::openInNewTabRequest, this, &MainWindow::openLinkNewTab);
+#endif
         }
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+        WebPage *inspectorPage = dynamic_cast<WebPage*>(inspectorView->page());
+        inspectorPage->setInspectedPage(view->page());
+#else
         QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue("InspectorPort").toString());
         inspectorView->load(QUrl(inspectorUrl));
-            ui->dockWidget->show();
+#endif
+        ui->dockWidget->show();
     });
     connect(view, &WebView::linkHovered, this, &MainWindow::onLinkHovered);
 }
