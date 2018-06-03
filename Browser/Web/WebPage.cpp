@@ -39,6 +39,26 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
+    // Check if the request is for a PDF and try to render with PDF.js
+    const QString urlString = url.toString(QUrl::FullyEncoded);
+    if (urlString.endsWith(QLatin1String(".pdf")))
+    {
+        QFile resource(":/viewer.html");
+        bool opened = resource.open(QIODevice::ReadOnly);
+        if (opened)
+        {
+            QString data = QString::fromUtf8(resource.readAll().constData());
+            int endTag = data.indexOf("</html>");
+            data.insert(endTag - 1, QString("<script>document.addEventListener(\"DOMContentLoaded\", function() {{"
+                                            "PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;"
+                                            "window.PDFViewerApplication.open(\"%1\");}});</script>").arg(urlString));
+            QByteArray bytes;
+            bytes.append(data);
+            setHtml(bytes, url);
+            return false;
+        }
+    }
+
     if (isMainFrame && type != QWebEnginePage::NavigationTypeReload && url != m_lastUrl)
     {
         QWebEngineScriptCollection &scriptCollection = scripts();

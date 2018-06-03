@@ -3,6 +3,8 @@
 
 #include "UserScript.h"
 
+#include <vector>
+
 #include <QString>
 #include <QWebEnginePage>
 #include <QtWebEngineCoreVersion>
@@ -57,7 +59,7 @@ private:
     /// Stores the current page's domain-specific cosmetic filters in string form
     QString m_domainFilterStyle;
 
-    /// Stores the last URL to be accepted or rejected by acceptNavigationRequest(...)
+    /// Stores the last main frame URL to be accepted or rejected by acceptNavigationRequest(...)
     QUrl m_lastUrl;
 };
 
