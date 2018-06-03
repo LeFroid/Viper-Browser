@@ -243,8 +243,25 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
 
 void WebView::wheelEvent(QWheelEvent *event)
 {
-    QUrl emptyUrl;
-    emit linkHovered(emptyUrl);
+    auto keyModifiers = QApplication::keyboardModifiers();
+    if (keyModifiers & Qt::ControlModifier)
+    {
+        QPoint angleDelta = event->angleDelta();
+        if (angleDelta.y() > 0)
+        {
+            // Wheel rotated 'up' or away from user, trigger zoom in event
+            zoomIn();
+            event->accept();
+            return;
+        }
+        else if (angleDelta.y() < 0)
+        {
+            // Wheel rotated 'down' or towards user, trigger zoom out event
+            zoomOut();
+            event->accept();
+            return;
+        }
+    }
     QWebEngineView::wheelEvent(event);
 }
 
