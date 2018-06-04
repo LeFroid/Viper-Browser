@@ -14,6 +14,11 @@ PrivacyTab::PrivacyTab(QWidget *parent) :
     connect(ui->checkBoxBlockThirdParties, &QCheckBox::toggled, [=](bool checked) {
         ui->pushButtonThirdPartyExceptions->setEnabled(checked);
     });
+
+    connect(ui->pushButtonClearHistory, &QPushButton::clicked, this, &PrivacyTab::clearHistoryRequested);
+    connect(ui->pushButtonViewHistory, &QPushButton::clicked, this, &PrivacyTab::viewHistoryRequested);
+
+    //todo: handle ui->pushButtonThirdPartyExceptions click event
 }
 
 PrivacyTab::~PrivacyTab()

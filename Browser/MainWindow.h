@@ -141,6 +141,12 @@ private slots:
     /// Launches the ad block manager UI
     void openAdBlockManager();
 
+    /// Launches the dialog used to clear browsing history and storage
+    void openClearHistoryDialog();
+
+    /// Launches the browser settings / preferences UI
+    void openPreferences();
+
     /// Launches the user script manager UI
     void openUserScriptManager();
 

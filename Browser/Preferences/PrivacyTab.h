@@ -37,6 +37,13 @@ public:
     /// Returns true if third party cookies are allowed, false if they should be disabled or filtered
     bool areThirdPartyCookiesEnabled() const;
 
+signals:
+    /// Emitted when the user requests to clear their browsing history.
+    void clearHistoryRequested();
+
+    /// Emitted when the user clicks the "view history" button.
+    void viewHistoryRequested();
+
 public slots:
     /// Sets the item in the history policy combo box to the one reflecting the given policy
     void setHistoryStoragePolicy(HistoryStoragePolicy policy);

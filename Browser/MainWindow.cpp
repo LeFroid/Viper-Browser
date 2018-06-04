@@ -194,13 +194,7 @@ void MainWindow::setupMenuBar()
     connect(ui->action_Full_Screen, &QAction::triggered, this, &MainWindow::onToggleFullScreen);
 
     // Preferences window
-    connect(ui->actionPreferences, &QAction::triggered, [=](){
-        if (!m_preferences)
-            m_preferences = new Preferences(m_settings);
-
-        m_preferences->loadSettings();
-        m_preferences->show();
-    });
+    connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferences);
 
     // View-related
     connect(ui->actionPage_So_urce, &QAction::triggered, this, &MainWindow::onRequestViewSource);
@@ -210,14 +204,7 @@ void MainWindow::setupMenuBar()
 
     // History menu items
     connect(ui->menuHistory->m_actionShowHistory, &QAction::triggered, this, &MainWindow::onShowAllHistory);
-    connect(ui->menuHistory->m_actionClearHistory, &QAction::triggered, [=]() {
-        if (!m_clearHistoryDialog)
-        {
-            m_clearHistoryDialog = new ClearHistoryDialog(this);
-            connect(m_clearHistoryDialog, &ClearHistoryDialog::finished, this, &MainWindow::onClearHistoryDialogFinished);
-        }
-        m_clearHistoryDialog->show();
-    });
+    connect(ui->menuHistory->m_actionClearHistory, &QAction::triggered, this, &MainWindow::openClearHistoryDialog);
 
     // Bookmark bar setting
     ui->actionBookmark_Bar->setChecked(m_settings->getValue("EnableBookmarkBar").toBool());
@@ -570,6 +557,31 @@ void MainWindow::openAdBlockManager()
     m_adBlockWidget->show();
     m_adBlockWidget->raise();
     m_adBlockWidget->activateWindow();
+}
+
+void MainWindow::openClearHistoryDialog()
+{
+    if (!m_clearHistoryDialog)
+    {
+        m_clearHistoryDialog = new ClearHistoryDialog(this);
+        connect(m_clearHistoryDialog, &ClearHistoryDialog::finished, this, &MainWindow::onClearHistoryDialogFinished);
+    }
+
+    m_clearHistoryDialog->show();
+}
+
+void MainWindow::openPreferences()
+{
+    if (!m_preferences)
+    {
+        m_preferences = new Preferences(m_settings);
+
+        connect(m_preferences, &Preferences::clearHistoryRequested, this, &MainWindow::openClearHistoryDialog);
+        connect(m_preferences, &Preferences::viewHistoryRequested, this, &MainWindow::onShowAllHistory);
+    }
+
+    m_preferences->loadSettings();
+    m_preferences->show();
 }
 
 void MainWindow::openUserScriptManager()

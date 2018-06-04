@@ -29,6 +29,13 @@ public:
     /// Sets the UI values corresponding to browser settings
     void loadSettings();
 
+signals:
+    /// Emitted when the user requests to clear their browsing history.
+    void clearHistoryRequested();
+
+    /// Emitted when the user requests to view their browsing history.
+    void viewHistoryRequested();
+
 private slots:
     /// Called when
     void onCloseWithSave();

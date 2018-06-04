@@ -16,6 +16,9 @@ Preferences::Preferences(std::shared_ptr<Settings> settings, QWidget *parent) :
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &Preferences::onCloseWithSave);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &Preferences::close);
+
+    connect(ui->tabPrivacy, &PrivacyTab::clearHistoryRequested, this, &Preferences::clearHistoryRequested);
+    connect(ui->tabPrivacy, &PrivacyTab::viewHistoryRequested, this, &Preferences::viewHistoryRequested);
 }
 
 Preferences::~Preferences()
