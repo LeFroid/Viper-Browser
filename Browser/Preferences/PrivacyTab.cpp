@@ -1,3 +1,4 @@
+#include "ExemptThirdPartyCookieDialog.h"
 #include "PrivacyTab.h"
 #include "ui_PrivacyTab.h"
 
@@ -18,7 +19,7 @@ PrivacyTab::PrivacyTab(QWidget *parent) :
     connect(ui->pushButtonClearHistory, &QPushButton::clicked, this, &PrivacyTab::clearHistoryRequested);
     connect(ui->pushButtonViewHistory, &QPushButton::clicked, this, &PrivacyTab::viewHistoryRequested);
 
-    //todo: handle ui->pushButtonThirdPartyExceptions click event
+    connect(ui->pushButtonThirdPartyExceptions, &QPushButton::clicked, this, &PrivacyTab::onManageCookieExceptionsClicked);
 }
 
 PrivacyTab::~PrivacyTab()
@@ -72,4 +73,10 @@ void PrivacyTab::setThirdPartyCookiesEnabled(bool value)
 {
     ui->checkBoxBlockThirdParties->setChecked(!value);
     ui->pushButtonThirdPartyExceptions->setEnabled(!value);
+}
+
+void PrivacyTab::onManageCookieExceptionsClicked()
+{
+    ExemptThirdPartyCookieDialog *dialog = new ExemptThirdPartyCookieDialog;
+    dialog->show();
 }

@@ -3,6 +3,7 @@
 
 #include "AdBlockManager.h"
 #include "BrowserApplication.h"
+#include "HistoryManager.h"
 #include "Settings.h"
 #include "UserScriptManager.h"
 #include <QDir>
@@ -49,7 +50,7 @@ void Preferences::loadSettings()
     ui->tabContent->setStandardFontSize(m_settings->getValue(QLatin1String("StandardFontSize")).toInt());
     ui->tabContent->setFixedFontSize(m_settings->getValue(QLatin1String("FixedFontSize")).toInt());
 
-    ui->tabPrivacy->setHistoryStoragePolicy(m_settings->getValue(QLatin1String("HistoryStoragePolicy")).value<HistoryStoragePolicy>());
+    ui->tabPrivacy->setHistoryStoragePolicy(static_cast<HistoryStoragePolicy>(m_settings->getValue(QLatin1String("HistoryStoragePolicy")).toInt()));
     ui->tabPrivacy->setCookiesEnabled(m_settings->getValue(QLatin1String("EnableCookies")).toBool());
     ui->tabPrivacy->setCookiesDeleteWithSession(m_settings->getValue(QLatin1String("CookiesDeleteWithSession")).toBool());
     ui->tabPrivacy->setThirdPartyCookiesEnabled(m_settings->getValue(QLatin1String("EnableThirdPartyCookies")).toBool());
@@ -97,7 +98,7 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(QLatin1String("FixedFontSize"), ui->tabContent->getFixedFontSize());
 
     // Save privacy choices
-    m_settings->setValue(QLatin1String("HistoryStoragePolicy"), QVariant::fromValue(ui->tabPrivacy->getHistoryStoragePolicy()));
+    m_settings->setValue(QLatin1String("HistoryStoragePolicy"), QVariant::fromValue(static_cast<int>(ui->tabPrivacy->getHistoryStoragePolicy())));
     m_settings->setValue(QLatin1String("EnableCookies"), ui->tabPrivacy->areCookiesEnabled());
     m_settings->setValue(QLatin1String("CookiesDeleteWithSession"), ui->tabPrivacy->areCookiesDeletedWithSession());
     m_settings->setValue(QLatin1String("EnableThirdPartyCookies"), ui->tabPrivacy->areThirdPartyCookiesEnabled());

@@ -61,6 +61,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Initialize cookie jar and cookie manager UI
     const bool enableCookies = m_settings->getValue(QLatin1String("EnableCookies")).toBool();
     m_cookieJar = new CookieJar(enableCookies, false);
+    m_cookieJar->setThirdPartyCookiesEnabled(m_settings->getValue(QLatin1String("EnableThirdPartyCookies")).toBool());
+
     m_cookieUI = new CookieWidget();
     webProfile->cookieStore()->loadAllCookies();
 
@@ -323,6 +325,11 @@ void BrowserApplication::beforeBrowserQuit()
 
     if (!windows.empty())
         m_sessionMgr.saveState(windows);
+
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    QWebEngineProfile::defaultProfile()->cookieStore()->setCookieFilter(nullptr);
+#endif
 }
 
 void BrowserApplication::maybeSaveSession()

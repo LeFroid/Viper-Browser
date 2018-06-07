@@ -59,6 +59,10 @@ public slots:
     /// Otherwise, they will be filtered out.
     void setThirdPartyCookiesEnabled(bool value);
 
+private slots:
+    /// Called when the push button to manage third party cookie exceptions is clicked
+    void onManageCookieExceptionsClicked();
+
 private:
     /// Pointer to the UI form elements
     Ui::PrivacyTab *ui;

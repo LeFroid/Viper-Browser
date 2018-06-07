@@ -3,9 +3,9 @@
 
 #include <map>
 #include <memory>
-#include <vector>
 #include <QDateTime>
 #include <QNetworkCookieJar>
+#include <QSet>
 #include <QUrl>
 #include <QWebEngineCookieStore>
 
@@ -39,6 +39,9 @@ public:
     /// Enables third party cookies to be set if the given value is true, otherwise will filter out third party cookies that aren't exempt
     void setThirdPartyCookiesEnabled(bool value);
 
+    /// Returns a const reference to the set of exempt third party hosts that can set cookies.
+    const QSet<QUrl> &getExemptThirdPartyHosts() const;
+
 signals:
     /// Emitted when a new cookie has been added to the jar
     void cookieAdded();
@@ -46,11 +49,24 @@ signals:
     /// Emitted when all the cookies have been erased
     void cookiesRemoved();
 
+public slots:
+    /// Adds an exemption for a third party host to be able to store cookies when the third party filter is enabled. Does nothing if filtering is diabled
+    void addThirdPartyExemption(const QUrl &hostUrl);
+
+    /// Removes an exemption for a third party host to be able to store cookies when the third party filter is enabled. Does nothing if filtering is diabled
+    void removeThirdPartyExemption(const QUrl &hostUrl);
+
 private slots:
     /// Called when a cookie has been added to the cookie store
     void onCookieAdded(const QNetworkCookie &cookie);
 
 private:
+    /// Loads a data file containing all third parties that are exempt to the cookie filter; used if the third party cookie filter is enabled
+    void loadExemptThirdParties();
+
+    /// Saves the host names of all third parties that are exempt from the cookie filter to the storage file
+    void saveExemptThirdParties();
+
     /// Removes expired cookies from both the database and the list in memory
     void removeExpired();
 
@@ -64,8 +80,8 @@ private:
     /// Pointer to the web engine's cookie store
     QWebEngineCookieStore *m_store;
 
-    /// Vector of exempt third party cookie setters
-    std::vector<std::string> m_exemptParties; //TODO: implement persistent storage of exempt parties
+    /// Set of exempt third party cookie setters
+    QSet<QUrl> m_exemptParties;
 };
 
 #endif // COOKIEJAR_H

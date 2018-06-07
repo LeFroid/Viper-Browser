@@ -124,7 +124,8 @@ SOURCES += \
     Widgets/BookmarkDialog.cpp \
     Network/ViperSchemeHandler.cpp \
     UserScripts/WebEngineScriptAdapter.cpp \
-    Preferences/PrivacyTab.cpp
+    Preferences/PrivacyTab.cpp \
+    Preferences/ExemptThirdPartyCookieDialog.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -211,7 +212,8 @@ HEADERS += \
     Widgets/BookmarkDialog.h \
     Network/ViperSchemeHandler.h \
     UserScripts/WebEngineScriptAdapter.h \
-    Preferences/PrivacyTab.h
+    Preferences/PrivacyTab.h \
+    Preferences/ExemptThirdPartyCookieDialog.h
 
 FORMS += \
         mainwindow.ui \
@@ -240,4 +242,5 @@ FORMS += \
     AdBlock/AdBlockSubscribeDialog.ui \
     AdBlock/CustomFilterEditor.ui \
     Widgets/BookmarkDialog.ui \
-    Preferences/PrivacyTab.ui
+    Preferences/PrivacyTab.ui \
+    Preferences/ExemptThirdPartyCookieDialog.ui

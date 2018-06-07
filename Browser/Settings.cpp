@@ -64,7 +64,7 @@ void Settings::applyWebSettings()
     settings->setFontSize(QWebEngineSettings::DefaultFontSize,      m_settings.value(QLatin1String("StandardFontSize")).toInt());
     settings->setFontSize(QWebEngineSettings::DefaultFixedFontSize, m_settings.value(QLatin1String("FixedFontSize")).toInt());
 
-    HistoryStoragePolicy historyPolicy = m_settings.value(QLatin1String("HistoryStoragePolicy")).value<HistoryStoragePolicy>();
+    HistoryStoragePolicy historyPolicy = static_cast<HistoryStoragePolicy>(m_settings.value(QLatin1String("HistoryStoragePolicy")).toInt());
     sBrowserApplication->getHistoryManager()->setStoragePolicy(historyPolicy);
 
     CookieJar *cookieJar = sBrowserApplication->getCookieJar();
@@ -114,6 +114,7 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("UserScriptsConfig"), QLatin1String("user_scripts.json"));
     m_settings.setValue(QLatin1String("AdBlockPlusConfig"), QLatin1String("adblock_plus.json"));
     m_settings.setValue(QLatin1String("AdBlockPlusDataDir"), QLatin1String("AdBlockPlus"));
+    m_settings.setValue(QLatin1String("ExemptThirdPartyCookieFile"), QLatin1String("exempt_third_party_cookies.txt"));
 
     m_settings.setValue(QLatin1String("HomePage"), QLatin1String("https://www.ixquick.com/"));
     m_settings.setValue(QLatin1String("StartupMode"), QVariant::fromValue(StartupMode::LoadHomePage));

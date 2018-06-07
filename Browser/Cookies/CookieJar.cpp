@@ -1,13 +1,17 @@
-#include <algorithm>
 #include <QDateTime>
+#include <QFile>
 #include <QNetworkCookie>
 #include <QWebEngineProfile>
 
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
 
+#include <QFileInfo>
+#include <QDebug>
+
 #include "BrowserApplication.h"
 #include "CookieJar.h"
+#include "Settings.h"
 
 CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
     QNetworkCookieJar(parent),
@@ -25,11 +29,14 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
     connect(m_store, &QWebEngineCookieStore::cookieRemoved, [=](const QNetworkCookie &cookie){
         static_cast<void>(deleteCookie(cookie));
     });
+
+    loadExemptThirdParties();
 }
 
 CookieJar::~CookieJar()
 {
     disconnect(m_store, 0, 0, 0);
+    saveExemptThirdParties();
 }
 
 bool CookieJar::hasCookiesFor(const QString &host) const
@@ -76,12 +83,70 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
         m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) {
             if (request.thirdParty && m_enableCookies)
             {
-                std::string partyHost = request.origin.host(QUrl::EncodeUnicode).toStdString();
-                return std::find(m_exemptParties.begin(), m_exemptParties.end(), partyHost) != m_exemptParties.end();
+                auto partyHost = request.origin.host();
+                for (auto &url : m_exemptParties)
+                {
+                    if (url.host() == partyHost)
+                        return true;
+                }
+                return false;
             }
             return m_enableCookies;
         });
 #endif
+}
+
+const QSet<QUrl> &CookieJar::getExemptThirdPartyHosts() const
+{
+    return m_exemptParties;
+}
+
+void CookieJar::addThirdPartyExemption(const QUrl &hostUrl)
+{
+    m_exemptParties.insert(hostUrl);
+}
+
+void CookieJar::removeThirdPartyExemption(const QUrl &hostUrl)
+{
+    m_exemptParties.remove(hostUrl);
+}
+
+void CookieJar::loadExemptThirdParties()
+{
+    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(QLatin1String("ExemptThirdPartyCookieFile")));
+    if (!exemptFile.exists() || !exemptFile.open(QIODevice::ReadOnly))
+        return;
+
+    m_exemptParties.clear();
+
+    QString data(exemptFile.readAll());
+
+    // Parse the simple newline-separated host list format
+    QStringList exemptHostList = data.split(QChar('\n'));
+    for (const QString &host : exemptHostList)
+    {
+        if (!host.isEmpty())
+            m_exemptParties.insert(QUrl(host));
+    }
+}
+
+void CookieJar::saveExemptThirdParties()
+{
+    if (m_exemptParties.empty())
+        return;
+
+    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(QLatin1String("ExemptThirdPartyCookieFile")));
+    if (!exemptFile.open(QIODevice::WriteOnly))
+        return;
+
+    QTextStream out(&exemptFile);
+
+    for (const auto &host : m_exemptParties)
+    {
+        out << host.toString(QUrl::FullyEncoded) << '\n';
+    }
+    out.flush();
+    exemptFile.close();
 }
 
 void CookieJar::onCookieAdded(const QNetworkCookie &cookie)
