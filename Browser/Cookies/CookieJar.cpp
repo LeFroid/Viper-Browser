@@ -30,13 +30,16 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
         static_cast<void>(deleteCookie(cookie));
     });
 
-    loadExemptThirdParties();
+    if (!m_privateJar)
+        loadExemptThirdParties();
 }
 
 CookieJar::~CookieJar()
 {
     disconnect(m_store, 0, 0, 0);
-    saveExemptThirdParties();
+
+    if (!m_privateJar)
+        saveExemptThirdParties();
 }
 
 bool CookieJar::hasCookiesFor(const QString &host) const
