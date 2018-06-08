@@ -1,6 +1,8 @@
 #ifndef COOKIEJAR_H
 #define COOKIEJAR_H
 
+#include "URL.h"
+
 #include <map>
 #include <memory>
 #include <QDateTime>
@@ -40,7 +42,7 @@ public:
     void setThirdPartyCookiesEnabled(bool value);
 
     /// Returns a const reference to the set of exempt third party hosts that can set cookies.
-    const QSet<QUrl> &getExemptThirdPartyHosts() const;
+    const QSet<URL> &getExemptThirdPartyHosts() const;
 
 signals:
     /// Emitted when a new cookie has been added to the jar
@@ -81,7 +83,7 @@ private:
     QWebEngineCookieStore *m_store;
 
     /// Set of exempt third party cookie setters
-    QSet<QUrl> m_exemptParties;
+    QSet<URL> m_exemptParties;
 };
 
 #endif // COOKIEJAR_H

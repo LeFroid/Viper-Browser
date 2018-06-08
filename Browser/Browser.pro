@@ -125,7 +125,8 @@ SOURCES += \
     Network/ViperSchemeHandler.cpp \
     UserScripts/WebEngineScriptAdapter.cpp \
     Preferences/PrivacyTab.cpp \
-    Preferences/ExemptThirdPartyCookieDialog.cpp
+    Preferences/ExemptThirdPartyCookieDialog.cpp \
+    Web/URL.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -213,7 +214,8 @@ HEADERS += \
     Network/ViperSchemeHandler.h \
     UserScripts/WebEngineScriptAdapter.h \
     Preferences/PrivacyTab.h \
-    Preferences/ExemptThirdPartyCookieDialog.h
+    Preferences/ExemptThirdPartyCookieDialog.h \
+    Web/URL.h
 
 FORMS += \
         mainwindow.ui \

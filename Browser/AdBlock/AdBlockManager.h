@@ -4,6 +4,7 @@
 #include "AdBlockSubscription.h"
 #include "BlockedNetworkReply.h"
 #include "LRUCache.h"
+#include "URL.h"
 
 #include <QHash>
 #include <QObject>
@@ -43,13 +44,13 @@ public:
     AdBlockModel *getModel();
 
     /// Returns the base stylesheet for elements to be blocked. If the given url matches a generichide filter, this will return an empty string
-    const QString &getStylesheet(const QUrl &url) const;
+    const QString &getStylesheet(const URL &url) const;
 
     /// Returns the domain-specific blocking stylesheet, or an empty string if not applicable
-    const QString &getDomainStylesheet(const QUrl &url);
+    const QString &getDomainStylesheet(const URL &url);
 
     /// Returns the domain-specific blocking javascript, or an empty string if not applicable
-    QString getDomainJavaScript(const QUrl &url) const;
+    QString getDomainJavaScript(const URL &url) const;
 
     /// Returns true if the given request should be blocked, false if else
     bool shouldBlockRequest(QWebEngineUrlRequestInfo &info);

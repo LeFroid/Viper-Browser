@@ -86,10 +86,11 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
         m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) {
             if (request.thirdParty && m_enableCookies)
             {
-                auto partyHost = request.origin.host();
+                URL originUrl(request.origin);
+                const QString originDomain = originUrl.getSecondLevelDomain();
                 for (auto &url : m_exemptParties)
                 {
-                    if (url.host() == partyHost)
+                    if (url.getSecondLevelDomain() == originDomain)
                         return true;
                 }
                 return false;
@@ -99,7 +100,7 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
 #endif
 }
 
-const QSet<QUrl> &CookieJar::getExemptThirdPartyHosts() const
+const QSet<URL> &CookieJar::getExemptThirdPartyHosts() const
 {
     return m_exemptParties;
 }
@@ -129,7 +130,7 @@ void CookieJar::loadExemptThirdParties()
     for (const QString &host : exemptHostList)
     {
         if (!host.isEmpty())
-            m_exemptParties.insert(QUrl(host));
+            m_exemptParties.insert(URL(host));
     }
 }
 
@@ -144,9 +145,9 @@ void CookieJar::saveExemptThirdParties()
 
     QTextStream out(&exemptFile);
 
-    for (const auto &host : m_exemptParties)
+    for (const auto &url : m_exemptParties)
     {
-        out << host.toString(QUrl::FullyEncoded) << '\n';
+        out << url.getSecondLevelDomain() << '\n';
     }
     out.flush();
     exemptFile.close();

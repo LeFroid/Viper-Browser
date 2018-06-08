@@ -2,6 +2,7 @@
 #include "BrowserApplication.h"
 #include "NetworkAccessManager.h"
 #include "Settings.h"
+#include "URL.h"
 #include "UserScriptManager.h"
 #include "WebPage.h"
 
@@ -153,11 +154,12 @@ void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel le
 
 void WebPage::onMainFrameUrlChanged(const QUrl &url)
 {
-    QString urlHost = url.host().toLower();
+    URL urlCopy(url);
+    QString urlHost = urlCopy.host().toLower();
     if (!urlHost.isEmpty() && m_mainFrameHost.compare(urlHost) != 0)
     {
         m_mainFrameHost = urlHost;
-        m_domainFilterStyle = QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(url));
+        m_domainFilterStyle = QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(urlCopy));
         m_domainFilterStyle.replace("'", "\\'");
     }
 }
@@ -167,7 +169,7 @@ void WebPage::onLoadFinished(bool ok)
     if (!ok)
         return;
 
-    QUrl pageUrl = url();
+    URL pageUrl(url());
 
     QString adBlockStylesheet = AdBlockManager::instance().getStylesheet(pageUrl);
     adBlockStylesheet.replace("'", "\\'");

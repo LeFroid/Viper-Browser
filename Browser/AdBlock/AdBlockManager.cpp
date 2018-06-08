@@ -193,11 +193,11 @@ AdBlockModel *AdBlockManager::getModel()
     return m_adBlockModel;
 }
 
-const QString &AdBlockManager::getStylesheet(const QUrl &url) const
+const QString &AdBlockManager::getStylesheet(const URL &url) const
 {
     // Check generic hide filters
-    QString requestUrl = url.toString(QUrl::FullyEncoded).toLower();
-    QString secondLevelDomain = getSecondLevelDomain(url);
+    QString requestUrl = url.toString(URL::FullyEncoded).toLower();
+    QString secondLevelDomain = url.getSecondLevelDomain();
     if (secondLevelDomain.isEmpty())
         secondLevelDomain = url.host();
     for (AdBlockFilter *filter : m_genericHideFilters)
@@ -209,12 +209,12 @@ const QString &AdBlockManager::getStylesheet(const QUrl &url) const
     return m_stylesheet;
 }
 
-const QString &AdBlockManager::getDomainStylesheet(const QUrl &url)
+const QString &AdBlockManager::getDomainStylesheet(const URL &url)
 {
     if (!m_enabled)
         return m_emptyStr;
 
-    QString domain = getSecondLevelDomain(url);
+    QString domain = url.getSecondLevelDomain();
     if (domain.isEmpty())
         domain = url.host().toLower();
 
@@ -258,12 +258,12 @@ const QString &AdBlockManager::getDomainStylesheet(const QUrl &url)
     return m_domainStylesheetCache.get(domainStdStr);
 }
 
-QString AdBlockManager::getDomainJavaScript(const QUrl &url) const
+QString AdBlockManager::getDomainJavaScript(const URL &url) const
 {
     if (!m_enabled)
         return QString();
 
-    QString domain = getSecondLevelDomain(url);
+    QString domain = url.getSecondLevelDomain();
     if (domain.isEmpty())
         domain = url.host().toLower();
 
