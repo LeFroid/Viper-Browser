@@ -107,11 +107,13 @@ const QSet<URL> &CookieJar::getExemptThirdPartyHosts() const
 
 void CookieJar::addThirdPartyExemption(const QUrl &hostUrl)
 {
-    m_exemptParties.insert(hostUrl);
+    URL url(hostUrl);
+    m_exemptParties.insert(url);
 }
 
 void CookieJar::removeThirdPartyExemption(const QUrl &hostUrl)
 {
+    URL url(hostUrl);
     m_exemptParties.remove(hostUrl);
 }
 
@@ -147,7 +149,10 @@ void CookieJar::saveExemptThirdParties()
 
     for (const auto &url : m_exemptParties)
     {
-        out << url.getSecondLevelDomain() << '\n';
+        QString host = url.getSecondLevelDomain();
+        if (host.isEmpty())
+            host = url.toString(URL::EncodeUnicode);
+        out << host << '\n';
     }
     out.flush();
     exemptFile.close();
