@@ -649,8 +649,10 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
         QString pageUrl = view->url().toString();
         QString pageUrlNoPath = view->url().toString(QUrl::RemovePath);
         QString pageScheme = view->url().scheme();
+        const bool isBlankPage = view->isOnBlankPage();
 
-        historyMgr->addHistoryEntry(pageUrl);
+        if (!isBlankPage)
+            historyMgr->addHistoryEntry(pageUrl);
 
         // Attempt to fetch the URL of the favicon from the page
         view->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
@@ -666,7 +668,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
                 iconRef.prepend(pageUrlNoPath);
             sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
         });
-        if (!pageTitle.isEmpty())
+        if (!isBlankPage && !pageTitle.isEmpty())
             historyMgr->setTitleForURL(pageUrl, pageTitle);
     }
 }
