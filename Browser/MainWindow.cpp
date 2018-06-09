@@ -651,7 +651,7 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
         QString pageScheme = view->url().scheme();
         const bool isBlankPage = view->isOnBlankPage();
 
-        if (!isBlankPage)
+        if (!isBlankPage && !pageUrl.isEmpty())
             historyMgr->addHistoryEntry(pageUrl);
 
         // Attempt to fetch the URL of the favicon from the page
