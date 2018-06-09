@@ -25,6 +25,8 @@
 #include <QDebug>
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
+#include <QWebEngineScript>
+#include <QWebEngineScriptCollection>
 
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
@@ -53,10 +55,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_settings = std::make_shared<Settings>();
 
     // Initialize favicon storage module
-    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QStringLiteral("FaviconPath")));
+    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QLatin1String("FaviconPath")));
 
     // Initialize bookmarks manager
-    m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(QStringLiteral("BookmarkPath")));
+    m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(QLatin1String("BookmarkPath")));
 
     // Initialize cookie jar and cookie manager UI
     const bool enableCookies = m_settings->getValue(QLatin1String("EnableCookies")).toBool();
@@ -68,11 +70,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
-    m_downloadMgr->setDownloadDir(m_settings->getValue(QStringLiteral("DownloadDir")).toString());
+    m_downloadMgr->setDownloadDir(m_settings->getValue(QLatin1String("DownloadDir")).toString());
     connect(webProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
 
     // Instantiate the history manager
-    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QStringLiteral("HistoryPath")));
+    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QLatin1String("HistoryPath")));
     m_historyWidget = nullptr;
 
     // Create url suggestion model
@@ -304,6 +306,23 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
 
     // Reload URLs in the suggestion model
     m_suggestionModel->loadURLs();
+}
+
+void BrowserApplication::installGlobalWebScripts()
+{
+    QWebEngineScript printScript;
+    printScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
+    printScript.setName(QLatin1String("viper-window-script"));
+    printScript.setRunsOnSubFrames(true);
+    printScript.setWorldId(QWebEngineScript::MainWorld);
+    printScript.setSourceCode(QLatin1String("(function() { window.print = function() { "
+                                            "window.location = 'viper:print'; }; })()"));
+
+    auto scriptCollection = QWebEngineProfile::defaultProfile()->scripts();
+    auto privateScriptCollection = m_privateProfile->scripts();
+
+    scriptCollection->insert(printScript);
+    privateScriptCollection->insert(printScript);
 }
 
 void BrowserApplication::beforeBrowserQuit()

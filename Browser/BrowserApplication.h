@@ -131,6 +131,10 @@ protected:
     void clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range);
 
 private:
+    /// Installs core browser scripts into the script collection
+    void installGlobalWebScripts();
+
+private:
     /// Application settings
     std::shared_ptr<Settings> m_settings;
 

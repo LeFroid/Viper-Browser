@@ -40,6 +40,16 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
+    // Check if special url such as "viper:print"
+    if (url.scheme().compare(QLatin1String("viper")) == 0)
+    {
+        if (url.path().compare(QLatin1String("print")) == 0)
+        {
+            emit printPageRequest();
+            return false;
+        }
+    }
+
     // Check if the request is for a PDF and try to render with PDF.js
     const QString urlString = url.toString(QUrl::FullyEncoded);
     if (urlString.endsWith(QLatin1String(".pdf")))

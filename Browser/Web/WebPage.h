@@ -35,6 +35,10 @@ public:
     /// Executes the given JavaScript code (string form), and waits until the result can be returned
     QVariant runJavaScriptBlocking(const QString &scriptSource);
 
+signals:
+    /// Emitted when a print request is made from the web page
+    void printPageRequest();
+
 protected:
     /// Called upon receiving a request to navigate to the specified url by means of the given navigation type. If the method returns true, the request is accepted
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) override;

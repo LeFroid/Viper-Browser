@@ -15,7 +15,7 @@
 
 HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     QObject(parent),
-    DatabaseWorker(databaseFile, QStringLiteral("HistoryDB")),
+    DatabaseWorker(databaseFile, QLatin1String("HistoryDB")),
     m_lastVisitID(0),
     m_historyItems(),
     m_recentItems(),
@@ -49,7 +49,7 @@ HistoryManager::~HistoryManager()
 void HistoryManager::addHistoryEntry(const QString &url)
 {
     // Check if qrc:/ resource, and if so, ignore
-    if (url.startsWith("qrc:") || m_storagePolicy == HistoryStoragePolicy::Never)
+    if (url.startsWith(QLatin1String("qrc:")) || m_storagePolicy == HistoryStoragePolicy::Never)
         return;
 
     QDateTime visitTime = QDateTime::currentDateTime();
@@ -82,10 +82,10 @@ void HistoryManager::addHistoryEntry(const QString &url)
 
 void HistoryManager::clearAllHistory()
 {
-    if (!exec(QStringLiteral("DELETE FROM History")))
+    if (!exec(QLatin1String("DELETE FROM History")))
         qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear History table.";
 
-    if (!exec(QStringLiteral("DELETE FROM Visits")))
+    if (!exec(QLatin1String("DELETE FROM Visits")))
         qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear Visits table.";
 
     m_recentItems.clear();
@@ -96,8 +96,8 @@ void HistoryManager::clearHistoryFrom(const QDateTime &start)
 {
     // Perform database query and reload data
     QSqlQuery query(m_database);
-    query.prepare("DELETE FROM Visits WHERE Date > (:date)");
-    query.bindValue(":date", start.toMSecsSinceEpoch());
+    query.prepare(QLatin1String("DELETE FROM Visits WHERE Date > (:date)"));
+    query.bindValue(QLatin1String(":date"), start.toMSecsSinceEpoch());
     if (!query.exec())
     {
         qDebug() << "[Error]: In HistoryManager::clearHistoryFrom - Unable to clear history. Message: "
@@ -114,9 +114,9 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 {
     // Perform database query and reload data
     QSqlQuery query(m_database);
-    query.prepare("DELETE FROM Visits WHERE Date > (:startDate) AND Date < (:endDate)");
-    query.bindValue(":startDate", range.first.toMSecsSinceEpoch());
-    query.bindValue(":endDate", range.second.toMSecsSinceEpoch());
+    query.prepare(QLatin1String("DELETE FROM Visits WHERE Date > (:startDate) AND Date < (:endDate)"));
+    query.bindValue(QLatin1String(":startDate"), range.first.toMSecsSinceEpoch());
+    query.bindValue(QLatin1String(":endDate"), range.second.toMSecsSinceEpoch());
     if (!query.exec())
     {
         qDebug() << "[Error]: In HistoryManager::clearHistoryFrom - Unable to clear history. Message: "
@@ -173,7 +173,7 @@ std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &star
 
     // Prepare DB query (date is in MSecsSinceEpoch())
     QSqlQuery query(m_database);
-    query.prepare("SELECT Date FROM Visits WHERE VisitID = (:id) AND Date >= (:date)");
+    query.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:id) AND Date >= (:date)"));
 
     // Iterate through list of all visited URLs, searching the DB to confirm the date is between startDate and now
     for (const auto &it : m_historyItems)
@@ -185,8 +185,8 @@ std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &star
         //item.Visits = it.Visits;
 
         // Check DB
-        query.bindValue(":id", it.VisitID);
-        query.bindValue(":date", startMSec);
+        query.bindValue(QLatin1String(":id"), it.VisitID);
+        query.bindValue(QLatin1String(":date"), startMSec);
         if (query.exec())
         {
             while (query.next())
@@ -200,13 +200,13 @@ std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &star
 int HistoryManager::getTimesVisited(const QString &host)
 {
     QSqlQuery query(m_database);
-    query.prepare("SELECT COUNT(VisitID) FROM Visits WHERE VisitID = (:id)");
+    query.prepare(QLatin1String("SELECT COUNT(VisitID) FROM Visits WHERE VisitID = (:id)"));
     int timesVisited = 0;
     for (const WebHistoryItem &item : m_historyItems)
     {
         if (host.endsWith(item.URL.host().remove(QRegExp("(http(s)?://)?(www.)"))))
         {
-            query.bindValue(":id", item.VisitID);
+            query.bindValue(QLatin1String(":id"), item.VisitID);
             if (query.exec() && query.next())
                 timesVisited += query.value(0).toInt();
         }
@@ -233,22 +233,20 @@ void HistoryManager::setStoragePolicy(HistoryStoragePolicy policy)
 bool HistoryManager::hasProperStructure()
 {
     // Verify existence of Visits and History tables
-    return hasTable(QStringLiteral("Visits")) && hasTable(QStringLiteral("History"));
+    return hasTable(QLatin1String("Visits")) && hasTable(QLatin1String("History"));
 }
 
 void HistoryManager::setup()
 {
     QSqlQuery query(m_database);
-    if (!query.exec("CREATE TABLE IF NOT EXISTS Visits(VisitID INTEGER NOT NULL, Date INTEGER NOT NULL, "
-                    "PRIMARY KEY(VisitID, Date))"))
-    {
-        qDebug() << "[Error]: In HistoryManager::setup - unable to create visited table. Message: " << query.lastError().text();
-        return;
-    }
-    if (!query.exec("CREATE TABLE IF NOT EXISTS History(URL TEXT PRIMARY KEY, Title TEXT, VisitID INTEGER NOT NULL, "
-                    "FOREIGN KEY(VisitID) REFERENCES Visits(VisitID) ON DELETE CASCADE)"))
+    if (!query.exec(QLatin1String("CREATE TABLE History(VisitID INTEGER PRIMARY KEY, URL TEXT UNIQUE NOT NULL, Title TEXT)")))
     {
         qDebug() << "[Error]: In HistoryManager::setup - unable to create history table. Message: " << query.lastError().text();
+    }
+    if (!query.exec(QLatin1String("CREATE TABLE Visits(VisitID INTEGER NOT NULL, Date INTEGER NOT NULL, "
+                                  "FOREIGN KEY(VisitID) REFERENCES History(VisitID) ON DELETE CASCADE, PRIMARY KEY(VisitID, Date))")))
+    {
+        qDebug() << "[Error]: In HistoryManager::setup - unable to create visited table. Message: " << query.lastError().text();
     }
 }
 
@@ -257,12 +255,18 @@ void HistoryManager::load()
     // Only load data from the History table, will load specific visits if user requests full history
     QSqlQuery query(m_database);
 
-    if (query.exec("SELECT URL, TITLE, VisitID FROM History ORDER BY VisitID ASC"))
+    // First clear history entries that are not referenced by any specific visits
+    if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
+    {
+        qDebug() << "[Error]: In HistoryManager::load - Could not remove non-referenced history entries from the database. Message: " << query.lastError().text();
+    }
+
+    if (query.exec(QLatin1String("SELECT VisitID, URL, Title FROM History ORDER BY VisitID ASC")))
     {
         QSqlRecord rec = query.record();
-        int idUrl = rec.indexOf("URL");
-        int idTitle = rec.indexOf("Title");
-        int idVisit = rec.indexOf("VisitID");
+        int idVisit = rec.indexOf(QLatin1String("VisitID"));
+        int idUrl = rec.indexOf(QLatin1String("URL"));
+        int idTitle = rec.indexOf(QLatin1String("Title"));
         while (query.next())
         {
             WebHistoryItem item;
@@ -279,11 +283,11 @@ void HistoryManager::load()
                  << query.lastError().text();
 
     // Load most recent visits
-    if (query.exec("SELECT Visits.Date, History.URL FROM Visits INNER JOIN History ON Visits.VisitID = History.VisitID ORDER BY Visits.Date DESC LIMIT 15"))
+    if (query.exec(QLatin1String("SELECT Visits.Date, History.URL FROM Visits INNER JOIN History ON Visits.VisitID = History.VisitID ORDER BY Visits.Date DESC LIMIT 15")))
     {
         QSqlRecord rec = query.record();
-        int idDate = rec.indexOf("Date");
-        int idUrl = rec.indexOf("URL");
+        int idDate = rec.indexOf(QLatin1String("Date"));
+        int idUrl = rec.indexOf(QLatin1String("URL"));
         while (query.next())
         {
             auto it = m_historyItems.find(query.value(idUrl).toString());
@@ -308,20 +312,20 @@ void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visi
     if (m_queryHistoryItem == nullptr)
     {
         m_queryHistoryItem = new QSqlQuery(m_database);
-        m_queryHistoryItem->prepare("INSERT OR IGNORE INTO History(URL, Title, VisitID) VALUES(:url, :title, :visitId)");
+        m_queryHistoryItem->prepare(QLatin1String("INSERT OR IGNORE INTO History(VisitID, URL, Title) VALUES(:visitId, :url, :title)"));
 
         m_queryVisit = new QSqlQuery(m_database);
-        m_queryVisit->prepare("INSERT INTO Visits(VisitID, Date) VALUES(:visitId, :date)");
+        m_queryVisit->prepare(QLatin1String("INSERT INTO Visits(VisitID, Date) VALUES(:visitId, :date)"));
     }
 
-    m_queryHistoryItem->bindValue(":url", item.URL.toString());
-    m_queryHistoryItem->bindValue(":title", item.Title);
-    m_queryHistoryItem->bindValue(":visitId", item.VisitID);
+    m_queryHistoryItem->bindValue(QLatin1String(":visitId"), item.VisitID);
+    m_queryHistoryItem->bindValue(QLatin1String(":url"), item.URL.toString());
+    m_queryHistoryItem->bindValue(QLatin1String(":title"), item.Title);
     if (!m_queryHistoryItem->exec())
         qDebug() << "[Error]: In HistoryManager::saveVisit - unable to save history item to database. Message: " << m_queryHistoryItem->lastError().text();
 
-    m_queryVisit->bindValue(":visitId", item.VisitID);
-    m_queryVisit->bindValue(":date", visitTime.toMSecsSinceEpoch());
+    m_queryVisit->bindValue(QLatin1String(":visitId"), item.VisitID);
+    m_queryVisit->bindValue(QLatin1String(":date"), visitTime.toMSecsSinceEpoch());
     if (!m_queryVisit->exec())
         qDebug() << "[Error]: In HistoryManager::saveVisit - unable to save specific visit for URL " << item.URL.toString() << " at time " << visitTime.toString();
 

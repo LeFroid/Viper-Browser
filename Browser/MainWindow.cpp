@@ -715,6 +715,11 @@ void MainWindow::onNewTabCreated(WebView *view)
         ui->dockWidget->show();
     });
     connect(view, &WebView::linkHovered, this, &MainWindow::onLinkHovered);
+
+    if (WebPage *page = dynamic_cast<WebPage*>(view->page()))
+    {
+        connect(page, &WebPage::printPageRequest, this, &MainWindow::printTabContents);
+    }
 }
 
 void MainWindow::onClickSecurityInfo()
@@ -762,8 +767,13 @@ void MainWindow::onToggleFullScreen(bool enable)
 
 void MainWindow::printTabContents()
 {
-    WebView *currentView = m_tabWidget->currentWebView();
-    if (!currentView)
+    WebPage *page = qobject_cast<WebPage*>(sender());
+    if (!page)
+    {
+        if (WebView *currentView = m_tabWidget->currentWebView())
+            page = qobject_cast<WebPage*>(currentView->page());
+    }
+    if (!page)
         return;
 
     QPrinter printer(QPrinter::HighResolution);
@@ -772,7 +782,7 @@ void MainWindow::printTabContents()
     QPrintPreviewDialog dialog(&printer, this);
     dialog.setWindowTitle(tr("Print Document"));
     connect(&dialog, &QPrintPreviewDialog::paintRequested, [=](QPrinter *p){
-        currentView->page()->print(p, [](bool){});
+        page->print(p, [](bool){});
     });
     dialog.exec();
 }
