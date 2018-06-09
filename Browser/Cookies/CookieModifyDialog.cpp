@@ -90,7 +90,7 @@ void CookieModifyDialog::setCookieData(QAbstractButton *button)
         if (expType == ExpireType::Date)
             expDateTime = ui->dateTimeEdit->dateTime();
         m_cookie.setExpirationDate(expDateTime);
+        accept();
     }
-
-    hide();
+    reject();
 }
