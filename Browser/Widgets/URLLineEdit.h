@@ -73,6 +73,10 @@ signals:
     /// Emitted when the user wants to change the bookmark status of the page they are currently visiting
     void toggleBookmarkStatus();
 
+public slots:
+    /// Removes the given view pointer from the map of webviews to user-set text in the line edit
+    void removeMappedView(WebView *view);
+
 protected:
     /// Paints the line edit with an icon that shows whether or not the current site is secure
     virtual void resizeEvent(QResizeEvent *event) override;

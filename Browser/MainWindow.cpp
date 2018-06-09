@@ -254,6 +254,9 @@ void MainWindow::setupTabWidget()
     // Page load progress handler
     connect(m_tabWidget, &BrowserTabWidget::loadProgress, this, &MainWindow::onLoadProgress);
 
+    // Remove a mapped webview from the url bar when it is going to be deleted
+    connect(m_tabWidget, &BrowserTabWidget::tabClosing, m_urlInput, &URLLineEdit::removeMappedView);
+
     // Set back/forward button history menus
     m_tabWidget->setNavHistoryMenus(m_prevPage->menu(), m_nextPage->menu());
 

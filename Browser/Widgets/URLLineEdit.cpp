@@ -138,6 +138,13 @@ void URLLineEdit::releaseParentPtr()
     m_parentWindow = nullptr;
 }
 
+void URLLineEdit::removeMappedView(WebView *view)
+{
+    auto it = m_userTextMap.find(view);
+    if (it != m_userTextMap.end())
+        m_userTextMap.erase(it);
+}
+
 void URLLineEdit::tabChanged(WebView *newView)
 {
     if (m_activeWebView != nullptr)

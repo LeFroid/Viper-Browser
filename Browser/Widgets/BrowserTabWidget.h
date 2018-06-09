@@ -36,6 +36,9 @@ signals:
     /// Emitted when a new tab is created, passing along a pointer to the associated web view
     void newTabCreated(WebView *view);
 
+    /// Emitted when a tab containing the given view is being closed
+    void tabClosing(WebView *view);
+
     /// Emitted when the current view has made progress loading its page. The range of value is [0,100]
     void loadProgress(int value);
 

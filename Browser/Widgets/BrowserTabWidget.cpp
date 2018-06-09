@@ -61,6 +61,8 @@ void BrowserTabWidget::closeTab(int index)
         return;
 
     WebView *view = getWebView(index);
+    emit tabClosing(view);
+
     view->deleteLater();
 
     // If closed tab was the active tab, set current to opposite direction of the last active tab (if possible)
