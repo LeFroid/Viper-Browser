@@ -181,27 +181,17 @@ QSize BrowserTabBar::tabSizeHint(int index) const
     // Get the QTabBar size hint and keep width within an upper bound
     QSize hint = QTabBar::tabSizeHint(index);
     QFontMetrics fMetric = fontMetrics();
-    int numTabs = count();
-    if (numTabs > 3 && numTabs < 10)
-    {
-        return hint.boundedTo(QSize(fMetric.width("R") * 20, hint.height()));
-    }
-    else if (numTabs >= 10)
-    {
-        const int mainTabWidth = fMetric.width("R") * 20;
-        int tabWidth = 0;
 
-        if (index == currentIndex())
-        {
-            tabWidth = mainTabWidth;
-        }
-        else
-        {
-            tabWidth = (geometry().width() - mainTabWidth) / (numTabs - 1);
-        }
-        return hint.boundedTo(QSize(tabWidth, hint.height()));
-    }
-    return hint;
+    const int numTabs = count();
+    const int mainTabWidth = fMetric.width("R") * 20;
+
+    int tabWidth = 0;
+    if (index == currentIndex())
+        tabWidth = mainTabWidth;
+    else
+        tabWidth = (geometry().width() - mainTabWidth - m_buttonNewTab->width()) / (numTabs - 1);
+
+    return hint.boundedTo(QSize(tabWidth, hint.height()));
 }
 
 void BrowserTabBar::resizeEvent(QResizeEvent *event)
