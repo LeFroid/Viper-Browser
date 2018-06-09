@@ -152,22 +152,20 @@ void CookieWidget::onCookieDialogFinished(int result)
     //CookieTableModel *model = static_cast<CookieTableModel*>(ui->tableViewCookies->model());
     //CookieJar *jar = sBrowserApplication->getCookieJar();
     auto cookieStore = QWebEngineProfile::defaultProfile()->cookieStore();
-    const QNetworkCookie &cookie = m_cookieDialog->getCookie();
-    cookieStore->setCookie(cookie, cookie.domain());
-    /*if (m_dialogEditMode)
-    {
+    QNetworkCookie cookie = m_cookieDialog->getCookie();
+    cookieStore->setCookie(cookie);
 
-        if (!jar->updateCookie(cookie))
-        {
-            jar->insertCookie(cookie);
-            model->insertRow(model->rowCount());
-        }
-        else
-            static_cast<DetailedCookieTableModel*>(ui->tableViewCookieDetail->model())->setCookie(cookie);
-    }
-    else
+    //Workaround for web engine prepending a '.' when it shouldn't be
+    if (!cookie.domain().startsWith(QChar('.')))
     {
-        jar->insertCookie(cookie);
-        model->insertRow(model->rowCount());
-    }*/
+        QString domain = cookie.domain();
+        if (cookie.isSecure())
+            domain.prepend(QLatin1String("https://"));
+        else
+            domain.prepend(QLatin1String("http://"));
+
+        QString emptyDomain;
+        cookie.setDomain(emptyDomain);
+        cookieStore->setCookie(cookie, QUrl(domain));
+    }
 }
