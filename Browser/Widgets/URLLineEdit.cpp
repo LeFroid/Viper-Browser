@@ -20,8 +20,11 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_userTextMap(),
     m_activeWebView(nullptr)
 {
-    QSizePolicy policy = sizePolicy();
-    setSizePolicy(QSizePolicy::Maximum, policy.verticalPolicy());
+    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+
+    QFont lineEditFont = font();
+    lineEditFont.setPointSize(lineEditFont.pointSize() + 1);
+    setFont(lineEditFont);
 
     // Set completion model
     QCompleter *urlCompleter = new QCompleter(parent);

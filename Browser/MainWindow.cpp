@@ -26,7 +26,6 @@
 #include "WebPage.h"
 #include "WebView.h"
 
-#include <deque>
 #include <functional>
 #include <QActionGroup>
 #include <QCloseEvent>
@@ -45,7 +44,6 @@
 #include <QShortcut>
 #include <QSplitter>
 #include <QtGlobal>
-#include <QTimer>
 #include <QToolButton>
 
 MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, bool privateWindow, QWidget *parent) :
@@ -266,6 +264,8 @@ void MainWindow::setupTabWidget()
 
 void MainWindow::setupToolBar()
 {
+    ui->toolBar->setMinimumHeight(ui->toolBar->height() + 3);
+
     // Previous Page Button
     m_prevPage = new QToolButton(ui->toolBar);
     QAction *prevPageAction = ui->toolBar->addWidget(m_prevPage);
@@ -308,6 +308,7 @@ void MainWindow::setupToolBar()
 
     // Quick search tool
     m_searchEngineLineEdit = new SearchEngineLineEdit(this);
+    m_searchEngineLineEdit->setFont(m_urlInput->font());
     connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoad, this, &MainWindow::loadUrl);
 
     // Splitter for resizing URL bar and quick search bar
