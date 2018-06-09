@@ -92,5 +92,6 @@ void CookieModifyDialog::setCookieData(QAbstractButton *button)
         m_cookie.setExpirationDate(expDateTime);
         accept();
     }
-    reject();
+    else
+        reject();
 }
