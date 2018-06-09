@@ -153,7 +153,7 @@ void CookieWidget::onCookieDialogFinished(int result)
     //CookieJar *jar = sBrowserApplication->getCookieJar();
     auto cookieStore = QWebEngineProfile::defaultProfile()->cookieStore();
     const QNetworkCookie &cookie = m_cookieDialog->getCookie();
-    cookieStore->setCookie(cookie);
+    cookieStore->setCookie(cookie, cookie.domain());
     /*if (m_dialogEditMode)
     {
 
