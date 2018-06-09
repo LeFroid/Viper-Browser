@@ -155,7 +155,7 @@
     </size>
    </property>
    <property name="windowTitle">
-    <string>toolBar_2</string>
+    <string>Show tool bar</string>
    </property>
    <property name="styleSheet">
     <string notr="true">QToolBar { spacing: 3px; } QToolButton::menu-indicator { subcontrol-position: bottom right; subcontrol-origin: content; }</string>
