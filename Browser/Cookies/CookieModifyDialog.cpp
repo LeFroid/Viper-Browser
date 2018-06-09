@@ -1,6 +1,9 @@
 #include "CookieModifyDialog.h"
 #include "ui_cookiemodifydialog.h"
 
+#include <QAbstractButton>
+#include <QPushButton>
+
 CookieModifyDialog::CookieModifyDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CookieModifyDialog),
@@ -26,7 +29,7 @@ CookieModifyDialog::CookieModifyDialog(QWidget *parent) :
     connect(ui->comboBoxExpireType, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &CookieModifyDialog::onExpireTypeChanged);
 
     // Connect save button with cookie modification
-    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &CookieModifyDialog::setCookieData);
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &CookieModifyDialog::setCookieData);
 }
 
 CookieModifyDialog::~CookieModifyDialog()
@@ -71,20 +74,23 @@ void CookieModifyDialog::onExpireTypeChanged(int index)
     }
 }
 
-void CookieModifyDialog::setCookieData()
+void CookieModifyDialog::setCookieData(QAbstractButton *button)
 {
-    m_cookie.setName(ui->lineEditName->text().toUtf8());
-    m_cookie.setValue(ui->plainTextEditValue->document()->toPlainText().toUtf8());
-    m_cookie.setDomain(ui->lineEditDomain->text());
-    m_cookie.setPath(ui->lineEditPath->text());
-    m_cookie.setSecure(ui->comboBoxSecure->currentData().toBool());
-    m_cookie.setHttpOnly(ui->comboBoxHttpOnly->currentData().toBool());
+    if (button == ui->buttonBox->button(QDialogButtonBox::Save))
+    {
+        m_cookie.setName(ui->lineEditName->text().toUtf8());
+        m_cookie.setValue(ui->plainTextEditValue->document()->toPlainText().toUtf8());
+        m_cookie.setDomain(ui->lineEditDomain->text());
+        m_cookie.setPath(ui->lineEditPath->text());
+        m_cookie.setSecure(ui->comboBoxSecure->currentData().toBool());
+        m_cookie.setHttpOnly(ui->comboBoxHttpOnly->currentData().toBool());
 
-    ExpireType expType = static_cast<ExpireType>(ui->comboBoxExpireType->currentData().toInt());
-    QDateTime expDateTime;
-    if (expType == ExpireType::Date)
-        expDateTime = ui->dateTimeEdit->dateTime();
-    m_cookie.setExpirationDate(expDateTime);
+        ExpireType expType = static_cast<ExpireType>(ui->comboBoxExpireType->currentData().toInt());
+        QDateTime expDateTime;
+        if (expType == ExpireType::Date)
+            expDateTime = ui->dateTimeEdit->dateTime();
+        m_cookie.setExpirationDate(expDateTime);
+    }
 
-    accept();
+    hide();
 }

@@ -8,6 +8,8 @@ namespace Ui {
 class CookieModifyDialog;
 }
 
+class QAbstractButton;
+
 /**
  * @class CookieModifyDialog
  * @brief Allows the user to create or edit cookies
@@ -33,8 +35,8 @@ private slots:
     /// Called when the cookie expiration type combo box value has changed
     void onExpireTypeChanged(int index);
 
-    /// Saves the dialog input into the associated cookie
-    void setCookieData();
+    /// Saves the dialog input into the associated cookie, if the button activated was the 'save' button
+    void setCookieData(QAbstractButton *button);
 
 private:
     Ui::CookieModifyDialog *ui;
