@@ -29,12 +29,8 @@
         if (!result.isEditable) { result.isEditable = isElemEditable(e); }
         if (result.selectedText == '' && isSelected(e)) { result.selectedText = window.getSelection().toString(); }
         if (result.linkUrl == '') {
-            if (e.tagName.toLowerCase() == 'a') {
-                result.linkUrl = e.getAttribute('href');
-            } else {
-                var aNearE = e.closest('a[href]');
-                if (aNearE) { result.linkUrl = aNearE.href; }
-            }
+            var aNearE = e.closest('a[href]');
+            if (aNearE) { result.linkUrl = aNearE.href; }
         }
         if (result.mediaUrl == '') {
             if (e.tagName.toLowerCase() == 'img') { result.mediaType = 1; result.mediaUrl = qualifyURL(e.src); }
