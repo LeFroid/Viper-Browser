@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <QMenu>
+#include <QTimer>
 #include <QWebEngineHistory>
 #include <QWebEngineHistoryItem>
 
@@ -22,7 +23,8 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
     m_forwardMenu(nullptr),
     m_lastTabIndex(0),
     m_currentTabIndex(0),
-    m_nextTabIndex(1)
+    m_nextTabIndex(1),
+    m_contextMenuPos()
 {
     // Set tab bar
     setTabBar(m_tabBar);
@@ -52,6 +54,39 @@ WebView *BrowserTabWidget::getWebView(int tabIndex) const
     if (QWidget *item = widget(tabIndex))
         return qobject_cast<WebView*>(item);
     return nullptr;
+}
+
+bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
+{
+    WebView *view = qobject_cast<WebView*>(watched);
+    if (!view)
+        return QTabWidget::eventFilter(watched, event);
+
+    switch (event->type())
+    {
+        case QEvent::ChildAdded:
+        {
+            QChildEvent *childAddedEvent = static_cast<QChildEvent*>(event);
+            if (QObject *child = childAddedEvent->child())
+                child->installEventFilter(this);
+            break;
+        }
+        case QEvent::ContextMenu:
+        {
+            QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
+            m_contextMenuPos = contextMenuEvent->globalPos();
+            QTimer::singleShot(0, this, &BrowserTabWidget::showContextMenuForView);
+            return true;
+        }
+        default:
+            break;
+    }
+    return QTabWidget::eventFilter(watched, event);
+}
+
+void BrowserTabWidget::showContextMenuForView()
+{
+    currentWebView()->showContextMenu(m_contextMenuPos);
 }
 
 void BrowserTabWidget::closeTab(int index)
@@ -91,6 +126,7 @@ void BrowserTabWidget::closeTab(int index)
 WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
 {
     WebView *view = new WebView(m_privateBrowsing, parentWidget());
+    view->installEventFilter(this);
 
     QString tabLabel;
     if (!skipHomePage)

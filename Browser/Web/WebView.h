@@ -1,6 +1,7 @@
 #ifndef WEBVIEW_H
 #define WEBVIEW_H
 
+#include <QWebEngineContextMenuData>
 #include <QWebEngineView>
 
 class WebPage;
@@ -48,6 +49,9 @@ public slots:
 
     /// Decreases the zoom factor of the view by 10% of the base value
     void zoomOut();
+
+    /// Displays the context menu at the given position
+    void showContextMenu(const QPoint &globalPos);
 
 protected:
     /// Event handler for context menu displays

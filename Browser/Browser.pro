@@ -126,7 +126,8 @@ SOURCES += \
     UserScripts/WebEngineScriptAdapter.cpp \
     Preferences/PrivacyTab.cpp \
     Preferences/ExemptThirdPartyCookieDialog.cpp \
-    Web/URL.cpp
+    Web/URL.cpp \
+    Web/WebHitTestResult.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -215,7 +216,8 @@ HEADERS += \
     UserScripts/WebEngineScriptAdapter.h \
     Preferences/PrivacyTab.h \
     Preferences/ExemptThirdPartyCookieDialog.h \
-    Web/URL.h
+    Web/URL.h \
+    Web/WebHitTestResult.h
 
 FORMS += \
         mainwindow.ui \

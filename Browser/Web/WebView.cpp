@@ -18,6 +18,7 @@
 #include "SearchEngineManager.h"
 #include "Settings.h"
 #include "WebDialog.h"
+#include "WebHitTestResult.h"
 #include "WebView.h"
 #include "WebPage.h"
 
@@ -124,11 +125,15 @@ QString WebView::getContextMenuScript(const QPoint &pos)
     return scriptCopy;
 }
 
-void WebView::contextMenuEvent(QContextMenuEvent *event)
+void WebView::showContextMenu(const QPoint &globalPos)
 {
+    QString contextMenuScript = getContextMenuScript(mapFromGlobal(globalPos));
+    QVariant scriptResult = m_page->runJavaScriptBlocking(contextMenuScript);
+    QMap<QString, QVariant> resultMap = scriptResult.toMap();
+    WebHitTestResult contextMenuData(resultMap);
+    //QWebEngineContextMenuData
     const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(QLatin1String("AskWhereToSaveDownloads")).toBool();
 
-    auto contextMenuData = m_page->contextMenuData();
     QMenu menu;
 
     // Link menu options
@@ -147,7 +152,7 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     auto mediaType = contextMenuData.mediaType();
 
     // Image menu options
-    if (mediaType == QWebEngineContextMenuData::MediaTypeImage)
+    if (mediaType == WebHitTestResult::MediaTypeImage)
     {
         menu.addAction(tr("Open image in new tab"), [=](){
             emit openInNewTabRequest(contextMenuData.mediaUrl());
@@ -169,8 +174,8 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
 
         menu.addSeparator();
     }
-    else if (mediaType == QWebEngineContextMenuData::MediaTypeVideo
-             || mediaType == QWebEngineContextMenuData::MediaTypeAudio)
+    else if (mediaType == WebHitTestResult::MediaTypeVideo
+             || mediaType == WebHitTestResult::MediaTypeAudio)
     {
         menu.addAction(pageAction(WebPage::ToggleMediaPlayPause));
         menu.addAction(pageAction(WebPage::ToggleMediaMute));
@@ -233,7 +238,7 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     // Default menu options
     if (linkUrl.isEmpty()
             && contextMenuData.selectedText().isEmpty()
-            && contextMenuData.mediaType() == QWebEngineContextMenuData::MediaTypeNone)
+            && contextMenuData.mediaType() == WebHitTestResult::MediaTypeNone)
     {
         menu.addAction(pageAction(WebPage::Back));
         menu.addAction(pageAction(WebPage::Forward));
@@ -244,7 +249,11 @@ void WebView::contextMenuEvent(QContextMenuEvent *event)
     // Web inspector
     menu.addAction(tr("Inspect element"), this, &WebView::inspectElement);
 
-    menu.exec(event->globalPos());
+    menu.exec(globalPos);
+}
+
+void WebView::contextMenuEvent(QContextMenuEvent */*event*/)
+{
 }
 
 void WebView::wheelEvent(QWheelEvent *event)

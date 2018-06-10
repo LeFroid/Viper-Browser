@@ -101,7 +101,8 @@ QVariant WebPage::runJavaScriptBlocking(const QString &scriptSource)
 
     runJavaScript(scriptSource, [&](const QVariant &returnValue){
         result = returnValue;
-        loop.quit();
+        if (loop.isRunning())
+            loop.quit();
     });
 
     connect(this, &WebPage::destroyed, &loop, &QEventLoop::quit);

@@ -96,6 +96,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Setup user script manager
     m_userScriptMgr = new UserScriptManager(m_settings);
 
+    // Apply global web scripts
+    installGlobalWebScripts();
+
     // Apply web settings
     m_settings->applyWebSettings();
 

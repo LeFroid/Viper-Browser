@@ -6,6 +6,7 @@
 #include <memory>
 #include <QTabWidget>
 #include <QUrl>
+#include <QWebEngineContextMenuData>
 
 class BrowserTabBar;
 class QMenu;
@@ -31,6 +32,13 @@ public:
 
     /// Returns the web view at the given tab index, or a nullptr if tabIndex is invalid
     WebView *getWebView(int tabIndex) const;
+
+    /// Filters events for the watched object
+    bool eventFilter(QObject *watched, QEvent *event);
+
+private slots:
+    /// Displays a context menu for the current web view
+    void showContextMenuForView();
 
 signals:
     /// Emitted when a new tab is created, passing along a pointer to the associated web view
@@ -113,6 +121,9 @@ private:
     /// Stores the index of the next tab to be created. Starts at current index + 1, and increments with
     /// each new tab created. Resets on change of active tab
     int m_nextTabIndex;
+
+    /// Global position of the requested context menu from the active web view
+    QPoint m_contextMenuPos;
 };
 
 #endif // BROWSERTABWIDGET_H
