@@ -39,6 +39,9 @@ FindTextWidget::FindTextWidget(QWidget *parent) :
     connect(ui->pushButtonHide, &QPushButton::clicked, [=](){
         if (m_editor != nullptr)
             resetEditorChanges();
+        else if (m_view != nullptr)
+            m_view->findText(QString());
+
         hide();
     });
 }
