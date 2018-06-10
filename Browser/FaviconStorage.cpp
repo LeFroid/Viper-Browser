@@ -84,6 +84,9 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
 
 void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon)
 {
+    if (iconHRef.isEmpty())
+        return;
+
     // Truncate page url if it contains a '?' or '#' towards the end of the string
     if (pageUrl.contains(QChar('#')))
         pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('#')));
