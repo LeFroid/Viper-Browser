@@ -95,20 +95,14 @@ void FindTextWidget::onFindNext()
     if (m_view != nullptr)
     {
         auto flags = QFlags<QWebEnginePage::FindFlag>();
-/*
-        if (m_highlightAll)
-        {
-            m_view->findText(QString());
-            flags |= QWebPage::HighlightAllOccurrences;
-        }
-*/
+
         if (m_matchCase)
             flags |= QWebEnginePage::FindCaseSensitively;
 
         m_view->findText(ui->lineEdit->text(), flags, [=](bool result){
             if (!result)
             {
-                if (m_searchTerm.isNull())
+                if (m_searchTerm.isNull() || ui->lineEdit->text().isNull())
                     ui->labelMatches->setText(QString());
                 else
                     ui->labelMatches->setText(QString("Phrase not found"));
@@ -138,20 +132,14 @@ void FindTextWidget::onFindPrev()
     if (m_view != nullptr)
     {
         QFlags<QWebEnginePage::FindFlag> flags = QWebEnginePage::FindBackward;
-/*
-        if (m_highlightAll)
-        {
-            m_view->findText(QString(), QWebPage::HighlightAllOccurrences);
-            flags |= QWebPage::HighlightAllOccurrences;
-        }
-*/
+
         if (m_matchCase)
             flags |= QWebEnginePage::FindCaseSensitively;
 
         m_view->findText(ui->lineEdit->text(), flags, [=](bool result){
             if (!result)
             {
-                if (m_searchTerm.isNull())
+                if (m_searchTerm.isNull() || ui->lineEdit->text().isNull())
                     ui->labelMatches->setText(QString());
                 else
                     ui->labelMatches->setText(QString("Phrase not found"));
