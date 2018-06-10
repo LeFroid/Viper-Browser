@@ -146,7 +146,9 @@ void FaviconStorage::onReplyFinished()
 
         QBuffer buffer(&data);
         QImage img;
-        if (!img.load(&buffer, format.toStdString().c_str()))
+        const char *imgFormat = format.isEmpty() ? nullptr : format.toStdString().c_str();
+
+        if (!img.load(&buffer, imgFormat))
         {
             qDebug() << "FaviconStorage::onReplyFinished - failed to load image from response. Format was " << format;
             m_favicons.erase(it);
