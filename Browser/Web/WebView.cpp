@@ -116,18 +116,13 @@ void WebView::zoomOut()
 QString WebView::getContextMenuScript(const QPoint &pos)
 {
     QString scriptCopy = m_contextMenuHelper;
-
-    int x = static_cast<int>(static_cast<qreal>(pos.x()) / m_page->zoomFactor());
-    int y = static_cast<int>(static_cast<qreal>(pos.y()) / m_page->zoomFactor());
-    scriptCopy.replace(QLatin1String("{{x}}"), QString::number(x));
-    scriptCopy.replace(QLatin1String("{{y}}"), QString::number(y));
-
-    return scriptCopy;
+    QPointF posF(pos);
+    return scriptCopy.arg(QString::number(posF.x() / zoomFactor())).arg(QString::number(posF.y() / zoomFactor()));
 }
 
-void WebView::showContextMenu(const QPoint &globalPos)
+void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos)
 {
-    QString contextMenuScript = getContextMenuScript(mapFromGlobal(globalPos));
+    QString contextMenuScript = getContextMenuScript(relativePos);
     QVariant scriptResult = m_page->runJavaScriptBlocking(contextMenuScript);
     QMap<QString, QVariant> resultMap = scriptResult.toMap();
     WebHitTestResult contextMenuData(resultMap);

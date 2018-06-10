@@ -122,8 +122,8 @@ private:
     /// each new tab created. Resets on change of active tab
     int m_nextTabIndex;
 
-    /// Global position of the requested context menu from the active web view
-    QPoint m_contextMenuPos;
+    /// Global and relative positions of the requested context menu from the active web view
+    QPoint m_contextMenuPosGlobal, m_contextMenuPosRelative;
 };
 
 #endif // BROWSERTABWIDGET_H

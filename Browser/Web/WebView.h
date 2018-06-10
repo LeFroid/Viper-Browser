@@ -51,7 +51,7 @@ public slots:
     void zoomOut();
 
     /// Displays the context menu at the given position
-    void showContextMenu(const QPoint &globalPos);
+    void showContextMenu(const QPoint &globalPos, const QPoint &relativePos);
 
 protected:
     /// Event handler for context menu displays

@@ -24,7 +24,8 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
     m_lastTabIndex(0),
     m_currentTabIndex(0),
     m_nextTabIndex(1),
-    m_contextMenuPos()
+    m_contextMenuPosGlobal(),
+    m_contextMenuPosRelative()
 {
     // Set tab bar
     setTabBar(m_tabBar);
@@ -74,8 +75,10 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
         case QEvent::ContextMenu:
         {
             QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
-            m_contextMenuPos = contextMenuEvent->globalPos();
-            QTimer::singleShot(0, this, &BrowserTabWidget::showContextMenuForView);
+            m_contextMenuPosGlobal = contextMenuEvent->globalPos();
+            m_contextMenuPosRelative = contextMenuEvent->pos();
+            QTimer::singleShot(10, this, &BrowserTabWidget::showContextMenuForView);
+            //currentWebView()->showContextMenu(contextMenuEvent);
             return true;
         }
         default:
@@ -86,7 +89,7 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
 
 void BrowserTabWidget::showContextMenuForView()
 {
-    currentWebView()->showContextMenu(m_contextMenuPos);
+    currentWebView()->showContextMenu(m_contextMenuPosGlobal, m_contextMenuPosRelative);
 }
 
 void BrowserTabWidget::closeTab(int index)
