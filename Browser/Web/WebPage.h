@@ -57,6 +57,10 @@ private slots:
     void injectUserJavaScript(ScriptInjectionTime injectionTime);
 
 private:
+    /// Connects web engine page signals to their handlers
+    void setupSlots();
+
+private:
     /// Stores the host of the main frame's URL. Used to prevent excessive requests to fetch the AdBlockManager's domain-specific cosmetic filters
     QString m_mainFrameHost;
 

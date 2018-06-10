@@ -22,9 +22,7 @@ WebPage::WebPage(QObject *parent) :
     m_domainFilterStyle(),
     m_lastUrl()
 {
-    // Add frame event handlers for script injection
-    connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
-    connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
+    setupSlots();
 }
 
 WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
@@ -32,6 +30,11 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     m_mainFrameHost(),
     m_domainFilterStyle(),
     m_lastUrl()
+{
+    setupSlots();
+}
+
+void WebPage::setupSlots()
 {
     // Add frame event handlers for script injection
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
