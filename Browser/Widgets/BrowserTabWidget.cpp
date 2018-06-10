@@ -122,6 +122,9 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
             setTabToolTip(viewTabIndex, title);
         }
     });
+    connect(view, &WebView::iconUrlChanged, [=](const QUrl &url) {
+        sBrowserApplication->getFaviconStorage()->updateIcon(url.toString(QUrl::FullyEncoded), view->url().toString(), view->icon());
+    });
 
     m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
     if (makeCurrent)
