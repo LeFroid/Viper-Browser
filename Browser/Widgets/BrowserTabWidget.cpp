@@ -112,7 +112,7 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     connect(view, &WebView::iconChanged, this, &BrowserTabWidget::onIconChanged);
     connect(view, &WebView::openRequest, this, &BrowserTabWidget::loadUrl);
     connect(view, &WebView::openInNewTabRequest, this, &BrowserTabWidget::openLinkInNewTab);
-//    connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
+    connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
 
     m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;

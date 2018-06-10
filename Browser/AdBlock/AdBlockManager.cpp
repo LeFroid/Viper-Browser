@@ -17,8 +17,6 @@
 
 #include <QDebug>
 
-//todo: ElementType::PopUp doesn't seem to be handled here, needs to be implemented
-
 AdBlockManager::AdBlockManager(QObject *parent) :
     QObject(parent),
     m_enabled(true),
