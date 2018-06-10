@@ -17,6 +17,8 @@
 
 #include <QDebug>
 
+//todo: ElementType::PopUp doesn't seem to be handled here, needs to be implemented
+
 AdBlockManager::AdBlockManager(QObject *parent) :
     QObject(parent),
     m_enabled(true),
@@ -618,7 +620,7 @@ void AdBlockManager::extractFilters()
     QSet<QString> badFilters, badHideFilters;
 
     // Setup global stylesheet string
-    m_stylesheet = QStringLiteral("<style>");
+    m_stylesheet = QLatin1String("<style>");
 
     for (AdBlockSubscription &s : m_subscriptions)
     {

@@ -10,6 +10,9 @@
     <height>879</height>
    </rect>
   </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::NoContextMenu</enum>
+  </property>
   <property name="windowTitle">
    <string>Web Browser</string>
   </property>

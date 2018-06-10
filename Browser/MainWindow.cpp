@@ -264,7 +264,9 @@ void MainWindow::setupTabWidget()
 
 void MainWindow::setupToolBar()
 {
+    // Toolbar properties
     ui->toolBar->setMinimumHeight(ui->toolBar->height() + 3);
+    ui->toolBar->setFloatable(false);
 
     // Previous Page Button
     m_prevPage = new QToolButton(ui->toolBar);
@@ -817,9 +819,9 @@ void MainWindow::onClickBookmarkIcon()
     //m_urlInput->setCurrentPageBookmarked(!isBookmarked);
 }
 
-WebView *MainWindow::getNewTabWebView()
+WebView *MainWindow::getNewTabWebView(bool makeCurrent)
 {
-    return m_tabWidget->newTab();
+    return m_tabWidget->newTab(makeCurrent);
 }
 
 BrowserTabWidget *MainWindow::getTabWidget() const

@@ -283,6 +283,7 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
             MainWindow *win = m_privateView ? sBrowserApplication->getNewPrivateWindow() : sBrowserApplication->getNewWindow();
             return win->getTabWidget()->currentWebView();
         }	
+        case QWebEnginePage::WebBrowserBackgroundTab:
         case QWebEnginePage::WebBrowserTab:
         {
             // Get main window
@@ -290,10 +291,11 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
             while (obj->parent() != nullptr)
                 obj = obj->parent();
 
+            const bool switchToNewTab = type == QWebEnginePage::WebBrowserTab;
+
             if (MainWindow *mw = static_cast<MainWindow*>(obj))
-            {
-                return mw->getNewTabWebView();
-            }
+                return mw->getNewTabWebView(switchToNewTab);
+
             break;
         }
         case QWebEnginePage::WebDialog:     // Open a web dialog
