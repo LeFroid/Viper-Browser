@@ -65,15 +65,12 @@ int WebView::getProgress() const
 
 void WebView::loadBlankPage()
 {
-    QFile resource(":/blank.html");
-    bool opened = resource.open(QIODevice::ReadOnly);
-    if (opened)
-        setHtml(QString::fromUtf8(resource.readAll().constData()), QUrl("about:blank"));
+    load(QUrl("viper://blank.html"));
 }
 
 bool WebView::isOnBlankPage() const
 {
-    return url() == QUrl("about:blank");
+    return url() == QUrl("viper://blank.html");
 }
 
 QString WebView::getTitle() const

@@ -626,8 +626,9 @@ void MainWindow::onLoadProgress(int value)
     }
 }
 
-void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
+void MainWindow::onLoadFinished(bool /*ok*/)
 {
+    WebView *view = qobject_cast<WebView*>(sender());
     if (!view)
         return;
 
@@ -642,38 +643,38 @@ void MainWindow::onLoadFinished(WebView *view, bool /*ok*/)
         view->setFocus();
     }
 
-    // Get favicon and inform HistoryManager of the title and favicon associated with the page's url, if not in private mode
-    if (!m_privateWindow)
-    {
-        BrowserApplication *browserApp = sBrowserApplication;
-        HistoryManager *historyMgr = browserApp->getHistoryManager();
+    if (m_privateWindow)
+        return;
 
-        QIcon favicon = view->icon();
-        QString pageUrl = view->url().toString();
-        QString pageUrlNoPath = view->url().toString(QUrl::RemovePath);
-        QString pageScheme = view->url().scheme();
-        const bool isBlankPage = view->isOnBlankPage();
+    // Get favicon and inform HistoryManager of the title and favicon associated with the page's url
+    BrowserApplication *browserApp = sBrowserApplication;
+    HistoryManager *historyMgr = browserApp->getHistoryManager();
 
-        if (!isBlankPage && !pageUrl.isEmpty())
-            historyMgr->addHistoryEntry(pageUrl);
+    QIcon favicon = view->icon();
+    QString pageUrl = view->url().toString();
+    QString pageUrlNoPath = view->url().toString(QUrl::RemovePath);
+    QString pageScheme = view->url().scheme();
+    const bool isBlankPage = view->isOnBlankPage();
 
-        // Attempt to fetch the URL of the favicon from the page
-        view->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
-            if (v.isNull() || !v.canConvert<QString>())
-                return;
+    if (!isBlankPage && !pageUrl.isEmpty())
+        historyMgr->addHistoryEntry(pageUrl);
 
-            QString iconRef = v.toString();
-            if (iconRef.startsWith(QLatin1String("//")))
-            {
-                iconRef.prepend(pageScheme + QChar(':'));
-            }
-            else if (iconRef.startsWith('/'))
-                iconRef.prepend(pageUrlNoPath);
-            sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
-        });
-        if (!isBlankPage && !pageTitle.isEmpty())
-            historyMgr->setTitleForURL(pageUrl, pageTitle);
-    }
+    // Attempt to fetch the URL of the favicon from the page
+    view->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
+        if (v.isNull() || !v.canConvert<QString>())
+            return;
+
+        QString iconRef = v.toString();
+        if (iconRef.startsWith(QLatin1String("//")))
+        {
+            iconRef.prepend(pageScheme + QChar(':'));
+        }
+        else if (iconRef.startsWith('/'))
+            iconRef.prepend(pageUrlNoPath);
+        sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
+    });
+    if (!isBlankPage && !pageTitle.isEmpty())
+        historyMgr->setTitleForURL(pageUrl, pageTitle);
 }
 
 void MainWindow::onShowAllHistory()
@@ -696,10 +697,7 @@ void MainWindow::onShowAllHistory()
 void MainWindow::onNewTabCreated(WebView *view)
 {
     // Connect signals to slots for UI updates (page title, icon changes)
-    connect(view, &WebView::loadFinished, [=](bool ok) {
-        onLoadFinished(view, ok);
-    });
-    connect(view, &WebView::titleChanged, [=](const QString &title){ updateTabTitle(title, m_tabWidget->indexOf(view)); } );
+    connect(view, &WebView::loadFinished, this, &MainWindow::onLoadFinished);
     connect(view, &WebView::inspectElement, [=]() {
         WebView *inspectorView = dynamic_cast<WebView*>(ui->dockWidget->widget());
         if (!inspectorView)

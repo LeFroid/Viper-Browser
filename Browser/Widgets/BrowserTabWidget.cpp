@@ -110,10 +110,18 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
 
     // Connect web view signals to functionalty
     connect(view, &WebView::iconChanged, this, &BrowserTabWidget::onIconChanged);
+    connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
     connect(view, &WebView::openRequest, this, &BrowserTabWidget::loadUrl);
     connect(view, &WebView::openInNewTabRequest, this, &BrowserTabWidget::openLinkInNewTab);
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
-    connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
+    connect(view, &WebView::titleChanged, [=](const QString &title) {
+        int viewTabIndex = indexOf(view);
+        if (viewTabIndex >= 0)
+        {
+            setTabText(viewTabIndex, title);
+            setTabToolTip(viewTabIndex, title);
+        }
+    });
 
     m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
     if (makeCurrent)
