@@ -134,7 +134,9 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
         else
         {
             BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+            WebView *view = tabWidget->getWebView(tabIdx);
             tabWidget->removeTab(tabIdx);
+            view->deleteLater();
         }
     }
 
