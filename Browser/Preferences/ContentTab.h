@@ -35,6 +35,9 @@ public:
     /// Returns true if advertisement blocking is enabled, false if disabled
     bool isAdBlockEnabled() const;
 
+    /// Returns true if animated scrolling is enabled, false if disabled
+    bool isAnimatedScrollEnabled() const;
+
     /// Returns true if images should automatically be loaded, false if otherwise
     bool isAutoLoadImagesEnabled() const;
 
@@ -95,6 +98,12 @@ public slots:
      * @param value If true, the ad blocker will be enabled. Otherwise it will be disabled
      */
     void toggleAdBlock(bool value);
+
+    /**
+     * @brief toggleAnimatedScrolling Toggles the setting for allowing animated scrolling of web content.
+     * @param value If true, animated scrolling will be enabled, otherwise will be disabled.
+     */
+    void toggleAnimatedScrolling(bool value);
 
     /**
      * @brief toggleAutoLoadImages Toggles the setting for automatically loading images per page

@@ -57,6 +57,14 @@ public:
     /// Sets the radio button associated with new tabs loading the home page either on or off, depending on value
     void setNewTabsLoadHomePage(bool value);
 
+    /// Returns true if all new tabs should be opened without changing focus from the current tab, false if sometimes new tabs
+    /// can take focus
+    bool openAllTabsInBackground() const;
+
+    /// Sets the behavior of new tabs opening in the background. If value is true, all tabs are opened in background. Otherwise,
+    /// some tabs will take focus when opened.
+    void setAllTabsOpenInBackground(bool value);
+
 private slots:
     /// Toggles the active/inactive state of the line edit associated with the download directory
     void toggleLineEditDownloadDir();

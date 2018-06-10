@@ -8,7 +8,6 @@
 #include <QNetworkReply>
 #include <QSqlError>
 #include <QSqlRecord>
-#include <QWebEngineSettings>
 #include <QDebug>
 
 FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
@@ -78,8 +77,6 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
         }
     }
     return QIcon();
-    // Lastly, default to QWebSettings::iconForUrl
-    //return QWebEngineSettings::iconForUrl(url);
 }
 
 void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon)

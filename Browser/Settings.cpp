@@ -46,11 +46,12 @@ bool Settings::firstRun() const
 void Settings::applyWebSettings()
 {
     QWebEngineSettings *settings = QWebEngineSettings::defaultSettings();
-    settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QLatin1String("EnableJavascript")).toBool());
-    settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QLatin1String("EnableJavascriptPopups")).toBool());
-    settings->setAttribute(QWebEngineSettings::AutoLoadImages,           m_settings.value(QLatin1String("AutoLoadImages")).toBool());
-    settings->setAttribute(QWebEngineSettings::PluginsEnabled,           m_settings.value(QLatin1String("EnablePlugins")).toBool());
-    settings->setAttribute(QWebEngineSettings::XSSAuditingEnabled,       m_settings.value(QLatin1String("EnableXSSAudit")).toBool());
+    settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QLatin1String("EnableJavascript"), true).toBool());
+    settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QLatin1String("EnableJavascriptPopups"), false).toBool());
+    settings->setAttribute(QWebEngineSettings::AutoLoadImages,           m_settings.value(QLatin1String("AutoLoadImages"), true).toBool());
+    settings->setAttribute(QWebEngineSettings::PluginsEnabled,           m_settings.value(QLatin1String("EnablePlugins"), false).toBool());
+    settings->setAttribute(QWebEngineSettings::XSSAuditingEnabled,       m_settings.value(QLatin1String("EnableXSSAudit"), true).toBool());
+    settings->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled,    m_settings.value(QLatin1String("ScrollAnimatorEnabled"), false).toBool());
 
     settings->setAttribute(QWebEngineSettings::LocalStorageEnabled,      true);
 
@@ -135,6 +136,8 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("AdBlockPlusEnabled"), true);
     m_settings.setValue(QLatin1String("InspectorPort"), 9477);
     m_settings.setValue(QLatin1String("HistoryStoragePolicy"), QVariant::fromValue(HistoryStoragePolicy::Remember));
+    m_settings.setValue(QLatin1String("ScrollAnimatorEnabled"), false);
+    m_settings.setValue(QLatin1String("OpenAllTabsInBackground"), false);
 
     QWebEngineSettings *webSettings = QWebEngineSettings::defaultSettings();
     m_settings.setValue(QLatin1String("StandardFont"), webSettings->fontFamily(QWebEngineSettings::StandardFont));

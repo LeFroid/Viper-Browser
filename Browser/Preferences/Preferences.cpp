@@ -34,8 +34,10 @@ void Preferences::loadSettings()
     ui->tabGeneral->setHomePage(m_settings->getValue(QLatin1String("HomePage")).toString());
     ui->tabGeneral->setStartupIndex(m_settings->getValue(QLatin1String("StartupMode")).toInt());
     ui->tabGeneral->setNewTabsLoadHomePage(m_settings->getValue(QLatin1String("NewTabsLoadHomePage")).toBool());
+    ui->tabGeneral->setAllTabsOpenInBackground(m_settings->getValue(QLatin1String("OpenAllTabsInBackground")).toBool());
 
     ui->tabContent->toggleAdBlock(m_settings->getValue(QLatin1String("AdBlockPlusEnabled")).toBool());
+    ui->tabContent->toggleAnimatedScrolling(m_settings->getValue(QLatin1String("ScrollAnimatorEnabled")).toBool());
     ui->tabContent->toggleAutoLoadImages(m_settings->getValue(QLatin1String("AutoLoadImages")).toBool());
     ui->tabContent->togglePlugins(m_settings->getValue(QLatin1String("EnablePlugins")).toBool());
     ui->tabContent->togglePopupBlock(!m_settings->getValue(QLatin1String("EnableJavascriptPopups")).toBool());
@@ -75,6 +77,7 @@ void Preferences::onCloseWithSave()
 
     m_settings->setValue(QLatin1String("StartupMode"), ui->tabGeneral->getStartupIndex());
     m_settings->setValue(QLatin1String("NewTabsLoadHomePage"), ui->tabGeneral->doNewTabsLoadHomePage());
+    m_settings->setValue(QLatin1String("OpenAllTabsInBackground"), ui->tabGeneral->openAllTabsInBackground());
 
     // Save preferences in Content tab
     AdBlockManager::instance().setEnabled(ui->tabContent->isAdBlockEnabled());
@@ -83,6 +86,7 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(QLatin1String("EnablePlugins"), ui->tabContent->arePluginsEnabled());
     m_settings->setValue(QLatin1String("EnableJavascriptPopups"), ui->tabContent->arePopupsEnabled());
     m_settings->setValue(QLatin1String("EnableJavascript"), ui->tabContent->isJavaScriptEnabled());
+    m_settings->setValue(QLatin1String("ScrollAnimatorEnabled"), ui->tabContent->isAnimatedScrollEnabled());
     m_settings->setValue(QLatin1String("UserScriptsEnabled"), ui->tabContent->areUserScriptsEnabled());
     sBrowserApplication->getUserScriptManager()->setEnabled(ui->tabContent->areUserScriptsEnabled());
 

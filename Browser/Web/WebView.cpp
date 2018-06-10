@@ -288,7 +288,8 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
             while (obj->parent() != nullptr)
                 obj = obj->parent();
 
-            const bool switchToNewTab = type == QWebEnginePage::WebBrowserTab;
+            const bool switchToNewTab = (type == QWebEnginePage::WebBrowserTab
+                                         && !sBrowserApplication->getSettings()->getValue(QLatin1String("OpenAllTabsInBackground")).toBool());
 
             if (MainWindow *mw = static_cast<MainWindow*>(obj))
                 return mw->getNewTabWebView(switchToNewTab);

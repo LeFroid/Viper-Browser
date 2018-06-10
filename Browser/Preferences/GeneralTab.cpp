@@ -80,6 +80,17 @@ void GeneralTab::setNewTabsLoadHomePage(bool value)
     ui->radioButtonTabBlankPage->setChecked(!value);
 }
 
+bool GeneralTab::openAllTabsInBackground() const
+{
+    return ui->checkBoxNewTabsInBackground->isChecked();
+}
+
+
+void GeneralTab::setAllTabsOpenInBackground(bool value)
+{
+    ui->checkBoxNewTabsInBackground->setChecked(value);
+}
+
 void GeneralTab::toggleLineEditDownloadDir()
 {
     ui->lineEditDownloadDir->setEnabled(!ui->lineEditDownloadDir->isEnabled());

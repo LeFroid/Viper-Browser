@@ -33,6 +33,11 @@ bool ContentTab::isAdBlockEnabled() const
     return ui->checkBoxEnableAdBlock->isChecked();
 }
 
+bool ContentTab::isAnimatedScrollEnabled() const
+{
+    return ui->checkBoxEnableAnimatedScroll->isChecked();
+}
+
 bool ContentTab::isAutoLoadImagesEnabled() const
 {
     return ui->checkBoxAutoLoadImages->isChecked();
@@ -140,6 +145,11 @@ bool ContentTab::isJavaScriptEnabled() const
 void ContentTab::toggleAdBlock(bool value)
 {
     ui->checkBoxEnableAdBlock->setChecked(value);
+}
+
+void ContentTab::toggleAnimatedScrolling(bool value)
+{
+    ui->checkBoxEnableAnimatedScroll->setChecked(value);
 }
 
 void ContentTab::toggleAutoLoadImages(bool value)

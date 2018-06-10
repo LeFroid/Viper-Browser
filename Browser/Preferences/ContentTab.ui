@@ -62,14 +62,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBoxAutoLoadImages">
+       <widget class="QCheckBox" name="checkBoxEnableAnimatedScroll">
         <property name="text">
-         <string>Load images automatically</string>
+         <string>Enable animated scrolling</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="Line" name="line_2">
+       <widget class="Line" name="line_6">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -92,7 +92,7 @@
       <item>
        <widget class="QCheckBox" name="checkBoxEnablePlugins">
         <property name="text">
-         <string>Enable Plug-Ins</string>
+         <string>Enable plug-ins</string>
         </property>
        </widget>
       </item>
@@ -106,7 +106,21 @@
       <item>
        <widget class="QCheckBox" name="checkBoxEnableUserScripts">
         <property name="text">
-         <string>Enable User Scripts</string>
+         <string>Enable user scripts</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxAutoLoadImages">
+        <property name="text">
+         <string>Load images automatically</string>
         </property>
        </widget>
       </item>

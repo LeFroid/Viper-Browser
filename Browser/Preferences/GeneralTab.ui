@@ -97,7 +97,7 @@
       <item>
        <widget class="QRadioButton" name="radioButtonTabHomePage">
         <property name="text">
-         <string>Load the home page on new tabs</string>
+         <string>&amp;Load the home page on new tabs</string>
         </property>
        </widget>
       </item>
@@ -105,6 +105,20 @@
        <widget class="QRadioButton" name="radioButtonTabBlankPage">
         <property name="text">
          <string>Load a blan&amp;k page on new tabs</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxNewTabsInBackground">
+        <property name="text">
+         <string>Always open new tabs in the background</string>
         </property>
        </widget>
       </item>
