@@ -185,13 +185,13 @@ QSize BrowserTabBar::tabSizeHint(int index) const
     QFontMetrics fMetric = fontMetrics();
 
     const int numTabs = count();
-    const int mainTabWidth = fMetric.width("R") * 20;
+    const int defaultTabWidth = fMetric.width("R") * 20;
 
     int tabWidth = 0;
     if (index == currentIndex())
-        tabWidth = mainTabWidth;
+        tabWidth = (geometry().width() - defaultTabWidth - m_buttonNewTab->width()) / (std::max(1, numTabs - 1));
     else
-        tabWidth = (geometry().width() - mainTabWidth - m_buttonNewTab->width()) / (numTabs - 1);
+        tabWidth = defaultTabWidth;
 
     return hint.boundedTo(QSize(tabWidth, hint.height()));
 }
