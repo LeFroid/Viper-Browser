@@ -182,16 +182,17 @@ QSize BrowserTabBar::tabSizeHint(int index) const
 {
     // Get the QTabBar size hint and keep width within an upper bound
     QSize hint = QTabBar::tabSizeHint(index);
-    QFontMetrics fMetric = fontMetrics();
+    //QFontMetrics fMetric = fontMetrics();
 
     const int numTabs = count();
-    const int defaultTabWidth = fMetric.width("R") * 20;
+    /*const int activeTabWidth = fMetric.width("R") * 20;
 
     int tabWidth = 0;
     if (index == currentIndex())
-        tabWidth = (geometry().width() - defaultTabWidth - m_buttonNewTab->width()) / (std::max(1, numTabs - 1));
+        tabWidth = activeTabWidth;
     else
-        tabWidth = defaultTabWidth;
+        tabWidth = (geometry().width() - activeTabWidth - m_buttonNewTab->width()) / (std::max(1, numTabs - 1));*/
+    int tabWidth = float(geometry().width() - m_buttonNewTab->width() - 1) / numTabs;
 
     return hint.boundedTo(QSize(tabWidth, hint.height()));
 }
