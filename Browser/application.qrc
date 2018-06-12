@@ -8,7 +8,7 @@
         <file alias="https_secure.png">Images/https_secure.png</file>
         <file alias="https_insecure.png">Images/https_insecure.png</file>
         <file alias="search_icon.png">Images/search_icon.png</file>
-        <file alias="blank.html">HTML/blank.html</file>
+        <file alias="blank">HTML/blank.html</file>
         <file alias="GreaseMonkeyAPI.js">JavaScript/GreaseMonkeyAPI.js</file>
         <file alias="AdBlock.js">JavaScript/AdBlock.js</file>
         <file alias="ContextMenuHelper.js">JavaScript/ContextMenuHelper.js</file>

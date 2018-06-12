@@ -66,12 +66,12 @@ int WebView::getProgress() const
 
 void WebView::loadBlankPage()
 {
-    load(QUrl("viper://blank.html"));
+    load(QUrl("viper://blank"));
 }
 
 bool WebView::isOnBlankPage() const
 {
-    return url() == QUrl("viper://blank.html");
+    return url() == QUrl("viper://blank");
 }
 
 QString WebView::getTitle() const
