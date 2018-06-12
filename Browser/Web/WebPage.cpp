@@ -19,8 +19,7 @@
 WebPage::WebPage(QObject *parent) :
     QWebEnginePage(parent),
     m_mainFrameHost(),
-    m_domainFilterStyle(),
-    m_lastUrl()
+    m_domainFilterStyle()
 {
     setupSlots();
 }
@@ -28,8 +27,7 @@ WebPage::WebPage(QObject *parent) :
 WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
     m_mainFrameHost(),
-    m_domainFilterStyle(),
-    m_lastUrl()
+    m_domainFilterStyle()
 {
     setupSlots();
 }
@@ -73,15 +71,13 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         }
     }
 
-    if (isMainFrame && type != QWebEnginePage::NavigationTypeReload && url != m_lastUrl)
+    if (isMainFrame && type != QWebEnginePage::NavigationTypeReload)
     {
         QWebEngineScriptCollection &scriptCollection = scripts();
         scriptCollection.clear();
         auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
         for (auto &script : pageScripts)
             scriptCollection.insert(script);
-
-        m_lastUrl = url;
     }
 
     return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);

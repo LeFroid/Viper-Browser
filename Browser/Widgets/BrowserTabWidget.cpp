@@ -153,6 +153,10 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     connect(view, &WebView::openRequest, this, &BrowserTabWidget::loadUrl);
     connect(view, &WebView::openInNewTabRequest, this, &BrowserTabWidget::openLinkInNewTab);
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
+    connect(view, &WebView::loadProgress, [=](int progress){
+        if (view == currentWebView())
+            emit loadProgress(progress);
+    });
     connect(view, &WebView::titleChanged, [=](const QString &title) {
         int viewTabIndex = indexOf(view);
         if (viewTabIndex >= 0)
@@ -250,16 +254,14 @@ void BrowserTabWidget::onCurrentChanged(int index)
         return;
 
     m_activeView = view;
-    connect(view, &WebView::loadProgress, [=](int progress){
-        if (view == currentWebView())
-            emit loadProgress(progress);
-    });
 
     resetHistoryButtonMenus(true);
 
     m_lastTabIndex = m_currentTabIndex;
     m_currentTabIndex = index;
     m_nextTabIndex = index + 1;
+
+    m_tabBar->updateGeometry();
 
     emit loadProgress(view->getProgress());
     emit viewChanged(index);
