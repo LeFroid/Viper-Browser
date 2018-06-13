@@ -1,7 +1,7 @@
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
-#include "ui_mainwindow.h"
+#include "ui_MainWindow.h"
 #include "AdBlockWidget.h"
 #include "BookmarkDialog.h"
 #include "BookmarkBar.h"

@@ -220,7 +220,6 @@ HEADERS += \
     Web/WebHitTestResult.h
 
 FORMS += \
-        mainwindow.ui \
     Cookies/cookiewidget.ui \
     Cookies/cookiemodifydialog.ui \
     History/clearhistorydialog.ui \
@@ -247,4 +246,5 @@ FORMS += \
     AdBlock/CustomFilterEditor.ui \
     Widgets/BookmarkDialog.ui \
     Preferences/PrivacyTab.ui \
-    Preferences/ExemptThirdPartyCookieDialog.ui
+    Preferences/ExemptThirdPartyCookieDialog.ui \
+    MainWindow.ui

@@ -65,6 +65,7 @@
     <addaction name="actionNew_Tab"/>
     <addaction name="actionNew_Window"/>
     <addaction name="actionNew_Private_Window"/>
+    <addaction name="separator"/>
     <addaction name="actionOpen_File"/>
     <addaction name="actionClose_Tab"/>
     <addaction name="actionClose_Window"/>
@@ -184,6 +185,9 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew_Window">
+   <property name="icon">
+    <iconset theme="window-new"/>
+   </property>
    <property name="text">
     <string>&amp;New Window</string>
    </property>
@@ -192,6 +196,9 @@
    </property>
   </action>
   <action name="actionNew_Tab">
+   <property name="icon">
+    <iconset theme="folder-new"/>
+   </property>
    <property name="text">
     <string>New &amp;Tab</string>
    </property>
@@ -206,6 +213,9 @@
    </property>
   </action>
   <action name="actionNew_Private_Window">
+   <property name="icon">
+    <iconset theme="window-new"/>
+   </property>
    <property name="text">
     <string>New Private &amp;Window</string>
    </property>
@@ -214,6 +224,9 @@
    </property>
   </action>
   <action name="actionOpen_File">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
    <property name="text">
     <string>&amp;Open File...</string>
    </property>
@@ -222,6 +235,9 @@
    </property>
   </action>
   <action name="actionClose_Tab">
+   <property name="icon">
+    <iconset theme="window-close"/>
+   </property>
    <property name="text">
     <string>&amp;Close Tab</string>
    </property>
@@ -230,6 +246,9 @@
    </property>
   </action>
   <action name="actionClose_Window">
+   <property name="icon">
+    <iconset theme="window-close"/>
+   </property>
    <property name="text">
     <string>C&amp;lose Window</string>
    </property>
@@ -238,6 +257,9 @@
    </property>
   </action>
   <action name="action_Save_Page_As">
+   <property name="icon">
+    <iconset theme="document-save-as"/>
+   </property>
    <property name="text">
     <string>&amp;Save Page As...</string>
    </property>
@@ -246,6 +268,9 @@
    </property>
   </action>
   <action name="action_Print">
+   <property name="icon">
+    <iconset theme="document-print"/>
+   </property>
    <property name="text">
     <string>&amp;Print...</string>
    </property>
@@ -254,6 +279,9 @@
    </property>
   </action>
   <action name="action_Quit">
+   <property name="icon">
+    <iconset theme="application-exit"/>
+   </property>
    <property name="text">
     <string>&amp;Quit</string>
    </property>
@@ -264,6 +292,9 @@
   <action name="action_Undo">
    <property name="enabled">
     <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="edit-undo"/>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -276,6 +307,9 @@
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset theme="edit-redo"/>
+   </property>
    <property name="text">
     <string>&amp;Redo</string>
    </property>
@@ -284,6 +318,9 @@
    </property>
   </action>
   <action name="actionCu_t">
+   <property name="icon">
+    <iconset theme="edit-cut"/>
+   </property>
    <property name="text">
     <string>Cu&amp;t</string>
    </property>
@@ -292,6 +329,9 @@
    </property>
   </action>
   <action name="action_Copy">
+   <property name="icon">
+    <iconset theme="edit-copy"/>
+   </property>
    <property name="text">
     <string>&amp;Copy</string>
    </property>
@@ -300,6 +340,9 @@
    </property>
   </action>
   <action name="action_Paste">
+   <property name="icon">
+    <iconset theme="edit-paste"/>
+   </property>
    <property name="text">
     <string>&amp;Paste</string>
    </property>
@@ -308,6 +351,9 @@
    </property>
   </action>
   <action name="action_Delete">
+   <property name="icon">
+    <iconset theme="edit-delete"/>
+   </property>
    <property name="text">
     <string>&amp;Delete</string>
    </property>
@@ -316,6 +362,9 @@
    </property>
   </action>
   <action name="action_Find">
+   <property name="icon">
+    <iconset theme="edit-find"/>
+   </property>
    <property name="text">
     <string>&amp;Find</string>
    </property>
@@ -324,6 +373,9 @@
    </property>
   </action>
   <action name="actionPreferences">
+   <property name="icon">
+    <iconset theme="preferences-other"/>
+   </property>
    <property name="text">
     <string>Pr&amp;eferences</string>
    </property>
@@ -332,11 +384,17 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset theme="user-bookmarks"/>
+   </property>
    <property name="text">
     <string>&amp;Bookmark Bar</string>
    </property>
   </action>
   <action name="actionZoom_In">
+   <property name="icon">
+    <iconset theme="zoom-in"/>
+   </property>
    <property name="text">
     <string>Zoom &amp;In</string>
    </property>
@@ -345,6 +403,9 @@
    </property>
   </action>
   <action name="actionZoom_Out">
+   <property name="icon">
+    <iconset theme="zoom-out"/>
+   </property>
    <property name="text">
     <string>Zoom &amp;Out</string>
    </property>
@@ -353,11 +414,17 @@
    </property>
   </action>
   <action name="actionReset_Zoom">
+   <property name="icon">
+    <iconset theme="zoom-original"/>
+   </property>
    <property name="text">
     <string>Reset &amp;Zoom</string>
    </property>
   </action>
   <action name="actionPage_So_urce">
+   <property name="icon">
+    <iconset theme="accessories-text-editor"/>
+   </property>
    <property name="text">
     <string>Page So&amp;urce</string>
    </property>
@@ -368,6 +435,9 @@
   <action name="action_Full_Screen">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="view-fullscreen"/>
    </property>
    <property name="text">
     <string>&amp;Full Screen</string>
@@ -403,6 +473,9 @@
    </property>
   </action>
   <action name="actionReload">
+   <property name="icon">
+    <iconset theme="view-refresh"/>
+   </property>
    <property name="text">
     <string>&amp;Reload</string>
    </property>
