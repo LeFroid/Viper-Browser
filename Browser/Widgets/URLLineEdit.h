@@ -56,15 +56,9 @@ public:
     /// Sets the URL to be displayed with a security status icon in the line edit widget
     void setURL(const QUrl &url);
 
-    /// Returns a recommended size for the widget.
-    QSize sizeHint() const override;
-
     /// Called when the browser window's tab has changed - stores any user text in a hash map so the contents
     /// will not be lost if they go back to the tab
     void tabChanged(WebView *newView);
-
-    /// Updates the parent window pointer, called on MainWindow destructor
-    void releaseParentPtr();
 
 signals:
     /// Called when the user requests to view the security information regarding the current page
@@ -91,9 +85,6 @@ private:
 
     /// Button that indicates the bookmark status of the page and allows the user to add or remove the page from their bookmark collection
     QToolButton *m_bookmarkButton;
-
-    /// Pointer to the browser window that created the line edit - used for convenience in sizeHint method
-    MainWindow *m_parentWindow;
 
     /// Hashmap of WebView pointers and any text set by the user while the view was last active
     std::unordered_map<WebView*, QString> m_userTextMap;

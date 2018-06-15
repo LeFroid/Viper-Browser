@@ -16,7 +16,6 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     QLineEdit(parent),
     m_securityButton(nullptr),
     m_bookmarkButton(nullptr),
-    m_parentWindow(static_cast<MainWindow*>(parent)),
     m_userTextMap(),
     m_activeWebView(nullptr)
 {
@@ -124,21 +123,6 @@ void URLLineEdit::setURL(const QUrl &url)
     if (url.scheme().compare(QStringLiteral("https")) == 0)
         secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
     setSecurityIcon(secureIcon);
-}
-
-QSize URLLineEdit::sizeHint() const
-{
-    QSize defaultSize = QLineEdit::sizeHint();
-
-    // Change height to be same as browser toolbar height
-    if (m_parentWindow)
-        defaultSize.setHeight(m_parentWindow->getToolbarHeight());
-    return defaultSize;
-}
-
-void URLLineEdit::releaseParentPtr()
-{
-    m_parentWindow = nullptr;
 }
 
 void URLLineEdit::removeMappedView(WebView *view)

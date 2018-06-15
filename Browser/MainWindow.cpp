@@ -75,11 +75,11 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     }
 
     ui->setupUi(this);
+    ui->toolBar->setMinHeights(ui->toolBar->height() + 3);
 
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");
 
-    setupToolBar();
     setupTabWidget();
     setupBookmarks();
     setupMenuBar();
@@ -92,7 +92,6 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
 
 MainWindow::~MainWindow()
 {
-    m_urlInput->releaseParentPtr();
     delete ui;
 
     for (WebActionProxy *proxy : m_webActions)
@@ -249,91 +248,10 @@ void MainWindow::setupTabWidget()
     // Some singals emitted by WebViews (which are managed largely by the tab widget) must be dealt with in the MainWindow
     connect(m_tabWidget, &BrowserTabWidget::newTabCreated, this, &MainWindow::onNewTabCreated);
 
-    // Page load progress handler
-    connect(m_tabWidget, &BrowserTabWidget::loadProgress, this, &MainWindow::onLoadProgress);
-
-    // Remove a mapped webview from the url bar when it is going to be deleted
-    connect(m_tabWidget, &BrowserTabWidget::tabClosing, m_urlInput, &URLLineEdit::removeMappedView);
-
-    // Set back/forward button history menus
-    m_tabWidget->setNavHistoryMenus(m_prevPage->menu(), m_nextPage->menu());
+    ui->toolBar->bindWithTabWidget();
 
     // Add first tab
     m_tabWidget->newTab(true);
-}
-
-void MainWindow::setupToolBar()
-{
-    // Toolbar properties
-    ui->toolBar->setMinimumHeight(ui->toolBar->height() + 3);
-    ui->toolBar->setFloatable(false);
-
-    // Previous Page Button
-    m_prevPage = new QToolButton(ui->toolBar);
-    QAction *prevPageAction = ui->toolBar->addWidget(m_prevPage);
-    m_prevPage->setIcon(style()->standardIcon(QStyle::SP_ArrowBack, 0, this));
-    m_prevPage->setToolTip(tr("Go back one page"));
-    QMenu *buttonHistMenu = new QMenu(this);
-    m_prevPage->setMenu(buttonHistMenu);
-    connect(m_prevPage, &QToolButton::clicked, prevPageAction, &QAction::trigger);
-    addWebProxyAction(QWebEnginePage::Back, prevPageAction);
-
-    // Next Page Button
-    m_nextPage = new QToolButton(ui->toolBar);
-    QAction *nextPageAction = ui->toolBar->addWidget(m_nextPage);
-    m_nextPage->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
-    m_nextPage->setToolTip(tr("Go forward one page"));
-    buttonHistMenu = new QMenu(this);
-    m_nextPage->setMenu(buttonHistMenu);
-    connect(m_nextPage, &QToolButton::clicked, nextPageAction, &QAction::trigger);
-    addWebProxyAction(QWebEnginePage::Forward, nextPageAction);
-
-    // Stop Loading / Refresh Page dual button
-    m_stopRefresh = new QAction(this);
-    m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
-    connect(m_stopRefresh, &QAction::triggered, [=](){
-        if (WebView *view = m_tabWidget->currentWebView())
-        {
-            int progress = view->getProgress();
-            if (progress > 0 && progress < 100)
-                view->stop();
-            else
-                view->reload();
-        }
-    });
-
-    // URL Bar
-    m_urlInput = new URLLineEdit(this);
-    connect(m_urlInput, &URLLineEdit::returnPressed, this, &MainWindow::goToURL);
-    connect(m_urlInput, &URLLineEdit::viewSecurityInfo, this, &MainWindow::onClickSecurityInfo);
-    connect(m_urlInput, &URLLineEdit::toggleBookmarkStatus, this, &MainWindow::onClickBookmarkIcon);
-
-    // Quick search tool
-    m_searchEngineLineEdit = new SearchEngineLineEdit(this);
-    m_searchEngineLineEdit->setFont(m_urlInput->font());
-    connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoad, this, &MainWindow::loadUrl);
-
-    // Splitter for resizing URL bar and quick search bar
-    QSplitter *splitter = new QSplitter(ui->toolBar);
-    splitter->addWidget(m_urlInput);
-    splitter->addWidget(m_searchEngineLineEdit);
-
-    // Reduce height of URL bar and quick search
-    int lineEditHeight = ui->toolBar->height() * 2 / 3 + 1;
-    m_urlInput->setMaximumHeight(lineEditHeight);
-    m_searchEngineLineEdit->setMaximumHeight(lineEditHeight);
-
-    // Set width of URL bar to be larger than quick search
-    QList<int> splitterSizes;
-    int totalWidth = splitter->size().width();
-    splitterSizes.push_back(totalWidth * 3 / 4);
-    splitterSizes.push_back(totalWidth / 4);
-    splitter->setSizes(splitterSizes);
-    splitter->setStretchFactor(0, 1);
-    splitter->setStretchFactor(1, 0);
-
-    ui->toolBar->addAction(m_stopRefresh);
-    ui->toolBar->addWidget(splitter);
 }
 
 void MainWindow::setupStatusBar()
@@ -351,7 +269,7 @@ void MainWindow::checkPageForBookmark()
 
     const bool isBookmarked = m_bookmarkManager->isBookmarked(view->url().toString());
     ui->menuBookmarks->setCurrentPageBookmarked(isBookmarked);
-    m_urlInput->setCurrentPageBookmarked(isBookmarked);
+    ui->toolBar->getURLWidget()->setCurrentPageBookmarked(isBookmarked);
 }
 
 void MainWindow::onTabChanged(int index)
@@ -366,12 +284,13 @@ void MainWindow::onTabChanged(int index)
 
     // Save text in URL line edit, set widget's contents to the current URL, or if the URL is empty or "about:blank",
     // set to user text input
-    m_urlInput->tabChanged(view);
+    URLLineEdit *urlInput = ui->toolBar->getURLWidget();
+    urlInput->tabChanged(view);
 
     const bool isOnBlankPage = view->isOnBlankPage();
     const QUrl &viewUrl = view->url();
     if (!viewUrl.isEmpty() && !isOnBlankPage)
-        m_urlInput->setURL(view->url());
+        urlInput->setURL(view->url());
 
     // Show dock widget with dev tools UI if it was opened in the last tab
     if (ui->dockWidget->isVisible())
@@ -385,12 +304,12 @@ void MainWindow::onTabChanged(int index)
         proxy->setPage(page);
 
     // Give focus to the url line edit widget when changing to a blank tab
-    if (m_urlInput->text().isEmpty() || isOnBlankPage)
+    if (urlInput->text().isEmpty() || isOnBlankPage)
     {
-        m_urlInput->setFocus();
+        urlInput->setFocus();
 
-        if (m_urlInput->text().compare(QLatin1String("about:blank")) == 0)
-            m_urlInput->selectAll();
+        if (urlInput->text().compare(QLatin1String("viper://blank")) == 0)
+            urlInput->selectAll();
     }
     else
         view->setFocus();
@@ -419,20 +338,6 @@ void MainWindow::updateTabTitle(const QString &title, int tabIndex)
 {
      m_tabWidget->setTabText(tabIndex, title);
      m_tabWidget->setTabToolTip(tabIndex, title);
-}
-
-void MainWindow::goToURL()
-{
-    WebView *view = m_tabWidget->currentWebView();
-    if (view)
-    {
-        QUrl location = QUrl::fromUserInput(m_urlInput->text());
-        if (location.isValid())
-        {
-            view->load(location);
-            m_urlInput->setText(location.toString(QUrl::FullyEncoded));
-        }
-    }
 }
 
 void MainWindow::openCookieManager()
@@ -520,7 +425,7 @@ void MainWindow::addPageToBookmarks()
     m_bookmarkDialog->setBookmarkInfo(bookmarkName, bookmarkUrl);
 
     // Set position of add bookmark dialog to align just under the URL bar on the right side
-    m_bookmarkDialog->alignAndShow(frameGeometry(), ui->toolBar->frameGeometry(), m_urlInput->frameGeometry());
+    m_bookmarkDialog->alignAndShow(frameGeometry(), ui->toolBar->frameGeometry(), ui->toolBar->getURLWidget()->frameGeometry());
 }
 
 void MainWindow::removePageFromBookmarks(bool showDialog)
@@ -612,21 +517,6 @@ void MainWindow::openFileInBrowser()
         loadUrl(QUrl(QString("file://%1").arg(fileName)));
 }
 
-void MainWindow::onLoadProgress(int value)
-{
-    // Update stop/refresh icon and tooltip depending on state
-    if (value > 0 && value < 100)
-    {
-        m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserStop));
-        m_stopRefresh->setToolTip(tr("Stop loading the page"));
-    }
-    else
-    {
-        m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
-        m_stopRefresh->setToolTip(tr("Reload the page"));
-    }
-}
-
 void MainWindow::onLoadFinished(bool /*ok*/)
 {
     WebView *view = qobject_cast<WebView*>(sender());
@@ -639,7 +529,7 @@ void MainWindow::onLoadFinished(bool /*ok*/)
 
     if (m_tabWidget->currentWebView() == view)
     {
-        m_urlInput->setURL(view->url());
+        ui->toolBar->getURLWidget()->setURL(view->url());
         checkPageForBookmark();
         view->setFocus();
     }
@@ -813,9 +703,8 @@ void MainWindow::onClickBookmarkIcon()
         m_bookmarkDialog->setBookmarkInfo(node->getName(), node->getURL(), node->getParent());
 
         // Set position of add bookmark dialog to align just under the URL bar on the right side
-        m_bookmarkDialog->alignAndShow(frameGeometry(), ui->toolBar->frameGeometry(), m_urlInput->frameGeometry());
+        m_bookmarkDialog->alignAndShow(frameGeometry(), ui->toolBar->frameGeometry(), ui->toolBar->getURLWidget()->frameGeometry());
     }
-    //m_urlInput->setCurrentPageBookmarked(!isBookmarked);
 }
 
 WebView *MainWindow::getNewTabWebView(bool makeCurrent)

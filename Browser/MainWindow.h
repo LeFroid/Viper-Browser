@@ -39,6 +39,7 @@ class WebView;
 class MainWindow : public QMainWindow
 {
     friend class BrowserTabBar;
+    friend class NavigationToolBar;
     friend class SessionManager;
     friend class URLLineEdit;
     friend class WebView;
@@ -59,6 +60,13 @@ signals:
     /// Emitted when the window is about to be closed
     void aboutToClose();
 
+protected:
+    /// Binds the given WebAction of any active web page with a local user interface action
+    inline void addWebProxyAction(QWebEnginePage::WebAction webAction, QAction *windowAction)
+    {
+        m_webActions.append(new WebActionProxy(webAction, windowAction, this));
+    }
+
 private:
     /// Sets the proper functionality of the bookmarks menu and bookmarks bar
     void setupBookmarks();
@@ -78,12 +86,6 @@ private:
     /// Checks if the page on the active tab is bookmarked, setting the appropriate action in
     /// the bookmark menu after checking the database
     void checkPageForBookmark();
-
-    /// Binds the given WebAction of any active web page with a local user interface action
-    inline void addWebProxyAction(QWebEnginePage::WebAction webAction, QAction *windowAction)
-    {
-        m_webActions.append(new WebActionProxy(webAction, windowAction, this));
-    }
 
 public slots:
     /// Called when the active tab has changed
@@ -110,9 +112,6 @@ public slots:
     /// Updates the title for the view associated with a tab
     void updateTabTitle(const QString &title, int tabIndex);
 
-    /// Called when a URL has been entered, attempts to load the resource on the current tab's web view
-    void goToURL();
-
     /// Launches the cookie manager UI
     void openCookieManager();
 
@@ -137,6 +136,13 @@ public slots:
     /// Shows the find text widget for the web view, if currently hidden
     void onFindTextAction();
 
+protected slots:
+    /// Called when the bookmark icon is clicked by the user
+    void onClickBookmarkIcon();
+
+    /// Called when the user wishes to view the certificate information (or lack thereof) for the current web page
+    void onClickSecurityInfo();
+
 private slots:
     /// Launches the ad block manager UI
     void openAdBlockManager();
@@ -153,9 +159,6 @@ private slots:
     /// Spawns a file chooser dialog so the user can open a file into the web browser
     void openFileInBrowser();
 
-    /// Called when the tab widget signals a page has progressed in loading its content
-    void onLoadProgress(int value);
-
     /// Called when a page is finished loading. If 'ok' is false, there was an error while loading the page
     void onLoadFinished(bool ok);
 
@@ -164,9 +167,6 @@ private slots:
 
     /// Connects the signals emitted by the web view to slots handled by the browser window
     void onNewTabCreated(WebView *view);
-
-    /// Called when the user wishes to view the certificate information (or lack thereof) for the current web page
-    void onClickSecurityInfo();
 
     /// Called when the user wants to view the source code of the current web page
     void onRequestViewSource();
@@ -179,9 +179,6 @@ private slots:
 
     /// Called when the user requests that the contents of the current browser tab be printed
     void printTabContents();
-
-    /// Called when the bookmark icon is clicked by the user
-    void onClickBookmarkIcon();
 
     /// Called when a link is hovered by the user
     void onLinkHovered(const QUrl &url);
@@ -234,21 +231,6 @@ private:
 
     /// List of web action proxies that bind menu bar actions to web page actions
     QList<WebActionProxy*> m_webActions;
-
-    /// Button to go to the previously visited page
-    QToolButton *m_prevPage;
-
-    /// Action to return to the next page after visiting a previous page
-    QToolButton *m_nextPage;
-
-    /// Action to either stop the loading progress of a page, or to refresh the loaded page
-    QAction *m_stopRefresh;
-
-    /// URL Input bar
-    URLLineEdit *m_urlInput;
-
-    /// Search engine line edit, located in the browser toolbar
-    SearchEngineLineEdit *m_searchEngineLineEdit;
 
     /// Preferences window
     Preferences *m_preferences;

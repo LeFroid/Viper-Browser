@@ -127,7 +127,8 @@ SOURCES += \
     Preferences/PrivacyTab.cpp \
     Preferences/ExemptThirdPartyCookieDialog.cpp \
     Web/URL.cpp \
-    Web/WebHitTestResult.cpp
+    Web/WebHitTestResult.cpp \
+    Window/NavigationToolBar.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -217,7 +218,8 @@ HEADERS += \
     Preferences/PrivacyTab.h \
     Preferences/ExemptThirdPartyCookieDialog.h \
     Web/URL.h \
-    Web/WebHitTestResult.h
+    Web/WebHitTestResult.h \
+    Window/NavigationToolBar.h
 
 FORMS += \
     Cookies/cookiewidget.ui \
