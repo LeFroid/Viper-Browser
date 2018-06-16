@@ -9,6 +9,7 @@
 #include <QWebEngineContextMenuData>
 
 class BrowserTabBar;
+class MainWindow;
 class QMenu;
 class WebView;
 
@@ -127,6 +128,9 @@ private:
 
     /// Global and relative positions of the requested context menu from the active web view
     QPoint m_contextMenuPosGlobal, m_contextMenuPosRelative;
+
+    /// Pointer to the window containing this widget
+    MainWindow *m_mainWindow;
 };
 
 #endif // BROWSERTABWIDGET_H

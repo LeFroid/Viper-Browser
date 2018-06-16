@@ -25,7 +25,8 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
     m_currentTabIndex(0),
     m_nextTabIndex(1),
     m_contextMenuPosGlobal(),
-    m_contextMenuPosRelative()
+    m_contextMenuPosRelative(),
+    m_mainWindow(qobject_cast<MainWindow*>(parent))
 {
     // Set tab bar
     setTabBar(m_tabBar);
@@ -85,36 +86,23 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
                 m_contextMenuPosGlobal = contextMenuEvent->globalPos();
                 m_contextMenuPosRelative = contextMenuEvent->pos();
                 QTimer::singleShot(10, this, &BrowserTabWidget::showContextMenuForView);
-                //currentWebView()->showContextMenu(contextMenuEvent);
                 return true;
             }
             break;
         }
         case QEvent::MouseMove:
         {
-            QObject *obj = parent();
-            while (obj->parent() != nullptr)
-                obj = obj->parent();
-            if (MainWindow *win = qobject_cast<MainWindow*>(obj))
-            {
-                if (win->isFullScreen())
-                    win->onMouseMoveFullscreen(static_cast<QMouseEvent*>(event)->y());
-            }
+            if (m_mainWindow && m_mainWindow->isFullScreen())
+                m_mainWindow->onMouseMoveFullscreen(static_cast<QMouseEvent*>(event)->y());
             break;
         }
         case QEvent::KeyPress:
         {
-            QObject *obj = parent();
-            while (obj->parent() != nullptr)
-                obj = obj->parent();
-            if (MainWindow *win = qobject_cast<MainWindow*>(obj))
+            if (m_mainWindow && m_mainWindow->isFullScreen())
             {
-                if (win->isFullScreen())
-                {
-                    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
-                    if (keyEvent->key() == Qt::Key_F11)
-                        win->onToggleFullScreen(false);
-                }
+                QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+                if (keyEvent->key() == Qt::Key_F11)
+                    m_mainWindow->onToggleFullScreen(false);
             }
             break;
         }
@@ -191,6 +179,7 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     connect(view, &WebView::openInNewTabRequest,    this, &BrowserTabWidget::openLinkInNewTab);
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(view, &WebView::viewCloseRequested,     this, &BrowserTabWidget::onViewCloseRequested);
+    connect(view, &WebView::fullScreenRequested, m_mainWindow, &MainWindow::onToggleFullScreen);
     connect(view, &WebView::loadProgress, [=](int progress){
         if (view == currentWebView())
             emit loadProgress(progress);
@@ -208,14 +197,6 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
         connect(view, &WebView::iconUrlChanged, [=](const QUrl &url) {
             sBrowserApplication->getFaviconStorage()->updateIcon(url.toString(QUrl::FullyEncoded), view->url().toString(), view->icon());
         });
-    }
-
-    QObject *obj = parent();
-    while (obj->parent() != nullptr)
-        obj = obj->parent();
-    if (MainWindow *win = qobject_cast<MainWindow*>(obj))
-    {
-        connect(view, &WebView::fullScreenRequested, win, &MainWindow::onToggleFullScreen);
     }
 
     m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
