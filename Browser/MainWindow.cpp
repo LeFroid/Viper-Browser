@@ -258,7 +258,7 @@ void MainWindow::setupStatusBar()
 {
     m_linkHoverLabel = new QLabel(this);
     ui->statusBar->addPermanentWidget(m_linkHoverLabel, 1);
-    ui->statusBar->hide();
+    //ui->statusBar->hide();
 }
 
 void MainWindow::checkPageForBookmark()
@@ -767,15 +767,5 @@ void MainWindow::dropEvent(QDropEvent *event)
 
 void MainWindow::onLinkHovered(const QUrl &url)
 {
-    // Hide if url is empty
-    if (url.isEmpty())
-    {
-        m_linkHoverLabel->setText(QString());
-        ui->statusBar->hide();
-    }
-    else
-    {
-        m_linkHoverLabel->setText(url.toString());
-        ui->statusBar->show();
-    }
+    m_linkHoverLabel->setText(url.toString());
 }
