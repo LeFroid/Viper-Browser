@@ -46,6 +46,9 @@ WebView::WebView(bool privateView, QWidget *parent) :
     // Setup link hover signal
     connect(m_page, &WebPage::linkHovered, this, &WebView::linkHovered);
 
+    // Emit a viewCloseRequested signal when the page emits windowCloseRequested
+    connect(m_page, &WebPage::windowCloseRequested, this, &WebView::viewCloseRequested);
+
     connect(this, &WebView::loadProgress, [=](int value){
        m_progress = value;
     });

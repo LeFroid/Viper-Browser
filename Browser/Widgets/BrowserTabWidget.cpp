@@ -148,11 +148,12 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
     }
 
     // Connect web view signals to functionalty
-    connect(view, &WebView::iconChanged, this, &BrowserTabWidget::onIconChanged);
-    connect(view, &WebView::loadFinished, this, &BrowserTabWidget::resetHistoryButtonMenus);
-    connect(view, &WebView::openRequest, this, &BrowserTabWidget::loadUrl);
-    connect(view, &WebView::openInNewTabRequest, this, &BrowserTabWidget::openLinkInNewTab);
+    connect(view, &WebView::iconChanged,            this, &BrowserTabWidget::onIconChanged);
+    connect(view, &WebView::loadFinished,           this, &BrowserTabWidget::resetHistoryButtonMenus);
+    connect(view, &WebView::openRequest,            this, &BrowserTabWidget::loadUrl);
+    connect(view, &WebView::openInNewTabRequest,    this, &BrowserTabWidget::openLinkInNewTab);
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
+    connect(view, &WebView::viewCloseRequested,     this, &BrowserTabWidget::onViewCloseRequested);
     connect(view, &WebView::loadProgress, [=](int progress){
         if (view == currentWebView())
             emit loadProgress(progress);
@@ -265,6 +266,12 @@ void BrowserTabWidget::onCurrentChanged(int index)
 
     emit loadProgress(view->getProgress());
     emit viewChanged(index);
+}
+
+void BrowserTabWidget::onViewCloseRequested()
+{
+    WebView *view = qobject_cast<WebView*>(sender());
+    closeTab(indexOf(view));
 }
 
 void BrowserTabWidget::resetHistoryButtonMenus(bool /*ok*/)

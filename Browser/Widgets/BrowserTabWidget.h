@@ -90,6 +90,9 @@ private slots:
     /// Called when the current tab has been changed
     void onCurrentChanged(int index);
 
+    /// Emitted when a view requests that it be closed
+    void onViewCloseRequested();
+
     /// Resets the items in the back and forward button menus, populating them with the current tab's history
     void resetHistoryButtonMenus(bool ok);
 

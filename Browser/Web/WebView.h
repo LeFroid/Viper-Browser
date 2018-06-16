@@ -90,6 +90,9 @@ signals:
     /// Emitted when a link is hovered over by the user
     void linkHovered(const QUrl &url);
 
+    /// Emitted when the view's page requests to be closed
+    void viewCloseRequested();
+
 private:
     /// Web page
     WebPage *m_page;
