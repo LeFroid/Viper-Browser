@@ -2,9 +2,10 @@
 #define SECURITYMANAGER_H
 
 #include <QHash>
-#include <QList>
 #include <QObject>
+#include <QSet>
 #include <QString>
+#include <QWebEngineCertificateError>
 
 class SecurityInfoDialog;
 class QNetworkReply;
@@ -30,6 +31,9 @@ public:
     /// Returns true if the given host is known to have an invalid certificate, false if else
     bool isInsecure(const QString &host);
 
+    /// Called by a \ref WebPage when the given certificate error has been encountered during a page load
+    bool onCertificateError(const QWebEngineCertificateError &certificateError);
+
 public slots:
     /// Shows a dialog containing the certificate information (or lack thereof) for a given host
     void showSecurityInfo(const QString &host);
@@ -44,7 +48,10 @@ private slots:
 
 private:
     /// List of known insecure hosts with invalid certificates
-    QList<QString> m_insecureHosts;
+    QSet<QString> m_insecureHosts;
+
+    /// Set of insecure hosts with user-specified exemptions allowing them to be loaded
+    QSet<QString> m_exemptInsecureHosts;
 
     /// Hash map of hosts using HTTPS protocol and their corresponding certificate chains
     QHash< QString, QList<QSslCertificate> > m_certChains;

@@ -44,7 +44,10 @@ protected:
     bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) override;
 
     /// Called when a JavaScript program attempts to print the given message to the browser console
-    void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId);
+    void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId) override;
+
+    /// Called when an invalid certificate error is raised while loading a given request. Returns true when ignoring the error, or false when the page will not be loaded.
+    bool certificateError(const QWebEngineCertificateError &certificateError) override;
 
 private slots:
     /// Called when the URL of the main frame has changed

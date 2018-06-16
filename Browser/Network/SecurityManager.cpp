@@ -12,6 +12,7 @@
 SecurityManager::SecurityManager(QObject *parent) :
     QObject(parent),
     m_insecureHosts(),
+    m_exemptInsecureHosts(),
     m_certChains(),
     m_securityDialog(nullptr)
 {
@@ -43,6 +44,31 @@ SecurityManager &SecurityManager::instance()
 bool SecurityManager::isInsecure(const QString &host)
 {
     return m_insecureHosts.contains(host);
+}
+
+bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certificateError)
+{
+    auto hostName = certificateError.url().host();
+
+    if (m_exemptInsecureHosts.contains(hostName))
+        return true;
+
+    m_insecureHosts.insert(hostName);
+
+    QString warning = tr("The website you are attempting to load is not secure.");
+    QString preface = tr("The following errors were found:");
+    QString option = tr("Do you wish to proceed?");
+
+    QString messageBoxText = QString("%1<p>%2</p><ul><li>%3</li></ul><p>%4</p>").arg(warning, preface, certificateError.errorDescription(), option);
+    QMessageBox::StandardButtons buttons = QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No);
+    int response = QMessageBox::question(nullptr, tr("Security Threat"), messageBoxText, buttons, QMessageBox::NoButton);
+    if (response == QMessageBox::Yes)
+    {
+        m_exemptInsecureHosts.insert(certificateError.url().host());
+        return true;
+    }
+
+    return false;
 }
 
 void SecurityManager::showSecurityInfo(const QString &host)
@@ -97,14 +123,14 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
         {
             qDebug() << "Adding host " << host << " (url " << reply->url() << " , scheme " << reply->url().scheme() << ") to insecure host list, "
                         "for SSL Error: " << errCode.errorString();
-            m_insecureHosts.append(host);
+            m_insecureHosts.insert(host);
             return;
         }
     }
 
     // remove from insecure list if this reply from same host contains no errors
     if (m_insecureHosts.contains(host))
-        m_insecureHosts.removeAll(host);
+        m_insecureHosts.remove(host);
 }
 
 void SecurityManager::onSSLErrors(QNetworkReply *reply, const QList<QSslError> &errors)
@@ -118,5 +144,5 @@ void SecurityManager::onSSLErrors(QNetworkReply *reply, const QList<QSslError> &
     int response = QMessageBox::question(nullptr, tr("Security Threat"), message, buttons, QMessageBox::NoButton);
     if (response == QMessageBox::Yes)
         reply->ignoreSslErrors(errors);
-    m_insecureHosts.append(reply->url().host());
+    m_insecureHosts.insert(reply->url().host());
 }
