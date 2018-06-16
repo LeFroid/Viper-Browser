@@ -94,7 +94,7 @@ QLineEdit *FindTextWidget::getLineEdit()
 
 void FindTextWidget::onFindNext()
 {
-    bool foundNext = false;
+    // Web view find text functionality
     if (m_view != nullptr)
     {
         auto flags = QFlags<QWebEnginePage::FindFlag>();
@@ -102,36 +102,40 @@ void FindTextWidget::onFindNext()
         if (m_matchCase)
             flags |= QWebEnginePage::FindCaseSensitively;
 
-        m_view->findText(ui->lineEdit->text(), flags, [=](bool result){
-            if (!result)
+        m_view->findText(ui->lineEdit->text(), flags, [=](bool result) {
+            const bool isEmptySearch = ui->lineEdit->text().isEmpty();
+            if (!result || isEmptySearch)
             {
-                if (m_searchTerm.isNull() || ui->lineEdit->text().isNull())
+                if (isEmptySearch)
                     ui->labelMatches->setText(QString());
                 else
-                    ui->labelMatches->setText(QString("Phrase not found"));
+                    ui->labelMatches->setText(tr("Phrase not found"));
             }
             else
                 setMatchCountLabel(true);
         });
+
         return;
     }
-    else if (m_editor != nullptr)
-        foundNext = findInEditor(true);
 
-    if (foundNext)
-        setMatchCountLabel(true);
-    else
+    // Editor find text functionality
+    if (m_editor != nullptr)
     {
-        if (m_searchTerm.isNull())
-            ui->labelMatches->setText(QString());
+        if (findInEditor(true))
+            setMatchCountLabel(true);
         else
-            ui->labelMatches->setText(QString("Phrase not found"));
+        {
+            if (ui->lineEdit->text().isEmpty())
+                ui->labelMatches->setText(QString());
+            else
+                ui->labelMatches->setText(tr("Phrase not found"));
+        }
     }
 }
 
 void FindTextWidget::onFindPrev()
 {
-    bool foundPrev = false;
+    // Web view find text functionality
     if (m_view != nullptr)
     {
         QFlags<QWebEnginePage::FindFlag> flags = QWebEnginePage::FindBackward;
@@ -139,30 +143,33 @@ void FindTextWidget::onFindPrev()
         if (m_matchCase)
             flags |= QWebEnginePage::FindCaseSensitively;
 
-        m_view->findText(ui->lineEdit->text(), flags, [=](bool result){
-            if (!result)
+        m_view->findText(ui->lineEdit->text(), flags, [=](bool result) {
+            const bool isEmptySearch = ui->lineEdit->text().isEmpty();
+            if (!result || isEmptySearch)
             {
-                if (m_searchTerm.isNull() || ui->lineEdit->text().isNull())
+                if (isEmptySearch)
                     ui->labelMatches->setText(QString());
                 else
-                    ui->labelMatches->setText(QString("Phrase not found"));
+                    ui->labelMatches->setText(tr("Phrase not found"));
             }
             else
                 setMatchCountLabel(false);
         });
+
         return;
     }
-    else if (m_editor != nullptr)
-        foundPrev = findInEditor(false);
 
-    if (foundPrev)
-        setMatchCountLabel(false);
-    else
+    if (m_editor != nullptr)
     {
-        if (m_searchTerm.isNull())
-            ui->labelMatches->setText(QString());
+        if (findInEditor(false))
+            setMatchCountLabel(false);
         else
-            ui->labelMatches->setText(QString("Phrase not found"));
+        {
+            if (ui->lineEdit->text().isNull())
+                ui->labelMatches->setText(QString());
+            else
+                ui->labelMatches->setText(tr("Phrase not found"));
+        }
     }
 }
 
@@ -268,6 +275,7 @@ void FindTextWidget::setMatchCountLabel(bool searchForNext)
     if (term.isNull() || term.isEmpty())
     {
         m_searchTerm.clear();
+        ui->labelMatches->setText(QString());
         return;
     }
 
