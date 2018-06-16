@@ -43,6 +43,8 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
         if (WebView *view = getWebView(index))
             view->reload();
     });
+
+    QCoreApplication::instance()->installEventFilter(this);
 }
 
 WebView *BrowserTabWidget::currentWebView() const
@@ -59,27 +61,62 @@ WebView *BrowserTabWidget::getWebView(int tabIndex) const
 
 bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
 {
-    WebView *view = qobject_cast<WebView*>(watched);
+    /*WebView *view = qobject_cast<WebView*>(watched);
     if (!view)
-        return QTabWidget::eventFilter(watched, event);
+        return QTabWidget::eventFilter(watched, event);*/
 
     switch (event->type())
     {
         case QEvent::ChildAdded:
         {
-            QChildEvent *childAddedEvent = static_cast<QChildEvent*>(event);
-            if (QObject *child = childAddedEvent->child())
-                child->installEventFilter(this);
+            if (qobject_cast<WebView*>(watched) != 0)
+            {
+                QChildEvent *childAddedEvent = static_cast<QChildEvent*>(event);
+                if (QObject *child = childAddedEvent->child())
+                    child->installEventFilter(this);
+            }
             break;
         }
         case QEvent::ContextMenu:
         {
-            QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
-            m_contextMenuPosGlobal = contextMenuEvent->globalPos();
-            m_contextMenuPosRelative = contextMenuEvent->pos();
-            QTimer::singleShot(10, this, &BrowserTabWidget::showContextMenuForView);
-            //currentWebView()->showContextMenu(contextMenuEvent);
-            return true;
+            if (qobject_cast<WebView*>(watched) != 0)
+            {
+                QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
+                m_contextMenuPosGlobal = contextMenuEvent->globalPos();
+                m_contextMenuPosRelative = contextMenuEvent->pos();
+                QTimer::singleShot(10, this, &BrowserTabWidget::showContextMenuForView);
+                //currentWebView()->showContextMenu(contextMenuEvent);
+                return true;
+            }
+            break;
+        }
+        case QEvent::MouseMove:
+        {
+            QObject *obj = parent();
+            while (obj->parent() != nullptr)
+                obj = obj->parent();
+            if (MainWindow *win = qobject_cast<MainWindow*>(obj))
+            {
+                if (win->isFullScreen())
+                    win->onMouseMoveFullscreen(static_cast<QMouseEvent*>(event)->y());
+            }
+            break;
+        }
+        case QEvent::KeyPress:
+        {
+            QObject *obj = parent();
+            while (obj->parent() != nullptr)
+                obj = obj->parent();
+            if (MainWindow *win = qobject_cast<MainWindow*>(obj))
+            {
+                if (win->isFullScreen())
+                {
+                    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+                    if (keyEvent->key() == Qt::Key_F11)
+                        win->onToggleFullScreen(false);
+                }
+            }
+            break;
         }
         default:
             break;
@@ -171,6 +208,14 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
         connect(view, &WebView::iconUrlChanged, [=](const QUrl &url) {
             sBrowserApplication->getFaviconStorage()->updateIcon(url.toString(QUrl::FullyEncoded), view->url().toString(), view->icon());
         });
+    }
+
+    QObject *obj = parent();
+    while (obj->parent() != nullptr)
+        obj = obj->parent();
+    if (MainWindow *win = qobject_cast<MainWindow*>(obj))
+    {
+        connect(view, &WebView::fullScreenRequested, win, &MainWindow::onToggleFullScreen);
     }
 
     m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
@@ -325,4 +370,3 @@ void BrowserTabWidget::resetHistoryButtonMenus(bool /*ok*/)
         prevAction = histAction;
     }
 }
-

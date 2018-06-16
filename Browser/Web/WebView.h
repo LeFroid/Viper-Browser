@@ -2,6 +2,7 @@
 #define WEBVIEW_H
 
 #include <QWebEngineContextMenuData>
+#include <QWebEngineFullScreenRequest>
 #include <QWebEngineView>
 
 class WebPage;
@@ -53,6 +54,10 @@ public slots:
     /// Displays the context menu at the given position
     void showContextMenu(const QPoint &globalPos, const QPoint &relativePos);
 
+private slots:
+    /// Called when the page has requested fullscreen mode
+    void onFullScreenRequested(QWebEngineFullScreenRequest request);
+
 protected:
     /// Event handler for context menu displays
     virtual void contextMenuEvent(QContextMenuEvent *event) override;
@@ -92,6 +97,9 @@ signals:
 
     /// Emitted when the view's page requests to be closed
     void viewCloseRequested();
+
+    /// Emitted when the page of the view has requested full screen to be enabled if on is true, or disabled if on is false
+    void fullScreenRequested(bool on);
 
 private:
     /// Web page

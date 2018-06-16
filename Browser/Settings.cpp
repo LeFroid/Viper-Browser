@@ -46,6 +46,7 @@ bool Settings::firstRun() const
 void Settings::applyWebSettings()
 {
     QWebEngineSettings *settings = QWebEngineSettings::defaultSettings();
+    settings->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
     settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QLatin1String("EnableJavascript"), true).toBool());
     settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QLatin1String("EnableJavascriptPopups"), false).toBool());
     settings->setAttribute(QWebEngineSettings::AutoLoadImages,           m_settings.value(QLatin1String("AutoLoadImages"), true).toBool());

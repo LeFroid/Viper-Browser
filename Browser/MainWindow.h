@@ -39,6 +39,7 @@ class WebView;
 class MainWindow : public QMainWindow
 {
     friend class BrowserTabBar;
+    friend class BrowserTabWidget;
     friend class NavigationToolBar;
     friend class SessionManager;
     friend class URLLineEdit;
@@ -143,6 +144,15 @@ protected slots:
     /// Called when the user wishes to view the certificate information (or lack thereof) for the current web page
     void onClickSecurityInfo();
 
+    /**
+     * @brief onToggleFullScreen Toggles the full screen view mode of the browser window
+     * @param enable If true, will activate the full screen view. Otherwise, will return to normal view mode
+     */
+    void onToggleFullScreen(bool enable);
+
+    /// Handles the mouse move event when in fullscreen mode
+    void onMouseMoveFullscreen(int y);
+
 private slots:
     /// Launches the ad block manager UI
     void openAdBlockManager();
@@ -170,12 +180,6 @@ private slots:
 
     /// Called when the user wants to view the source code of the current web page
     void onRequestViewSource();
-
-    /**
-     * @brief onToggleFullScreen Toggles the full screen view mode of the browser window
-     * @param enable If true, will activate the full screen view. Otherwise, will return to normal view mode
-     */
-    void onToggleFullScreen(bool enable);
 
     /// Called when the user requests that the contents of the current browser tab be printed
     void printTabContents();

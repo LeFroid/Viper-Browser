@@ -38,6 +38,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QMouseEvent>
 #include <QPrinter>
 #include <QPrintPreviewDialog>
 #include <QPushButton>
@@ -648,7 +649,13 @@ void MainWindow::onRequestViewSource()
 void MainWindow::onToggleFullScreen(bool enable)
 {
     if (enable)
+    {
         showFullScreen();
+        ui->menuBar->hide();
+        ui->toolBar->hide();
+        ui->statusBar->hide();
+        m_tabWidget->tabBar()->hide();
+    }
     else
     {
         auto state = windowState();
@@ -658,6 +665,31 @@ void MainWindow::onToggleFullScreen(bool enable)
             showMaximized();
         else
             showNormal();
+
+        ui->menuBar->show();
+        ui->toolBar->show();
+        m_tabWidget->tabBar()->show();
+        ui->statusBar->show();
+    }
+}
+
+void MainWindow::onMouseMoveFullscreen(int y)
+{
+    const bool isToolBarHidden = ui->toolBar->isHidden();
+    if (y <= 5 && isToolBarHidden)
+    {
+        ui->menuBar->show();
+        ui->toolBar->show();
+        m_tabWidget->tabBar()->show();
+    }
+    else if (!isToolBarHidden)
+    {
+        if (y > ui->toolBar->pos().y() + ui->toolBar->height() + m_tabWidget->tabBar()->height() + 10)
+        {
+            ui->menuBar->hide();
+            ui->toolBar->hide();
+            m_tabWidget->tabBar()->hide();
+        }
     }
 }
 

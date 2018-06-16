@@ -49,6 +49,9 @@ WebView::WebView(bool privateView, QWidget *parent) :
     // Emit a viewCloseRequested signal when the page emits windowCloseRequested
     connect(m_page, &WebPage::windowCloseRequested, this, &WebView::viewCloseRequested);
 
+    // Handle full screen requests
+    connect(m_page, &WebPage::fullScreenRequested, this, &WebView::onFullScreenRequested);
+
     connect(this, &WebView::loadProgress, [=](int value){
        m_progress = value;
     });
@@ -254,6 +257,12 @@ void WebView::contextMenuEvent(QContextMenuEvent */*event*/)
 {
 }
 
+void WebView::onFullScreenRequested(QWebEngineFullScreenRequest request)
+{
+    emit fullScreenRequested(request.toggleOn());
+    request.accept();
+}
+
 void WebView::wheelEvent(QWheelEvent *event)
 {
     auto keyModifiers = QApplication::keyboardModifiers();
@@ -335,3 +344,4 @@ void WebView::dropEvent(QDropEvent *event)
 
     QWebEngineView::dropEvent(event);
 }
+
