@@ -199,9 +199,6 @@ protected:
     /// Returns a pointer to the tab widget. Used by \ref SessionManager to save the browsing session
     BrowserTabWidget *getTabWidget() const;
 
-    /// Returns the height of the toolbar. Used by \ref URLLineEdit for its size hint
-    int getToolbarHeight() const;
-
     /// Called when the window is being closed
     void closeEvent(QCloseEvent *event) override;
 

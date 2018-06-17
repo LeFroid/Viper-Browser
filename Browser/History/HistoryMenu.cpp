@@ -30,28 +30,38 @@ void HistoryMenu::addHistoryItem(const QUrl &url, const QString &title, const QI
 {
     QList<QAction*> menuActions = actions();
 
-    QAction *beforeItem = nullptr;
+    /*QAction *beforeItem = nullptr;
     if (menuActions.size() > 3)
-        beforeItem = menuActions[3];
+        beforeItem = menuActions[3];*/
 
-    QAction *historyItem = new QAction(title, parentWidget());
+    QAction *historyItem = new QAction(title);
     historyItem->setIcon(favicon);
     connect(historyItem, &QAction::triggered, [=](){
         emit loadUrl(url);
     });
 
-    if (beforeItem)
-        insertAction(beforeItem, historyItem);
-    else
-        addAction(historyItem);
+    addAction(historyItem);
 
-    int menuSize = menuActions.size();
-    while (menuSize > 17)
-    {
-        QAction *actionToRemove = menuActions[menuSize - 1];
-        removeAction(actionToRemove);
-        --menuSize;
-    }
+    clearOldestEntries();
+}
+
+void HistoryMenu::prependHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon)
+{
+    QList<QAction*> menuActions = actions();
+
+    QAction *beforeItem = nullptr;
+    if (menuActions.size() > 3)
+        beforeItem = menuActions[3];
+
+    QAction *historyItem = new QAction(title);
+    historyItem->setIcon(favicon);
+    connect(historyItem, &QAction::triggered, [=](){
+        emit loadUrl(url);
+    });
+
+    insertAction(beforeItem, historyItem);
+
+    clearOldestEntries();
 }
 
 void HistoryMenu::clearItems()
@@ -64,6 +74,7 @@ void HistoryMenu::clearItems()
     {
         QAction *currItem = menuActions.at(i);
         removeAction(currItem);
+        delete currItem;
     }
 }
 
@@ -84,7 +95,7 @@ void HistoryMenu::onPageVisited(const QString &url, const QString &title)
 {
     QUrl itemUrl(url);
     QIcon favicon = sBrowserApplication->getFaviconStorage()->getFavicon(itemUrl);
-    addHistoryItem(itemUrl, title, favicon);
+    prependHistoryItem(itemUrl, title, favicon);
 }
 
 void HistoryMenu::setup()
@@ -102,4 +113,18 @@ void HistoryMenu::setup()
     addSeparator();
 
     resetItems();
+}
+
+void HistoryMenu::clearOldestEntries()
+{
+    QList<QAction*> menuActions = actions();
+
+    int menuSize = menuActions.size();
+    while (menuSize > 17)
+    {
+        QAction *actionToRemove = menuActions[menuSize - 1];
+        removeAction(actionToRemove);
+        delete actionToRemove;
+        --menuSize;
+    }
 }

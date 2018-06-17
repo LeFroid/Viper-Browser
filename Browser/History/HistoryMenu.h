@@ -28,6 +28,9 @@ public:
     /// Adds an item to the history menu, given a name, title and favicon
     void addHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon);
 
+    /// Adds an item to the top of the history menu, given a name, title and favicon
+    void prependHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon);
+
     /// Clears the history entries from the menu
     void clearItems();
 
@@ -46,6 +49,9 @@ private:
     /// Binds the pageVisited signal from the \ref HistoryManager to a slot that adds the
     /// page to the top of the history menu. Also binds the reset menu signal to the reset items slot
     void setup();
+
+    /// Clears any entries at the bottom of the history menu, if
+    void clearOldestEntries();
 
 protected:
     /// "Show all history" menu action
