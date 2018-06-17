@@ -660,13 +660,7 @@ void MainWindow::onToggleFullScreen(bool enable)
     }
     else
     {
-        auto state = windowState();
-        if (state & Qt::WindowMinimized)
-            showMinimized();
-        else if (state & Qt::WindowMaximized)
-            showMaximized();
-        else
-            showNormal();
+        showMaximized();
 
         ui->menuBar->show();
         ui->toolBar->show();
