@@ -263,15 +263,48 @@ QString AdBlockManager::getDomainJavaScript(const URL &url) const
     if (!m_enabled)
         return QString();
 
+    static QString cspScript = QString("(function() {\n"
+                                       "var doc = document;\n"
+                                       "if (doc.head === null) { return; }\n"
+                                       "var meta = doc.createElement('meta');\n"
+                                       "meta.setAttribute('http-equiv', 'Content-Security-Policy');\n"
+                                       "meta.setAttribute('content', \"script-src 'unsafe-eval' * blob: data:\");\n"
+                                       "doc.head.appendChild(meta);\n"
+                                   "})();");
+    bool usedCspScript = false;
+
     QString domain = url.getSecondLevelDomain();
     if (domain.isEmpty())
         domain = url.host().toLower();
+
+    QString requestUrl = url.toString(QUrl::FullyEncoded).toLower();
 
     QString javascript;
     for (AdBlockFilter *filter : m_domainJSFilters)
     {
         if (filter->isDomainStyleMatch(domain))
             javascript.append(filter->getEvalString());
+    }
+    for (AdBlockFilter *filter : m_blockFilters)
+    {
+        if (filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript) &&filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript))
+        {
+            javascript.append(cspScript);
+            usedCspScript = true;
+            break;
+        }
+    }
+    for (AdBlockFilter *filter : m_importantBlockFilters)
+    {
+        if (usedCspScript)
+            break;
+
+        if (filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript) && filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript))
+        {
+            javascript.append(cspScript);
+            usedCspScript = true;
+            break;
+        }
     }
     if (!javascript.isEmpty())
     {

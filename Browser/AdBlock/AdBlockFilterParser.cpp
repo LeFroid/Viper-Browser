@@ -16,7 +16,8 @@ QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("generichide"), ElementType::GenericHide },       { QStringLiteral("genericblock"), ElementType::GenericBlock },
     { QStringLiteral("popup"), ElementType::PopUp },                   { QStringLiteral("third-party"), ElementType::ThirdParty},
     { QStringLiteral("match-case"), ElementType::MatchCase },          { QStringLiteral("collapse"), ElementType::Collapse },
-    { QStringLiteral("badfilter"), ElementType::BadFilter },           { QStringLiteral("other"), ElementType::Other }
+    { QStringLiteral("badfilter"), ElementType::BadFilter },           { QStringLiteral("inline-script"), ElementType::InlineScript },
+    { QStringLiteral("other"), ElementType::Other }
 };
 
 std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) const

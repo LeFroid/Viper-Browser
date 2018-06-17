@@ -160,6 +160,10 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
     if (m_disabled)
         return false;
 
+    // Don't process the filter if the AdBlockManager is only looking for one specific type
+    if (typeMask == ElementType::InlineScript && !hasElementType(m_blockedTypes, ElementType::InlineScript))
+        return false;
+
     bool match = m_matchAll;
 
     if (!match)
@@ -210,6 +214,9 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
         std::array<ElementType, 8> elemTypes = {{ ElementType::XMLHTTPRequest, ElementType::Document,   ElementType::Object,
                                                  ElementType::Subdocument,    ElementType::ThirdParty, ElementType::Image,
                                                  ElementType::Script,         ElementType::WebSocket }};
+
+        if (hasElementType(m_blockedTypes, ElementType::InlineScript) && !hasElementType(typeMask, ElementType::InlineScript))
+            match = false;
 
         for (std::size_t i = 0; i < elemTypes.size(); ++i)
         {

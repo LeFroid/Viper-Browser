@@ -34,7 +34,8 @@ enum class ElementType : uint32_t
     Collapse         = 0x00020000,
     BadFilter        = 0x00040000,
     CSP              = 0x00080000,
-    Other            = 0x00100000
+    InlineScript     = 0x00100000,
+    Other            = 0x00200000
 };
 
 template<>
