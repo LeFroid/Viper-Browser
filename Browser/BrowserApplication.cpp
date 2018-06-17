@@ -72,6 +72,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_downloadMgr = new DownloadManager;
     m_downloadMgr->setDownloadDir(m_settings->getValue(QLatin1String("DownloadDir")).toString());
     connect(webProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
+    connect(m_privateProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
 
     // Instantiate the history manager
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QLatin1String("HistoryPath")));
