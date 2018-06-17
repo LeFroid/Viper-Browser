@@ -145,7 +145,9 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
 
 void BrowserTabBar::dragEnterEvent(QDragEnterEvent *event)
 {
-    if (event->mimeData()->hasFormat("application/x-browser-tab"))
+    const QMimeData *mimeData = event->mimeData();
+
+    if (mimeData->hasUrls() || mimeData->hasFormat("application/x-browser-tab"))
     {
         event->acceptProposedAction();
         return;
@@ -156,7 +158,25 @@ void BrowserTabBar::dragEnterEvent(QDragEnterEvent *event)
 
 void BrowserTabBar::dropEvent(QDropEvent *event)
 {
-    if (event->mimeData()->hasFormat("application/x-browser-tab"))
+    //BrowserTabWidget
+    const QMimeData *mimeData = event->mimeData();
+
+    if (mimeData->hasUrls())
+    {
+        BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+        if (!tabWidget)
+            return;
+
+        QList<QUrl> urls = mimeData->urls();
+        for (const auto &url : urls)
+        {
+            tabWidget->openLinkInNewTab(url);
+        }
+
+        event->acceptProposedAction();
+        return;
+    }
+    else if (mimeData->hasFormat("application/x-browser-tab"))
     {
         qobject_cast<MainWindow*>(window())->dropEvent(event);
         return;

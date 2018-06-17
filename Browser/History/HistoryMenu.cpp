@@ -28,12 +28,6 @@ HistoryMenu::~HistoryMenu()
 
 void HistoryMenu::addHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon)
 {
-    QList<QAction*> menuActions = actions();
-
-    /*QAction *beforeItem = nullptr;
-    if (menuActions.size() > 3)
-        beforeItem = menuActions[3];*/
-
     QAction *historyItem = new QAction(title);
     historyItem->setIcon(favicon);
     connect(historyItem, &QAction::triggered, [=](){
