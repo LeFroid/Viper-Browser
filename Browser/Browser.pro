@@ -41,7 +41,8 @@ INCLUDEPATH += \
     $$PWD/UserAgents \
     $$PWD/UserScripts \
     $$PWD/Web \
-    $$PWD/Widgets
+    $$PWD/Widgets \
+    $$PWD/Window
 
 SOURCES += \
     main.cpp \
@@ -87,14 +88,14 @@ SOURCES += \
     Preferences/SearchTab.cpp \
     Preferences/AddSearchEngineDialog.cpp \
     Widgets/BookmarkBar.cpp \
-    Widgets/BrowserTabWidget.cpp \
+    Window/BrowserTabWidget.cpp \
     Widgets/FileChooserLineEdit.cpp \
-    Widgets/SearchEngineLineEdit.cpp \
-    Widgets/URLLineEdit.cpp \
+    Window/SearchEngineLineEdit.cpp \
+    Window/URLLineEdit.cpp \
     Network/CertificateGeneralTab.cpp \
     Preferences/ContentTab.cpp \
     Highlighters/HTMLHighlighter.cpp \
-    Widgets/BrowserTabBar.cpp \
+    Window/BrowserTabBar.cpp \
     Bookmarks/BookmarkNode.cpp \
     UserAgents/UserAgentsWindow.cpp \
     SessionManager.cpp \
@@ -177,14 +178,14 @@ HEADERS += \
     Preferences/SearchTab.h \
     Preferences/AddSearchEngineDialog.h \
     Widgets/BookmarkBar.h \
-    Widgets/BrowserTabWidget.h \
+    Window/BrowserTabWidget.h \
     Widgets/FileChooserLineEdit.h \
-    Widgets/SearchEngineLineEdit.h \
-    Widgets/URLLineEdit.h \
+    Window/SearchEngineLineEdit.h \
+    Window/URLLineEdit.h \
     Network/CertificateGeneralTab.h \
     Preferences/ContentTab.h \
     Highlighters/HTMLHighlighter.h \
-    Widgets/BrowserTabBar.h \
+    Window/BrowserTabBar.h \
     Bookmarks/BookmarkNode.h \
     UserAgents/UserAgentsWindow.h \
     SessionManager.h \
