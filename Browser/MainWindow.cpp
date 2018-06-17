@@ -80,10 +80,10 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");
 
+    setupStatusBar();
     setupTabWidget();
     setupBookmarks();
     setupMenuBar();
-    setupStatusBar();
 
     ui->dockWidget->hide();
     ui->widgetFindText->hide();
@@ -249,7 +249,12 @@ void MainWindow::setupTabWidget()
 
     // Some singals emitted by WebViews (which are managed largely by the tab widget) must be dealt with in the MainWindow
     connect(m_tabWidget, &BrowserTabWidget::newTabCreated, this, &MainWindow::onNewTabCreated);
-
+    connect(m_tabWidget, &BrowserTabWidget::loadProgress, [=](int progress) {
+        if (progress > 0 && progress < 100)
+            m_linkHoverLabel->setText(QString("%1% loaded...").arg(progress));
+        else
+            m_linkHoverLabel->setText(QString());
+    });
     ui->toolBar->bindWithTabWidget();
 
     // Add first tab
