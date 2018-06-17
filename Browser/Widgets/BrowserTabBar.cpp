@@ -254,7 +254,7 @@ void BrowserTabBar::paintEvent(QPaintEvent *event)
 
     if (m_externalDropInfo.NearestTabIndex >= 0)
     {
-        QStylePainter p(this);
+        QPainter p(this);
 
         const QRect r = tabRect(m_externalDropInfo.NearestTabIndex);
         QPoint indicatorPos(0, r.center().y());
@@ -275,7 +275,7 @@ void BrowserTabBar::paintEvent(QPaintEvent *event)
             {
                 indicatorPos.setX(r.right());
                 if (r.right() + 8 >= m_buttonNewTab->pos().x())
-                    indicatorPos.setX(r.right() - 6);
+                    indicatorPos.setX(r.right() - 5);
                 break;
             }
         }
@@ -283,12 +283,17 @@ void BrowserTabBar::paintEvent(QPaintEvent *event)
         p.setPen(QColor(Qt::black));
         p.setBrush(QBrush(QColor(Qt::white)));
 
+        int cx = indicatorPos.x(), cy = indicatorPos.y() - 4;
+        p.drawRect(cx - 4, cy - 8, 8, 4);
+
         QPainterPath path;
-        path.moveTo(indicatorPos.x(), indicatorPos.y());
-        path.lineTo(std::max(0, indicatorPos.x() - 8), indicatorPos.y() - 8);
-        path.lineTo(indicatorPos.x() + 8, indicatorPos.y() - 8);
-        path.lineTo(indicatorPos.x(), indicatorPos.y());
+        path.moveTo(cx, indicatorPos.y());
+        path.lineTo(std::max(0, cx - 8), cy - 4);
+        path.lineTo(cx + 8, cy - 4);
+        path.lineTo(cx, cy + 4);
         p.drawPath(path);
+
+        p.fillRect(cx - 3, cy - 5, 7, 2, QBrush(QColor(Qt::white)));
     }
 }
 
