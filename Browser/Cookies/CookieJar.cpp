@@ -86,11 +86,10 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
         m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) {
             if (request.thirdParty && m_enableCookies)
             {
-                URL originUrl(request.origin);
-                const QString originDomain = originUrl.getSecondLevelDomain();
+                const QString originHost = request.origin.host();
                 for (auto &url : m_exemptParties)
                 {
-                    if (url.getSecondLevelDomain() == originDomain)
+                    if (url.host() == originHost)
                         return true;
                 }
                 return false;
@@ -149,10 +148,16 @@ void CookieJar::saveExemptThirdParties()
 
     for (const auto &url : m_exemptParties)
     {
-        QString host = url.getSecondLevelDomain();
+        QString scheme = url.scheme();
+        if (scheme.isEmpty())
+            scheme = QString("https");
+
+        QString host = url.host();
         if (host.isEmpty())
             host = url.toString(URL::EncodeUnicode);
-        out << host << '\n';
+
+        QString output = QString("%1://%2").arg(scheme).arg(host);
+        out << output << '\n';
     }
     out.flush();
     exemptFile.close();
