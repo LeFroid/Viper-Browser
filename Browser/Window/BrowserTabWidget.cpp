@@ -62,16 +62,15 @@ WebView *BrowserTabWidget::getWebView(int tabIndex) const
 
 bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
 {
-    /*WebView *view = qobject_cast<WebView*>(watched);
-    if (!view)
-        return QTabWidget::eventFilter(watched, event);*/
-
     switch (event->type())
     {
         case QEvent::ChildAdded:
         {
-            if (qobject_cast<WebView*>(watched) != 0)
+            if (WebView *view = qobject_cast<WebView*>(watched))
             {
+                if (qobject_cast<MainWindow*>(view->window()) != m_mainWindow)
+                    return false;
+
                 QChildEvent *childAddedEvent = static_cast<QChildEvent*>(event);
                 if (QObject *child = childAddedEvent->child())
                     child->installEventFilter(this);
@@ -80,8 +79,11 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
         }
         case QEvent::ContextMenu:
         {
-            if (qobject_cast<WebView*>(watched) != 0)
+            if (WebView *view = qobject_cast<WebView*>(watched))
             {
+                if (qobject_cast<MainWindow*>(view->window()) != m_mainWindow)
+                    return false;
+
                 QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
                 m_contextMenuPosGlobal = contextMenuEvent->globalPos();
                 m_contextMenuPosRelative = contextMenuEvent->pos();

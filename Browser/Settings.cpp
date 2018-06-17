@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
+#include <QtWebEngineCoreVersion>
 
 Settings::Settings() :
     m_firstRun(false),
@@ -65,6 +66,11 @@ void Settings::applyWebSettings()
 
     settings->setFontSize(QWebEngineSettings::DefaultFontSize,      m_settings.value(QLatin1String("StandardFontSize")).toInt());
     settings->setFontSize(QWebEngineSettings::DefaultFixedFontSize, m_settings.value(QLatin1String("FixedFontSize")).toInt());
+
+//#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    // can cause issues on some websites, will keep disabled until a fix is found
+    //settings->setAttribute(QWebEngineSettings::PlaybackRequiresUserGesture, true);
+//#endif
 
     HistoryStoragePolicy historyPolicy = static_cast<HistoryStoragePolicy>(m_settings.value(QLatin1String("HistoryStoragePolicy")).toInt());
     sBrowserApplication->getHistoryManager()->setStoragePolicy(historyPolicy);
