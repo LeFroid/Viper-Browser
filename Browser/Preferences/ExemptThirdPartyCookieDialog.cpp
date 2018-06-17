@@ -44,7 +44,7 @@ void ExemptThirdPartyCookieDialog::loadHosts()
 
 void ExemptThirdPartyCookieDialog::onAddHostButtonClicked()
 {
-    QUrl websiteUrl(ui->lineEditHost->text(), QUrl::TolerantMode);
+    QUrl websiteUrl = QUrl::fromUserInput(ui->lineEditHost->text());
     if (websiteUrl.isEmpty() || !websiteUrl.isValid())
         return;
 
