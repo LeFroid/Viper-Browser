@@ -53,6 +53,9 @@ public:
     explicit BrowserTabBar(QWidget *parent = nullptr);
 
 signals:
+    /// Emitted when the user chooses to duplicate the tab at the given index
+    void duplicateTabRequest(int index);
+
     /// Emitted when the "New Tab" button is activated
     void newTabRequest();
 

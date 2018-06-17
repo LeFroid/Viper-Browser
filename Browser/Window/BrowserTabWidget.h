@@ -58,6 +58,9 @@ public slots:
     /// Called when a tab is to be closed
     void closeTab(int index = -1);
 
+    /// Creates a new duplicate of the tab at the given index
+    void duplicateTab(int index);
+
     /**
      * @brief Creates a new tab, assigning a WebView as its associated widget.
      * @param makeCurrent If true, the TabWidget's active tab will be switched to this new tab

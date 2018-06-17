@@ -1,6 +1,7 @@
 #include "BrowserTabBar.h"
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
+#include "WebPage.h"
 #include "WebView.h"
 
 #include <QApplication>
@@ -68,21 +69,41 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     QMenu menu(this);
 
     // Add "New Tab" menu item, shown on every context menu request
-    menu.addAction(tr("New Tab"), this, &BrowserTabBar::newTabRequest);
-
+    menu.addAction(tr("New tab"), this, &BrowserTabBar::newTabRequest);
     // Check if the user right-clicked on a tab, or just some position on the tab bar
     int tabIndex = tabAt(pos);
-    if (tabIndex >= 0)
+    if (tabIndex < 0)
     {
-        menu.addSeparator();
-        menu.addAction(tr("Close Tab"), [=](){
-            removeTab(tabIndex);
-        });
-        menu.addSeparator();
-        menu.addAction(tr("Reload"), [=]() {
-            emit reloadTabRequest(tabIndex);
-        });
+        menu.exec(mapToGlobal(pos));
+        return;
     }
+
+    menu.addSeparator();
+    menu.addAction(tr("Reload"), [=]() {
+        emit reloadTabRequest(tabIndex);
+    });
+    menu.addAction(tr("Duplicate tab"), [=]() {
+        emit duplicateTabRequest(tabIndex);
+    });
+
+    if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
+    {
+        if (WebView *view = tabWidget->getWebView(tabIndex))
+        {
+            WebPage *page = qobject_cast<WebPage*>(view->page());
+            const bool isTabMuted = page->isAudioMuted();
+
+            const QString muteActionText = isTabMuted ? tr("Unmute tab") : tr("Mute tab");
+            menu.addAction(muteActionText, [=]() {
+                page->setAudioMuted(!isTabMuted);
+            });
+        }
+    }
+
+    menu.addSeparator();
+    menu.addAction(tr("Close tab"), [=]() {
+        removeTab(tabIndex);
+    });
 
     menu.exec(mapToGlobal(pos));
 }

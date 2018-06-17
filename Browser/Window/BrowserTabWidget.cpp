@@ -39,6 +39,7 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
     connect(this, &BrowserTabWidget::tabCloseRequested, this, &BrowserTabWidget::closeTab);
     connect(this, &BrowserTabWidget::currentChanged, this, &BrowserTabWidget::onCurrentChanged);
 
+    connect(m_tabBar, &BrowserTabBar::duplicateTabRequest, this, &BrowserTabWidget::duplicateTab);
     connect(m_tabBar, &BrowserTabBar::newTabRequest, [=](){ newTab(); });
     connect(m_tabBar, &BrowserTabBar::reloadTabRequest, [=](int index){
         if (WebView *view = getWebView(index))
@@ -151,6 +152,12 @@ void BrowserTabWidget::closeTab(int index)
     }
 
     removeTab(index);
+}
+
+void BrowserTabWidget::duplicateTab(int index)
+{
+    if (WebView *view = getWebView(index))
+        openLinkInNewTab(view->url(), false);
 }
 
 WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int specificIndex)
