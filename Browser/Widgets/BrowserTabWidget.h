@@ -58,10 +58,14 @@ public slots:
     /// Called when a tab is to be closed
     void closeTab(int index = -1);
 
-    /// Creates a new tab, returning its pointer. If makeCurrent is set to true, the new tab will gain
-    /// focus as the active tab. If skipHomePage is set to true, the new tab will not automatically load the
-    /// home page
-    WebView *newTab(bool makeCurrent = false, bool skipHomePage = false);
+    /**
+     * @brief Creates a new tab, assigning a WebView as its associated widget.
+     * @param makeCurrent If true, the TabWidget's active tab will be switched to this new tab
+     * @param skipHomePage If true, the home page will not be loaded.
+     * @param specificIndex If the given index is >= 0, the tab will be inserted at that index
+     * @return A pointer to the tab's WebView
+     */
+    WebView *newTab(bool makeCurrent = false, bool skipHomePage = false, int specificIndex = -1);
 
     /// Called when the icon for a web view has changed
     void onIconChanged();

@@ -151,7 +151,7 @@ void BrowserTabWidget::closeTab(int index)
     removeTab(index);
 }
 
-WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
+WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int specificIndex)
 {
     WebView *view = new WebView(m_privateBrowsing, parentWidget());
     view->installEventFilter(this);
@@ -199,7 +199,18 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage)
         });
     }
 
-    m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
+    if (specificIndex >= 0)
+    {
+        if (specificIndex > count())
+            specificIndex = count();
+
+        specificIndex = insertTab(specificIndex, view, tabLabel);
+        if (specificIndex < m_nextTabIndex)
+            ++m_nextTabIndex;
+    }
+    else
+        m_nextTabIndex = insertTab(m_nextTabIndex, view, tabLabel) + 1;
+
     if (makeCurrent)
     {
         m_activeView = view;

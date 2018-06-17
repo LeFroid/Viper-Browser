@@ -12,6 +12,7 @@
 #include <QStyle>
 #include <QToolButton>
 
+//todo: add icon to show when cookies are being blocked on the current website
 URLLineEdit::URLLineEdit(QWidget *parent) :
     QLineEdit(parent),
     m_securityButton(nullptr),
@@ -25,7 +26,7 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     lineEditFont.setPointSize(lineEditFont.pointSize() + 1);
     setFont(lineEditFont);
 
-    // Set completion model
+    // Set completion model (todo: use custom completer with a list widget view of results as user types a string)
     QCompleter *urlCompleter = new QCompleter(parent);
     urlCompleter->setModel(sBrowserApplication->getURLSuggestionModel());
     urlCompleter->setMaxVisibleItems(10);

@@ -11,12 +11,19 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QMouseEvent>
+#include <QPaintEvent>
 #include <QResizeEvent>
 #include <QShortcut>
+#include <QStylePainter>
 #include <QToolButton>
 
 BrowserTabBar::BrowserTabBar(QWidget *parent) :
-    QTabBar(parent)
+    QTabBar(parent),
+    m_buttonNewTab(nullptr),
+    m_dragStartPos(),
+    m_dragUrl(),
+    m_dragPixmap(),
+    m_externalDropInfo()
 {
     setAcceptDrops(true);
     setDocumentMode(true);
@@ -156,9 +163,48 @@ void BrowserTabBar::dragEnterEvent(QDragEnterEvent *event)
     QTabBar::dragEnterEvent(event);
 }
 
+void BrowserTabBar::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    m_externalDropInfo.NearestTabIndex = -1;
+
+    QTabBar::dragLeaveEvent(event);
+
+    update();
+}
+
+void BrowserTabBar::dragMoveEvent(QDragMoveEvent *event)
+{
+    const QMimeData *mimeData = event->mimeData();
+
+    if (mimeData->hasUrls())
+    {
+        const QPoint eventPos = event->pos();
+
+        int nearestTabIndex = tabAt(eventPos);
+        if (nearestTabIndex < 0)
+            nearestTabIndex = count() - 1;
+
+        const QRect r = tabRect(nearestTabIndex);
+        const QPoint tabCenterPos = r.center();
+        const int quarterTabWidth = 0.25f * r.width();
+
+        DropIndicatorLocation location = DropIndicatorLocation::Center;
+        if (eventPos.x() > tabCenterPos.x() + quarterTabWidth)
+            location = DropIndicatorLocation::Right;
+        else if (eventPos.x() < tabCenterPos.x() - quarterTabWidth)
+            location = DropIndicatorLocation::Left;
+
+        m_externalDropInfo.NearestTabIndex = nearestTabIndex;
+        m_externalDropInfo.Location = location;
+
+        update();
+    }
+
+    QTabBar::dragMoveEvent(event);
+}
+
 void BrowserTabBar::dropEvent(QDropEvent *event)
 {
-    //BrowserTabWidget
     const QMimeData *mimeData = event->mimeData();
 
     if (mimeData->hasUrls())
@@ -167,13 +213,30 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
         if (!tabWidget)
             return;
 
+        int newTabIndex = m_externalDropInfo.NearestTabIndex;
+
         QList<QUrl> urls = mimeData->urls();
         for (const auto &url : urls)
         {
-            tabWidget->openLinkInNewTab(url);
+            if (m_externalDropInfo.Location == DropIndicatorLocation::Center)
+            {
+                WebView *view = tabWidget->getWebView(newTabIndex);
+                view->load(url);
+
+                m_externalDropInfo.Location = DropIndicatorLocation::Right;
+            }
+            else
+            {
+                int tabOffset = (m_externalDropInfo.Location == DropIndicatorLocation::Right) ? 1 : 0;
+                WebView *view = tabWidget->newTab(false, true, newTabIndex + tabOffset);
+                view->load(url);
+
+                newTabIndex += tabOffset;
+            }
         }
 
         event->acceptProposedAction();
+        m_externalDropInfo.NearestTabIndex = -1;
         return;
     }
     else if (mimeData->hasFormat("application/x-browser-tab"))
@@ -183,6 +246,50 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
     }
 
     QTabBar::dropEvent(event);
+}
+
+void BrowserTabBar::paintEvent(QPaintEvent *event)
+{
+    QTabBar::paintEvent(event);
+
+    if (m_externalDropInfo.NearestTabIndex >= 0)
+    {
+        QStylePainter p(this);
+
+        const QRect r = tabRect(m_externalDropInfo.NearestTabIndex);
+        QPoint indicatorPos(0, r.center().y());
+
+        switch (m_externalDropInfo.Location)
+        {
+            case DropIndicatorLocation::Center:
+                indicatorPos.setX(r.center().x());
+                break;
+            case DropIndicatorLocation::Left:
+            {
+                indicatorPos.setX(r.left());
+                if (r.left() - 8 <= 0)
+                    indicatorPos.setX(r.left() + 8);
+                break;
+            }
+            case DropIndicatorLocation::Right:
+            {
+                indicatorPos.setX(r.right());
+                if (r.right() + 8 >= m_buttonNewTab->pos().x())
+                    indicatorPos.setX(r.right() - 6);
+                break;
+            }
+        }
+
+        p.setPen(QColor(Qt::black));
+        p.setBrush(QBrush(QColor(Qt::white)));
+
+        QPainterPath path;
+        path.moveTo(indicatorPos.x(), indicatorPos.y());
+        path.lineTo(std::max(0, indicatorPos.x() - 8), indicatorPos.y() - 8);
+        path.lineTo(indicatorPos.x() + 8, indicatorPos.y() - 8);
+        path.lineTo(indicatorPos.x(), indicatorPos.y());
+        p.drawPath(path);
+    }
 }
 
 QSize BrowserTabBar::sizeHint() const

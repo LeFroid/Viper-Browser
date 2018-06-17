@@ -6,6 +6,40 @@
 
 class QToolButton;
 
+/// Used during BrowserTabBar's dragMoveEvent when a file is being dragged over the bar.
+/// A drop indicator arrow will be rendered in one of the following areas relative
+/// to the nearest tab.
+enum class DropIndicatorLocation
+{
+    Center,
+    Left,
+    Right
+};
+
+/**
+ * @struct ExternalDropInfo
+ * @brief Stores information about an external resource that's
+ *        potentially going to be dropped onto the tab bar
+ */
+struct ExternalDropInfo
+{
+    /// Location relative to the nearest tab
+    DropIndicatorLocation Location;
+
+    /// Index of the nearest tab
+    int NearestTabIndex;
+
+    /// Default constructor
+    ExternalDropInfo() : Location(DropIndicatorLocation::Center), NearestTabIndex(-1) {}
+
+    /// Constructs the object with a specific location and nearest tab index
+    ExternalDropInfo(DropIndicatorLocation location, int nearestTabIndex) :
+        Location(location),
+        NearestTabIndex(nearestTabIndex)
+    {
+    }
+};
+
 /**
  * @class BrowserTabBar
  * @brief The tab bar shown on every window, a part of the \ref BrowserTabWidget
@@ -13,6 +47,7 @@ class QToolButton;
 class BrowserTabBar : public QTabBar
 {
     Q_OBJECT
+
 public:
     /// Constructs the tab bar with a given parent widget
     explicit BrowserTabBar(QWidget *parent = nullptr);
@@ -41,8 +76,17 @@ protected:
     /// Handles drag events
     void dragEnterEvent(QDragEnterEvent *event) override;
 
+    /// Handles drag leave events
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+
+    /// Handles drag move events
+    void dragMoveEvent(QDragMoveEvent *event) override;
+
     /// Handles drop events
     void dropEvent(QDropEvent *event) override;
+
+    /// Handles paint events when a drop indicator is involved
+    void paintEvent(QPaintEvent *event) override;
 
     /// Returns the suggested size of the browser tab bar
     QSize sizeHint() const override;
@@ -72,6 +116,9 @@ private:
 
     /// Keeps the contents of the tab region in a pixmap for drag-and-drop events
     QPixmap m_dragPixmap;
+
+    /// Information about a drag and drop event from a resource external to the browser
+    ExternalDropInfo m_externalDropInfo;
 };
 
 #endif // BROWSERTABBAR_H
