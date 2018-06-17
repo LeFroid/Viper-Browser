@@ -165,19 +165,21 @@ void MainWindow::setupMenuBar()
         m_tabWidget->closeTab(m_tabWidget->currentIndex());
     });
     connect(ui->actionClose_Window, &QAction::triggered, this, &MainWindow::close);
-    connect(ui->action_Quit, &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
-    connect(ui->actionOpen_File, &QAction::triggered, this, &MainWindow::openFileInBrowser);
-    connect(ui->action_Print, &QAction::triggered, this, &MainWindow::printTabContents);
+    connect(ui->action_Quit,        &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
+    connect(ui->actionOpen_File,    &QAction::triggered, this, &MainWindow::openFileInBrowser);
+    connect(ui->action_Print,       &QAction::triggered, this, &MainWindow::printTabContents);
+
+    addWebProxyAction(WebPage::SavePage, ui->action_Save_Page_As);
 
     // Find action
     connect(ui->action_Find, &QAction::triggered, this, &MainWindow::onFindTextAction);
 
     // Add proxy functionality to edit menu actions
-    addWebProxyAction(QWebEnginePage::Undo, ui->action_Undo);
-    addWebProxyAction(QWebEnginePage::Redo, ui->action_Redo);
-    addWebProxyAction(QWebEnginePage::Cut, ui->actionCu_t);
-    addWebProxyAction(QWebEnginePage::Copy, ui->action_Copy);
-    addWebProxyAction(QWebEnginePage::Paste, ui->action_Paste);
+    addWebProxyAction(WebPage::Undo, ui->action_Undo);
+    addWebProxyAction(WebPage::Redo, ui->action_Redo);
+    addWebProxyAction(WebPage::Cut, ui->actionCu_t);
+    addWebProxyAction(WebPage::Copy, ui->action_Copy);
+    addWebProxyAction(WebPage::Paste, ui->action_Paste);
 
     // Add proxy for reload action in menu bar
     addWebProxyAction(QWebEnginePage::Reload, ui->actionReload);
