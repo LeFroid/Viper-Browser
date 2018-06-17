@@ -70,8 +70,19 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
     item->accept();
 
     DownloadItem *dlItem = new DownloadItem(item, this);
+
     int downloadRow = m_downloads.size();
     m_downloads.append(dlItem);
+    connect(dlItem, &DownloadItem::removeFromList, [=](){
+        int row = m_downloads.indexOf(dlItem);
+        if (row >= 0)
+        {
+            ui->tableWidget->removeRow(row);
+            m_downloads.removeAt(row);
+            delete dlItem;
+        }
+    });
+
     ui->tableWidget->insertRow(downloadRow);
     ui->tableWidget->setCellWidget(downloadRow, 0, dlItem);
     ui->tableWidget->setRowHeight(downloadRow, dlItem->sizeHint().height());

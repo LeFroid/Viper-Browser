@@ -4,10 +4,12 @@
 #include "DownloadManager.h"
 #include "NetworkAccessManager.h"
 
+#include <QContextMenuEvent>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
 #include <QList>
+#include <QMenu>
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QNetworkReply>
@@ -35,6 +37,14 @@ DownloadItem::DownloadItem(QWebEngineDownloadItem *item, QWidget *parent) :
 DownloadItem::~DownloadItem()
 {
     delete ui;
+}
+
+void DownloadItem::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu menu;
+    menu.addAction(tr("Open in folder"), this, &DownloadItem::openDownloadFolder);
+    menu.addAction(tr("Remove from list"), this, &DownloadItem::removeFromList);
+    menu.exec(mapToGlobal(event->pos()));
 }
 
 void DownloadItem::setupItem()

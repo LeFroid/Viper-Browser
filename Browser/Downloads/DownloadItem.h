@@ -28,6 +28,14 @@ public:
     explicit DownloadItem(QWebEngineDownloadItem *item, QWidget *parent = nullptr);
     ~DownloadItem();
 
+signals:
+    /// Emitted when the user requests the download item to be removed from the visible downloads list
+    void removeFromList();
+
+protected:
+    /// Event handler for context menu requests
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
 private slots:
     /// Called when progress has been made in the downloading of this item
     void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
