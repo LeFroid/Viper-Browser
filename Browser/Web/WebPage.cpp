@@ -148,6 +148,10 @@ void WebPage::onLoadFinished(bool ok)
     adBlockStylesheet.replace("'", "\\'");
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(adBlockStylesheet));
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
+
+    QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(pageUrl);
+    if (!adBlockJS.isEmpty())
+        runJavaScript(adBlockJS);
 }
 
 void WebPage::injectUserJavaScript(ScriptInjectionTime injectionTime)
