@@ -53,6 +53,9 @@ private slots:
     /// Called when the URL of the main frame has changed
     void onMainFrameUrlChanged(const QUrl &url);
 
+    /// Called when the page has started loading
+    void onLoadStarted();
+
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
 

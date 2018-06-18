@@ -34,6 +34,7 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 void WebPage::setupSlots()
 {
     // Add frame event handlers for script injection
+    connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
     connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
 }
@@ -128,6 +129,14 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
     }
 }
 
+void WebPage::onLoadStarted()
+{
+    URL pageUrl(url());
+    QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(pageUrl);
+    if (!adBlockJS.isEmpty())
+        runJavaScript(adBlockJS);
+}
+
 void WebPage::onLoadFinished(bool ok)
 {
     if (!ok)
@@ -139,10 +148,6 @@ void WebPage::onLoadFinished(bool ok)
     adBlockStylesheet.replace("'", "\\'");
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(adBlockStylesheet));
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
-
-    QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(pageUrl);
-    if (!adBlockJS.isEmpty())
-        runJavaScript(adBlockJS);
 }
 
 void WebPage::injectUserJavaScript(ScriptInjectionTime injectionTime)
