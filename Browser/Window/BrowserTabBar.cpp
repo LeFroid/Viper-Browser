@@ -86,7 +86,8 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
         emit duplicateTabRequest(tabIndex);
     });
 
-    if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
+    BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+    if (tabWidget)
     {
         if (WebView *view = tabWidget->getWebView(tabIndex))
         {
@@ -104,6 +105,13 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     menu.addAction(tr("Close tab"), [=]() {
         removeTab(tabIndex);
     });
+
+    if (tabWidget)
+    {
+        menu.addSeparator();
+        QAction *reopenTabAction = menu.addAction(tr("Reopen closed tab"), tabWidget, &BrowserTabWidget::reopenLastTab);
+        reopenTabAction->setEnabled(tabWidget->canReopenClosedTab());
+    }
 
     menu.exec(mapToGlobal(pos));
 }

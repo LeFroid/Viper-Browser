@@ -4,6 +4,7 @@
 #include "Settings.h"
 
 #include <memory>
+#include <stack>
 #include <QTabWidget>
 #include <QUrl>
 #include <QWebEngineContextMenuData>
@@ -37,6 +38,9 @@ public:
     /// Filters events for the watched object
     bool eventFilter(QObject *watched, QEvent *event);
 
+    /// Returns true if at least one tab has been closed which can be reopened, false if else
+    bool canReopenClosedTab() const;
+
 private slots:
     /// Displays a context menu for the current web view
     void showContextMenuForView();
@@ -55,6 +59,9 @@ signals:
     void viewChanged(int index);
 
 public slots:
+    /// Reopens the last tab that was closed
+    void reopenLastTab();
+
     /// Called when a tab is to be closed
     void closeTab(int index = -1);
 
@@ -138,6 +145,9 @@ private:
 
     /// Pointer to the window containing this widget
     MainWindow *m_mainWindow;
+
+    /// Maintains a record of each tab that was closed and the URL that its WebView was on before closing
+    std::stack<std::pair<int, QUrl>> m_closedTabs;
 };
 
 #endif // BROWSERTABWIDGET_H

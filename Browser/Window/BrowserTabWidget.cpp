@@ -26,7 +26,8 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
     m_nextTabIndex(1),
     m_contextMenuPosGlobal(),
     m_contextMenuPosRelative(),
-    m_mainWindow(qobject_cast<MainWindow*>(parent))
+    m_mainWindow(qobject_cast<MainWindow*>(parent)),
+    m_closedTabs()
 {
     // Set tab bar
     setTabBar(m_tabBar);
@@ -115,9 +116,24 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
     return QTabWidget::eventFilter(watched, event);
 }
 
+bool BrowserTabWidget::canReopenClosedTab() const
+{
+    return !m_closedTabs.empty();
+}
+
 void BrowserTabWidget::showContextMenuForView()
 {
     currentWebView()->showContextMenu(m_contextMenuPosGlobal, m_contextMenuPosRelative);
+}
+
+void BrowserTabWidget::reopenLastTab()
+{
+    if (m_closedTabs.empty())
+        return;
+
+    auto &tabInfo = m_closedTabs.top();
+    WebView *view = newTab(false, false, tabInfo.first);
+    view->load(tabInfo.second);
 }
 
 void BrowserTabWidget::closeTab(int index)
@@ -127,6 +143,7 @@ void BrowserTabWidget::closeTab(int index)
         return;
 
     WebView *view = getWebView(index);
+    m_closedTabs.push(std::make_pair(index, view->url()));
     emit tabClosing(view);
 
     view->deleteLater();
