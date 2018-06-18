@@ -134,6 +134,8 @@ void BrowserTabWidget::reopenLastTab()
     auto &tabInfo = m_closedTabs.top();
     WebView *view = newTab(false, false, tabInfo.first);
     view->load(tabInfo.second);
+
+    m_closedTabs.pop();
 }
 
 void BrowserTabWidget::closeTab(int index)
