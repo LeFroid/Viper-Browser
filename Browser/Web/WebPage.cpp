@@ -18,7 +18,9 @@
 WebPage::WebPage(QObject *parent) :
     QWebEnginePage(parent),
     m_mainFrameHost(),
-    m_domainFilterStyle()
+    m_domainFilterStyle(),
+    m_mainFrameAdBlockScript(),
+    m_needInjectAdBlockScript(true)
 {
     setupSlots();
 }
@@ -26,7 +28,8 @@ WebPage::WebPage(QObject *parent) :
 WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
     m_mainFrameHost(),
-    m_domainFilterStyle()
+    m_domainFilterStyle(),
+    m_needInjectAdBlockScript(true)
 {
     setupSlots();
 }
@@ -34,9 +37,9 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 void WebPage::setupSlots()
 {
     // Add frame event handlers for script injection
-    connect(this, &WebPage::loadStarted, this, &WebPage::onLoadStarted);
+    connect(this, &WebPage::loadProgress, this, &WebPage::onLoadProgress);
     connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
-    connect(this, &WebPage::urlChanged, this, &WebPage::onMainFrameUrlChanged);
+    connect(this, &WebPage::urlChanged, this,   &WebPage::onMainFrameUrlChanged);
 }
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
@@ -129,12 +132,17 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
     }
 }
 
-void WebPage::onLoadStarted()
+void WebPage::onLoadProgress(int percent)
 {
-    URL pageUrl(url());
-    QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(pageUrl);
-    if (!adBlockJS.isEmpty())
-        runJavaScript(adBlockJS);
+    if (percent > 0 && percent < 100 && m_needInjectAdBlockScript)
+    {
+        m_needInjectAdBlockScript = false;
+
+        URL pageUrl(url());
+        m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
+        if (!m_mainFrameAdBlockScript.isEmpty())
+            runJavaScript(m_mainFrameAdBlockScript);
+    }
 }
 
 void WebPage::onLoadFinished(bool ok)
@@ -149,9 +157,13 @@ void WebPage::onLoadFinished(bool ok)
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(adBlockStylesheet));
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
 
-    QString adBlockJS = AdBlockManager::instance().getDomainJavaScript(pageUrl);
-    if (!adBlockJS.isEmpty())
-        runJavaScript(adBlockJS);
+    if (m_needInjectAdBlockScript)
+        m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
+
+    if (!m_mainFrameAdBlockScript.isEmpty())
+        runJavaScript(m_mainFrameAdBlockScript);
+
+    m_needInjectAdBlockScript = true;
 }
 
 void WebPage::injectUserJavaScript(ScriptInjectionTime injectionTime)
