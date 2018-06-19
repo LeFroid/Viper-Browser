@@ -1,6 +1,7 @@
 #include "BrowserApplication.h"
 #include "FaviconStorage.h"
 #include "NetworkAccessManager.h"
+#include "URL.h"
 
 #include <QBuffer>
 #include <QFileInfo>
@@ -67,7 +68,7 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
     {
         // Second, search DB for host match.
         query = m_queryMap.at(StoredQuery::FindIconLikeURL).get();
-        query->bindValue(QLatin1String(":url"), QString("%%1%").arg(url.host()));
+        query->bindValue(QLatin1String(":url"), QString("%%1%").arg(URL(url).getSecondLevelDomain()));
         if (query->exec() && query->first())
         {
             QString iconURL = query->value(0).toString();
