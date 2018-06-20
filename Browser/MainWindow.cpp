@@ -531,7 +531,10 @@ void MainWindow::onLoadFinished(bool /*ok*/)
         return;
 
     const QString pageTitle = view->getTitle();
-    updateTabIcon(view->icon(), m_tabWidget->indexOf(view));
+    QIcon icon = view->icon();
+    if (icon.isNull())
+        icon = sBrowserApplication->getFaviconStorage()->getFavicon(view->url());
+    updateTabIcon(icon, m_tabWidget->indexOf(view));
     updateTabTitle(pageTitle, m_tabWidget->indexOf(view));
 
     if (m_tabWidget->currentWebView() == view)
