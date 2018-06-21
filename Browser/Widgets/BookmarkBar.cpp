@@ -5,15 +5,22 @@
 #include "MainWindow.h"
 
 #include <QFont>
+#include <QHBoxLayout>
 #include <QMenu>
 #include <QPushButton>
-#include <QToolButton>
+#include <QSpacerItem>
+#include <QStyle>
 #include <QUrl>
 
 BookmarkBar::BookmarkBar(QWidget *parent) :
-    QToolBar(tr("Bookmark Bar"), parent),
-    m_bookmarkManager(nullptr)
+    QWidget(parent),
+    m_bookmarkManager(nullptr),
+    m_layout(new QHBoxLayout(this))
 {
+    setMinimumHeight(32);
+    setMaximumHeight(32);
+    m_layout->setContentsMargins(2, 0, 0, 2);
+    setLayout(m_layout);
 }
 
 void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
@@ -24,12 +31,12 @@ void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
 
 void BookmarkBar::showBookmarkContextMenu(const QPoint &pos)
 {
-    QToolButton *button = qobject_cast<QToolButton*>(sender());
+    QPushButton *button = qobject_cast<QPushButton*>(sender());
     BookmarkNode *node = button->property("BookmarkNode").value<BookmarkNode*>();
     if (!button || !node)
         return;
 
-    QMenu menu(this);
+    QMenu menu;
 
     switch (node->getType())
     {
@@ -54,7 +61,16 @@ void BookmarkBar::showBookmarkContextMenu(const QPoint &pos)
         }
     }
 
-    menu.exec(mapToGlobal(pos));
+    menu.exec(button->mapToGlobal(pos));
+}
+
+void BookmarkBar::clear()
+{
+    while (QLayoutItem *child = m_layout->takeAt(0))
+    {
+        delete child->widget();
+        delete child;
+    }
 }
 
 void BookmarkBar::refresh()
@@ -72,6 +88,8 @@ void BookmarkBar::refresh()
     QFontMetrics fMetrics = fontMetrics();
     const int maxTextWidth = fMetrics.width(QLatin1Char('R')) * 16;
 
+    int spaceLeft = window()->width();
+
     // Show contents of bookmarks bar
     for (int i = 0; i < numChildren; ++i)
     {
@@ -79,18 +97,16 @@ void BookmarkBar::refresh()
         const QString childText = fMetrics.elidedText(child->getName(), Qt::ElideRight, maxTextWidth);
 
         // Set common properties of button before folder or bookmark specific properties
-        QToolButton *button = new QToolButton(this);
+        QPushButton *button = new QPushButton(this);
+        button->setFlat(true);
         button->setText(childText);
-        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         button->setProperty("BookmarkNode", QVariant::fromValue<BookmarkNode*>(child));
         button->setSizePolicy(QSizePolicy::Minimum, button->sizePolicy().verticalPolicy());
         button->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button, &QToolButton::customContextMenuRequested, this, &BookmarkBar::showBookmarkContextMenu);
+        connect(button, &QPushButton::customContextMenuRequested, this, &BookmarkBar::showBookmarkContextMenu);
 
         if (child->getType() == BookmarkNode::Folder)
         {
-            button->setPopupMode(QToolButton::InstantPopup);
-            //button->setArrowType(Qt::DownArrow);
             button->setIcon(child->getIcon());
 
             QMenu *menu = new QMenu(this);
@@ -100,10 +116,43 @@ void BookmarkBar::refresh()
         else
         {
             button->setIcon(iconStorage->getFavicon(QUrl(child->getURL())));
-            connect(button, &QToolButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(child->getURL())); });
+            connect(button, &QPushButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(child->getURL())); });
         }
 
-        addWidget(button);
+        m_layout->addWidget(button, 0, Qt::AlignLeft);
+
+        // Check if there is enough space for the rest of the bookmarks in the bar
+        spaceLeft -= button->width();
+        if (spaceLeft <= button->width())
+        {
+            QPushButton *extraBookmarksButton = new QPushButton(this);
+            extraBookmarksButton->setFlat(true);
+            extraBookmarksButton->setSizePolicy(QSizePolicy::Minimum, button->sizePolicy().verticalPolicy());
+            extraBookmarksButton->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
+
+            QMenu *extraBookmarksMenu = new QMenu(this);
+            extraBookmarksButton->setMenu(extraBookmarksMenu);
+
+            for (int j = i + 1; j < numChildren; ++j)
+            {
+                child = folder->getNode(j);
+                if (child->getType() == BookmarkNode::Folder)
+                {
+                    QMenu *subMenu = extraBookmarksMenu->addMenu(child->getIcon(), child->getName());
+                    addFolderItems(subMenu, child, iconStorage);
+                }
+                else
+                {
+                    QUrl nodeUrl(child->getURL());
+                    extraBookmarksMenu->addAction(iconStorage->getFavicon(nodeUrl), child->getName(), this, [=](){
+                        emit loadBookmark(nodeUrl);
+                    });
+                }
+            }
+
+            m_layout->addWidget(extraBookmarksButton, 0, Qt::AlignRight);
+            break;
+        }
     }
 }
 

@@ -3,15 +3,17 @@
 
 #include "BookmarkManager.h"
 #include <QToolBar>
+#include <QWidget>
 
 class FaviconStorage;
+class QHBoxLayout;
 class QMenu;
 
 /**
  * @class BookmarkBar
  * @brief Shown in the \ref MainWindow if the bookmark bar setting is enabled
  */
-class BookmarkBar : public QToolBar
+class BookmarkBar : public QWidget
 {
     Q_OBJECT
 
@@ -53,9 +55,15 @@ private:
      */
     void openFolderItemsNewWindow(BookmarkNode *folder, bool privateWindow = false);
 
+    /// Clears any existing bookmarks from the widget
+    void clear();
+
 private:
     /// Pointer to the bookmark manager
     BookmarkManager *m_bookmarkManager;
+
+    /// Horizontal layout manager
+    QHBoxLayout *m_layout;
 };
 
 #endif // BOOKMARKBAR_H
