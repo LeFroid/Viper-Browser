@@ -508,7 +508,7 @@ bool BookmarkManager::removeBookmarkFromDB(BookmarkNode *bookmark)
     QSqlQuery query(m_database);
     // Remove bookmark and update positions of other nodes in same folder
     query.prepare(QStringLiteral("UPDATE Bookmarks SET Position = Position - 1 WHERE FolderID = (:folderId) AND Position > "
-                  "SELECT Position FROM Bookmarks WHERE URL = (:url)"));
+                  "(SELECT Position FROM Bookmarks WHERE URL = (:url))"));
     query.bindValue(QStringLiteral(":folderId"), bookmark->getFolderId());
 
     // Error checking not needed for this query
