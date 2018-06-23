@@ -66,7 +66,7 @@ protected:
     virtual void wheelEvent(QWheelEvent *event) override;
 
     /// Creates a new popup window on request
-    virtual QWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override;
+    QWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override;
 
     /// Handles drag events
     virtual void dragEnterEvent(QDragEnterEvent *event) override;

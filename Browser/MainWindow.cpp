@@ -604,6 +604,7 @@ void MainWindow::onNewTabCreated(WebView *view)
         if (!inspectorView)
         {
             inspectorView = new WebView(ui->dockWidget);
+            inspectorView->setObjectName(QLatin1String("inspectorView"));
             inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
             ui->dockWidget->setWidget(inspectorView);
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))

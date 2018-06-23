@@ -6,13 +6,13 @@
 #include "UserScriptManager.h"
 #include "WebPage.h"
 
-#include <QPointer>
-#include <QTimer>
-
 #include <QFile>
+#include <QMessageBox>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
+#include <QtWebEngineCoreVersion>
+
 #include <iostream>
 
 WebPage::WebPage(QObject *parent) :
@@ -36,10 +36,10 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 
 void WebPage::setupSlots()
 {
-    // Add frame event handlers for script injection
-    connect(this, &WebPage::loadProgress, this, &WebPage::onLoadProgress);
-    connect(this, &WebPage::loadFinished, this, &WebPage::onLoadFinished);
-    connect(this, &WebPage::urlChanged, this,   &WebPage::onMainFrameUrlChanged);
+    connect(this, &WebPage::loadProgress,               this, &WebPage::onLoadProgress);
+    connect(this, &WebPage::loadFinished,               this, &WebPage::onLoadFinished);
+    connect(this, &WebPage::urlChanged,                 this, &WebPage::onMainFrameUrlChanged);
+    connect(this, &WebPage::featurePermissionRequested, this, &WebPage::onFeaturePermissionRequested);
 }
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
@@ -118,6 +118,52 @@ void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel le
 bool WebPage::certificateError(const QWebEngineCertificateError &certificateError)
 {
     return SecurityManager::instance().onCertificateError(certificateError);
+}
+
+void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, WebPage::Feature feature)
+{
+    QString featureStr = tr("Allow %1 to ");
+    switch (feature)
+    {
+        case WebPage::Geolocation:
+            featureStr.append("access your location?");
+            break;
+        case WebPage::MediaAudioCapture:
+            featureStr.append("access your microphone?");
+            break;
+        case WebPage::MediaVideoCapture:
+            featureStr = tr("access your webcam?");
+            break;
+        case WebPage::MediaAudioVideoCapture:
+            featureStr = tr("access your microphone and webcam?");
+            break;
+        case WebPage::MouseLock:
+            featureStr = tr("lock your mouse?");
+            break;
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+        case WebPage::DesktopVideoCapture:
+            featureStr = tr("capture video of your desktop?");
+            break;
+        case WebPage::DesktopAudioVideoCapture:
+            featureStr = tr("capture audio and video of your desktop?");
+            break;
+#endif
+        default:
+            featureStr = QString();
+            break;
+    }
+
+    // Deny unknown features
+    if (featureStr.isEmpty())
+    {
+        setFeaturePermission(securityOrigin, feature, PermissionDeniedByUser);
+        return;
+    }
+
+    QString requestStr = featureStr.arg(securityOrigin.host());
+    auto choice = QMessageBox::question(view()->window(), tr("Web Permission Request"), requestStr);
+    PermissionPolicy policy = choice == QMessageBox::Yes ? PermissionGrantedByUser : PermissionDeniedByUser;
+    setFeaturePermission(securityOrigin, feature, policy);
 }
 
 void WebPage::onMainFrameUrlChanged(const QUrl &url)

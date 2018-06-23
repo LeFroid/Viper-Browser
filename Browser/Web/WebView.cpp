@@ -307,9 +307,8 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
             const bool switchToNewTab = (type == QWebEnginePage::WebBrowserTab
                                          && !sBrowserApplication->getSettings()->getValue(QLatin1String("OpenAllTabsInBackground")).toBool());
 
-            if (MainWindow *mw = static_cast<MainWindow*>(obj))
+            if (MainWindow *mw = dynamic_cast<MainWindow*>(obj))
                 return mw->getNewTabWebView(switchToNewTab);
-
             break;
         }
         case QWebEnginePage::WebDialog:     // Open a web dialog

@@ -50,6 +50,9 @@ protected:
     bool certificateError(const QWebEngineCertificateError &certificateError) override;
 
 private slots:
+    /// Handles the feature permission request signal
+    void onFeaturePermissionRequested(const QUrl &securityOrigin, Feature feature);
+
     /// Called when the URL of the main frame has changed
     void onMainFrameUrlChanged(const QUrl &url);
 
