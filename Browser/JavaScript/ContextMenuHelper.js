@@ -17,20 +17,20 @@
 		return false;
     }
     function getElementsFromPoint(x, y) {
-        var elem, elements = [];
-        var oldVis = [];
-        while (true) {
-            elem = document.elementFromPoint(x, y);
-            if (!elem || elem === document.documentElement) {
-                break;
-            }
-            elements.push(elem);
-            oldVis.push(elem.style.visibility);
-            elem.style.visibility = 'hidden';
-        }
-        for (var k = 0; k < elements.length; k++) { elements[k].style.visibility = oldVis[k]; }
-        elements.reverse();
-        return elements;
+        //https://gist.github.com/Rooster212/4549f9ab0acb2fc72fe3
+        var elements = [], previousPointerEvents = [], current, i, d;
+	    while ((current = document.elementFromPoint(x,y)) && elements.indexOf(current)===-1 && current != null) {
+    		elements.push(current);
+	    	previousPointerEvents.push({
+                value: current.style.getPropertyValue('pointer-events'),
+                priority: current.style.getPropertyPriority('pointer-events')
+            });
+		    current.style.setProperty('pointer-events', 'none', 'important'); 
+	    }
+    	for(i = previousPointerEvents.length; d=previousPointerEvents[--i]; ) {
+	    	elements[i].style.setProperty('pointer-events', d.value?d.value:'', d.priority); 
+	    }
+	    return elements;
     }
     var elems = getElementsFromPoint(%1, %2);
     if (elems.length < 1) { elems.push(document.activeElement); }
