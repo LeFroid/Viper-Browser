@@ -8,13 +8,19 @@ Licensed under GPLv3
 
 # Features
 
-* Built-in AdBlock Plus support, with uBlock Origin filter compatibility (mostly compatible)
-* Greasemonkey-style UserScript support
-* Multi-tab style web browser
-* Ability to customize the user agent
-* Support for manual cookie addition / removal / modifications
-* Toggle JavaScript on or off in settings
+* Bookmark management
+* Built-in ad blocker, compatible with AdBlock Plus and uBlock Origin filters
+* Cookie viewer, editor, and support for cookie filters (QtWebEngine 5.11+ only)
 * Compatible with Pepper Plugin API
+* Custom user agent support
+* Fast and lightweight
+* Fullscreen support
+* Granular control over browser settings and web permissions
+* Gives the user control over their data, no invasions of privacy like other browsers are known to do..
+* GreaseMonkey-style UserScript support
+* PDF.js embedded into the browser
+* Save and restore browsing sessions
+* Traditional browser UI design instead of WebUI and chromium-based interfaces
 
 # Building
 
