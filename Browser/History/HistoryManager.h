@@ -68,7 +68,7 @@ public:
     virtual ~HistoryManager();
 
     /// Adds an entry to the browser's history
-    void addHistoryEntry(const QString &url);
+    void addHistoryEntry(const QString &url, const QString &title);
 
     /// Clears all browsing history
     void clearAllHistory();
@@ -82,9 +82,6 @@ public:
     /// Returns true if the history contains the given url, false if else. Will return
     /// false if private browsing mode is enabled
     bool historyContains(const QString &url) const;
-
-    /// Sets the title and associated with the given url
-    void setTitleForURL(const QString &url, const QString &title);
 
     /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
     const std::deque<WebHistoryItem> &getRecentItems() const { return m_recentItems; }

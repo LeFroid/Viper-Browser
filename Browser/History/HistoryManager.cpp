@@ -46,7 +46,7 @@ HistoryManager::~HistoryManager()
     }
 }
 
-void HistoryManager::addHistoryEntry(const QString &url)
+void HistoryManager::addHistoryEntry(const QString &url, const QString &title)
 {
     // Check if qrc:/ resource, and if so, ignore
     if (url.startsWith(QLatin1String("qrc:")) || m_storagePolicy == HistoryStoragePolicy::Never)
@@ -54,30 +54,44 @@ void HistoryManager::addHistoryEntry(const QString &url)
 
     QDateTime visitTime = QDateTime::currentDateTime();
 
-    auto it = m_historyItems.find(url);
+    QString urlFormatted = url;
+    int hashPos = url.indexOf(QLatin1Char('#'));
+    if (hashPos > 0)
+        urlFormatted = urlFormatted.left(hashPos);
+    const bool emptyTitle = title.isEmpty();
+
+    auto it = m_historyItems.find(urlFormatted);
     if (it != m_historyItems.end())
     {
         it->Visits.prepend(visitTime);
         m_recentItems.push_front(*it);
         while (m_recentItems.size() > 15)
             m_recentItems.pop_back();
+        if (it->Title.isEmpty() && !emptyTitle)
+            it->Title = title;
+
         if (!it->Title.isEmpty())
         {
             saveVisit(*it, visitTime);
-            emit pageVisited(url, it->Title);
+            emit pageVisited(urlFormatted, it->Title);
         }
         return;
     }
 
     WebHistoryItem item;
-    item.URL = url;
+    item.URL = urlFormatted;
     item.VisitID = ++m_lastVisitID;
+    if (!emptyTitle)
+        item.Title = title;
     item.Visits.prepend(visitTime);
-    m_historyItems.insert(url, item);
+
+    m_historyItems.insert(urlFormatted, item);
     m_recentItems.push_front(item);
     while (m_recentItems.size() > 15)
         m_recentItems.pop_back();
-    // don't emit pageLoaded until title is set
+
+    saveVisit(item, visitTime);
+    emit pageVisited(urlFormatted, title);
 }
 
 void HistoryManager::clearAllHistory()
@@ -132,33 +146,6 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 bool HistoryManager::historyContains(const QString &url) const
 {
     return (m_historyItems.find(url) != m_historyItems.end());
-}
-
-void HistoryManager::setTitleForURL(const QString &url, const QString &title)
-{
-    auto it = m_historyItems.find(url);
-    if (it != m_historyItems.end())
-    {
-        if (it->Title.isEmpty())
-        {
-            it->Title = title;
-
-            int recentVisitIdx = -1;
-            for (size_t i = 0; i < m_recentItems.size(); ++i)
-            {
-                if (m_recentItems.at(i) == *it)
-                {
-                    recentVisitIdx = static_cast<int>(i);
-                    break;
-                }
-            }
-            if (recentVisitIdx >= 0)
-                m_recentItems[recentVisitIdx].Title = title;
-
-            saveVisit(*it, it->Visits.front());
-            emit pageVisited(url, title);
-        }
-    }
 }
 
 std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate) const

@@ -558,7 +558,7 @@ void MainWindow::onLoadFinished(bool /*ok*/)
     const bool isBlankPage = view->isOnBlankPage();
 
     if (!isBlankPage && !pageUrl.isEmpty())
-        historyMgr->addHistoryEntry(pageUrl);
+        historyMgr->addHistoryEntry(pageUrl, pageTitle);
 
     // Attempt to fetch the URL of the favicon from the page
     view->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
@@ -574,8 +574,6 @@ void MainWindow::onLoadFinished(bool /*ok*/)
             iconRef.prepend(pageUrlNoPath);
         sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
     });
-    if (!isBlankPage && !pageTitle.isEmpty())
-        historyMgr->setTitleForURL(pageUrl, pageTitle);
 }
 
 void MainWindow::onShowAllHistory()
