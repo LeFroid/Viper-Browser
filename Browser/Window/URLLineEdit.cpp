@@ -67,6 +67,10 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     urlStyle = urlStyle.arg(m_securityButton->sizeHint().width()).arg(m_bookmarkButton->sizeHint().width());
     setStyleSheet(urlStyle);
     setPlaceholderText(tr("Search or enter address"));
+
+    connect(this, &URLLineEdit::textEdited, [=](const QString &){
+        setTextFormat(std::vector<QTextLayout::FormatRange>());
+    });
 }
 
 URLLineEdit::~URLLineEdit()
@@ -120,10 +124,75 @@ void URLLineEdit::setURL(const QUrl &url)
 {
     setText(url.toString(QUrl::FullyEncoded));
 
+    // Color in the line edit based on url and security information
+    std::vector<QTextLayout::FormatRange> urlTextFormat;
+    QTextCharFormat schemeFormat, hostFormat, pathFormat;
+    QTextLayout::FormatRange schemeFormatRange, hostFormatRange, pathFormatRange;
+    schemeFormatRange.start = 0;
+
+    schemeFormat.setForeground(QBrush(QColor(127, 127, 127)));
+    hostFormat.setForeground(QBrush(Qt::black));
+    pathFormat.setForeground(QBrush(QColor(127, 127, 127)));
     SecurityIcon secureIcon = SecurityIcon::Standard;
-    if (url.scheme().compare(QStringLiteral("https")) == 0)
-        secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
+
+    const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
+    if (isHttps)
+    {
+        if (SecurityManager::instance().isInsecure(url.host()))
+        {
+            secureIcon = SecurityIcon::Insecure;
+            schemeFormat.setForeground(QBrush(QColor(157, 28, 28)));
+        }
+        else
+        {
+            secureIcon = SecurityIcon::Secure;
+            schemeFormat.setForeground(QBrush(QColor(11, 128, 67)));
+        }
+    }
+
     setSecurityIcon(secureIcon);
+
+    schemeFormatRange.length = url.scheme().size();
+    schemeFormatRange.format = schemeFormat;
+    urlTextFormat.push_back(schemeFormatRange);
+
+    QTextLayout::FormatRange greyFormatRange;
+    greyFormatRange.start = schemeFormatRange.length;
+    greyFormatRange.length = 3;
+    greyFormatRange.format = pathFormat;
+    urlTextFormat.push_back(greyFormatRange);
+
+    const QString urlText = text();
+
+    hostFormatRange.start = greyFormatRange.start + 3;
+    hostFormatRange.length = url.host(QUrl::FullyEncoded).size();
+    if (hostFormatRange.length == 0)
+        hostFormatRange.length = std::max(urlText.indexOf(QLatin1Char('/'), hostFormatRange.start), urlText.size() - hostFormatRange.start);
+    hostFormatRange.format = hostFormat;
+    urlTextFormat.push_back(hostFormatRange);
+
+    pathFormatRange.start = hostFormatRange.start + hostFormatRange.length;
+    pathFormatRange.length = urlText.size() - pathFormatRange.start;
+    pathFormatRange.format = pathFormat;
+    urlTextFormat.push_back(pathFormatRange);
+
+    setTextFormat(urlTextFormat);
+}
+
+// https://stackoverflow.com/questions/14417333/how-can-i-change-color-of-part-of-the-text-in-qlineedit/14424003#14424003
+void URLLineEdit::setTextFormat(const std::vector<QTextLayout::FormatRange> &formats)
+{
+    QList<QInputMethodEvent::Attribute> attributes;
+    for (const QTextLayout::FormatRange& fmt : formats)
+    {
+        QInputMethodEvent::AttributeType type = QInputMethodEvent::TextFormat;
+        int start = fmt.start - cursorPosition();
+        int length = fmt.length;
+        QVariant value = fmt.format;
+        attributes.append(QInputMethodEvent::Attribute(type, start, length, value));
+    }
+    QInputMethodEvent event(QString(), attributes);
+    QCoreApplication::sendEvent(this, &event);
 }
 
 void URLLineEdit::removeMappedView(WebView *view)

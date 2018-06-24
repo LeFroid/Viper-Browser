@@ -2,8 +2,10 @@
 #define URLLINEEDIT_H
 
 #include <unordered_map>
+#include <vector>
 #include <QLineEdit>
 #include <QString>
+#include <QTextLayout>
 #include <QUrl>
 
 class MainWindow;
@@ -74,6 +76,9 @@ public slots:
 protected:
     /// Paints the line edit with an icon that shows whether or not the current site is secure
     virtual void resizeEvent(QResizeEvent *event) override;
+
+    /// Sets the format of the text in the line edit
+    void setTextFormat(const std::vector<QTextLayout::FormatRange> &formats);
 
 private:
     /// Sets the bookmark icon at the right side of the line edit widget
