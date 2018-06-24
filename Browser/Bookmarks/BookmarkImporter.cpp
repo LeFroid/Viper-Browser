@@ -3,8 +3,8 @@
 
 #include <stack>
 #include <utility>
+#include <QDebug>
 #include <QFile>
-#include <QQueue>
 
 BookmarkImporter::BookmarkImporter(BookmarkManager *bookmarkMgr) :
     m_bookmarkManager(bookmarkMgr),
@@ -28,88 +28,118 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return false;
-
     QByteArray contents = file.readAll();
     file.close();
-    if (contents.isEmpty() || contents.isNull())
+
+    if (contents.isEmpty())
         return false;
 
     QString pageHtml = QString::fromUtf8(contents);
+    const int pageHtmlSize = pageHtml.size();
 
-    // Find first <DL><p> for root folder (which will be importFolder for bookmark import)
-    int startPos = pageHtml.indexOf(m_folderStartTag, 0, Qt::CaseInsensitive);
-    if (startPos == -1)
+    // Find first <DL><p> for root folder
+    int pos = pageHtml.indexOf(m_folderStartTag, 0, Qt::CaseInsensitive);
+    if (pos == -1)
         return false;
+    pos += m_folderStartTag.size();
 
-    int endPos = pageHtml.lastIndexOf(m_folderEndTag, -1, Qt::CaseInsensitive);
-    if (endPos == -1)
-        return false;
-
-    QString innerRootHtml = pageHtml.mid(startPos, endPos - startPos);
-    int htmlSize = innerRootHtml.size();
-
+    BookmarkNode *currentNode = importFolder;
     std::stack<BookmarkNode*> s;
-    s.push(importFolder);
 
-    //todo: keep track of the parser state, such as State::ReadingStartTag, State::ReadingEndTag, State::ReadingElementValue, etc.
-    // set i += length of attributes while reading attributes of elements
-    // the current folder with which bookmarks and subfolders will be appended is at the top of stack s.
-    // when the closing tag of a folder is found, pop the top element from the stack
-    // when the stack is empty, stop importing bookmarks
-    /*
-    for (int i = 0; i < htmlSize; ++i)
+    m_bookmarkManager->setImportState(true);
+    while (pos > 0 && pos < pageHtmlSize && currentNode != nullptr)
     {
-        const QChar c = innerRootHtml.at(i);
-    }
-    */
+        pos = pageHtml.indexOf(m_startTag, pos);
+        if (pos == -1)
+            break;
 
-    // Fetch root folder in bookmark page, add its first child to queue, and traverse the bookmark tree
-   /* QWebElement folderElem = pageFrame->findFirstElement("DL");
-    QWebElement subFolder = folderElem.firstChild();
-
-    QQueue< std::pair<QWebElement, BookmarkNode*> > q;
-    q.enqueue(std::make_pair(subFolder, importFolder));
-    while (!q.empty())
-    {
-        // Currently in the first child node of a bookmark folder.
-        auto p = q.dequeue();
-        folderElem = p.first;
-        BookmarkNode *folder = p.second;
-
-        // Check each sibling if it matches the signature of a bookmark or a folder.
-        // If the current node is a bookmark, add it to the folder. If it is a folder,
-        // place the node at the end of the queue. Otherwise, ignore the element
-        while (!folderElem.isNull())
+        // Determine element type by comparing pos to position of the next sub-folder, bookmark and closing folder tag
+        int nextFolderStartPos = pageHtml.indexOf(m_folderNameStartTag, pos, Qt::CaseInsensitive);
+        if (pos == nextFolderStartPos)
         {
-            if (folderElem.tagName().toLower().compare("dt") == 0)
+            // Skip folder attributes and only get the name, contained within the <h3>element</h3>
+            pos = pageHtml.indexOf(m_endTag, pos + m_folderNameStartTag.size()) + 1;
+            int nameEndPos = pageHtml.indexOf(m_folderNameEndTag, pos, Qt::CaseInsensitive);
+            if (nameEndPos < 0)
             {
-                // Check if next tag is 'h3' (representing a subfolder) or 'a' (representing a bookmark)
-                folderElem = folderElem.firstChild();
-                QString name = folderElem.tagName().toLower();
-                if (name.compare("h3") == 0)
-                {
-                    // Create a subfolder
-                    BookmarkNode *newFolder = m_bookmarkManager->addFolder(folderElem.toPlainText(), folder);
-                    folderElem = folderElem.nextSibling();
+                qDebug() << "Error: invalid bookmark html. Halting import";
+                m_bookmarkManager->setImportState(false);
+                return false;
+            }
 
-                    subFolder = folderElem.firstChild();
-                    q.enqueue(std::make_pair(subFolder, newFolder));
-                }
-                else if (name.compare("a") == 0)
-                {
-                    QString url = folderElem.attribute("HREF");
-                    if (!url.isNull())
-                    {
-                        m_bookmarkManager->appendBookmark(folderElem.toPlainText(), url, folder);
-                    }
-                }
-                folderElem = folderElem.parent().nextSibling();
+            QString folderName = pageHtml.mid(pos, nameEndPos - pos);
+
+            // Create bookmark folder for the child element and start parsing child node
+            s.push(currentNode);
+            currentNode = m_bookmarkManager->addFolder(folderName, currentNode);
+            pos = pageHtml.indexOf(m_folderStartTag, nameEndPos + m_folderNameEndTag.size(), Qt::CaseInsensitive);
+            if (pos > 0)
+                pos += m_folderStartTag.size();
+            continue;
+        }
+
+        int nextFolderEndPos = pageHtml.indexOf(m_folderEndTag, pos - 1, Qt::CaseInsensitive);
+        if (pos == nextFolderEndPos)
+        {
+            // Current folder is done being imported, retrieve last folder from the stack and resume importing of that folder
+            pos += m_folderEndTag.size();
+            if (!s.empty())
+            {
+                currentNode = s.top();
+                s.pop();
             }
             else
-                folderElem = folderElem.nextSibling();
+                currentNode = nullptr;
+            continue;
         }
+
+        int nextBookmarkPos = pageHtml.indexOf(m_bookmarkStartTag, pos, Qt::CaseInsensitive);
+        if (pos == nextBookmarkPos)
+        {
+            // Get bookmark URL and name, add bookmark to current folder
+            pos += m_bookmarkStartTag.size() - 1;
+            int attrEndPos = pageHtml.indexOf(m_endTag, pos);
+            if (attrEndPos < 0)
+            {
+                qDebug() << "Error: invalid bookmark html. Halting import";
+                m_bookmarkManager->setImportState(false);
+                return false;
+            }
+
+            // URL parsing
+            QString attributeStr = pageHtml.mid(pos, attrEndPos - pos);
+            int urlStartPos = attributeStr.indexOf(QLatin1String("HREF="), 0, Qt::CaseInsensitive);
+            if (urlStartPos < 0)
+            {
+                qDebug() << "Error: invalid bookmark html. Halting import";
+                m_bookmarkManager->setImportState(false);
+                return false;
+            }
+            urlStartPos += 6;
+            int urlEndPos = attributeStr.indexOf(QLatin1Char('"'), urlStartPos);
+            if (urlEndPos < 0)
+            {
+                qDebug() << "Error: invalid bookmark html. Halting import";
+                m_bookmarkManager->setImportState(false);
+                return false;
+            }
+
+            QString url = attributeStr.mid(urlStartPos, urlEndPos - urlStartPos);
+
+            // Bookmark name
+            pos = attrEndPos + 1;
+            int nameEndPos = pageHtml.indexOf(m_bookmarkEndTag, pos, Qt::CaseInsensitive);
+
+            QString name = pageHtml.mid(pos, nameEndPos - pos);
+
+            m_bookmarkManager->appendBookmark(name, url, currentNode);
+
+            pos = nameEndPos + m_bookmarkEndTag.size();
+            continue;
+        }
+        ++pos;
     }
-*/
+    m_bookmarkManager->setImportState(false);
 
     return true;
 }

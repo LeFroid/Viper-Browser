@@ -15,7 +15,8 @@ BookmarkManager::BookmarkManager(const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("Bookmarks")),
     m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks"))),
-    m_nodeList()
+    m_nodeList(),
+    m_importState(false)
 {
 }
 
@@ -529,7 +530,8 @@ bool BookmarkManager::removeBookmarkFromDB(BookmarkNode *bookmark)
 
 void BookmarkManager::onBookmarksChanged()
 {
-    QtConcurrent::run(this, &BookmarkManager::resetBookmarkList);
+    if (!m_importState)
+        QtConcurrent::run(this, &BookmarkManager::resetBookmarkList);
 }
 
 void BookmarkManager::resetBookmarkList()
@@ -554,6 +556,13 @@ void BookmarkManager::resetBookmarkList()
         queue.pop_front();
     }
     emit bookmarksChanged();
+}
+
+void BookmarkManager::setImportState(bool val)
+{
+    m_importState = val;
+    if (!val)
+        onBookmarksChanged();
 }
 
 bool BookmarkManager::hasProperStructure()
@@ -591,6 +600,9 @@ void BookmarkManager::setup()
 
 void BookmarkManager::load()
 {
-    loadFolder(m_rootNode.get());
+    // Don't load twice
+    if (m_rootNode->getNumChildren() == 0)
+        loadFolder(m_rootNode.get());
+
     QtConcurrent::run(this, &BookmarkManager::resetBookmarkList);
 }

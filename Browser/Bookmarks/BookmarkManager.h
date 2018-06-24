@@ -23,6 +23,7 @@ class BookmarkManager : public QObject, private DatabaseWorker
 {
     Q_OBJECT
 
+    friend class BookmarkImporter;
     friend class BookmarkTableModel;
     friend class BookmarkFolderModel;
     friend class DatabaseFactory;
@@ -140,6 +141,9 @@ private:
     void resetBookmarkList();
 
 protected:
+    /// Lets the bookmark manager know an import has started or finished, so resetBookmarkList() won't be called until the last bookmark has been imported
+    void setImportState(bool val);
+
     /// Returns true if the bookmark database contains the table structure(s) needed for it to function properly,
     /// false if else.
     bool hasProperStructure() override;
@@ -160,6 +164,9 @@ protected:
 private:
     /// Container of bookmark node pointers, flattened version of tree structure used for bookmark iteration
     std::vector<BookmarkNode*> m_nodeList;
+
+    /// Bookmark import state - true if bookmarks being imported, false if else
+    bool m_importState;
 
 /*
 private:
