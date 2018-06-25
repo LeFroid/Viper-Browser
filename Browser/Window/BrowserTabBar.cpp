@@ -69,7 +69,7 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     QMenu menu(this);
 
     // Add "New Tab" menu item, shown on every context menu request
-    menu.addAction(tr("New tab"), this, &BrowserTabBar::newTabRequest);
+    menu.addAction(tr("New tab"), this, &BrowserTabBar::newTabRequest, QKeySequence(tr("Ctrl+T")));
     // Check if the user right-clicked on a tab, or just some position on the tab bar
     int tabIndex = tabAt(pos);
     if (tabIndex < 0)
@@ -79,9 +79,11 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     }
 
     menu.addSeparator();
-    menu.addAction(tr("Reload"), [=]() {
+    QAction *reloadAction = menu.addAction(tr("Reload"), [=]() {
         emit reloadTabRequest(tabIndex);
     });
+    reloadAction->setShortcut(QKeySequence(tr("Ctrl+R")));
+
     menu.addAction(tr("Duplicate tab"), [=]() {
         emit duplicateTabRequest(tabIndex);
     });
@@ -102,9 +104,10 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     }
 
     menu.addSeparator();
-    menu.addAction(tr("Close tab"), [=]() {
+    QAction *closeAction = menu.addAction(tr("Close tab"), [=]() {
         removeTab(tabIndex);
     });
+    closeAction->setShortcut(QKeySequence(tr("Ctrl+W")));
 
     if (tabWidget)
     {
