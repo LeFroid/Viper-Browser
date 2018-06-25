@@ -115,6 +115,11 @@ bool MainWindow::isPrivate() const
     return m_privateWindow;
 }
 
+WebView *MainWindow::currentWebView() const
+{
+    return m_tabWidget->currentWebView();
+}
+
 void MainWindow::loadBlankPage()
 {
     m_tabWidget->currentWebView()->loadBlankPage();
@@ -294,10 +299,9 @@ void MainWindow::onTabChanged(int index)
     URLLineEdit *urlInput = ui->toolBar->getURLWidget();
     urlInput->tabChanged(view);
 
-    const bool isOnBlankPage = view->isOnBlankPage();
-    const QUrl &viewUrl = view->url();
-    if (!viewUrl.isEmpty() && !isOnBlankPage)
-        urlInput->setURL(view->url());
+    const bool isBlankPage = view->isOnBlankPage();
+    if (urlInput->text().isEmpty() || !isBlankPage)
+        urlInput->setURL(view->url());        
 
     // Show dock widget with dev tools UI if it was opened in the last tab
     if (ui->dockWidget->isVisible())
@@ -311,7 +315,7 @@ void MainWindow::onTabChanged(int index)
         proxy->setPage(page);
 
     // Give focus to the url line edit widget when changing to a blank tab
-    if (urlInput->text().isEmpty() || isOnBlankPage)
+    if (urlInput->text().isEmpty() || isBlankPage)
     {
         urlInput->setFocus();
 

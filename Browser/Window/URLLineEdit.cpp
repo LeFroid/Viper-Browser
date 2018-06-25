@@ -68,7 +68,17 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     setStyleSheet(urlStyle);
     setPlaceholderText(tr("Search or enter address"));
 
-    connect(this, &URLLineEdit::textEdited, [=](const QString &){
+    // Change color of URL when text is edited
+    connect(this, &URLLineEdit::textEdited, [=](const QString &str){
+        if (MainWindow *mw = qobject_cast<MainWindow*>(window()))
+        {
+            const QUrl currentViewUrl = mw->currentWebView()->url();
+            if (currentViewUrl.toString(QUrl::FullyEncoded).compare(str) == 0)
+            {
+                setURLFormatted(currentViewUrl);
+                return;
+            }
+        }
         setTextFormat(std::vector<QTextLayout::FormatRange>());
     });
 }
@@ -124,33 +134,38 @@ void URLLineEdit::setURL(const QUrl &url)
 {
     setText(url.toString(QUrl::FullyEncoded));
 
+    SecurityIcon secureIcon = SecurityIcon::Standard;
+
+    const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
+    if (isHttps)
+        secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
+
+    setSecurityIcon(secureIcon);
+
+    if (url.isValid())
+        setURLFormatted(url);
+}
+
+void URLLineEdit::setURLFormatted(const QUrl &url)
+{
     // Color in the line edit based on url and security information
     std::vector<QTextLayout::FormatRange> urlTextFormat;
     QTextCharFormat schemeFormat, hostFormat, pathFormat;
     QTextLayout::FormatRange schemeFormatRange, hostFormatRange, pathFormatRange;
     schemeFormatRange.start = 0;
 
-    schemeFormat.setForeground(QBrush(QColor(127, 127, 127)));
+    schemeFormat.setForeground(QBrush(QColor(110, 110, 110)));
     hostFormat.setForeground(QBrush(Qt::black));
-    pathFormat.setForeground(QBrush(QColor(127, 127, 127)));
-    SecurityIcon secureIcon = SecurityIcon::Standard;
+    pathFormat.setForeground(QBrush(QColor(110, 110, 110)));
 
     const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
     if (isHttps)
     {
         if (SecurityManager::instance().isInsecure(url.host()))
-        {
-            secureIcon = SecurityIcon::Insecure;
             schemeFormat.setForeground(QBrush(QColor(157, 28, 28)));
-        }
         else
-        {
-            secureIcon = SecurityIcon::Secure;
             schemeFormat.setForeground(QBrush(QColor(11, 128, 67)));
-        }
     }
-
-    setSecurityIcon(secureIcon);
 
     schemeFormatRange.length = url.scheme().size();
     schemeFormatRange.format = schemeFormat;
@@ -208,10 +223,13 @@ void URLLineEdit::tabChanged(WebView *newView)
         m_userTextMap[m_activeWebView] = text();
 
     auto it = m_userTextMap.find(newView);
-    if (it == m_userTextMap.end())
-        setURL(QUrl());
-    else
+    if (it != m_userTextMap.end())
+    {
         setText(it->second);
+        setTextFormat(std::vector<QTextLayout::FormatRange>());
+    }
+    else
+        setURL(QUrl());
 
     m_activeWebView = newView;
 }

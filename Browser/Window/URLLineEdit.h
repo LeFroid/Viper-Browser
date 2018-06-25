@@ -84,6 +84,9 @@ private:
     /// Sets the bookmark icon at the right side of the line edit widget
     void setBookmarkIcon(BookmarkIcon iconType);
 
+    /// Colors the given URL in the line edit based on its scheme, host, and path
+    void setURLFormatted(const QUrl &url);
+
 private:
     /// Button illustrating if website is secure, insecure or if certificate is expired or revoked
     QToolButton *m_securityButton;

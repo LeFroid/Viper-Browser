@@ -49,13 +49,16 @@ class MainWindow : public QMainWindow
 
 public:
     /// Constructs the main window
-    explicit MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, bool privateWindow, QWidget *parent = 0);
+    explicit MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, bool privateWindow, QWidget *parent = nullptr);
 
     /// MainWindow destructor
     ~MainWindow();
 
     /// Returns true if this is a private browsing window, false if else
     bool isPrivate() const;
+
+    /// Returns a pointer to the current web view
+    WebView *currentWebView() const;
 
 signals:
     /// Emitted when the window is about to be closed
