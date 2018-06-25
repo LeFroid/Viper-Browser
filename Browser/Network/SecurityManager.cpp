@@ -14,7 +14,9 @@ SecurityManager::SecurityManager(QObject *parent) :
     m_insecureHosts(),
     m_exemptInsecureHosts(),
     m_certChains(),
-    m_securityDialog(nullptr)
+    m_securityDialog(nullptr),
+    m_needShowDialog(false),
+    m_replyUrlTarget()
 {
     BrowserApplication *app = sBrowserApplication;
     NetworkAccessManager *netAccessMgr = app->getNetworkAccessManager();
@@ -71,23 +73,41 @@ bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certi
     return false;
 }
 
-void SecurityManager::showSecurityInfo(const QString &host)
+void SecurityManager::showSecurityInfo(const QUrl &url)
 {
-    if (host.isEmpty())
+    if (url.isEmpty())
         return;
 
     if (!m_securityDialog)
         m_securityDialog = new SecurityInfoDialog;
 
-    QString hostStripped = host;
+    const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
+
+    QString hostStripped = url.host();
     hostStripped = hostStripped.remove(QRegExp("(www.)"));
     auto certIt = m_certChains.find(hostStripped);
-    if (certIt != m_certChains.end())
+    if (isHttps && certIt != m_certChains.end())
     {
-        m_securityDialog->setWebsite(host, certIt.value());
+        m_securityDialog->setWebsite(hostStripped, certIt.value());
     }
     else
-        m_securityDialog->setWebsite(host);
+    {
+        if (isHttps)
+        {
+            m_needShowDialog = true;
+            m_replyUrlTarget = url;
+
+            QNetworkRequest request(url);
+            QNetworkReply *reply = sBrowserApplication->getNetworkAccessManager()->get(request);
+            connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+            connect(reply, static_cast<void(QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), [reply](QNetworkReply::NetworkError){
+                reply->deleteLater();
+            });
+            return;
+        }
+
+        m_securityDialog->setWebsite(hostStripped);
+    }
 
     m_securityDialog->show();
     m_securityDialog->raise();
@@ -131,6 +151,18 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
     // remove from insecure list if this reply from same host contains no errors
     if (m_insecureHosts.contains(host))
         m_insecureHosts.remove(host);
+
+    // Check if the security dialog needs to be shown in this callback
+    if (m_needShowDialog && reply->url() == m_replyUrlTarget)
+    {
+        m_needShowDialog = false;
+        m_replyUrlTarget = QUrl();
+
+        m_securityDialog->setWebsite(hostStripped, certChain);
+        m_securityDialog->show();
+        m_securityDialog->raise();
+        m_securityDialog->activateWindow();
+    }
 }
 
 void SecurityManager::onSSLErrors(QNetworkReply *reply, const QList<QSslError> &errors)

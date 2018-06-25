@@ -118,6 +118,8 @@ void InternalDownloadItem::onFinished()
     {
         emit downloadFinished(QFileInfo(m_file).absoluteFilePath());
     }
+
+    m_reply->deleteLater();
 }
 
 void InternalDownloadItem::onMetaDataChanged()

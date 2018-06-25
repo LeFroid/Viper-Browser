@@ -637,7 +637,7 @@ void MainWindow::onClickSecurityInfo()
     WebView *currentView = m_tabWidget->currentWebView();
     if (!currentView)
         return;
-    SecurityManager::instance().showSecurityInfo(currentView->url().host());
+    SecurityManager::instance().showSecurityInfo(currentView->url());
 }
 
 void MainWindow::onRequestViewSource()

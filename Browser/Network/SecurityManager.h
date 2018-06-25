@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QSet>
 #include <QString>
+#include <QUrl>
 #include <QWebEngineCertificateError>
 
 class SecurityInfoDialog;
@@ -35,8 +36,8 @@ public:
     bool onCertificateError(const QWebEngineCertificateError &certificateError);
 
 public slots:
-    /// Shows a dialog containing the certificate information (or lack thereof) for a given host
-    void showSecurityInfo(const QString &host);
+    /// Shows a dialog containing the certificate information (or lack thereof) for the host of the given url
+    void showSecurityInfo(const QUrl &url);
 
 private slots:
     /// Called when any network reply has been received - checks if reply is associated with current tab,
@@ -58,6 +59,12 @@ private:
 
     /// Security information dialog for websites
     SecurityInfoDialog *m_securityDialog;
+
+    /// True if the SecurityInfoDialog needs to be shown after fetching a website's SSL certificate chain, false if else
+    bool m_needShowDialog;
+
+    /// The URL being searched for in the onNetworkReply slot if m_needShowDialog is true.
+    QUrl m_replyUrlTarget;
 };
 
 #endif // SECURITYMANAGER_H
