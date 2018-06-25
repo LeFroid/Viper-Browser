@@ -12,6 +12,21 @@
 #include <QWebEngineHistory>
 #include <QWebEngineHistoryItem>
 
+ClosedTabInfo::ClosedTabInfo(int tabIndex, WebView *view) :
+    index(tabIndex),
+    url(),
+    pageHistory()
+{
+    if (view)
+    {
+        url = view->url();
+
+        QDataStream stream(&pageHistory, QIODevice::ReadWrite);
+        stream << *(view->history());
+        stream.device()->seek(0);
+    }
+}
+
 BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool privateMode, QWidget *parent) :
     QTabWidget(parent),
     m_settings(settings),
@@ -131,11 +146,26 @@ void BrowserTabWidget::reopenLastTab()
     if (m_closedTabs.empty())
         return;
 
-    auto &tabInfo = m_closedTabs.top();
-    WebView *view = newTab(false, false, tabInfo.first);
-    view->load(tabInfo.second);
+    auto &tabInfo = m_closedTabs.front();
+    WebView *view = newTab(false, false, tabInfo.index);
+    view->load(tabInfo.url);
+    QDataStream historyStream(&tabInfo.pageHistory, QIODevice::ReadWrite);
+    historyStream >> *(view->history());
 
-    m_closedTabs.pop();
+    m_closedTabs.pop_front();
+}
+
+void BrowserTabWidget::saveTab(int index)
+{
+    WebView *view = getWebView(index);
+    if (!view)
+        return;
+
+    ClosedTabInfo tabInfo(index, view);
+    m_closedTabs.push_front(tabInfo);
+
+    while (m_closedTabs.size() > 30)
+        m_closedTabs.pop_back();
 }
 
 void BrowserTabWidget::closeTab(int index)
@@ -144,8 +174,8 @@ void BrowserTabWidget::closeTab(int index)
     if (index < 0 || numTabs == 1 || index >= numTabs)
         return;
 
+    saveTab(index);
     WebView *view = getWebView(index);
-    m_closedTabs.push(std::make_pair(index, view->url()));
     emit tabClosing(view);
 
     view->deleteLater();

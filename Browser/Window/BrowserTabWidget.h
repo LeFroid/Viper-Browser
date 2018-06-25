@@ -3,16 +3,38 @@
 
 #include "Settings.h"
 
+#include <deque>
 #include <memory>
-#include <stack>
 #include <QTabWidget>
 #include <QUrl>
-#include <QWebEngineContextMenuData>
 
 class BrowserTabBar;
 class MainWindow;
 class QMenu;
 class WebView;
+
+/**
+ * @struct ClosedTabInfo
+ * @brief Contains information about a tab that was closed, used to restore a tab to
+ *        its prior state.
+ */
+struct ClosedTabInfo
+{
+    /// Index of the tab in the tab bar
+    int index;
+
+    /// Last URL loaded into the tab's WebView
+    QUrl url;
+
+    /// Stores the page history of the tab
+    QByteArray pageHistory;
+
+    /// Default constructor
+    ClosedTabInfo() = default;
+
+    /// Constructs the ClosedTabInfo given a tab index and a pointer to the tab's WebView
+    ClosedTabInfo(int tabIndex, WebView *view);
+};
 
 /**
  * @class BrowserTabWidget
@@ -40,6 +62,10 @@ public:
 
     /// Returns true if at least one tab has been closed which can be reopened, false if else
     bool canReopenClosedTab() const;
+
+private:
+    /// Saves the tab at the given index before closing it
+    void saveTab(int index);
 
 private slots:
     /// Displays a context menu for the current web view
@@ -146,8 +172,8 @@ private:
     /// Pointer to the window containing this widget
     MainWindow *m_mainWindow;
 
-    /// Maintains a record of each tab that was closed and the URL that its WebView was on before closing
-    std::stack<std::pair<int, QUrl>> m_closedTabs;
+    /// Maintains a record of up to 30 tabs that were closed within the tab widget
+    std::deque<ClosedTabInfo> m_closedTabs;
 };
 
 #endif // BROWSERTABWIDGET_H
