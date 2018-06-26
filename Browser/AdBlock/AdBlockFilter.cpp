@@ -135,7 +135,7 @@ const QString &AdBlockFilter::getEvalString() const
     return m_evalString;
 }
 
-const QByteArray &AdBlockFilter::getContentSecurityPolicy() const
+const QString &AdBlockFilter::getContentSecurityPolicy() const
 {
     return m_contentSecurityPolicy;
 }
@@ -228,6 +228,9 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
             if (hasElementType(m_blockedTypes, currentType) && isRequestOfType)
                 return true;
         }
+
+        if (m_blockedTypes != ElementType::None)
+            return false;
     }
 
     return match;
@@ -237,6 +240,9 @@ bool AdBlockFilter::isDomainStyleMatch(const QString &domain)
 {
     if (m_disabled)
         return false;
+
+    if (hasElementType(m_blockedTypes, ElementType::CSP) && m_domainBlacklist.empty() && m_domainWhitelist.empty())
+        return true;
 
     if (m_domainBlacklist.isEmpty())
     {
@@ -386,7 +392,5 @@ void AdBlockFilter::hashEvalString()
 
 void AdBlockFilter::setContentSecurityPolicy(const QString &csp)
 {
-    QByteArray tmp;
-    tmp.append(csp);
-    m_contentSecurityPolicy = tmp;
+    m_contentSecurityPolicy = csp;
 }

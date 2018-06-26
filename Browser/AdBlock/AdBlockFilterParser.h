@@ -66,6 +66,9 @@ private:
     /// Returns a container of tuples including the index, type, and string length of each chainable cosmetic filter in the evaluation string
     std::vector< std::tuple<int, CosmeticFilter, int> > getChainableFilters(const QString &evalStr) const;
 
+    /// Checks for blob: and data: type filter rules, converting them into the appropriate CSP filter types
+    void parseForCSP(AdBlockFilter *filter) const;
+
     /// Parses a list of domains, separated with the given delimiter, and placing them into
     /// either the domain blacklist or whitelist of the filter depending on the syntax (~ = whitelist, default = blacklist)
     void parseDomains(const QString &domainString, QChar delimiter, AdBlockFilter *filter) const;

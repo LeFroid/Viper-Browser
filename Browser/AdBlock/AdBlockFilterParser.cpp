@@ -131,6 +131,9 @@ std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) con
     if (!filterPtr->m_matchCase)
         filterPtr->m_evalString = filterPtr->m_evalString.toLower();
 
+    // Check for blob: and data: filters
+    parseForCSP(filterPtr);
+
     // If no category set by now, it is a string contains type
     if (filterPtr->getCategory() == FilterCategory::None)
     {
@@ -437,6 +440,48 @@ std::vector< std::tuple<int, CosmeticFilter, int> > AdBlockFilterParser::getChai
     });
 
     return filters;
+}
+
+void AdBlockFilterParser::parseForCSP(AdBlockFilter *filter) const
+{
+    if (filter->m_evalString.startsWith(QLatin1String("blob:")))
+    {
+        filter->m_blockedTypes |= ElementType::CSP;
+        filter->m_evalString = QString();
+        QString csPolicy;
+
+        const bool blockScriptType = filter->hasElementType(filter->m_blockedTypes, ElementType::Script);
+        const bool blockSubdocument = filter->hasElementType(filter->m_blockedTypes, ElementType::Subdocument);
+        if (blockScriptType && blockSubdocument)
+            csPolicy = QLatin1String("frame-src 'self' * data:; script-src 'self' * data: 'unsafe-inline' 'unsafe-eval';");
+        else if (blockScriptType)
+            csPolicy = QLatin1String("script-src 'self' * data: 'unsafe-inline' 'unsafe-eval'");
+        else if (blockSubdocument)
+            csPolicy = QLatin1String("frame-src 'self' * data:");
+        else
+            csPolicy = QLatin1String("default-src 'self' * data: 'unsafe-inline' 'unsafe-eval'");
+
+        filter->setContentSecurityPolicy(csPolicy);
+    }
+    else if (filter->m_evalString.startsWith(QLatin1String("data:")))
+    {
+        filter->m_blockedTypes |= ElementType::CSP;
+        filter->m_evalString = QString();
+        QString csPolicy;
+
+        const bool blockScriptType = filter->hasElementType(filter->m_blockedTypes, ElementType::Script);
+        const bool blockSubdocument = filter->hasElementType(filter->m_blockedTypes, ElementType::Subdocument);
+        if (blockScriptType && blockSubdocument)
+            csPolicy = QLatin1String("frame-src 'self' * blob:; script-src 'self' * blob: 'unsafe-inline' 'unsafe-eval';");
+        else if (blockScriptType)
+            csPolicy = QLatin1String("script-src 'self' * blob: 'unsafe-inline' 'unsafe-eval'");
+        else if (blockSubdocument)
+            csPolicy = QLatin1String("frame-src 'self' * blob:");
+        else
+            csPolicy = QLatin1String("default-src 'self' * blob: 'unsafe-inline' 'unsafe-eval'");
+
+        filter->setContentSecurityPolicy(csPolicy);
+    }
 }
 
 void AdBlockFilterParser::parseDomains(const QString &domainString, QChar delimiter, AdBlockFilter *filter) const

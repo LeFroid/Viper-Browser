@@ -35,6 +35,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_cspFilters(),
     m_resourceMap(),
     m_domainStylesheetCache(24),
+    m_jsInjectionCache(24),
     m_emptyStr(),
     m_adBlockModel(nullptr)
 {
@@ -258,17 +259,17 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     return m_domainStylesheetCache.get(domainStdStr);
 }
 
-QString AdBlockManager::getDomainJavaScript(const URL &url) const
+const QString &AdBlockManager::getDomainJavaScript(const URL &url)
 {
     if (!m_enabled)
-        return QString();
+        return m_emptyStr;
 
-    static QString cspScript = QString("(function() {\n"
+    const static QString cspScript = QString("(function() {\n"
                                        "var doc = document;\n"
                                        "if (doc.head === null) { return; }\n"
                                        "var meta = doc.createElement('meta');\n"
                                        "meta.setAttribute('http-equiv', 'Content-Security-Policy');\n"
-                                       "meta.setAttribute('content', \"script-src 'unsafe-eval' * blob: data:\");\n"
+                                       "meta.setAttribute('content', \"%1\");\n"
                                        "doc.head.appendChild(meta);\n"
                                    "})();");
     bool usedCspScript = false;
@@ -279,6 +280,14 @@ QString AdBlockManager::getDomainJavaScript(const URL &url) const
 
     QString requestUrl = url.toString(QUrl::FullyEncoded).toLower();
 
+    // Check for cache hit
+    std::string requestHostStdStr = url.host().toLower().toStdString();
+    if (requestHostStdStr.empty())
+        requestHostStdStr = domain.toStdString();
+
+    if (m_jsInjectionCache.has(requestHostStdStr))
+        return m_jsInjectionCache.get(requestHostStdStr);
+
     QString javascript;
     for (AdBlockFilter *filter : m_domainJSFilters)
     {
@@ -287,9 +296,9 @@ QString AdBlockManager::getDomainJavaScript(const URL &url) const
     }
     for (AdBlockFilter *filter : m_blockFilters)
     {
-        if (filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript) &&filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript))
+        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) &&filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
-            javascript.append(cspScript);
+            javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
             usedCspScript = true;
             break;
         }
@@ -299,21 +308,34 @@ QString AdBlockManager::getDomainJavaScript(const URL &url) const
         if (usedCspScript)
             break;
 
-        if (filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript) && filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript))
+        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
-            javascript.append(cspScript);
+            javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
             usedCspScript = true;
             break;
         }
     }
-    if (!javascript.isEmpty())
+    for (AdBlockFilter *filter : m_cspFilters)
     {
-        QString result = m_cosmeticJSTemplate;
-        result.replace(QLatin1String("{{ADBLOCK_INTERNAL}}"), javascript);
-        return result;
+        if (usedCspScript)
+            break;
+        if (filter->isDomainStyleMatch(domain))
+        {
+            javascript.append(cspScript.arg(filter->getContentSecurityPolicy()));
+            usedCspScript = true;
+            break;
+        }
     }
 
-    return QString();
+    QString result;
+    if (!javascript.isEmpty())
+    {
+        result = m_cosmeticJSTemplate;
+        result.replace(QLatin1String("{{ADBLOCK_INTERNAL}}"), javascript);
+    }
+
+    m_jsInjectionCache.put(requestHostStdStr, result);
+    return m_jsInjectionCache.get(requestHostStdStr);
 }
 
 bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
@@ -398,22 +420,18 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     QString secondLevelDomain = getSecondLevelDomain(info.requestUrl());
     if (secondLevelDomain.isEmpty())
         secondLevelDomain = info.requestUrl().host();
-    if (secondLevelDomain == getSecondLevelDomain(QUrl(baseUrl)))
+
+    if (getSecondLevelDomain(info.requestUrl()) != getSecondLevelDomain(info.firstPartyUrl()))
         elemType |= ElementType::ThirdParty;
     
     // Compare to filters
-    /*this won't work here - CSP must be set in response, not request*/
-    for (AdBlockFilter *filter : m_cspFilters)
-    {
-        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
-        {
-            info.setHttpHeader("Content-Security-Policy", filter->getContentSecurityPolicy());
-        }
-    }
     for (AdBlockFilter *filter : m_importantBlockFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+        {
+            //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             return true;
+        }
     }
     for (AdBlockFilter *filter : m_allowFilters)
     {
@@ -423,7 +441,10 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     for (AdBlockFilter *filter : m_blockFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+        {
+            //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             return true;
+        }
     }
     return false;
 }

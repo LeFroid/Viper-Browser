@@ -129,7 +129,7 @@ public:
     const QString &getEvalString() const;
 
     /// Returns the content security policy associated with the filter
-    const QByteArray &getContentSecurityPolicy() const;
+    const QString &getContentSecurityPolicy() const;
 
     /// Returns true if the filter is an exception, false if it is a standard blocking filter
     bool isException() const;
@@ -200,7 +200,7 @@ protected:
     QString m_evalString;
 
     /// Content security policy for filters with blocking type CSP
-    QByteArray m_contentSecurityPolicy;
+    QString m_contentSecurityPolicy;
 
     /// True if the filter is an exception, false if it is a standard blocking rule
     bool m_exception;

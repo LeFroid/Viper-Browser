@@ -50,7 +50,7 @@ public:
     const QString &getDomainStylesheet(const URL &url);
 
     /// Returns the domain-specific blocking javascript, or an empty string if not applicable
-    QString getDomainJavaScript(const URL &url) const;
+    const QString &getDomainJavaScript(const URL &url);
 
     /// Returns true if the given request should be blocked, false if else
     bool shouldBlockRequest(QWebEngineUrlRequestInfo &info);
@@ -173,6 +173,9 @@ private:
 
     /// A cache of the most recently used domain-specific stylesheets
     LRUCache<std::string, QString> m_domainStylesheetCache;
+
+    /// A cache of the most recently used javascript injection scripts for specific URLs
+    LRUCache<std::string, QString> m_jsInjectionCache;
 
     /// Empty string, used when getDomainStylesheet returns nothing
     QString m_emptyStr;
