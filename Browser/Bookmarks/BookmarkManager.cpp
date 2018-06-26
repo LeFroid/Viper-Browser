@@ -595,7 +595,7 @@ void BookmarkManager::setup()
     BookmarkNode *bookmarkBar = addFolder(QLatin1String("Bookmarks Bar"), m_rootNode.get());
 
     // Insert bookmark for search engine
-    appendBookmark(QLatin1String("Search Engine"), QLatin1String("https://www.ixquick.com"), bookmarkBar);
+    appendBookmark(QLatin1String("Search Engine"), QLatin1String("https://www.startpage.com"), bookmarkBar);
 }
 
 void BookmarkManager::load()

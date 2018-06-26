@@ -5,6 +5,7 @@
 #include "CookieWidget.h"
 #include "DatabaseFactory.h"
 #include "DownloadManager.h"
+#include "ExtStorage.h"
 #include "FaviconStorage.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
@@ -31,9 +32,9 @@
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
 {
-    QCoreApplication::setOrganizationName(QStringLiteral("Vaccarelli"));
-    QCoreApplication::setApplicationName(QStringLiteral("Viper Browser"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.6"));
+    QCoreApplication::setOrganizationName(QLatin1String("Vaccarelli"));
+    QCoreApplication::setApplicationName(QLatin1String("Viper Browser"));
+    QCoreApplication::setApplicationVersion(QLatin1String("0.7"));
 
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
@@ -97,6 +98,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Setup user script manager
     m_userScriptMgr = new UserScriptManager(m_settings);
 
+    // Setup extension storage manager
+    m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(QLatin1String("ExtStoragePath")));
+
     // Apply global web scripts
     installGlobalWebScripts();
 
@@ -104,13 +108,13 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_settings->applyWebSettings();
 
     // Load search engine information
-    SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QStringLiteral("SearchEnginesFile")));
+    SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QLatin1String("SearchEnginesFile")));
 
     // Load ad block subscriptions (will do nothing if disabled)
     AdBlockManager::instance().loadSubscriptions();
 
     // Set browser's saved sessions file
-    m_sessionMgr.setSessionFile(m_settings->getPathValue(QStringLiteral("SessionFile")));
+    m_sessionMgr.setSessionFile(m_settings->getPathValue(QLatin1String("SessionFile")));
 
     // Connect aboutToQuit signal to browser's session management slot
     connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
@@ -222,6 +226,11 @@ CookieWidget *BrowserApplication::getCookieManager()
     return m_cookieUI;
 }
 
+ExtStorage *BrowserApplication::getExtStorage()
+{
+    return m_extStorage.get();
+}
+
 MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
@@ -236,11 +245,11 @@ MainWindow *BrowserApplication::getNewWindow()
     // the startup mode behavior depending on the user's configuration setting
     if (firstWindow)
     {
-        StartupMode mode = m_settings->getValue(QStringLiteral("StartupMode")).value<StartupMode>();
+        StartupMode mode = static_cast<StartupMode>(m_settings->getValue(QLatin1String("StartupMode")).toInt());
         switch (mode)
         {
             case StartupMode::LoadHomePage:
-                w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QStringLiteral("HomePage")).toString()));
+                w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QLatin1String("HomePage")).toString()));
                 break;
             case StartupMode::LoadBlankPage:
                 w->loadBlankPage();
@@ -257,7 +266,7 @@ MainWindow *BrowserApplication::getNewWindow()
         // Treat new window as a new tab, and check if new tab behavior is set to
         // open a blank page or load a home page URL
         if (m_settings->getValue("NewTabsLoadHomePage").toBool())
-            w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QStringLiteral("HomePage")).toString()));
+            w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QLatin1String("HomePage")).toString()));
         else
             w->loadBlankPage();
     }
@@ -322,6 +331,19 @@ void BrowserApplication::installGlobalWebScripts()
     printScript.setSourceCode(QLatin1String("(function() { window.print = function() { "
                                             "window.location = 'viper:print'; }; })()"));
 
+    /*QWebEngineScript webChannel;
+    webChannel.setInjectionPoint(QWebEngineScript::DocumentCreation);
+    webChannel.setName(QLatin1String("viper-web-channel"));
+    webChannel.setRunsOnSubFrames(true);
+    webChannel.setWorldId(QWebEngineScript::MainWorld);
+
+    QString webChannelJS;
+    QFile webChannelFile(QLatin1String(":/qtwebchannel/qwebchannel.js"));
+    if (webChannelFile.open(QIODevice::ReadOnly))
+        webChannelJS = webChannelFile.readAll();
+    webChannelFile.close();
+    webChannel.setSourceCode(webChannelJS);
+*/
     auto scriptCollection = QWebEngineProfile::defaultProfile()->scripts();
     auto privateScriptCollection = m_privateProfile->scripts();
 
@@ -331,7 +353,7 @@ void BrowserApplication::installGlobalWebScripts()
 
 void BrowserApplication::beforeBrowserQuit()
 {
-    StartupMode mode = m_settings->getValue(QStringLiteral("StartupMode")).value<StartupMode>();
+    StartupMode mode = static_cast<StartupMode>(m_settings->getValue(QLatin1String("StartupMode")).toInt());
     if (mode != StartupMode::RestoreSession && m_sessionMgr.alreadySaved())
         return;
 

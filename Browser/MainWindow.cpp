@@ -759,7 +759,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (!m_privateWindow)
     {
-        StartupMode mode = m_settings->getValue("StartupMode").value<StartupMode>();
+        StartupMode mode = static_cast<StartupMode>(m_settings->getValue("StartupMode").toInt());
         if (mode == StartupMode::RestoreSession)
         {
             emit aboutToClose();

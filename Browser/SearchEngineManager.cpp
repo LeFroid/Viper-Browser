@@ -44,6 +44,7 @@ void SearchEngineManager::setDefaultSearchEngine(const QString &name)
         return;
 
     m_defaultEngine = name;
+    m_shouldSave = true;
     emit defaultEngineChanged(m_defaultEngine);
 }
 

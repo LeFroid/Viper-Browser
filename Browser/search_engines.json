@@ -1,5 +1,5 @@
 {
-    "Default": "IxQuick",
+    "Default": "StartPage",
     "Engines": [
         {
             "Name": "Google",
@@ -10,8 +10,8 @@
             "Query": "https://duckduckgo.com/?q=%s"
         },
         {
-            "Name": "IxQuick",
-            "Query": "https://www.ixquick.com/do/dsearch?query=%s&cat=web&pl=opensearch&language=english"
+            "Name": "StartPage",
+            "Query": "https://www.startpage.com/do/dsearch?query=%s&cat=web&pl=opensearch&language=english"
         }
     ]
 }

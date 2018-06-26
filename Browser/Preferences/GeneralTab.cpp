@@ -12,9 +12,9 @@ GeneralTab::GeneralTab(QWidget *parent) :
     ui->setupUi(this);
 
     // Populate the combobox for startup mode options
-    ui->comboBoxStartup->addItem(tr("Show my home page"), QVariant::fromValue(StartupMode::LoadHomePage));
-    ui->comboBoxStartup->addItem(tr("Show a blank page"), QVariant::fromValue(StartupMode::LoadBlankPage));
-    ui->comboBoxStartup->addItem(tr("Show my tabs from last time"), QVariant::fromValue(StartupMode::RestoreSession));
+    ui->comboBoxStartup->addItem(tr("Show my home page"), QVariant::fromValue(static_cast<int>(StartupMode::LoadHomePage)));
+    ui->comboBoxStartup->addItem(tr("Show a blank page"), QVariant::fromValue(static_cast<int>(StartupMode::LoadBlankPage)));
+    ui->comboBoxStartup->addItem(tr("Show my tabs from last time"), QVariant::fromValue(static_cast<int>(StartupMode::RestoreSession)));
 
     ui->lineEditDownloadDir->setFileMode(QFileDialog::Directory);
 
@@ -30,6 +30,7 @@ GeneralTab::~GeneralTab()
 
 void GeneralTab::setDownloadAskBehavior(bool alwaysAsk)
 {
+    ui->radioButtonSaveToDir->setChecked(!alwaysAsk);
     ui->radioButtonAskForDir->setChecked(alwaysAsk);
     ui->lineEditDownloadDir->setEnabled(!alwaysAsk);
 }

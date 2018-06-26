@@ -1,5 +1,6 @@
 #include "AdBlockManager.h"
 #include "BrowserApplication.h"
+#include "ExtStorage.h"
 #include "SecurityManager.h"
 #include "Settings.h"
 #include "URL.h"
@@ -8,6 +9,7 @@
 
 #include <QFile>
 #include <QMessageBox>
+#include <QWebChannel>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
@@ -36,6 +38,10 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 
 void WebPage::setupSlots()
 {
+    //QWebChannel *channel = new QWebChannel(this);
+    //channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
+    //setWebChannel(channel);
+
     connect(this, &WebPage::loadProgress,               this, &WebPage::onLoadProgress);
     connect(this, &WebPage::loadFinished,               this, &WebPage::onLoadFinished);
     connect(this, &WebPage::urlChanged,                 this, &WebPage::onMainFrameUrlChanged);

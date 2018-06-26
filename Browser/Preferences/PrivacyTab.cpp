@@ -8,9 +8,9 @@ PrivacyTab::PrivacyTab(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->comboBoxHistoryOptions->addItem(tr("Remember browsing history"), QVariant::fromValue(HistoryStoragePolicy::Remember));
-    ui->comboBoxHistoryOptions->addItem(tr("Clear history at exit"), QVariant::fromValue(HistoryStoragePolicy::SessionOnly));
-    ui->comboBoxHistoryOptions->addItem(tr("Never remember history"), QVariant::fromValue(HistoryStoragePolicy::Never));
+    ui->comboBoxHistoryOptions->addItem(tr("Remember browsing history"), QVariant::fromValue(static_cast<int>(HistoryStoragePolicy::Remember)));
+    ui->comboBoxHistoryOptions->addItem(tr("Clear history at exit"), QVariant::fromValue(static_cast<int>(HistoryStoragePolicy::SessionOnly)));
+    ui->comboBoxHistoryOptions->addItem(tr("Never remember history"), QVariant::fromValue(static_cast<int>(HistoryStoragePolicy::Never)));
 
     connect(ui->checkBoxBlockThirdParties, &QCheckBox::toggled, [=](bool checked) {
         ui->pushButtonThirdPartyExceptions->setEnabled(checked);
@@ -29,7 +29,7 @@ PrivacyTab::~PrivacyTab()
 
 HistoryStoragePolicy PrivacyTab::getHistoryStoragePolicy() const
 {
-    return ui->comboBoxHistoryOptions->currentData().value<HistoryStoragePolicy>();
+    return static_cast<HistoryStoragePolicy>(ui->comboBoxHistoryOptions->currentData().toInt());
 }
 
 bool PrivacyTab::areCookiesEnabled() const

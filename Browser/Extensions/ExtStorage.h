@@ -14,18 +14,24 @@
  */
 class ExtStorage : public QObject, private DatabaseWorker
 {
+    friend class DatabaseFactory;
+
     Q_OBJECT
 
-    Q_PROPERTY(ExtStorage* local MEMBER m_this)
-    Q_PROPERTY(ExtStorage* sync MEMBER m_this)
+    Q_PROPERTY(QVariant itemResult READ getItemResult NOTIFY itemResultChanged)
 
 public:
     /// Constructs the extension storage object, given the path of the storage file, the name of the database, and an
     /// optional pointer to the parent object
-    explicit ExtStorage(const QString &dbFile, const QString &dbName, QObject *parent = nullptr);
+    explicit ExtStorage(const QString &dbFile, QObject *parent = nullptr);
 
     /// Extension storage destructor
     virtual ~ExtStorage();
+
+    const QVariant getItemResult() { return m_getItemResult; }
+
+signals:
+    void itemResultChanged(const QVariant&);
 
 public slots:
     /**
@@ -37,6 +43,36 @@ public slots:
     QVariantMap getResult(const QString &extUID, const QVariantMap &keys);
     //QVariantMap getResult(const QString &extUID, const QStringList &keys);
     //QVariantMap getResult(const QString &extUID, const QString &key);
+
+    /**
+     * @brief Searches the caller's storage region for an item with the given key
+     * @param extUID Unique identifier of the caller
+     * @param key Name of the key
+     * @return The value associated with the key for that extension, or a null QVariant if the key was not found
+     */
+    void getItem(const QString &extUID, const QString &key);
+
+    /**
+     * @brief Inserts or updates the key-value pair in storage for the caller
+     * @param extUID Unique identifier of the caller
+     * @param key Name of the key
+     * @param value Value to be associated with the key
+     */
+    void setItem(const QString &extUID, const QString &key, const QVariant &value);
+
+    /**
+     * @brief Removes the key-value pair from an extension's storage
+     * @param extUID Unique identifier of the caller
+     * @param key Name of the key
+     */
+    void removeItem(const QString &extUID, const QString &key);
+
+    /**
+     * @brief Returns a list of the keys associated with a given extension
+     * @param extUID Unique identifier of the caller
+     * @return List of keys associated with the extension
+     */
+    QVariantList listKeys(const QString &extUID);
 
 protected:
     /// Returns true if the extension database contains the table structure(s) needed for it to function properly,
@@ -54,6 +90,8 @@ protected:
 
 private:
     ExtStorage *m_this;
+
+    QVariant m_getItemResult;
 };
 
 Q_DECLARE_METATYPE(ExtStorage*)

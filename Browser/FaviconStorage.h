@@ -77,6 +77,9 @@ private:
     /// Saves the specific favicon with its URL and data structure into the database
     void saveToDB(const QString &faviconUrl, const FaviconInfo &favicon);
 
+    /// Instantiates the stored query objects
+    void setupQueries();
+
 protected:
     /// Returns true if the favicon database contains the table structure(s) needed for it to function properly,
     /// false if else.

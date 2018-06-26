@@ -113,6 +113,7 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("StoragePath"), settingsPath);
     m_settings.setValue(QLatin1String("BookmarkPath"), QLatin1String("bookmarks.db"));
     m_settings.setValue(QLatin1String("CookiePath"), QLatin1String("cookies.db"));
+    m_settings.setValue(QLatin1String("ExtStoragePath"), QLatin1String("extension_storage.db"));
     m_settings.setValue(QLatin1String("HistoryPath"), QLatin1String("history.db"));
     m_settings.setValue(QLatin1String("FaviconPath"), QLatin1String("favicons.db"));
     m_settings.setValue(QLatin1String("UserAgentsFile"),  QLatin1String("user_agents.json"));
@@ -124,8 +125,8 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("AdBlockPlusDataDir"), QLatin1String("AdBlockPlus"));
     m_settings.setValue(QLatin1String("ExemptThirdPartyCookieFile"), QLatin1String("exempt_third_party_cookies.txt"));
 
-    m_settings.setValue(QLatin1String("HomePage"), QLatin1String("https://www.ixquick.com/"));
-    m_settings.setValue(QLatin1String("StartupMode"), QVariant::fromValue(StartupMode::LoadHomePage));
+    m_settings.setValue(QLatin1String("HomePage"), QLatin1String("https://www.startpage.com/"));
+    m_settings.setValue(QLatin1String("StartupMode"), static_cast<int>(StartupMode::LoadHomePage));
     m_settings.setValue(QLatin1String("NewTabsLoadHomePage"), true);
     m_settings.setValue(QLatin1String("DownloadDir"), QDir::homePath() + QDir::separator() + "Downloads");
     m_settings.setValue(QLatin1String("AskWhereToSaveDownloads"), false);
@@ -141,8 +142,10 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("CustomUserAgent"), false);
     m_settings.setValue(QLatin1String("UserScriptsEnabled"), true);
     m_settings.setValue(QLatin1String("AdBlockPlusEnabled"), true);
+#if (QTWEBENGINECORE_VERSION < QT_VERSION_CHECK(5, 11, 0))
     m_settings.setValue(QLatin1String("InspectorPort"), 9477);
-    m_settings.setValue(QLatin1String("HistoryStoragePolicy"), QVariant::fromValue(HistoryStoragePolicy::Remember));
+#endif
+    m_settings.setValue(QLatin1String("HistoryStoragePolicy"), static_cast<int>(HistoryStoragePolicy::Remember));
     m_settings.setValue(QLatin1String("ScrollAnimatorEnabled"), false);
     m_settings.setValue(QLatin1String("OpenAllTabsInBackground"), false);
 
