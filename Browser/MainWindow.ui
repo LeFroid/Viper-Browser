@@ -17,8 +17,8 @@
    <string>Web Browser</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../../../../../../usr/share/icons/oxygen/32x32/apps/package_network.png</normaloff>../../../../../../usr/share/icons/oxygen/32x32/apps/package_network.png</iconset>
+   <iconset resource="application.qrc">
+    <normaloff>:/logo.png</normaloff>:/logo.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -585,6 +585,8 @@
    <header>Window/NavigationToolBar.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="application.qrc"/>
+ </resources>
  <connections/>
 </ui>

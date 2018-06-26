@@ -76,21 +76,10 @@ QSet<QString> URLSuggestionModel::loadBookmarkURLs()
     if (!bookmarkMgr)
         return urls;
 
-    BookmarkNode *f = nullptr;
-    QQueue<BookmarkNode*> folders;
-    folders.enqueue(bookmarkMgr->getRoot());
-    while (!folders.empty())
+    for (auto it : *bookmarkMgr)
     {
-        f = folders.dequeue();
-        int numChildren = f->getNumChildren();
-        for (int i = 0; i < numChildren; ++i)
-        {
-            BookmarkNode *n = f->getNode(i);
-            if (n->getType() == BookmarkNode::Folder)
-                folders.enqueue(n);
-            else
-                urls.insert(QString("%1 - %2").arg(n->getURL()).arg(n->getName()));
-        }
+        if (it->getType() == BookmarkNode::Bookmark)
+            urls.insert(QString("%1 - %2").arg(it->getURL()).arg(it->getName()));
     }
 
     return urls;

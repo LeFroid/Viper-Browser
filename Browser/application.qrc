@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>adblock_recommended.json</file>
         <file>search_engines.json</file>
+        <file alias="logo.png">Images/logo.png</file>
         <file alias="plus_icon.png">Images/plus_icon.png</file>
         <file alias="not_bookmarked.png">Images/not_bookmarked.png</file>
         <file alias="bookmarked.png">Images/bookmarked.png</file>
