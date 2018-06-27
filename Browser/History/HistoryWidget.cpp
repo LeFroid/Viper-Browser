@@ -55,10 +55,7 @@ void HistoryWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    int tableWidth = ui->tableView->geometry().width();
-    ui->tableView->setColumnWidth(0, std::max(tableWidth / 4, 0));
-    ui->tableView->setColumnWidth(1, std::max(tableWidth / 2 - 5, 0));
-    ui->tableView->setColumnWidth(2, std::max(tableWidth / 4, 0));
+    adjustTableColumnSizes();
 }
 
 void HistoryWidget::onContextMenuRequested(const QPoint &pos)
@@ -95,6 +92,7 @@ void HistoryWidget::onCriteriaChanged(const QModelIndex &index)
     {
         m_timeRange = newRange;
         loadHistory();
+        adjustTableColumnSizes();
     }
 }
 
@@ -148,4 +146,12 @@ QDateTime HistoryWidget::getLoadDate()
         default: break;
     }
     return retDate.addDays(timeSubtract);
+}
+
+void HistoryWidget::adjustTableColumnSizes()
+{
+    int tableWidth = ui->tableView->geometry().width();
+    ui->tableView->setColumnWidth(0, std::max(tableWidth / 4, 0));
+    ui->tableView->setColumnWidth(1, std::max(tableWidth / 2 - 5, 0));
+    ui->tableView->setColumnWidth(2, std::max(tableWidth / 4, 0));
 }

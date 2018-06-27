@@ -75,6 +75,9 @@ private:
     /// Returns a QDateTime object representing the start date to load history items from, depending on m_timeRange
     QDateTime getLoadDate();
 
+    /// Called on resize event and when the model data has changed, adjusts the columns of the history table to maximize space
+    void adjustTableColumnSizes();
+
 private:
     /// UI form class
     Ui::HistoryWidget *ui;

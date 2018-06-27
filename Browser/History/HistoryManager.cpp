@@ -150,7 +150,7 @@ bool HistoryManager::historyContains(const QString &url) const
 
 std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate) const
 {
-    std::vector<WebHistoryItem> items;
+    /*std::vector<WebHistoryItem> items;
 
     if (!startDate.isValid())
         return items;
@@ -181,6 +181,55 @@ std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &star
         }
         items.push_back(item);
     }
+    return items;*/
+    return getHistoryBetween(startDate, QDateTime::currentDateTime());
+}
+
+std::vector<WebHistoryItem> HistoryManager::getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate) const
+{
+    std::vector<WebHistoryItem> items;
+
+    if (!startDate.isValid() || !endDate.isValid())
+        return items;
+
+    // Get startDate in msec format
+    qint64 startMSec = startDate.toMSecsSinceEpoch();
+    qint64 endMSec = endDate.toMSecsSinceEpoch();
+
+    // Setup queries
+    QSqlQuery queryVisitIds(m_database), queryHistoryItem(m_database), queryVisitDates(m_database);
+    queryVisitIds.prepare(QLatin1String("SELECT DISTINCT VisitID FROM Visits WHERE Date > (:startDate) AND Date <= (:endDate)"));
+    queryHistoryItem.prepare(QLatin1String("SELECT URL, Title FROM History WHERE VisitID = (:visitId)"));
+    queryVisitDates.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) AND Date > (:startDate) AND Date <= (:endDate)"));
+
+    queryVisitIds.bindValue(QLatin1String(":startDate"), startMSec);
+    queryVisitIds.bindValue(QLatin1String(":endDate"), endMSec);
+    if (!queryVisitIds.exec())
+        qDebug() << "HistoryManager::getHistoryBetween - error executing query. Message: " << queryVisitIds.lastError().text();
+    while (queryVisitIds.next())
+    {
+        const int visitId = queryVisitIds.value(0).toInt();
+
+        queryHistoryItem.bindValue(QLatin1String(":visitId"), visitId);
+        if (!queryHistoryItem.exec() || !queryHistoryItem.next())
+            continue;
+
+        WebHistoryItem item;
+        item.URL = queryHistoryItem.value(0).toString();
+        item.Title = queryHistoryItem.value(1).toString();
+        item.VisitID = visitId;
+
+        queryVisitDates.bindValue(QLatin1String(":visitId"), visitId);
+        queryVisitDates.bindValue(QLatin1String(":startDate"), startMSec);
+        queryVisitDates.bindValue(QLatin1String(":endDate"), endMSec);
+        if (queryVisitDates.exec())
+        {
+            while (queryVisitDates.next())
+                item.Visits.append(QDateTime::fromMSecsSinceEpoch(queryVisitDates.value(0).toLongLong()));
+        }
+        items.push_back(item);
+    }
+
     return items;
 }
 

@@ -98,6 +98,9 @@ public:
     /// Loads and returns a list of all \ref WebHistoryItem items visited from the given start date to the present
     std::vector<WebHistoryItem> getHistoryFrom(const QDateTime &startDate) const;
 
+    /// Loads and returns a list of all \ref WebHistoryItem items visited between the given start date and end dates
+    std::vector<WebHistoryItem> getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate) const;
+
     /// Returns the number of times the user has visited the given website by its hostname
     int getTimesVisited(const QString &host);
 

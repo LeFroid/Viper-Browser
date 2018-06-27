@@ -63,6 +63,12 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
+    /// Returns true if there is more data available for parent, otherwise returns false
+    bool canFetchMore(const QModelIndex &parent) const override;
+
+    /// Fetches any available data for the items with the parent specified by the parent index.
+    void fetchMore(const QModelIndex &parent) override;
+
     /// Returns the data associated at the index with the given role
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
@@ -73,6 +79,12 @@ protected:
 private:
     /// History manager
     HistoryManager *m_historyMgr;
+
+    /// Date-time requested from the last call to loadFromDate(..) - when the date is older than 24 hours, it is loaded incrementially
+    QDateTime m_targetDate;
+
+    /// Date of the most recently loaded history item
+    QDateTime m_loadedDate;
 
     /// Common history data
     std::vector<HistoryTableItem> m_commonData;

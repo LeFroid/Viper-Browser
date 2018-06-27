@@ -6,6 +6,8 @@
 HistoryTableModel::HistoryTableModel(HistoryManager *historyMgr, QObject *parent) :
     QAbstractTableModel(parent),
     m_historyMgr(historyMgr),
+    m_targetDate(),
+    m_loadedDate(),
     m_commonData(),
     m_history()
 {
@@ -46,6 +48,61 @@ int HistoryTableModel::columnCount(const QModelIndex &parent) const
     return 3;
 }
 
+bool HistoryTableModel::canFetchMore(const QModelIndex &/*parent*/) const
+{
+    return m_targetDate < m_loadedDate;
+}
+
+void HistoryTableModel::fetchMore(const QModelIndex &/*parent*/)
+{
+    qint64 daysLeft = m_targetDate.daysTo(m_loadedDate);
+    if (daysLeft <= 0)
+    {
+        m_loadedDate = m_targetDate;
+        return;
+    }
+
+    FaviconStorage *favicons = sBrowserApplication->getFaviconStorage();
+
+    QDateTime nextLoadedDate = m_loadedDate.addDays(-1);
+
+    std::vector<WebHistoryItem> entries = m_historyMgr->getHistoryBetween(nextLoadedDate, m_loadedDate);
+    QMap<qint64, int> tmpVisitInfo; // Used to sort visits by date
+    for (auto &it : entries)
+    {
+        // Load entry into common entry list, then specific visits into a temporary map for sorting
+        HistoryTableItem tableItem;
+        tableItem.Title = it.Title;
+        tableItem.URL = it.URL.toString();
+        tableItem.Favicon = favicons->getFavicon(it.URL).pixmap(16, 16);
+        m_commonData.push_back(tableItem);
+
+        int itemIndex = static_cast<int>(m_commonData.size()) - 1;
+        for (auto visit : it.Visits)
+            tmpVisitInfo.insert(visit.toMSecsSinceEpoch(), itemIndex);
+    }
+
+    int currentRowCount = rowCount();
+    beginInsertRows(QModelIndex(), currentRowCount, currentRowCount + tmpVisitInfo.size() - 1);
+
+    // Insert history entries into m_history sorted by most recently visited
+    QMapIterator<qint64, int> mapIt(tmpVisitInfo);
+    mapIt.toBack();
+    while (mapIt.hasPrevious())
+    {
+        mapIt.previous();
+        QDateTime dateTime = QDateTime::fromMSecsSinceEpoch(mapIt.key());
+
+        HistoryTableRow row;
+        row.ItemIndex = mapIt.value();
+        row.VisitString = dateTime.toString("MMMM d yyyy, h:m ap");
+        m_history.push_back(row);
+    }
+
+    m_loadedDate = nextLoadedDate;
+    endInsertRows();
+}
+
 QVariant HistoryTableModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() >= static_cast<int>(m_history.size()))
@@ -82,14 +139,20 @@ void HistoryTableModel::loadFromDate(const QDateTime &date)
 {
     if (!date.isValid())
         return;
+
     FaviconStorage *favicons = sBrowserApplication->getFaviconStorage();
 
     beginResetModel();
+    m_targetDate = date;
+
+    // Pick a date to load now, and load the rest of the history items incrementially
+    QDateTime today = QDateTime(QDate::currentDate(), QTime(0, 0));
+    m_loadedDate = (today < m_targetDate) ? m_targetDate : today;
 
     // load data from history manager and use FaviconStorage to fetch icons
     m_commonData.clear();
     m_history.clear();
-    std::vector<WebHistoryItem> entries = m_historyMgr->getHistoryFrom(date);
+    std::vector<WebHistoryItem> entries = m_historyMgr->getHistoryFrom(m_loadedDate); //date);
     QMap<qint64, int> tmpVisitInfo; // Used to sort visits by date
     for (auto &it : entries)
     {
