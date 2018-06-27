@@ -95,7 +95,7 @@ void HistoryTableModel::fetchMore(const QModelIndex &/*parent*/)
 
         HistoryTableRow row;
         row.ItemIndex = mapIt.value();
-        row.VisitString = dateTime.toString("MMMM d yyyy, h:m ap");
+        row.VisitString = dateTime.toString("MMMM d yyyy, h:mm ap");
         m_history.push_back(row);
     }
 
@@ -140,47 +140,16 @@ void HistoryTableModel::loadFromDate(const QDateTime &date)
     if (!date.isValid())
         return;
 
-    FaviconStorage *favicons = sBrowserApplication->getFaviconStorage();
-
     beginResetModel();
     m_targetDate = date;
 
-    // Pick a date to load now, and load the rest of the history items incrementially
-    QDateTime today = QDateTime(QDate::currentDate(), QTime(0, 0));
-    m_loadedDate = (today < m_targetDate) ? m_targetDate : today;
+    // Set loaded date to a time in the future, as fetchMore() will grab history items one day at a time
+    QDateTime tomorrow = QDateTime(QDate::currentDate(), QTime(0, 0));
+    m_loadedDate = tomorrow.addDays(1);
 
-    // load data from history manager and use FaviconStorage to fetch icons
+    // Clear old model data
     m_commonData.clear();
     m_history.clear();
-    std::vector<WebHistoryItem> entries = m_historyMgr->getHistoryFrom(m_loadedDate); //date);
-    QMap<qint64, int> tmpVisitInfo; // Used to sort visits by date
-    for (auto &it : entries)
-    {
-        // Load entry into common entry list, then specific visits into a temporary map for sorting
-        HistoryTableItem tableItem;
-        tableItem.Title = it.Title;
-        tableItem.URL = it.URL.toString();
-        tableItem.Favicon = favicons->getFavicon(it.URL).pixmap(16, 16);
-        m_commonData.push_back(tableItem);
-
-        int itemIndex = static_cast<int>(m_commonData.size()) - 1;
-        for (auto visit : it.Visits)
-            tmpVisitInfo.insert(visit.toMSecsSinceEpoch(), itemIndex);
-    }
-
-    // Insert history entries into m_history sorted by most recently visited
-    QMapIterator<qint64, int> mapIt(tmpVisitInfo);
-    mapIt.toBack();
-    while (mapIt.hasPrevious())
-    {
-        mapIt.previous();
-        QDateTime dateTime = QDateTime::fromMSecsSinceEpoch(mapIt.key());
-
-        HistoryTableRow row;
-        row.ItemIndex = mapIt.value();
-        row.VisitString = dateTime.toString("MMMM d yyyy, h:m ap");
-        m_history.push_back(row);
-    }
 
     endResetModel();
 }

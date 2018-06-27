@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>View History</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../application.qrc">
+    <normaloff>:/logo.png</normaloff>:/logo.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayoutControls">
@@ -109,6 +113,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../application.qrc"/>
+ </resources>
  <connections/>
 </ui>
