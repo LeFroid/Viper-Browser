@@ -78,15 +78,6 @@ QVariant HistoryTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QUrl HistoryTableModel::getIndexURL(const QModelIndex &index) const
-{
-    if (!index.isValid() || index.row() >= static_cast<int>(m_history.size()))
-        return QUrl();
-
-    const HistoryTableItem &itemData = m_commonData.at(m_history.at(index.row()).ItemIndex);
-    return QUrl::fromUserInput(itemData.URL);
-}
-
 void HistoryTableModel::loadFromDate(const QDateTime &date)
 {
     if (!date.isValid())

@@ -67,15 +67,19 @@ void HistoryWidget::onContextMenuRequested(const QPoint &pos)
     if (!index.isValid())
         return;
 
+    // Get the URL at the row of the index for menu actions
+    QModelIndex urlIndex = m_proxyModel->index(index.row(), 1, index.parent());
+    QUrl url = QUrl(m_proxyModel->data(urlIndex, Qt::DisplayRole).toString());
+
     QMenu menu(this);
     menu.addAction(tr("Open"), [=](){
-        emit openLink(static_cast<HistoryTableModel*>(m_proxyModel->sourceModel())->getIndexURL(index));
+        emit openLink(url);
     });
     menu.addAction(tr("Open in a new tab"), [=](){
-        emit openLinkNewTab(static_cast<HistoryTableModel*>(m_proxyModel->sourceModel())->getIndexURL(index));
+        emit openLinkNewTab(url);
     });
     menu.addAction(tr("Open in a new window"), [=](){
-        emit openLinkNewWindow(static_cast<HistoryTableModel*>(m_proxyModel->sourceModel())->getIndexURL(index));
+        emit openLinkNewWindow(url);
     });
     menu.exec(ui->tableView->mapToGlobal(pos));
 }

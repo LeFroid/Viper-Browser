@@ -53,6 +53,7 @@ class HistoryTableModel : public QAbstractTableModel
     friend class HistoryWidget;
 
 public:
+    /// Constructs the table model given a pointer to the HistoryManager and an optional parent object pointer
     explicit HistoryTableModel(HistoryManager *historyMgr, QObject *parent = nullptr);
 
     // Header:
@@ -62,10 +63,8 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
+    /// Returns the data associated at the index with the given role
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
-    /// Returns the URL associated with the given index, or an empty URL if index is invalid
-    QUrl getIndexURL(const QModelIndex &index) const;
 
 protected:
     /// Loads all history items beginning at the given date
