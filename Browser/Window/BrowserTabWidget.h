@@ -63,13 +63,6 @@ public:
     /// Returns true if at least one tab has been closed which can be reopened, false if else
     bool canReopenClosedTab() const;
 
-private:
-    /// Saves the tab at the given index before closing it
-    void saveTab(int index);
-
-private slots:
-    /// Displays a context menu for the current web view
-    void showContextMenuForView();
 
 signals:
     /// Emitted when a new tab is created, passing along a pointer to the associated web view
@@ -131,11 +124,24 @@ private slots:
     /// Called when the current tab has been changed
     void onCurrentChanged(int index);
 
+    /// Called by a web view when it has made progress loading a page
+    void onLoadProgress(int progress);
+
+    /// Called when a web page's title has changed to the given value
+    void onTitleChanged(const QString &title);
+
     /// Emitted when a view requests that it be closed
     void onViewCloseRequested();
 
     /// Resets the items in the back and forward button menus, populating them with the current tab's history
     void resetHistoryButtonMenus(bool ok);
+
+    /// Displays a context menu for the current web view
+    void showContextMenuForView();
+
+private:
+    /// Saves the tab at the given index before closing it
+    void saveTab(int index);
 
 private:
     /// Browser settings
@@ -143,9 +149,6 @@ private:
 
     /// Private browsing flag
     bool m_privateBrowsing;
-
-    /// Type of page to load for new tabs
-    NewTabPage m_newTabPage;
 
     /// Active web view
     WebView *m_activeView;

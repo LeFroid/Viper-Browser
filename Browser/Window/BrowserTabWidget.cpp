@@ -31,7 +31,6 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
     QTabWidget(parent),
     m_settings(settings),
     m_privateBrowsing(privateMode),
-    m_newTabPage(settings->getValue("NewTabsLoadHomePage").toBool() ? HomePage : BlankPage),
     m_activeView(nullptr),
     m_tabBar(new BrowserTabBar(this)),
     m_backMenu(nullptr),
@@ -217,7 +216,8 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int speci
     QString tabLabel;
     if (!skipHomePage)
     {
-        switch (m_newTabPage)
+        auto newTabPage = m_settings->getValue(QLatin1String("NewTabsLoadHomePage")).toBool() ? HomePage : BlankPage;
+        switch (newTabPage)
         {
             case HomePage:
                 view->load(QUrl::fromUserInput(m_settings->getValue("HomePage").toString()));
@@ -233,23 +233,13 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int speci
     // Connect web view signals to functionalty
     connect(view, &WebView::iconChanged,            this, &BrowserTabWidget::onIconChanged);
     connect(view, &WebView::loadFinished,           this, &BrowserTabWidget::resetHistoryButtonMenus);
+    connect(view, &WebView::loadProgress,           this, &BrowserTabWidget::onLoadProgress);
     connect(view, &WebView::openRequest,            this, &BrowserTabWidget::loadUrl);
     connect(view, &WebView::openInNewTabRequest,    this, &BrowserTabWidget::openLinkInNewTab);
     connect(view, &WebView::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
+    connect(view, &WebView::titleChanged,           this, &BrowserTabWidget::onTitleChanged);
     connect(view, &WebView::viewCloseRequested,     this, &BrowserTabWidget::onViewCloseRequested);
     connect(view, &WebView::fullScreenRequested, m_mainWindow, &MainWindow::onToggleFullScreen);
-    connect(view, &WebView::loadProgress, [=](int progress){
-        if (view == currentWebView())
-            emit loadProgress(progress);
-    });
-    connect(view, &WebView::titleChanged, [=](const QString &title) {
-        int viewTabIndex = indexOf(view);
-        if (viewTabIndex >= 0)
-        {
-            setTabText(viewTabIndex, title);
-            setTabToolTip(viewTabIndex, title);
-        }
-    });
     if (!m_privateBrowsing)
     {
         connect(view, &WebView::iconUrlChanged, [=](const QUrl &url) {
@@ -273,6 +263,11 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int speci
     {
         m_activeView = view;
         setCurrentWidget(view);
+    }
+    else
+    {
+        view->resize(currentWidget()->size());
+        view->show();
     }
 
     if (count() == 1)
@@ -361,6 +356,24 @@ void BrowserTabWidget::onCurrentChanged(int index)
 
     emit loadProgress(view->getProgress());
     emit viewChanged(index);
+}
+
+void BrowserTabWidget::onLoadProgress(int progress)
+{
+    WebView *view = qobject_cast<WebView*>(sender());
+    if (view == currentWebView())
+        emit loadProgress(progress);
+}
+
+void BrowserTabWidget::onTitleChanged(const QString &title)
+{
+    WebView *view = qobject_cast<WebView*>(sender());
+    int viewTabIndex = indexOf(view);
+    if (viewTabIndex >= 0)
+    {
+        setTabText(viewTabIndex, title);
+        setTabToolTip(viewTabIndex, title);
+    }
 }
 
 void BrowserTabWidget::onViewCloseRequested()

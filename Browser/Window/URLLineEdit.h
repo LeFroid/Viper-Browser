@@ -9,8 +9,9 @@
 #include <QUrl>
 
 class MainWindow;
-class QToolButton;
+class URLSuggestionWidget;
 class WebView;
+class QToolButton;
 
 /// Security icon types used by the url line edit
 enum class SecurityIcon
@@ -99,6 +100,9 @@ private:
 
     /// Pointer to the active web view
     WebView *m_activeWebView;
+
+    /// URL suggestion widget
+    URLSuggestionWidget *m_suggestionWidget;
 };
 
 #endif // URLLINEEDIT_H

@@ -3,6 +3,7 @@
 #include "SecurityManager.h"
 #include "URLLineEdit.h"
 #include "URLSuggestionModel.h"
+#include "URLSuggestionWidget.h"
 #include "WebView.h"
 
 #include <QCompleter>
@@ -18,7 +19,8 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_securityButton(nullptr),
     m_bookmarkButton(nullptr),
     m_userTextMap(),
-    m_activeWebView(nullptr)
+    m_activeWebView(nullptr),
+    m_suggestionWidget(nullptr)
 {
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
@@ -68,6 +70,10 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     setStyleSheet(urlStyle);
     setPlaceholderText(tr("Search or enter address"));
 
+    // new suggestion widget
+    //m_suggestionWidget = new URLSuggestionWidget;
+    //m_suggestionWidget->setURLLineEdit(this);
+
     // Change color of URL when text is edited
     connect(this, &URLLineEdit::textEdited, [=](const QString &str){
         if (MainWindow *mw = qobject_cast<MainWindow*>(window()))
@@ -78,13 +84,17 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
                 setURLFormatted(currentViewUrl);
                 return;
             }
+
+            //m_suggestionWidget->alignAndShow(mapToGlobal(pos()), frameGeometry());
         }
         setTextFormat(std::vector<QTextLayout::FormatRange>());
     });
+    //connect(this, &URLLineEdit::editingFinished, m_suggestionWidget, &URLSuggestionWidget::hide);
 }
 
 URLLineEdit::~URLLineEdit()
 {
+    //delete m_suggestionWidget;
 }
 
 void URLLineEdit::setCurrentPageBookmarked(bool isBookmarked)
@@ -244,4 +254,7 @@ void URLLineEdit::resizeEvent(QResizeEvent *event)
 
     m_securityButton->move(widgetRect.left() + 1, (widgetRect.bottom() + 1 - securitySize.height()) / 2);
     m_bookmarkButton->move(widgetRect.right() - bookmarkSize.width() - 1, (widgetRect.bottom() + 1 - bookmarkSize.height()) / 2);
+
+    //m_suggestionWidget->hide();
+    //m_suggestionWidget->needResizeWidth(event->size().width());
 }

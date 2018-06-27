@@ -38,17 +38,20 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
-    // Setup request interceptor and attach to the default web profile
-    m_requestInterceptor = new RequestInterceptor;
+    // Get default profile and private profile
     auto webProfile = QWebEngineProfile::defaultProfile();
-    webProfile->setRequestInterceptor(m_requestInterceptor);
+    m_privateProfile = new QWebEngineProfile(this);
 
-    // Instantiate viper scheme handler and add to the web engine profile
+    // Instantiate request interceptor
+    m_requestInterceptor = new RequestInterceptor;
+
+    // Instantiate viper scheme handler
     m_viperSchemeHandler = new ViperSchemeHandler(this);
+
+    // Attach request interceptor and viper cheme handler to web profiles
+    webProfile->setRequestInterceptor(m_requestInterceptor);
     webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
 
-    // Setup the private browsing profile
-    m_privateProfile = new QWebEngineProfile(this);
     m_privateProfile->setRequestInterceptor(m_requestInterceptor);
     m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
 
@@ -238,6 +241,9 @@ MainWindow *BrowserApplication::getNewWindow()
     MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
+    connect(w, &MainWindow::destroyed, [this, w](){
+        m_browserWindows.removeOne(w);
+    });
 
     w->show();
 
@@ -261,15 +267,6 @@ MainWindow *BrowserApplication::getNewWindow()
 
         AdBlockManager::instance().updateSubscriptions();
     }
-    else
-    {
-        // Treat new window as a new tab, and check if new tab behavior is set to
-        // open a blank page or load a home page URL
-        if (m_settings->getValue("NewTabsLoadHomePage").toBool())
-            w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QLatin1String("HomePage")).toString()));
-        else
-            w->loadBlankPage();
-    }
 
     return w;
 }
@@ -278,6 +275,9 @@ MainWindow *BrowserApplication::getNewPrivateWindow()
 {
     MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), true);
     m_browserWindows.append(w);
+    connect(w, &MainWindow::destroyed, [this, w](){
+        m_browserWindows.removeOne(w);
+    });
 
     w->show();
     return w;
