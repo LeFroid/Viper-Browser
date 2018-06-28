@@ -149,6 +149,12 @@ public:
     /// Returns true if there are domain-specific settings on the filter, false if else
     bool hasDomainRules() const;
 
+    /// Returns true if the filter is set to redirect matching requests to another resource, false if else
+    bool isRedirect() const;
+
+    /// Returns the name of the resource the filter is redirecting requests to, or an empty string if this is not a redirecting filter rule
+    const QString &getRedirectName() const;
+
     /**
      * @brief Determines whether or not the network request matches the filter
      * @param baseUrl URL of the original network request
@@ -219,6 +225,12 @@ protected:
 
     /// True if filter is disabled (will never match network requests), false if enabled (default)
     bool m_disabled;
+
+    /// True if the filter redirects any requests it blocks to a different resource, false if else
+    bool m_redirect;
+
+    /// Name of the resource the filter redirects requests to, if m_redirect is true.
+    QString m_redirectName;
 
     /// Bitfield of element types to be allowed
     ElementType m_allowedTypes;

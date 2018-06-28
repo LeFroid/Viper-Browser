@@ -1,5 +1,6 @@
 #include "BrowserApplication.h"
 #include "AdBlockManager.h"
+#include "BlockedSchemeHandler.h"
 #include "BookmarkManager.h"
 #include "CookieJar.h"
 #include "CookieWidget.h"
@@ -45,15 +46,18 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Instantiate request interceptor
     m_requestInterceptor = new RequestInterceptor;
 
-    // Instantiate viper scheme handler
+    // Instantiate scheme handlers
     m_viperSchemeHandler = new ViperSchemeHandler(this);
+    m_blockedSchemeHandler = new BlockedSchemeHandler(this);
 
-    // Attach request interceptor and viper cheme handler to web profiles
+    // Attach request interceptor and scheme handlers to web profiles
     webProfile->setRequestInterceptor(m_requestInterceptor);
     webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+    webProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
 
     m_privateProfile->setRequestInterceptor(m_requestInterceptor);
     m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+    m_privateProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
 
     // Load settings
     m_settings = std::make_shared<Settings>();
@@ -144,6 +148,7 @@ BrowserApplication::~BrowserApplication()
     delete m_privateProfile;
     delete m_requestInterceptor;
     delete m_viperSchemeHandler;
+    delete m_blockedSchemeHandler;
     delete m_cookieUI;
 }
 

@@ -11,6 +11,7 @@
 #include "ClearHistoryOptions.h"
 #include "SessionManager.h"
 
+class BlockedSchemeHandler;
 class BookmarkManager;
 class CookieJar;
 class CookieWidget;
@@ -184,8 +185,11 @@ private:
     /// Request interceptor
     RequestInterceptor *m_requestInterceptor;
 
-    /// viper:// scheme handler
+    /// viper scheme handler
     ViperSchemeHandler *m_viperSchemeHandler;
+
+    /// AdBlock redirect scheme handler
+    BlockedSchemeHandler *m_blockedSchemeHandler;
 
     /// Private browsing profile
     QWebEngineProfile *m_privateProfile;

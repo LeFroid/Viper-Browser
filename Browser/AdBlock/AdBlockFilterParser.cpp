@@ -538,6 +538,11 @@ void AdBlockFilterParser::parseOptions(const QString &optionString, AdBlockFilte
             filter->setContentSecurityPolicy(option.mid(4));
         }
         // Handle options specific to uBlock Origin
+        else if (option.startsWith(QStringLiteral("redirect=")))
+        {
+            filter->m_redirect = true;
+            filter->m_redirectName = option.mid(9);
+        }
         else if (option.compare(QStringLiteral("first-party")) == 0)
         {
             filter->m_blockedTypes |= ElementType::ThirdParty;

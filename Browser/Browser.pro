@@ -130,7 +130,8 @@ SOURCES += \
     Web/WebHitTestResult.cpp \
     Window/NavigationToolBar.cpp \
     Window/URLSuggestionWidget.cpp \
-    Window/URLSuggestionItemDelegate.cpp
+    Window/URLSuggestionItemDelegate.cpp \
+    Network/BlockedSchemeHandler.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -222,7 +223,8 @@ HEADERS += \
     Web/WebHitTestResult.h \
     Window/NavigationToolBar.h \
     Window/URLSuggestionWidget.h \
-    Window/URLSuggestionItemDelegate.h
+    Window/URLSuggestionItemDelegate.h \
+    Network/BlockedSchemeHandler.h
 
 FORMS += \
     Cookies/cookiewidget.ui \

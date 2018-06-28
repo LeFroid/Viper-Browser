@@ -20,7 +20,7 @@ void ViperSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
         return;
     }
 
-    connect(request, &QWebEngineUrlRequestJob::destroyed, contents, &QIODevice::deleteLater);
+    //connect(request, &QWebEngineUrlRequestJob::destroyed, contents, &QIODevice::deleteLater);
 
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForData(contents);
@@ -44,5 +44,7 @@ QIODevice *ViperSchemeHandler::loadFile(QWebEngineUrlRequestJob *request)
         delete f;
         return nullptr;
     }
+
+    connect(f, &QFile::aboutToClose, f, &QFile::deleteLater);
     return f;
 }

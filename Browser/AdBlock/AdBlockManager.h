@@ -31,6 +31,7 @@ class AdBlockManager : public QObject
     friend class AdBlockModel;
     friend class AdBlockWidget;
     friend class BrowserApplication;
+    friend class BlockedSchemeHandler;
 
     Q_OBJECT
 
@@ -81,10 +82,13 @@ public slots:
     /// Creates and registers new \ref AdBlockSubscription to be associated with user-set filter rules
     void createUserSubscription();
 
-// Called by AdBlockFilterParser:
+// Called by AdBlockFilterParser and BlockedSchemeHandler:
 protected:
     /// Searches for and returns the value from the resource map that is associated with the given key. Returns an empty string if not found
     QString getResource(const QString &key) const;
+
+    /// Returns the content type of the resource with the given key. Returns an empty string if the key is not found
+    QString getResourceContentType(const QString &key) const;
 
 // Called by AdBlockModel:
 protected:
@@ -177,6 +181,9 @@ private:
 
     /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
     QHash<QString, QString> m_resourceMap;
+
+    /// Mapping of resource names, from the resource map, to their respective content types
+    QHash<QString, QString> m_resourceContentTypeMap;
 
     /// A cache of the most recently used domain-specific stylesheets
     LRUCache<std::string, QString> m_domainStylesheetCache;

@@ -34,6 +34,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_genericHideFilters(),
     m_cspFilters(),
     m_resourceMap(),
+    m_resourceContentTypeMap(),
     m_domainStylesheetCache(24),
     m_jsInjectionCache(24),
     m_emptyStr(),
@@ -431,6 +432,11 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
         {
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
+            if (filter->isRedirect())
+            {
+                info.redirect(QUrl(QString("blocked://%1").arg(filter->getRedirectName())));
+                return false;
+            }
             return true;
         }
     }
@@ -444,6 +450,11 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
         {
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
+            if (filter->isRedirect())
+            {
+                info.redirect(QUrl(QString("blocked://%1").arg(filter->getRedirectName())));
+                return false;
+            }
             return true;
         }
     }
@@ -453,6 +464,11 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 QString AdBlockManager::getResource(const QString &key) const
 {
     return m_resourceMap.value(key);
+}
+
+QString AdBlockManager::getResourceContentType(const QString &key) const
+{
+    return m_resourceContentTypeMap.value(key);
 }
 
 int AdBlockManager::getNumSubscriptions() const
@@ -578,6 +594,7 @@ void AdBlockManager::loadResourceFile(const QString &path)
             {
                 currentKey = line.left(sepIdx);
                 mimeType = line.mid(sepIdx + 1);
+                m_resourceContentTypeMap.insert(currentKey, mimeType);
             }
             readingValue = true;
         }

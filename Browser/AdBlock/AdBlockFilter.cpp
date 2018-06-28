@@ -10,6 +10,8 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_exception(false),
     m_important(false),
     m_disabled(false),
+    m_redirect(false),
+    m_redirectName(),
     m_allowedTypes(ElementType::None),
     m_blockedTypes(ElementType::None),
     m_matchCase(false),
@@ -30,6 +32,8 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
     m_exception(other.m_exception),
     m_important(other.m_important),
     m_disabled(other.m_disabled),
+    m_redirect(other.m_redirect),
+    m_redirectName(other.m_redirectName),
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
@@ -50,6 +54,8 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
     m_exception(other.m_exception),
     m_important(other.m_important),
     m_disabled(other.m_disabled),
+    m_redirect(other.m_redirect),
+    m_redirectName(other.m_redirectName),
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
@@ -73,6 +79,8 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
         m_exception = other.m_exception;
         m_important = other.m_important;
         m_disabled = other.m_disabled;
+        m_redirect = other.m_redirect;
+        m_redirectName = other.m_redirectName;
         m_allowedTypes = other.m_allowedTypes;
         m_blockedTypes = other.m_blockedTypes;
         m_matchCase = other.m_matchCase;
@@ -98,6 +106,8 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
         m_exception = other.m_exception;
         m_important = other.m_important;
         m_disabled = other.m_disabled;
+        m_redirect = other.m_redirect;
+        m_redirectName = other.m_redirectName;
         m_allowedTypes = other.m_allowedTypes;
         m_blockedTypes = other.m_blockedTypes;
         m_matchCase = other.m_matchCase;
@@ -153,6 +163,16 @@ bool AdBlockFilter::isImportant() const
 bool AdBlockFilter::hasDomainRules() const
 {
     return !m_domainBlacklist.empty() || !m_domainWhitelist.empty();
+}
+
+bool AdBlockFilter::isRedirect() const
+{
+    return m_redirect;
+}
+
+const QString &AdBlockFilter::getRedirectName() const
+{
+    return m_redirectName;
 }
 
 bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
