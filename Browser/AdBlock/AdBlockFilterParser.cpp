@@ -446,6 +446,7 @@ void AdBlockFilterParser::parseForCSP(AdBlockFilter *filter) const
 {
     if (filter->m_evalString.startsWith(QLatin1String("blob:")))
     {
+        filter->m_category = FilterCategory::Domain;
         filter->m_blockedTypes |= ElementType::CSP;
         filter->m_evalString = QString();
         QString csPolicy;
@@ -465,6 +466,7 @@ void AdBlockFilterParser::parseForCSP(AdBlockFilter *filter) const
     }
     else if (filter->m_evalString.startsWith(QLatin1String("data:")))
     {
+        filter->m_category = FilterCategory::Domain;
         filter->m_blockedTypes |= ElementType::CSP;
         filter->m_evalString = QString();
         QString csPolicy;

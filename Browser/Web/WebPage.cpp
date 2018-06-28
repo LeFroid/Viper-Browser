@@ -80,6 +80,9 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         }
     }
 
+    if (!QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame))
+        return false;
+
     if (isMainFrame && type != QWebEnginePage::NavigationTypeReload)
     {
         QWebEngineScriptCollection &scriptCollection = scripts();
@@ -89,7 +92,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             scriptCollection.insert(script);
     }
 
-    return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+    return true;
 }
 
 void WebPage::runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result)

@@ -211,10 +211,10 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
             return false;
 
         // Check for element type restrictions (in specific order)
-        std::array<ElementType, 11> elemTypes = {{ ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
+        std::array<ElementType, 12> elemTypes = {{ ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
                                                   ElementType::Subdocument,      ElementType::ThirdParty, ElementType::Image,
                                                   ElementType::Script,           ElementType::Stylesheet, ElementType::WebSocket,
-                                                  ElementType::ObjectSubrequest, ElementType::Ping }};
+                                                  ElementType::ObjectSubrequest, ElementType::Ping,       ElementType::CSP }};
 
         if (hasElementType(m_blockedTypes, ElementType::InlineScript) && !hasElementType(typeMask, ElementType::InlineScript))
             match = false;

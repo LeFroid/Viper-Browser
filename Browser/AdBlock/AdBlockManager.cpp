@@ -294,21 +294,21 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
         if (filter->isDomainStyleMatch(domain))
             javascript.append(filter->getEvalString());
     }
-    for (AdBlockFilter *filter : m_blockFilters)
+    for (AdBlockFilter *filter : m_importantBlockFilters)
     {
-        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) &&filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
+        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
             javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
             usedCspScript = true;
             break;
         }
     }
-    for (AdBlockFilter *filter : m_importantBlockFilters)
+    for (AdBlockFilter *filter : m_blockFilters)
     {
         if (usedCspScript)
             break;
 
-        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
+        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) &&filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
             javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
             usedCspScript = true;
@@ -319,8 +319,9 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     {
         if (usedCspScript)
             break;
-        if (filter->isDomainStyleMatch(domain))
+        if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
         {
+            //qDebug() << "Adding CSP rule from filter: " << filter->getRule();
             javascript.append(cspScript.arg(filter->getContentSecurityPolicy()));
             usedCspScript = true;
             break;
@@ -708,7 +709,8 @@ void AdBlockManager::extractFilters()
             }
             else if (filter->hasElementType(filter->m_blockedTypes, ElementType::CSP))
             {
-                m_cspFilters.push_back(filter);
+                if (!filter->hasElementType(filter->m_blockedTypes, ElementType::PopUp)) // Temporary workaround for issues with popup types
+                    m_cspFilters.push_back(filter);
             }
             else
             {
@@ -732,7 +734,7 @@ void AdBlockManager::extractFilters()
         }
     }
 
-    // Remove bad filters from m_allowFilters, m_blockFilters, m_genericHideFilters
+    // Remove bad filters from m_allowFilters, m_blockFilters, m_genericHideFilters, m_cspFilters
     for (auto it = m_allowFilters.begin(); it != m_allowFilters.end(); ++it)
     {
         if (badFilters.contains((*it)->getRule()))
@@ -742,6 +744,11 @@ void AdBlockManager::extractFilters()
     {
         if (badFilters.contains((*it)->getRule()))
             m_blockFilters.erase(it);
+    }
+    for (auto it = m_cspFilters.begin(); it != m_cspFilters.end(); ++it)
+    {
+        if (badFilters.contains((*it)->getRule()))
+            m_cspFilters.erase(it);
     }
     for (auto it = m_genericHideFilters.begin(); it != m_genericHideFilters.end(); ++it)
     {
