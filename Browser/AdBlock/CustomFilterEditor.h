@@ -9,6 +9,7 @@ namespace Ui {
 
 /**
  * @class CustomFilterEditor
+ * @ingroup AdBlock
  * @brief Allows the user to modify their own set of AdBlock Plus or uBlock Origin -styled
  *        web content filters
  */

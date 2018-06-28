@@ -10,7 +10,10 @@
 #include <QSet>
 #include <QString>
 
-/// Specific types of elements that can be filtered or whitelisted
+/**
+ * @ingroup AdBlock
+ * @brief Specific types of elements that can be filtered or whitelisted
+ */
 enum class ElementType : uint32_t
 {
     None             = 0x00000000,
@@ -47,7 +50,10 @@ struct EnableBitfield<ElementType>
 /// Mapping of option name strings to their corresponding \ref ElementType
 extern QHash<QString, ElementType> eOptionMap;
 
-/// Categories that an AdBlock filter may belong to. A filter may only belong to one category
+/**
+ * @ingroup AdBlock
+ * @brief Mutually exclusive categories that an AdBlock filter may belong to.
+ */
 enum class FilterCategory
 {
     None,
@@ -63,8 +69,10 @@ enum class FilterCategory
     RegExp               /// Block or allow based on a regular expression
 };
 
-/// Cosmetic filter types, used internally for creating appropriate JavaScript calls
-/// has-text, if, if-not, matches-css, matches-css-before, matches-css-after, xpath
+/**
+ * @ingroup AdBlock
+ * @brief Cosmetic filter types, used internally for creating appropriate JavaScript calls
+ */
 enum class CosmeticFilter
 {
     Has,                 /// Selects the subject element(s) iff it contains at least one or more of the given targets
@@ -79,6 +87,7 @@ enum class CosmeticFilter
 
 /**
  * @class AdBlockFilter
+ * @ingroup AdBlock
  * @brief An implementation of an AdBlock Plus filter for network content
  */
 class AdBlockFilter

@@ -10,6 +10,7 @@
 
 /**
  * @class AdBlockSubscription
+ * @ingroup AdBlock
  * @brief Manages a list of ad block filters
  */
 class AdBlockSubscription

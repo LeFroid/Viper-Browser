@@ -17,6 +17,7 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     m_suggestionList->setSelectionBehavior(QListView::SelectRows);
     m_suggestionList->setSelectionMode(QListView::SingleSelection);
     m_suggestionList->setEditTriggers(QListView::NoEditTriggers);
+    //m_suggestionList->setItemDelegate(new URLSuggestionItemDelegate(this));
 
     auto vboxLayout = new QVBoxLayout(this);
     vboxLayout->setSpacing(0);

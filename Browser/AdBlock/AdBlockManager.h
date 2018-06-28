@@ -2,7 +2,6 @@
 #define ADBLOCKMANAGER_H
 
 #include "AdBlockSubscription.h"
-#include "BlockedNetworkReply.h"
 #include "LRUCache.h"
 #include "URL.h"
 
@@ -15,8 +14,16 @@
 class AdBlockModel;
 
 /**
+ * @defgroup AdBlock Advertisement Blocking System
+ * An implementation of the AdBlockPlus and uBlock Origin style content filtering system
+ */
+
+/**
  * @class AdBlockManager
- * @brief Manages a list of AdBlock Plus style subscriptions
+ * @ingroup AdBlock
+ * @brief Manages a list of AdBlock Plus style subscriptions, and compares
+ *        network requests against blocking and allowing filter rules before
+ *        letting any requests go through.
  */
 class AdBlockManager : public QObject
 {

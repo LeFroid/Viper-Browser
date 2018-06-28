@@ -114,7 +114,6 @@ SOURCES += \
     AdBlock/AdBlockModel.cpp \
     AdBlock/AdBlockWidget.cpp \
     Widgets/CheckableTableView.cpp \
-    Network/BlockedNetworkReply.cpp \
     UserScripts/AddUserScriptDialog.cpp \
     History/HistoryMenu.cpp \
     UserAgents/UserAgentMenu.cpp \
@@ -130,7 +129,8 @@ SOURCES += \
     Web/URL.cpp \
     Web/WebHitTestResult.cpp \
     Window/NavigationToolBar.cpp \
-    Window/URLSuggestionWidget.cpp
+    Window/URLSuggestionWidget.cpp \
+    Window/URLSuggestionItemDelegate.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -205,7 +205,6 @@ HEADERS += \
     AdBlock/AdBlockModel.h \
     AdBlock/AdBlockWidget.h \
     Widgets/CheckableTableView.h \
-    Network/BlockedNetworkReply.h \
     UserScripts/AddUserScriptDialog.h \
     DatabaseFactory.h \
     History/HistoryMenu.h \
@@ -222,7 +221,8 @@ HEADERS += \
     Web/URL.h \
     Web/WebHitTestResult.h \
     Window/NavigationToolBar.h \
-    Window/URLSuggestionWidget.h
+    Window/URLSuggestionWidget.h \
+    Window/URLSuggestionItemDelegate.h
 
 FORMS += \
     Cookies/cookiewidget.ui \

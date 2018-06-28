@@ -9,7 +9,10 @@
 /// Mapping of option name strings to their corresponding \ref ElementType
 extern QHash<QString, ElementType> eOptionMap;
 
-/// Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
+/**
+ * @ingroup AdBlock
+ * @brief Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
+ */
 struct CosmeticJSCallback
 {
     /// True if the callback information is valid, false if this structure contains no useful information
@@ -30,6 +33,7 @@ struct CosmeticJSCallback
 
 /**
  * @class AdBlockFilterParser
+ * @ingroup AdBlock
  * @brief Instantiates \ref AdBlockFilter objects from rule strings formatted
  *        as per the AdBlock Plus or uBlock Origin specifications
  */

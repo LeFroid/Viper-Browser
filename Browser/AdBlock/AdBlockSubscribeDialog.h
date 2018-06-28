@@ -11,7 +11,10 @@ namespace Ui {
     class AdBlockSubscribeDialog;
 }
 
-/// Stores information needed to install one of the dialog's recommended subscriptions
+/**
+ * @ingroup AdBlock
+ * @brief Stores information needed to install one of the dialog's recommended subscriptions
+ */
 struct AdBlockSubscriptionInfo
 {
     /// Name of subscription
@@ -26,6 +29,7 @@ struct AdBlockSubscriptionInfo
 
 /**
  * @class AdBlockSubscribeDialog
+ * @ingroup AdBlock
  * @brief Displays a list of featured subscriptions which the user can check
  *        on in order to add them to their profile
  */

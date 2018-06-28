@@ -7,6 +7,7 @@ class AdBlockManager;
 
 /**
  * @class AdBlockModel
+ * @ingroup AdBlock
  * @brief Acts as an abstraction to allow the user to view and modify their \ref AdBlockSubscription collection
  */
 class AdBlockModel : public QAbstractTableModel

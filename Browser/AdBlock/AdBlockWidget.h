@@ -9,6 +9,7 @@ namespace Ui {
 
 /**
  * @class AdBlockWidget
+ * @ingroup AdBlock
  * @brief Acts as a management window for the user to view, add, modify and/or delete
  *        their advertisement blocking subscriptions
  */
