@@ -16,7 +16,7 @@ void BlockedSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     AdBlockManager &adBlockMgr = AdBlockManager::instance();
 
     QString resourceName = request->requestUrl().toString();
-    resourceName = resourceName.mid(10);
+    resourceName = resourceName.mid(8);
 
     QString mimeTypeStr = adBlockMgr.getResourceContentType(resourceName);
     const bool isB64 = mimeTypeStr.contains(QLatin1String(";base64"));

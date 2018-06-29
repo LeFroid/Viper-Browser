@@ -29,24 +29,24 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     setFont(lineEditFont);
 
     // Set completion model (todo: use custom completer with a list widget view of results as user types a string)
-    QCompleter *urlCompleter = new QCompleter(parent);
+    /*QCompleter *urlCompleter = new QCompleter(parent);
     urlCompleter->setModel(sBrowserApplication->getURLSuggestionModel());
     urlCompleter->setMaxVisibleItems(10);
     urlCompleter->setCompletionColumn(0);
     urlCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     urlCompleter->setFilterMode(Qt::MatchContains);
     urlCompleter->setCompletionMode(QCompleter::PopupCompletion);
-    setCompleter(urlCompleter);
+    setCompleter(urlCompleter);*/
 
     // URL results are in format "url - title", so a slot must be added to extract the URL
     // from the rest of the model's results
-    connect(this, &URLLineEdit::textChanged, [=](const QString &text){
+    /*connect(this, &URLLineEdit::textChanged, [=](const QString &text){
         int completedIdx = text.indexOf(" - ");
         if (completedIdx >= 0)
         {
             setText(text.left(completedIdx));
         }
-    });
+    });*/
 
     // Style common to both tool buttons in line edit
     const QString toolButtonStyle = QStringLiteral("QToolButton { border: none; padding: 0px; } QToolButton:hover { background-color: #E6E6E6; }");
@@ -71,8 +71,12 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     setPlaceholderText(tr("Search or enter address"));
 
     // new suggestion widget
-    //m_suggestionWidget = new URLSuggestionWidget;
-    //m_suggestionWidget->setURLLineEdit(this);
+    m_suggestionWidget = new URLSuggestionWidget;
+    m_suggestionWidget->setURLLineEdit(this);
+    connect(m_suggestionWidget, &URLSuggestionWidget::urlChosen, [=](const QUrl &url){
+        setURL(url);
+        emit returnPressed();
+    });
 
     // Change color of URL when text is edited
     connect(this, &URLLineEdit::textEdited, [=](const QString &str){
@@ -85,16 +89,17 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
                 return;
             }
 
-            //m_suggestionWidget->alignAndShow(mapToGlobal(pos()), frameGeometry());
+            m_suggestionWidget->suggestForInput(str);
+            m_suggestionWidget->alignAndShow(mapToGlobal(pos()), frameGeometry());
         }
         setTextFormat(std::vector<QTextLayout::FormatRange>());
     });
-    //connect(this, &URLLineEdit::editingFinished, m_suggestionWidget, &URLSuggestionWidget::hide);
+    connect(this, &URLLineEdit::editingFinished, m_suggestionWidget, &URLSuggestionWidget::hide);
 }
 
 URLLineEdit::~URLLineEdit()
 {
-    //delete m_suggestionWidget;
+    delete m_suggestionWidget;
 }
 
 void URLLineEdit::setCurrentPageBookmarked(bool isBookmarked)
@@ -255,6 +260,6 @@ void URLLineEdit::resizeEvent(QResizeEvent *event)
     m_securityButton->move(widgetRect.left() + 1, (widgetRect.bottom() + 1 - securitySize.height()) / 2);
     m_bookmarkButton->move(widgetRect.right() - bookmarkSize.width() - 1, (widgetRect.bottom() + 1 - bookmarkSize.height()) / 2);
 
-    //m_suggestionWidget->hide();
-    //m_suggestionWidget->needResizeWidth(event->size().width());
+    m_suggestionWidget->hide();
+    m_suggestionWidget->needResizeWidth(event->size().width());
 }

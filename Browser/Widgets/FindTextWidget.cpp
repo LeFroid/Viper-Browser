@@ -69,6 +69,9 @@ void FindTextWidget::setWebView(WebView *view)
     ui->labelMatches->setText(QString());
     m_searchTerm.clear();
 
+    if (m_view != nullptr)
+        m_view->findText(QString());
+
     m_editor = nullptr;
     m_view = view;
 }

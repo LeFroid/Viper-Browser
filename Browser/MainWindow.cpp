@@ -545,7 +545,9 @@ void MainWindow::onLoadFinished(bool /*ok*/)
     {
         ui->toolBar->getURLWidget()->setURL(view->url());
         checkPageForBookmark();
-        view->setFocus();
+
+        if (!view->isOnBlankPage())
+            view->setFocus();
     }
 
     if (m_privateWindow)

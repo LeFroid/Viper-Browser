@@ -1,3 +1,5 @@
+#include "BrowserApplication.h"
+#include "FaviconStorage.h"
 #include "SearchEngineLineEdit.h"
 #include "SearchEngineManager.h"
 
@@ -57,14 +59,17 @@ void SearchEngineLineEdit::loadSearchEngines()
 {
     m_searchEngineMenu = new QMenu(this);
 
+    FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
     SearchEngineManager &manager = SearchEngineManager::instance();
     QList<QString> searchEngines = manager.getSearchEngineNames();
 
     // Add search engines to the options menu
     for (auto engineName : searchEngines)
     {
+        QIcon menuIcon = faviconStore->getFavicon(QUrl(manager.getQueryString(engineName)));
+
         // Add search engine to the options menu
-        QAction *action = m_searchEngineMenu->addAction(engineName);
+        QAction *action = m_searchEngineMenu->addAction(menuIcon, engineName);
         connect(action, &QAction::triggered, [=]() {
             setSearchEngine(action->text());
         });
@@ -89,8 +94,11 @@ void SearchEngineLineEdit::setSearchEngine(const QString &name)
 
 void SearchEngineLineEdit::addSearchEngine(const QString &name)
 {
+    FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
+    QIcon menuIcon = faviconStore->getFavicon(QUrl(SearchEngineManager::instance().getQueryString(name)));
+
     // Add search engine to the options menu
-    QAction *action = m_searchEngineMenu->addAction(name);
+    QAction *action = m_searchEngineMenu->addAction(menuIcon, name);
     connect(action, &QAction::triggered, [=]() {
         setSearchEngine(action->text());
     });

@@ -13,6 +13,10 @@ public:
 
     /// Returns the size needed by the delegate to display the item specified by index, taking into account the style information provided by option.
     QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
+private:
+    /// Padding between items in the paint() method
+    int m_padding;
 };
 
 #endif // URLSUGGESTIONITEMDELEGATE_H

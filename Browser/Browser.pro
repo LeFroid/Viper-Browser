@@ -131,7 +131,9 @@ SOURCES += \
     Window/NavigationToolBar.cpp \
     Window/URLSuggestionWidget.cpp \
     Window/URLSuggestionItemDelegate.cpp \
-    Network/BlockedSchemeHandler.cpp
+    Network/BlockedSchemeHandler.cpp \
+    Window/URLSuggestionListModel.cpp \
+    Window/URLSuggestionWorker.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -224,7 +226,9 @@ HEADERS += \
     Window/NavigationToolBar.h \
     Window/URLSuggestionWidget.h \
     Window/URLSuggestionItemDelegate.h \
-    Network/BlockedSchemeHandler.h
+    Network/BlockedSchemeHandler.h \
+    Window/URLSuggestionListModel.h \
+    Window/URLSuggestionWorker.h
 
 FORMS += \
     Cookies/cookiewidget.ui \
