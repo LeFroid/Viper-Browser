@@ -39,6 +39,9 @@ void URLSuggestionWorker::searchForHits()
     m_suggestions.clear();
     m_working.store(true);
 
+    const bool searchTermHasScheme = m_searchTerm.startsWith(QLatin1String("HTTP"))
+            || m_searchTerm.startsWith(QLatin1String("FILE"));
+
     FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
 
     BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
@@ -61,7 +64,7 @@ void URLSuggestionWorker::searchForHits()
         }
         QString bookmarkUrl = it->getURL();
         int prefix = bookmarkUrl.indexOf(QLatin1String("://"));
-        if (prefix >= 0)
+        if (!searchTermHasScheme && prefix >= 0)
             bookmarkUrl = bookmarkUrl.mid(prefix + 3);
         if (bookmarkUrl.toUpper().contains(m_searchTerm))
         {
@@ -93,7 +96,7 @@ void URLSuggestionWorker::searchForHits()
         }
         QString urlUpper = it.key().toUpper();
         int prefix = urlUpper.indexOf(QLatin1String("://"));
-        if (prefix >= 0)
+        if (!searchTermHasScheme && prefix >= 0)
             urlUpper = urlUpper.mid(prefix + 3);
 
         if (urlUpper.contains(m_searchTerm))
