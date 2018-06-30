@@ -56,6 +56,7 @@ void Preferences::loadSettings()
     ui->tabPrivacy->setCookiesEnabled(m_settings->getValue(QLatin1String("EnableCookies")).toBool());
     ui->tabPrivacy->setCookiesDeleteWithSession(m_settings->getValue(QLatin1String("CookiesDeleteWithSession")).toBool());
     ui->tabPrivacy->setThirdPartyCookiesEnabled(m_settings->getValue(QLatin1String("EnableThirdPartyCookies")).toBool());
+    ui->tabPrivacy->setDoNotTrackEnabled(m_settings->getValue(QLatin1String("SendDoNotTrack")).toBool());
 }
 
 void Preferences::onCloseWithSave()
@@ -106,6 +107,7 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(QLatin1String("EnableCookies"), ui->tabPrivacy->areCookiesEnabled());
     m_settings->setValue(QLatin1String("CookiesDeleteWithSession"), ui->tabPrivacy->areCookiesDeletedWithSession());
     m_settings->setValue(QLatin1String("EnableThirdPartyCookies"), ui->tabPrivacy->areThirdPartyCookiesEnabled());
+    m_settings->setValue(QLatin1String("SendDoNotTrack"), ui->tabPrivacy->isDoNotTrackEnabled());
 
     // Apply web settings to web brower engine
     m_settings->applyWebSettings();

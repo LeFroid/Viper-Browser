@@ -43,7 +43,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_privateProfile = new QWebEngineProfile(this);
 
     // Instantiate request interceptor
-    m_requestInterceptor = new RequestInterceptor;
+    m_requestInterceptor = new RequestInterceptor(this);
 
     // Instantiate scheme handlers
     m_viperSchemeHandler = new ViperSchemeHandler(this);
@@ -60,6 +60,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Load settings
     m_settings = std::make_shared<Settings>();
+
+    m_requestInterceptor->setSettings(m_settings);
 
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QLatin1String("FaviconPath")));

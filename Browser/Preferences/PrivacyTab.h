@@ -37,6 +37,9 @@ public:
     /// Returns true if third party cookies are allowed, false if they should be disabled or filtered
     bool areThirdPartyCookiesEnabled() const;
 
+    /// Returns true if the setting to pass a 'Do Not Track' header is enabled, false if disabled
+    bool isDoNotTrackEnabled() const;
+
 signals:
     /// Emitted when the user requests to clear their browsing history.
     void clearHistoryRequested();
@@ -58,6 +61,10 @@ public slots:
     /// Sets the behavior for acceptance of third-party cookies. If the value passed is true, third party cookies will be allowed.
     /// Otherwise, they will be filtered out.
     void setThirdPartyCookiesEnabled(bool value);
+
+    /// Sets the policy of sending a 'Do Not Track' header with all requests if the given value is true,
+    /// otherwise will not send any DNT header
+    void setDoNotTrackEnabled(bool value);
 
 private slots:
     /// Called when the push button to manage third party cookie exceptions is clicked

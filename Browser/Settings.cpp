@@ -130,6 +130,7 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("NewTabsLoadHomePage"), true);
     m_settings.setValue(QLatin1String("DownloadDir"), QDir::homePath() + QDir::separator() + "Downloads");
     m_settings.setValue(QLatin1String("AskWhereToSaveDownloads"), false);
+    m_settings.setValue(QLatin1String("SendDoNotTrack"), false);
     m_settings.setValue(QLatin1String("EnableJavascript"), true);
     m_settings.setValue(QLatin1String("EnableJavascriptPopups"), false);
     m_settings.setValue(QLatin1String("AutoLoadImages"), true);

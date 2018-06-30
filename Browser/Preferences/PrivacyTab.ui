@@ -97,6 +97,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="checkBoxDoNotTrack">
+     <property name="text">
+      <string>Send a 'Do Not Track' header with all requests</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>

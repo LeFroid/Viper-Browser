@@ -647,6 +647,7 @@ void MainWindow::onRequestViewSource()
     if (!currentView)
         return;
 
+    //TODO: move into a subclass of QMainWindow and add a FindTextWidget to the view source class
     QString pageTitle = currentView->getTitle();
     CodeEditor *view = new CodeEditor;
     currentView->page()->toHtml([view](const QString &result){ view->setPlainText(result); });

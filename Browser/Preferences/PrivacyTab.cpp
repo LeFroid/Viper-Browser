@@ -47,6 +47,11 @@ bool PrivacyTab::areThirdPartyCookiesEnabled() const
     return !ui->checkBoxBlockThirdParties->isChecked();
 }
 
+bool PrivacyTab::isDoNotTrackEnabled() const
+{
+    return ui->checkBoxDoNotTrack->isChecked();
+}
+
 void PrivacyTab::setHistoryStoragePolicy(HistoryStoragePolicy policy)
 {
     for (int i = 0; i < ui->comboBoxHistoryOptions->count(); ++i)
@@ -73,6 +78,11 @@ void PrivacyTab::setThirdPartyCookiesEnabled(bool value)
 {
     ui->checkBoxBlockThirdParties->setChecked(!value);
     ui->pushButtonThirdPartyExceptions->setEnabled(!value);
+}
+
+void PrivacyTab::setDoNotTrackEnabled(bool value)
+{
+    ui->checkBoxDoNotTrack->setChecked(value);
 }
 
 void PrivacyTab::onManageCookieExceptionsClicked()
