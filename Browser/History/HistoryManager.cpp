@@ -58,9 +58,6 @@ void HistoryManager::addHistoryEntry(const QString &url, const QString &title)
     int hashPos = url.indexOf(QLatin1Char('#'));
     if (hashPos > 0)
         urlFormatted = urlFormatted.left(hashPos);
-    int queryPos = url.indexOf(QLatin1Char('?'));
-    if (queryPos > 0)
-        urlFormatted = urlFormatted.left(queryPos);
 
     const bool emptyTitle = title.isEmpty();
 

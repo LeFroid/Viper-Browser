@@ -13,10 +13,11 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     m_working(false),
     m_searchTerm(),
     m_suggestionFuture(),
-    m_suggestionWatcher(),
+    m_suggestionWatcher(nullptr),
     m_suggestions()
 {
-    connect(&m_suggestionWatcher, &QFutureWatcher<void>::finished, [this](){
+    m_suggestionWatcher = new QFutureWatcher<void>(this);
+    connect(m_suggestionWatcher, &QFutureWatcher<void>::finished, [this](){
         emit finishedSearch(m_suggestions);
     });
 }
@@ -32,13 +33,13 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
 
     m_searchTerm = text.toUpper();
     m_suggestionFuture = QtConcurrent::run(this, &URLSuggestionWorker::searchForHits);
-    m_suggestionWatcher.setFuture(m_suggestionFuture);
+    m_suggestionWatcher->setFuture(m_suggestionFuture);
 }
 
 void URLSuggestionWorker::searchForHits()
 {
-    m_suggestions.clear();
     m_working.store(true);
+    m_suggestions.clear();
 
     const bool searchTermHasScheme = m_searchTerm.startsWith(QLatin1String("HTTP"))
             || m_searchTerm.startsWith(QLatin1String("FILE"));
@@ -91,7 +92,12 @@ void URLSuggestionWorker::searchForHits()
         if (!m_working.load())
             return;
 
-        const QString url = it.key();
+        QString url = it.key();
+
+        int queryPos = url.indexOf(QLatin1Char('?'));
+        if (queryPos > 0)
+            url = url.left(queryPos);
+
         if (hits.contains(url))
             continue;
 
@@ -118,4 +124,6 @@ void URLSuggestionWorker::searchForHits()
             m_suggestions.push_back(suggestion);
         }
     }
+
+    m_working.store(false);
 }

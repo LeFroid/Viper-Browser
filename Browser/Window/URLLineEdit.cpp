@@ -212,7 +212,8 @@ void URLLineEdit::onTextEdited(const QString &text)
         }
 
         m_suggestionWidget->suggestForInput(text);
-        m_suggestionWidget->alignAndShow(mapToGlobal(pos()), frameGeometry());
+        if (!m_suggestionWidget->isVisible())
+            m_suggestionWidget->alignAndShow(mapToGlobal(pos()), frameGeometry());
     }
     setTextFormat(std::vector<QTextLayout::FormatRange>());
 }

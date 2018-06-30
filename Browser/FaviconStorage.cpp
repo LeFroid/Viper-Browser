@@ -70,7 +70,7 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
                 return it->icon;
         }
     }
-    return QIcon();
+    return QIcon(QLatin1String(":/blank_favicon.png"));
 }
 
 void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon)

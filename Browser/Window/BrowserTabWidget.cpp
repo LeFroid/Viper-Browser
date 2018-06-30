@@ -127,7 +127,7 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
         default:
             break;
     }
-    return QTabWidget::eventFilter(watched, event);
+    return QObject::eventFilter(watched, event);
 }
 
 bool BrowserTabWidget::canReopenClosedTab() const

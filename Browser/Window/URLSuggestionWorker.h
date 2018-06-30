@@ -46,7 +46,7 @@ private:
     QFuture<void> m_suggestionFuture;
 
     /// Watches the searchForHits future, emits finishedSearch when the search operation is complete
-    QFutureWatcher<void> m_suggestionWatcher;
+    QFutureWatcher<void> *m_suggestionWatcher;
 
     /// Stores the suggested URLs based on the current input
     std::vector<URLSuggestion> m_suggestions;

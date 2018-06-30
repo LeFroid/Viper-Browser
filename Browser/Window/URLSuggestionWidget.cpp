@@ -7,6 +7,7 @@
 
 #include <QKeyEvent>
 #include <QListView>
+#include <QMouseEvent>
 #include <QTimer>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -133,7 +134,7 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
                 {
                     if (currentIndex.isValid())
                     {
-                        hide();
+                        close();
                         emit urlChosen(QUrl(currentIndex.data(URLSuggestionListModel::Link).toString()));
                         return true;
                     }
@@ -148,9 +149,19 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
         {
             if (!underMouse())
             {
-                hide();
+                close();
                 return true;
             }
+            return false;
+        }
+        case QEvent::MouseMove:
+        {
+            if (!underMouse())
+                return false;
+
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+            const QModelIndex index = m_suggestionList->indexAt(mapFromGlobal(mouseEvent->globalPos()));
+            m_suggestionList->setCurrentIndex(index);
             return false;
         }
         default:
@@ -173,7 +184,7 @@ void URLSuggestionWidget::suggestForInput(const QString &text)
 {
     if (text.isEmpty())
     {
-        hide();
+        close();
         m_model->setSuggestions(std::vector<URLSuggestion>());
         return;
     }
@@ -203,7 +214,7 @@ void URLSuggestionWidget::onSuggestionClicked(const QModelIndex &index)
 {
     if (index.isValid())
     {
-        hide();
+        close();
         emit urlChosen(QUrl(index.data(URLSuggestionListModel::Link).toString()));
     }
 }

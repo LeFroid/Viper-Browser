@@ -238,9 +238,9 @@ MainWindow *BrowserApplication::getNewWindow()
     MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
-    connect(w, &MainWindow::destroyed, [this, w](){
-        m_browserWindows.removeOne(w);
-    });
+    //connect(w, &MainWindow::destroyed, [this, w](){
+    //    m_browserWindows.removeOne(w);
+    //});
 
     w->show();
 
@@ -272,9 +272,9 @@ MainWindow *BrowserApplication::getNewPrivateWindow()
 {
     MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), true);
     m_browserWindows.append(w);
-    connect(w, &MainWindow::destroyed, [this, w](){
-        m_browserWindows.removeOne(w);
-    });
+    //connect(w, &MainWindow::destroyed, [this, w](){
+    //    m_browserWindows.removeOne(w);
+    //});
 
     w->show();
     return w;
