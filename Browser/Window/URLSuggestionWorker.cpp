@@ -5,6 +5,7 @@
 #include "URLSuggestionWorker.h"
 
 #include <QtConcurrent>
+#include <QSet>
 #include <QUrl>
 
 URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
@@ -44,6 +45,9 @@ void URLSuggestionWorker::searchForHits()
 
     FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
 
+    // Store urls being suggested in a set to avoid duplication when checking different data sources
+    QSet<QString> hits;
+
     BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
     for (auto it : *bookmarkMgr)
     {
@@ -59,6 +63,7 @@ void URLSuggestionWorker::searchForHits()
             suggestion.Title = it->getName();
             suggestion.URL = it->getURL();
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
+            hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
             continue;
         }
@@ -72,6 +77,7 @@ void URLSuggestionWorker::searchForHits()
             suggestion.Title = it->getName();
             suggestion.URL = it->getURL();
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
+            hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
         }
     }
@@ -85,16 +91,20 @@ void URLSuggestionWorker::searchForHits()
         if (!m_working.load())
             return;
 
+        const QString url = it.key();
+        if (hits.contains(url))
+            continue;
+
         if (it->Title.toUpper().contains(m_searchTerm))
         {
             URLSuggestion suggestion;
             suggestion.Title = it->Title;
-            suggestion.URL = it.key();
+            suggestion.URL = url;
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
             m_suggestions.push_back(suggestion);
             continue;
         }
-        QString urlUpper = it.key().toUpper();
+        QString urlUpper = url.toUpper();
         int prefix = urlUpper.indexOf(QLatin1String("://"));
         if (!searchTermHasScheme && prefix >= 0)
             urlUpper = urlUpper.mid(prefix + 3);
@@ -103,7 +113,7 @@ void URLSuggestionWorker::searchForHits()
         {
             URLSuggestion suggestion;
             suggestion.Title = it->Title;
-            suggestion.URL = it.key();
+            suggestion.URL = url;
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
             m_suggestions.push_back(suggestion);
         }

@@ -23,7 +23,6 @@ class HistoryWidget;
 class MainWindow;
 class RequestInterceptor;
 class Settings;
-class URLSuggestionModel;
 class UserAgentManager;
 class UserScriptManager;
 class NetworkAccessManager;
@@ -92,9 +91,6 @@ public:
     /// Returns a pointer to the private web browsing profile
     QWebEngineProfile *getPrivateBrowsingProfile();
 
-    /// Returns a pointer to the model used for suggesting URLs for the user to visit
-    URLSuggestionModel *getURLSuggestionModel();
-
     /// Returns a pointer to the user agent manager
     UserAgentManager *getUserAgentManager();
 
@@ -160,9 +156,6 @@ private:
 
     /// History view UI
     HistoryWidget *m_historyWidget;
-
-    /// URL suggestion model for browser windows
-    URLSuggestionModel *m_suggestionModel;
 
     /// Network access manager
     NetworkAccessManager *m_networkAccessMgr;

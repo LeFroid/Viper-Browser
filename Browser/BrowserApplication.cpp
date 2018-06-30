@@ -15,7 +15,6 @@
 #include "Settings.h"
 #include "NetworkAccessManager.h"
 #include "RequestInterceptor.h"
-#include "URLSuggestionModel.h"
 #include "UserAgentManager.h"
 #include "UserScriptManager.h"
 #include "ViperSchemeHandler.h"
@@ -86,9 +85,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QLatin1String("HistoryPath")));
     m_historyWidget = nullptr;
 
-    // Create url suggestion model
-    m_suggestionModel = new URLSuggestionModel;
-
     // Create network access managers
     m_networkAccessMgr = new NetworkAccessManager;
     m_networkAccessMgr->setCookieJar(m_cookieJar);
@@ -139,7 +135,6 @@ BrowserApplication::~BrowserApplication()
     }
 
     delete m_downloadMgr;
-    delete m_suggestionModel;
     delete m_networkAccessMgr;
     delete m_privateNetworkAccessMgr;
     delete m_historyWidget;
@@ -211,11 +206,6 @@ NetworkAccessManager *BrowserApplication::getPrivateNetworkAccessManager()
 QWebEngineProfile *BrowserApplication::getPrivateBrowsingProfile()
 {
     return m_privateProfile;
-}
-
-URLSuggestionModel *BrowserApplication::getURLSuggestionModel()
-{
-    return m_suggestionModel;
 }
 
 UserAgentManager *BrowserApplication::getUserAgentManager()
@@ -302,9 +292,6 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
     }
 
     //todo: support clearing form and search data
-
-    // Reload URLs in the suggestion model
-    m_suggestionModel->loadURLs();
 }
 
 void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range)
@@ -321,9 +308,6 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
     }
 
     //todo: support clearing form and search data
-
-    // Reload URLs in the suggestion model
-    m_suggestionModel->loadURLs();
 }
 
 void BrowserApplication::installGlobalWebScripts()

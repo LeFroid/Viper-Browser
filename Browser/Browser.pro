@@ -71,7 +71,6 @@ SOURCES += \
     Web/WebDialog.cpp \
     Web/WebPage.cpp \
     Web/WebView.cpp \
-    URLSuggestionModel.cpp \
     Network/NetworkAccessManager.cpp \
     Network/RequestInterceptor.cpp \
     UserAgents/UserAgentManager.cpp \
@@ -165,7 +164,6 @@ HEADERS += \
     Web/WebDialog.h \
     Web/WebPage.h \
     Web/WebView.h \
-    URLSuggestionModel.h \
     Network/NetworkAccessManager.h \
     Network/RequestInterceptor.h \
     UserAgents/UserAgentManager.h \

@@ -7,7 +7,9 @@
 class URLLineEdit;
 class URLSuggestionListModel;
 class URLSuggestionWorker;
+
 class QListView;
+class QModelIndex;
 
 /**
  * @class URLSuggestionWidget
@@ -40,7 +42,12 @@ public:
     void needResizeWidth(int width);
 
 signals:
+    /// Emitted when an item in the suggestion list with the given URL is chosen
     void urlChosen(const QUrl &url);
+
+private slots:
+    /// Called when an item in the suggestion list at the given index is clicked
+    void onSuggestionClicked(const QModelIndex &index);
 
 private:
     /// List view containing suggested URLs

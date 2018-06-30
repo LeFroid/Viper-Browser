@@ -19,7 +19,6 @@
 #include "SecurityManager.h"
 #include "SearchEngineLineEdit.h"
 #include "URLLineEdit.h"
-#include "URLSuggestionModel.h"
 #include "UserAgentManager.h"
 #include "UserScriptManager.h"
 #include "UserScriptWidget.h"

@@ -8,13 +8,10 @@
 #include <QKeyEvent>
 #include <QListView>
 #include <QTimer>
+#include <QUrl>
 #include <QVBoxLayout>
 
-#include "BrowserApplication.h"
-#include "FaviconStorage.h"
-#include <QUrl>
 #include <vector>
-#include <QDebug>
 
 URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     QWidget(parent)
@@ -24,25 +21,23 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::BypassWindowManagerHint);
     setContentsMargins(0, 0, 0, 0);
 
+    // Setup suggestion list view
     m_suggestionList = new QListView(this);
     m_suggestionList->setSelectionBehavior(QListView::SelectRows);
     m_suggestionList->setSelectionMode(QListView::SingleSelection);
     m_suggestionList->setEditTriggers(QListView::NoEditTriggers);
     m_suggestionList->setItemDelegate(new URLSuggestionItemDelegate(this));
-    connect(m_suggestionList, &QListView::clicked, [=](const QModelIndex &index){
-        if (index.isValid())
-        {
-            hide();
-            emit urlChosen(QUrl(index.data(URLSuggestionListModel::Link).toString()));
-        }
-    });
+    connect(m_suggestionList, &QListView::clicked, this, &URLSuggestionWidget::onSuggestionClicked);
 
+    // Setup model for view
     m_model = new URLSuggestionListModel(this);
     m_suggestionList->setModel(m_model);
 
+    // Setup suggestion worker
     m_worker = new URLSuggestionWorker(this);
     connect(m_worker, &URLSuggestionWorker::finishedSearch, m_model, &URLSuggestionListModel::setSuggestions);
 
+    // Setup layout
     auto vboxLayout = new QVBoxLayout(this);
     vboxLayout->setSpacing(0);
     vboxLayout->setContentsMargins(0, 0, 0, 0);
@@ -67,6 +62,7 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
 
             QModelIndex currentIndex = m_suggestionList->currentIndex();
 
+            // Change keycode from tab / backtab to key up or down depending on modifiers and such
             if (key == Qt::Key_Tab || key == Qt::Key_Backtab)
             {
                 if ((keyEvent->modifiers() & (~Qt::ShiftModifier)) != Qt::NoModifier)
@@ -79,6 +75,7 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
                     key = Qt::Key_Down;
             }
 
+            // Handle key codes
             switch (key)
             {
                 case Qt::Key_End:
@@ -181,25 +178,6 @@ void URLSuggestionWidget::suggestForInput(const QString &text)
         return;
     }
     m_worker->findSuggestionsFor(text);
-
-    /*FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
-
-    std::vector<URLSuggestion> mockData;
-
-    URLSuggestion startPage;
-    startPage.Title = QLatin1String("Start Page");
-    startPage.URL = QLatin1String("https://www.startpage.com");
-    startPage.Favicon = faviconStore->getFavicon(QUrl(startPage.URL));
-
-    URLSuggestion longSearch;
-    longSearch.Title = QLatin1String("Searching for something with a long text");
-    longSearch.URL = QLatin1String("https://www.google.com/?q=searching+for+something+with+a+long+text");
-    longSearch.Favicon = faviconStore->getFavicon(QUrl(longSearch.URL));
-
-    mockData.push_back(startPage);
-    mockData.push_back(longSearch);
-
-    m_model->setSuggestions(mockData);*/
 }
 
 void URLSuggestionWidget::setURLLineEdit(URLLineEdit *lineEdit)
@@ -219,4 +197,13 @@ QSize URLSuggestionWidget::sizeHint() const
 void URLSuggestionWidget::needResizeWidth(int width)
 {
     QTimer::singleShot(150, [=](){ setMinimumWidth(width); });
+}
+
+void URLSuggestionWidget::onSuggestionClicked(const QModelIndex &index)
+{
+    if (index.isValid())
+    {
+        hide();
+        emit urlChosen(QUrl(index.data(URLSuggestionListModel::Link).toString()));
+    }
 }

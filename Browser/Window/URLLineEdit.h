@@ -43,6 +43,7 @@ enum class BookmarkIcon
 class URLLineEdit : public QLineEdit
 {
     Q_OBJECT
+
 public:
     /// Constructs the URL line edit
     explicit URLLineEdit(QWidget *parent = nullptr);
@@ -73,6 +74,13 @@ signals:
 public slots:
     /// Removes the given view pointer from the map of webviews to user-set text in the line edit
     void removeMappedView(WebView *view);
+
+private slots:
+    /// Called when a URL from the \ref URLSuggestionWidget is chosen by the user
+    void onSuggestedURLChosen(const QUrl &url);
+
+    /// Called whenever the text within the line edit is edited by the user
+    void onTextEdited(const QString &text);
 
 protected:
     /// Paints the line edit with an icon that shows whether or not the current site is secure

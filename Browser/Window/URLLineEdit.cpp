@@ -2,7 +2,6 @@
 #include "MainWindow.h"
 #include "SecurityManager.h"
 #include "URLLineEdit.h"
-#include "URLSuggestionModel.h"
 #include "URLSuggestionWidget.h"
 #include "WebView.h"
 
@@ -28,28 +27,8 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     lineEditFont.setPointSize(lineEditFont.pointSize() + 1);
     setFont(lineEditFont);
 
-    // Set completion model (todo: use custom completer with a list widget view of results as user types a string)
-    /*QCompleter *urlCompleter = new QCompleter(parent);
-    urlCompleter->setModel(sBrowserApplication->getURLSuggestionModel());
-    urlCompleter->setMaxVisibleItems(10);
-    urlCompleter->setCompletionColumn(0);
-    urlCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    urlCompleter->setFilterMode(Qt::MatchContains);
-    urlCompleter->setCompletionMode(QCompleter::PopupCompletion);
-    setCompleter(urlCompleter);*/
-
-    // URL results are in format "url - title", so a slot must be added to extract the URL
-    // from the rest of the model's results
-    /*connect(this, &URLLineEdit::textChanged, [=](const QString &text){
-        int completedIdx = text.indexOf(" - ");
-        if (completedIdx >= 0)
-        {
-            setText(text.left(completedIdx));
-        }
-    });*/
-
     // Style common to both tool buttons in line edit
-    const QString toolButtonStyle = QStringLiteral("QToolButton { border: none; padding: 0px; } QToolButton:hover { background-color: #E6E6E6; }");
+    const QString toolButtonStyle = QLatin1String("QToolButton { border: none; padding: 0px; } QToolButton:hover { background-color: #E6E6E6; }");
 
     // Setup tool button
     m_securityButton = new QToolButton(this);
@@ -70,31 +49,14 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     setStyleSheet(urlStyle);
     setPlaceholderText(tr("Search or enter address"));
 
-    // new suggestion widget
+    // Setup suggestion widget
     m_suggestionWidget = new URLSuggestionWidget;
     m_suggestionWidget->setURLLineEdit(this);
-    connect(m_suggestionWidget, &URLSuggestionWidget::urlChosen, [=](const QUrl &url){
-        setURL(url);
-        emit returnPressed();
-    });
-
-    // Change color of URL when text is edited
-    connect(this, &URLLineEdit::textEdited, [=](const QString &str){
-        if (MainWindow *mw = qobject_cast<MainWindow*>(window()))
-        {
-            const QUrl currentViewUrl = mw->currentWebView()->url();
-            if (currentViewUrl.toString(QUrl::FullyEncoded).compare(str) == 0)
-            {
-                setURLFormatted(currentViewUrl);
-                return;
-            }
-
-            m_suggestionWidget->suggestForInput(str);
-            m_suggestionWidget->alignAndShow(mapToGlobal(pos()), frameGeometry());
-        }
-        setTextFormat(std::vector<QTextLayout::FormatRange>());
-    });
+    connect(m_suggestionWidget, &URLSuggestionWidget::urlChosen, this, &URLLineEdit::onSuggestedURLChosen);
     connect(this, &URLLineEdit::editingFinished, m_suggestionWidget, &URLSuggestionWidget::hide);
+
+    // Setup text editing handler
+    connect(this, &URLLineEdit::textEdited, this, &URLLineEdit::onTextEdited);
 }
 
 URLLineEdit::~URLLineEdit()
@@ -230,6 +192,29 @@ void URLLineEdit::removeMappedView(WebView *view)
     auto it = m_userTextMap.find(view);
     if (it != m_userTextMap.end())
         m_userTextMap.erase(it);
+}
+
+void URLLineEdit::onSuggestedURLChosen(const QUrl &url)
+{
+    setURL(url);
+    emit returnPressed();
+}
+
+void URLLineEdit::onTextEdited(const QString &text)
+{
+    if (MainWindow *mw = qobject_cast<MainWindow*>(window()))
+    {
+        const QUrl currentViewUrl = mw->currentWebView()->url();
+        if (currentViewUrl.toString(QUrl::FullyEncoded).compare(text) == 0)
+        {
+            setURLFormatted(currentViewUrl);
+            return;
+        }
+
+        m_suggestionWidget->suggestForInput(text);
+        m_suggestionWidget->alignAndShow(mapToGlobal(pos()), frameGeometry());
+    }
+    setTextFormat(std::vector<QTextLayout::FormatRange>());
 }
 
 void URLLineEdit::tabChanged(WebView *newView)
