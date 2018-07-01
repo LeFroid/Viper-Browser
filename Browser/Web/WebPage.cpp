@@ -198,6 +198,9 @@ void WebPage::onLoadProgress(int percent)
         if (!m_mainFrameAdBlockScript.isEmpty())
             runJavaScript(m_mainFrameAdBlockScript);
     }
+
+    if (percent == 100)
+        emit loadFinished(true);
 }
 
 void WebPage::onLoadFinished(bool ok)

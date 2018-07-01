@@ -24,7 +24,8 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     m_dragStartPos(),
     m_dragUrl(),
     m_dragPixmap(),
-    m_externalDropInfo()
+    m_externalDropInfo(),
+    m_tabPinMap()
 {
     setAcceptDrops(true);
     setDocumentMode(true);
@@ -52,6 +53,8 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     // Custom context menu
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &BrowserTabBar::customContextMenuRequested, this, &BrowserTabBar::onContextMenuRequest);
+
+    m_tabPinMap[0] = false;
 }
 
 void BrowserTabBar::onNextTabShortcut()
@@ -83,6 +86,20 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
         emit reloadTabRequest(tabIndex);
     });
     reloadAction->setShortcut(QKeySequence(tr("Ctrl+R")));
+
+    const bool isPinned = m_tabPinMap.at(tabIndex);
+    const QString pinTabText = isPinned ? tr("Unpin tab") : tr("Pin tab");
+    menu.addAction(pinTabText, [=](){
+        m_tabPinMap[tabIndex] = !isPinned;
+
+        // Force resize by 1px, then reset size to force a repaint
+        QSize currentSize(size());
+        currentSize.setWidth(currentSize.width() - 1);
+        resize(currentSize);
+        currentSize.setWidth(currentSize.width() + 1);
+        resize(currentSize);
+        update();
+    });
 
     menu.addAction(tr("Duplicate tab"), [=]() {
         emit duplicateTabRequest(tabIndex);
@@ -117,6 +134,13 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     }
 
     menu.exec(mapToGlobal(pos));
+}
+
+void BrowserTabBar::onTabMoved(int from, int to)
+{
+    bool tmp = m_tabPinMap.at(from);
+    m_tabPinMap[from] = m_tabPinMap.at(to);
+    m_tabPinMap[to] = tmp;
 }
 
 void BrowserTabBar::mousePressEvent(QMouseEvent *event)
@@ -273,6 +297,11 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
     }
     else if (mimeData->hasFormat("application/x-browser-tab"))
     {
+        if ((qulonglong)window()->winId() == mimeData->property("tab-origin-window-id").toULongLong())
+        {
+            event->acceptProposedAction();
+            return;
+        }
         qobject_cast<MainWindow*>(window())->dropEvent(event);
         return;
     }
@@ -342,20 +371,50 @@ void BrowserTabBar::tabLayoutChange()
     moveNewTabButton();
 }
 
+void BrowserTabBar::tabInserted(int index)
+{
+    std::map<int, bool> tabPinMap;
+    for (auto it : m_tabPinMap)
+    {
+        int idx = it.first;
+        if (idx >= index)
+            ++idx;
+        tabPinMap[idx] = it.second;
+    }
+    tabPinMap[index] = false;
+    m_tabPinMap = tabPinMap;
+
+    QTabBar::tabInserted(index);
+}
+
+void BrowserTabBar::tabRemoved(int index)
+{
+    std::map<int, bool> tabPinMap;
+    for (auto it : m_tabPinMap)
+    {
+        int idx = it.first;
+        if (idx > index)
+            --idx;
+        tabPinMap[idx] = it.second;
+    }
+    m_tabPinMap = tabPinMap;
+
+    QTabBar::tabRemoved(index);
+}
+
 QSize BrowserTabBar::tabSizeHint(int index) const
 {
+    if (m_tabPinMap.at(index))
+    {
+        QSize pinnedTabSize = iconSize();
+        pinnedTabSize.setWidth(pinnedTabSize.width() * 3 + 6);
+        return pinnedTabSize;
+    }
+
     // Get the QTabBar size hint and keep width within an upper bound
     QSize hint = QTabBar::tabSizeHint(index);
-    //QFontMetrics fMetric = fontMetrics();
 
     const int numTabs = count();
-    /*const int activeTabWidth = fMetric.width("R") * 20;
-
-    int tabWidth = 0;
-    if (index == currentIndex())
-        tabWidth = activeTabWidth;
-    else
-        tabWidth = (geometry().width() - activeTabWidth - m_buttonNewTab->width()) / (std::max(1, numTabs - 1));*/
     int tabWidth = float(geometry().width() - m_buttonNewTab->width() - 1) / numTabs;
 
     return hint.boundedTo(QSize(tabWidth, hint.height()));

@@ -1,6 +1,7 @@
 #ifndef BROWSERTABBAR_H
 #define BROWSERTABBAR_H
 
+#include <map>
 #include <QTabBar>
 #include <QUrl>
 
@@ -69,6 +70,9 @@ private slots:
     /// Creates a context menu at the given position on the tab bar
     void onContextMenuRequest(const QPoint &pos);
 
+    /// Called when a tab has moved from the index at position from, to the index at position to
+    void onTabMoved(int from, int to);
+
 protected:
     /// Called when the user presses the mouse over the tab bar. Initiates drag-and-drop events
     void mousePressEvent(QMouseEvent *event) override;
@@ -97,6 +101,12 @@ protected:
     /// Called when the tab layout is changed
     void tabLayoutChange() override;
 
+    /// Handler that is called after a new tab was inserted at position index
+    void tabInserted(int index) override;
+
+    /// Handler that is called after a tab was removed from position index
+    void tabRemoved(int index) override;
+
     /// Returns a size hint of the tab with the given index
     QSize tabSizeHint(int index) const override;
 
@@ -122,6 +132,9 @@ private:
 
     /// Information about a drag and drop event from a resource external to the browser
     ExternalDropInfo m_externalDropInfo;
+
+    /// Map of tab indexes to their pinned/unpinned state. If the value is true, the tab is pinned.
+    std::map<int, bool> m_tabPinMap;
 };
 
 #endif // BROWSERTABBAR_H
