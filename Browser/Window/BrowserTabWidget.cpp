@@ -7,6 +7,7 @@
 #include "WebView.h"
 
 #include <algorithm>
+#include <QDesktopWidget>
 #include <QMenu>
 #include <QTimer>
 #include <QWebEngineHistory>
@@ -49,7 +50,7 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, bool priv
     // Set tab widget UI properties
     setDocumentMode(true);
     setElideMode(Qt::ElideRight);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     connect(this, &BrowserTabWidget::tabCloseRequested, this, &BrowserTabWidget::closeTab);
     connect(this, &BrowserTabWidget::currentChanged, this, &BrowserTabWidget::onCurrentChanged);
@@ -112,6 +113,28 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
         {
             if (m_mainWindow && m_mainWindow->isFullScreen())
                 m_mainWindow->onMouseMoveFullscreen(static_cast<QMouseEvent*>(event)->y());
+            break;
+        }
+
+        case QEvent::Resize:
+        {
+            if (m_mainWindow != watched)
+                break;
+
+            QTimer::singleShot(150, [=](){
+                const int screenWidth = sBrowserApplication->desktop()->screenGeometry().width();
+                const QRect winGeom = m_mainWindow->geometry();
+                if (winGeom.left() + m_mainWindow->width() > screenWidth)
+                {
+                    QSize winSize = m_mainWindow->size();
+                    winSize.setWidth(screenWidth - winGeom.left());
+                    m_mainWindow->resize(winSize);
+
+                    setMaximumWidth(winSize.width());
+                    currentWebView()->setMaximumWidth(winSize.width());
+                }
+            });
+
             break;
         }
         case QEvent::KeyPress:

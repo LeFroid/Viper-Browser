@@ -800,6 +800,15 @@ void MainWindow::dropEvent(QDropEvent *event)
     event->acceptProposedAction();
 }
 
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+
+    const int winWidth = event->size().width();
+    m_tabWidget->setMaximumWidth(winWidth);
+    ui->bookmarkBar->setMaximumWidth(winWidth);
+}
+
 void MainWindow::onLinkHovered(const QUrl &url)
 {
     m_linkHoverLabel->setText(url.toString());

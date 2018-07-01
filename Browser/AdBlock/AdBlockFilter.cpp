@@ -346,6 +346,9 @@ bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString 
 
 bool AdBlockFilter::filterContains(const QString &haystack) const
 {
+    static const quint64 radixLength = 256ULL;
+    static const quint64 prime = 72057594037927931ULL;
+
     const int needleLength = m_evalString.size();
     const int haystackLength = haystack.size();
 
@@ -354,42 +357,39 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
     if (needleLength == 0)
         return true;
 
-    static const quint64 radixLength = 256ULL;
-    static const quint64 prime = 72057594037927931ULL;
-
-    int lastIndex = haystackLength - needleLength;
-
-    size_t firstHaystackHash = 0;
-
-    int index;
     const QChar *needlePtr = m_evalString.constData();
     const QChar *haystackPtr = haystack.constData();
 
-    // preprocessing
-    for (index = 0; index < needleLength; index++)
-        firstHaystackHash = (radixLength * firstHaystackHash + (haystackPtr + index)->toLatin1()) % prime;
+    int i, j;
+    quint64 t = 0;
+    quint64 h = 1;
 
-    std::vector<quint64> haystackHashes;
-    haystackHashes.reserve(lastIndex + 1);
-    haystackHashes.push_back(firstHaystackHash);
+    // The value of h would be "pow(d, M-1)%q"
+    for (i = 0; i < needleLength - 1; ++i)
+        h = (h * radixLength) % prime;
 
-    // matching
-    for (index = 0; index <= lastIndex; index++)
+    // Calculate the hash value of first window of text
+    for (i = 0; i < needleLength; ++i)
+        t = (radixLength * t + ((haystackPtr + i)->toLatin1())) % prime;
+
+    for (i = 0; i <= haystackLength - needleLength; ++i)
     {
-        if (m_evalStringHash == haystackHashes[index])
+        if (m_evalStringHash == t)
         {
-           int j;
-           for(j = 0; j < needleLength && (*(needlePtr + j) == *(haystackPtr + index + j)); ++j);
-           if (j == needleLength)
-               return true;
+            for (j = 0; j < needleLength; j++)
+            {
+                if ((haystackPtr + i + j)->toLatin1() != (needlePtr + j)->toLatin1())
+                    break;
+            }
+
+            if (j == needleLength)
+                return true;
         }
 
-        if (index < lastIndex)
+        if (i < haystackLength - needleLength)
         {
-            quint64 newHaystackHash =
-                    (radixLength * (haystackHashes[index] - (haystackPtr + index)->toLatin1() * m_differenceHash)
-                     + (haystackPtr + index + needleLength)->toLatin1()) % prime;
-            haystackHashes.push_back(newHaystackHash);
+            t = (radixLength * (t - (h * (haystackPtr + i)->toLatin1()))
+                 + (haystackPtr + i + needleLength)->toLatin1()) % prime;
         }
     }
 

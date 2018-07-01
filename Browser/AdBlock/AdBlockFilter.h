@@ -201,7 +201,6 @@ private:
     bool isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const;
 
     /// Applies the Rabin-Karp string matching algorithm to the given string, returning true if it contains the filter's eval string, false if else
-    /// From: https://www.joelverhagen.com/blog/2011/11/three-string-matching-algorithms-in-c/
     bool filterContains(const QString &haystack) const;
 
 protected:

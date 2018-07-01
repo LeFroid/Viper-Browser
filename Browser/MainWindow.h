@@ -211,6 +211,9 @@ protected:
     /// Handles tab drop events
     void dropEvent(QDropEvent *event) override;
 
+    /// Handles resize events
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
     /// UI items from .ui file
     Ui::MainWindow *ui;

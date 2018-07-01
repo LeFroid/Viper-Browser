@@ -31,7 +31,7 @@ WebView::WebView(bool privateView, QWidget *parent) :
     m_jsCallbackResult()
 {
     setAcceptDrops(true);
-    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     if (privateView)
     {
