@@ -103,6 +103,14 @@ QString WebView::getTitle() const
     return pageUrl.host();
 }
 
+void WebView::load(const QUrl &url)
+{
+    if (!m_page->acceptNavigationRequest(url, WebPage::NavigationTypeTyped, true))
+        return;
+
+    QWebEngineView::load(url);
+}
+
 void WebView::resetZoom()
 {
     setZoomFactor(1.0);

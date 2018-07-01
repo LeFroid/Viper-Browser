@@ -41,6 +41,9 @@ public:
      */
     QString getTitle() const;
 
+    /// Loads the specified url and displays it
+    void load(const QUrl &url);
+
 public slots:
     /// Resets the zoom factor to its base value
     void resetZoom();
