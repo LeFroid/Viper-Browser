@@ -63,6 +63,8 @@ public:
     /// Returns true if at least one tab has been closed which can be reopened, false if else
     bool canReopenClosedTab() const;
 
+    /// Returns true if the tab at the given index is pinned, false if else
+    bool isTabPinned(int tabIndex) const;
 
 signals:
     /// Emitted when a new tab is created, passing along a pointer to the associated web view
@@ -78,6 +80,9 @@ signals:
     void viewChanged(int index);
 
 public slots:
+    /// Sets the tab at the given index to be pinned if value is true, otherwise it will be unpinned
+    void setTabPinned(int index, bool value);
+
     /// Reopens the last tab that was closed
     void reopenLastTab();
 

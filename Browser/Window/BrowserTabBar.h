@@ -53,6 +53,9 @@ public:
     /// Constructs the tab bar with a given parent widget
     explicit BrowserTabBar(QWidget *parent = nullptr);
 
+    /// Returns true if the tab at the given index is pinned, false if else
+    bool isTabPinned(int tabIndex) const;
+
 signals:
     /// Emitted when the user chooses to duplicate the tab at the given index
     void duplicateTabRequest(int index);
@@ -62,6 +65,10 @@ signals:
 
     /// Emitted when the user chooses the "Reload" option on a tab from the context menu
     void reloadTabRequest(int index);
+
+public slots:
+    /// Sets the tab at the given index to be pinned if value is true, otherwise it will be unpinned
+    void setTabPinned(int index, bool value);
 
 private slots:
     /// Called when the next tab shortcut is activated. Switches to the next tab, or cycles back to the first tab if already at the last tab

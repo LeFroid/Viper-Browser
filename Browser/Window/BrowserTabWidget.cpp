@@ -130,9 +130,19 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
     return QObject::eventFilter(watched, event);
 }
 
+void BrowserTabWidget::setTabPinned(int index, bool value)
+{
+    m_tabBar->setTabPinned(index, value);
+}
+
 bool BrowserTabWidget::canReopenClosedTab() const
 {
     return !m_closedTabs.empty();
+}
+
+bool BrowserTabWidget::isTabPinned(int tabIndex) const
+{
+    return m_tabBar->isTabPinned(tabIndex);
 }
 
 void BrowserTabWidget::showContextMenuForView()

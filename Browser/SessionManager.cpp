@@ -10,7 +10,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QString>
 #include <QUrl>
+#include <QWebEngineHistory>
 
 SessionManager::SessionManager() :
     m_dataFile(),
@@ -51,7 +53,20 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
             if (!view)
                 continue;
 
-            tabArray.append(QJsonValue(view->url().toString()));
+            QJsonObject tabInfoObj;
+            tabInfoObj.insert(QLatin1String("url"), QJsonValue(view->url().toString()));
+            tabInfoObj.insert(QLatin1String("isPinned"), QJsonValue(tabWidget->isTabPinned(i)));
+
+            QByteArray tabHistory;
+            QDataStream stream(&tabHistory, QIODevice::ReadWrite);
+            stream << *(view->history());
+            stream.device()->seek(0);
+
+            auto tabHistoryB64 = tabHistory.toBase64();
+            auto tabHistoryEncoded = QLatin1String(tabHistoryB64.data());
+            tabInfoObj.insert(QLatin1String("history"), QJsonValue(tabHistoryEncoded));
+
+            tabArray.append(QJsonValue(tabInfoObj));
         }
 
         winObj.insert(QString("tabs"), QJsonValue(tabArray));
@@ -116,7 +131,23 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
         QJsonArray tabArray = winObject.value("tabs").toArray();
         for (auto tabIt = tabArray.constBegin(); tabIt != tabArray.constEnd(); ++tabIt)
         {
-            tabWidget->openLinkInNewTab(QUrl::fromUserInput(tabIt->toString()));
+            if (tabIt->isString())
+                tabWidget->openLinkInNewTab(QUrl::fromUserInput(tabIt->toString()));
+            else if (tabIt->isObject())
+            {
+                QJsonObject tabInfoObj = tabIt->toObject();
+
+                WebView *view = tabWidget->newTab();
+                view->load(QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString()));
+
+                tabWidget->setTabPinned(tabWidget->indexOf(view),
+                                        tabInfoObj.value(QLatin1String("isPinned")).toBool());
+
+                const QByteArray encodedHistory = tabInfoObj.value(QLatin1String("history")).toString().toLatin1();
+                QByteArray tabHistory = QByteArray::fromBase64(encodedHistory);
+                QDataStream historyStream(&tabHistory, QIODevice::ReadWrite);
+                historyStream >> *(view->history());
+            }
         }
 
         // Close unused first tab

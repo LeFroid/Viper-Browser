@@ -60,6 +60,23 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     m_tabPinMap[0] = false;
 }
 
+bool BrowserTabBar::isTabPinned(int tabIndex) const
+{
+    if (tabIndex < 0 || tabIndex >= count())
+        return false;
+
+    return m_tabPinMap.at(tabIndex);
+}
+
+void BrowserTabBar::setTabPinned(int index, bool value)
+{
+    if (index < 0 || index >= count() || m_tabPinMap.at(index) == value)
+        return;
+
+    m_tabPinMap[index] = value;
+    forceRepaint();
+}
+
 void BrowserTabBar::onNextTabShortcut()
 {
     int nextIdx = currentIndex() + 1;
@@ -93,8 +110,7 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     const bool isPinned = m_tabPinMap.at(tabIndex);
     const QString pinTabText = isPinned ? tr("Unpin tab") : tr("Pin tab");
     menu.addAction(pinTabText, [=](){
-        m_tabPinMap[tabIndex] = !isPinned;
-        forceRepaint();
+        setTabPinned(tabIndex, !isPinned);
     });
 
     menu.addAction(tr("Duplicate tab"), [=]() {
