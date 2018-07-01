@@ -23,7 +23,7 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     m_queryVisit(nullptr),
     m_storagePolicy(HistoryStoragePolicy::Remember)
 {
-    m_storagePolicy = static_cast<HistoryStoragePolicy>(sBrowserApplication->getSettings()->getValue(QLatin1String("HistoryStoragePolicy")).toInt());
+    m_storagePolicy = static_cast<HistoryStoragePolicy>(sBrowserApplication->getSettings()->getValue(BrowserSetting::HistoryStoragePolicy).toInt());
 }
 
 HistoryManager::~HistoryManager()

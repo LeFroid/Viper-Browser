@@ -22,7 +22,7 @@ UserScriptModel::UserScriptModel(std::shared_ptr<Settings> settings, QObject *pa
     m_enabled(false),
     m_settings(settings)
 {
-    m_enabled = settings->getValue("UserScriptsEnabled").toBool();
+    m_enabled = settings->getValue(BrowserSetting::UserScriptsEnabled).toBool();
     if (m_enabled)
         load();
 }
@@ -195,7 +195,7 @@ void UserScriptModel::load()
     templateFile.close();
 
     // Attempt to load statuses of user scripts, storing results in temporary hash map
-    QFile scriptMgrFile(m_settings->getPathValue("UserScriptsConfig"));
+    QFile scriptMgrFile(m_settings->getPathValue(BrowserSetting::UserScriptsConfig));
     QHash<QString, bool> scriptStatuses;
     if (scriptMgrFile.exists() && scriptMgrFile.open(QIODevice::ReadOnly))
     {
@@ -220,7 +220,7 @@ void UserScriptModel::load()
     }
 
     // Load user scripts
-    QDir scriptDir(m_settings->getPathValue("UserScriptsDir"));
+    QDir scriptDir(m_settings->getPathValue(BrowserSetting::UserScriptsDir));
     if (!scriptDir.exists())
         scriptDir.mkpath(scriptDir.absolutePath());
 
@@ -294,7 +294,7 @@ void UserScriptModel::loadDependencies(int scriptIdx)
 
 void UserScriptModel::save()
 {
-    QFile dataFile(m_settings->getPathValue("UserScriptsConfig"));
+    QFile dataFile(m_settings->getPathValue(BrowserSetting::UserScriptsConfig));
     if (!dataFile.open(QIODevice::WriteOnly))
         return;
 

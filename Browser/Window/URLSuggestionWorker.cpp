@@ -43,7 +43,6 @@ void URLSuggestionWorker::searchForHits()
 
     const bool searchTermHasScheme = m_searchTerm.startsWith(QLatin1String("HTTP"))
             || m_searchTerm.startsWith(QLatin1String("FILE"));
-    const bool searchTermHasQuery = m_searchTerm.contains(QLatin1Char('?'));
 
     FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
 
@@ -93,15 +92,7 @@ void URLSuggestionWorker::searchForHits()
         if (!m_working.load())
             return;
 
-        QString url = it.key();
-
-        if (!searchTermHasQuery)
-        {
-            int queryPos = url.indexOf(QLatin1Char('?'));
-            if (queryPos > 0)
-                url = url.left(queryPos);
-        }
-
+        const QString &url = it.key();
         if (hits.contains(url))
             continue;
 

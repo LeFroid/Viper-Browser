@@ -15,7 +15,31 @@
 Settings::Settings() :
     m_firstRun(false),
     m_settings(),
-    m_storagePath()
+    m_storagePath(),
+    m_settingMap {
+        { BrowserSetting::StoragePath, QLatin1String("StoragePath") },                { BrowserSetting::BookmarkPath, QLatin1String("BookmarkPath") },
+        { BrowserSetting::ExtensionStoragePath, QLatin1String("ExtStoragePath") },    { BrowserSetting::HistoryPath, QLatin1String("HistoryPath") },
+        { BrowserSetting::FaviconPath, QLatin1String("FaviconPath") },                { BrowserSetting::SearchEnginesFile, QLatin1String("SearchEnginesFile") },
+        { BrowserSetting::SessionFile, QLatin1String("SessionFile") },                { BrowserSetting::UserAgentsFile, QLatin1String("UserAgentsFile") },
+        { BrowserSetting::UserScriptsConfig, QLatin1String("UserScriptsConfig") },    { BrowserSetting::UserScriptsDir, QLatin1String("UserScriptsDir") },
+        { BrowserSetting::AdBlockPlusConfig, QLatin1String("AdBlockPlusConfig") },    { BrowserSetting::ExemptThirdPartyCookieFile, QLatin1String("ExemptThirdPartyCookieFile") },
+        { BrowserSetting::AdBlockPlusDataDir, QLatin1String("AdBlockPlusDataDir") },  { BrowserSetting::FixedFontSize, QLatin1String("FixedFontSize") },
+        { BrowserSetting::HomePage, QLatin1String("HomePage") },                      { BrowserSetting::StartupMode, QLatin1String("StartupMode") },
+        { BrowserSetting::NewTabsLoadHomePage, QLatin1String("NewTabsLoadHomePage") },{ BrowserSetting::DownloadDir, QLatin1String("DownloadDir") },
+        { BrowserSetting::SendDoNotTrack, QLatin1String("SendDoNotTrack") },          { BrowserSetting::AskWhereToSaveDownloads, QLatin1String("AskWhereToSaveDownloads") },
+        { BrowserSetting::EnableJavascript, QLatin1String("EnableJavascript") },      { BrowserSetting::EnableJavascriptPopups, QLatin1String("EnableJavascriptPopups") },
+        { BrowserSetting::AutoLoadImages, QLatin1String("AutoLoadImages") },          { BrowserSetting::EnablePlugins, QLatin1String("EnablePlugins") },
+        { BrowserSetting::EnableCookies, QLatin1String("EnableCookies") },            { BrowserSetting::EnableThirdPartyCookies, QLatin1String("EnableThirdPartyCookies") },
+        { BrowserSetting::EnableXSSAudit, QLatin1String("EnableXSSAudit") },          { BrowserSetting::CookiesDeleteWithSession, QLatin1String("CookiesDeleteWithSession") },
+        { BrowserSetting::EnableBookmarkBar, QLatin1String("EnableBookmarkBar") },    { BrowserSetting::CustomUserAgent, QLatin1String("CustomUserAgent") },
+        { BrowserSetting::UserScriptsEnabled, QLatin1String("UserScriptsEnabled") },  { BrowserSetting::AdBlockPlusEnabled, QLatin1String("AdBlockPlusEnabled") },
+        { BrowserSetting::InspectorPort, QLatin1String("InspectorPort") },            { BrowserSetting::HistoryStoragePolicy, QLatin1String("HistoryStoragePolicy") },
+        { BrowserSetting::StandardFont, QLatin1String("StandardFont") },              { BrowserSetting::ScrollAnimatorEnabled, QLatin1String("ScrollAnimatorEnabled") },
+        { BrowserSetting::SerifFont, QLatin1String("SerifFont") },                    { BrowserSetting::OpenAllTabsInBackground, QLatin1String("OpenAllTabsInBackground") },
+        { BrowserSetting::SansSerifFont, QLatin1String("SansSerifFont") },            { BrowserSetting::CursiveFont, QLatin1String("CursiveFont") },
+        { BrowserSetting::FantasyFont, QLatin1String("FantasyFont") },                { BrowserSetting::FixedFont, QLatin1String("FixedFont") },
+        { BrowserSetting::StandardFontSize, QLatin1String("StandardFontSize") }
+    }
 {
     // Check if defaults need to be set
     if (!m_settings.contains(QLatin1String("StoragePath")))
@@ -24,19 +48,19 @@ Settings::Settings() :
     m_storagePath = m_settings.value(QLatin1String("StoragePath")).toString();
 }
 
-QString Settings::getPathValue(const QString &key)
+QString Settings::getPathValue(BrowserSetting key)
 {
-    return m_storagePath + m_settings.value(key).toString();
+    return m_storagePath + m_settings.value(m_settingMap.value(key, QLatin1String("unknown"))).toString();
 }
 
-QVariant Settings::getValue(const QString &key)
+QVariant Settings::getValue(BrowserSetting key)
 {
-    return m_settings.value(key);
+    return m_settings.value(m_settingMap.value(key, QLatin1String("unknown")));
 }
 
-void Settings::setValue(const QString &key, const QVariant &value)
+void Settings::setValue(BrowserSetting key, const QVariant &value)
 {
-    m_settings.setValue(key, value);
+    m_settings.setValue(m_settingMap.value(key, QLatin1String("unknown")), value);
 }
 
 bool Settings::firstRun() const
@@ -94,7 +118,7 @@ void Settings::applyWebSettings()
     defaultProfile->setPersistentStoragePath(cachePath.absolutePath());
 
     // Check if custom user agent is used
-    if (getValue(QLatin1String("CustomUserAgent")).toBool())
+    if (m_settings.value(QLatin1String("CustomUserAgent")).toBool())
         defaultProfile->setHttpUserAgent(sBrowserApplication->getUserAgentManager()->getUserAgent().Value);
 }
 

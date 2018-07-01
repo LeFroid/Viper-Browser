@@ -210,7 +210,7 @@ void MainWindow::setupMenuBar()
     connect(ui->menuHistory->m_actionClearHistory, &QAction::triggered, this, &MainWindow::openClearHistoryDialog);
 
     // Bookmark bar setting
-    ui->actionBookmark_Bar->setChecked(m_settings->getValue("EnableBookmarkBar").toBool());
+    ui->actionBookmark_Bar->setChecked(m_settings->getValue(BrowserSetting::EnableBookmarkBar).toBool());
     connect(ui->actionBookmark_Bar, &QAction::toggled, this, &MainWindow::toggleBookmarkBar);
     toggleBookmarkBar(ui->actionBookmark_Bar->isChecked());
 
@@ -456,7 +456,7 @@ void MainWindow::toggleBookmarkBar(bool enabled)
     else
         ui->bookmarkBar->hide();
 
-    m_settings->setValue("EnableBookmarkBar", enabled);
+    m_settings->setValue(BrowserSetting::EnableBookmarkBar, enabled);
 }
 
 void MainWindow::onFindTextAction()
@@ -620,7 +620,7 @@ void MainWindow::onNewTabCreated(WebView *view)
         WebPage *inspectorPage = dynamic_cast<WebPage*>(inspectorView->page());
         inspectorPage->setInspectedPage(view->page());
 #else
-        QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue("InspectorPort").toString());
+        QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue(BrowserSetting::InspectorPort).toString());
         inspectorView->load(QUrl(inspectorUrl));
 #endif
         ui->dockWidget->show();
@@ -761,7 +761,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (!m_privateWindow)
     {
-        StartupMode mode = static_cast<StartupMode>(m_settings->getValue("StartupMode").toInt());
+        StartupMode mode = static_cast<StartupMode>(m_settings->getValue(BrowserSetting::StartupMode).toInt());
         if (mode == StartupMode::RestoreSession)
         {
             emit aboutToClose();

@@ -216,11 +216,11 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int speci
     QString tabLabel;
     if (!skipHomePage)
     {
-        auto newTabPage = m_settings->getValue(QLatin1String("NewTabsLoadHomePage")).toBool() ? HomePage : BlankPage;
+        auto newTabPage = m_settings->getValue(BrowserSetting::NewTabsLoadHomePage).toBool() ? HomePage : BlankPage;
         switch (newTabPage)
         {
             case HomePage:
-                view->load(QUrl::fromUserInput(m_settings->getValue("HomePage").toString()));
+                view->load(QUrl::fromUserInput(m_settings->getValue(BrowserSetting::HomePage).toString()));
                 tabLabel = tr("Home Page");
                 break;
             case BlankPage:

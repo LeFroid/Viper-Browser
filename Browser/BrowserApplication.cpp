@@ -6,7 +6,7 @@
 #include "CookieWidget.h"
 #include "DatabaseFactory.h"
 #include "DownloadManager.h"
-#include "ExtStorage.h"
+//#include "ExtStorage.h"
 #include "FaviconStorage.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
@@ -64,27 +64,27 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_requestInterceptor->setSettings(m_settings);
 
     // Initialize favicon storage module
-    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(QLatin1String("FaviconPath")));
+    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(BrowserSetting::FaviconPath));
 
     // Initialize bookmarks manager
-    m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(QLatin1String("BookmarkPath")));
+    m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(BrowserSetting::BookmarkPath));
 
     // Initialize cookie jar and cookie manager UI
-    const bool enableCookies = m_settings->getValue(QLatin1String("EnableCookies")).toBool();
+    const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();
     m_cookieJar = new CookieJar(enableCookies, false);
-    m_cookieJar->setThirdPartyCookiesEnabled(m_settings->getValue(QLatin1String("EnableThirdPartyCookies")).toBool());
+    m_cookieJar->setThirdPartyCookiesEnabled(m_settings->getValue(BrowserSetting::EnableThirdPartyCookies).toBool());
 
     m_cookieUI = new CookieWidget();
     webProfile->cookieStore()->loadAllCookies();
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
-    m_downloadMgr->setDownloadDir(m_settings->getValue(QLatin1String("DownloadDir")).toString());
+    m_downloadMgr->setDownloadDir(m_settings->getValue(BrowserSetting::DownloadDir).toString());
     connect(webProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
     connect(m_privateProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
 
     // Instantiate the history manager
-    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(QLatin1String("HistoryPath")));
+    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
     m_historyWidget = nullptr;
 
     // Create network access managers
@@ -104,7 +104,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_userScriptMgr = new UserScriptManager(m_settings);
 
     // Setup extension storage manager
-    m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(QLatin1String("ExtStoragePath")));
+    //m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
 
     // Apply global web scripts
     installGlobalWebScripts();
@@ -113,13 +113,13 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_settings->applyWebSettings();
 
     // Load search engine information
-    SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(QLatin1String("SearchEnginesFile")));
+    SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(BrowserSetting::SearchEnginesFile));
 
     // Load ad block subscriptions (will do nothing if disabled)
     AdBlockManager::instance().loadSubscriptions();
 
     // Set browser's saved sessions file
-    m_sessionMgr.setSessionFile(m_settings->getPathValue(QLatin1String("SessionFile")));
+    m_sessionMgr.setSessionFile(m_settings->getPathValue(BrowserSetting::SessionFile));
 
     // Connect aboutToQuit signal to browser's session management slot
     connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
@@ -226,10 +226,10 @@ CookieWidget *BrowserApplication::getCookieManager()
     return m_cookieUI;
 }
 
-ExtStorage *BrowserApplication::getExtStorage()
+/*ExtStorage *BrowserApplication::getExtStorage()
 {
     return m_extStorage.get();
-}
+}*/
 
 MainWindow *BrowserApplication::getNewWindow()
 {
@@ -248,11 +248,11 @@ MainWindow *BrowserApplication::getNewWindow()
     // the startup mode behavior depending on the user's configuration setting
     if (firstWindow)
     {
-        StartupMode mode = static_cast<StartupMode>(m_settings->getValue(QLatin1String("StartupMode")).toInt());
+        StartupMode mode = static_cast<StartupMode>(m_settings->getValue(BrowserSetting::StartupMode).toInt());
         switch (mode)
         {
             case StartupMode::LoadHomePage:
-                w->loadUrl(QUrl::fromUserInput(m_settings->getValue(QLatin1String("HomePage")).toString()));
+                w->loadUrl(QUrl::fromUserInput(m_settings->getValue(BrowserSetting::HomePage).toString()));
                 break;
             case StartupMode::LoadBlankPage:
                 w->loadBlankPage();
@@ -344,7 +344,7 @@ void BrowserApplication::installGlobalWebScripts()
 
 void BrowserApplication::beforeBrowserQuit()
 {
-    StartupMode mode = static_cast<StartupMode>(m_settings->getValue(QLatin1String("StartupMode")).toInt());
+    StartupMode mode = static_cast<StartupMode>(m_settings->getValue(BrowserSetting::StartupMode).toInt());
     if (mode != StartupMode::RestoreSession && m_sessionMgr.alreadySaved())
         return;
 

@@ -132,8 +132,8 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     QVariant scriptResult = m_page->runJavaScriptBlocking(contextMenuScript);
     QMap<QString, QVariant> resultMap = scriptResult.toMap();
     WebHitTestResult contextMenuData(resultMap);
-    //QWebEngineContextMenuData
-    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(QLatin1String("AskWhereToSaveDownloads")).toBool();
+
+    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
 
     QMenu menu;
 
@@ -305,7 +305,7 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
                 obj = obj->parent();
 
             const bool switchToNewTab = (type == QWebEnginePage::WebBrowserTab
-                                         && !sBrowserApplication->getSettings()->getValue(QLatin1String("OpenAllTabsInBackground")).toBool());
+                                         && !sBrowserApplication->getSettings()->getValue(BrowserSetting::OpenAllTabsInBackground).toBool());
 
             if (MainWindow *mw = dynamic_cast<MainWindow*>(obj))
                 return mw->getNewTabWebView(switchToNewTab);

@@ -26,6 +26,6 @@ void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
     }
 
     //check if do not track setting enabled, if so, send header DNT with value 1
-    if (m_settings && m_settings->getValue(QLatin1String("SendDoNotTrack")).toBool())
+    if (m_settings && m_settings->getValue(BrowserSetting::SendDoNotTrack).toBool())
         info.setHttpHeader("DNT", "1");
 }

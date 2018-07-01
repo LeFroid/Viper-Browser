@@ -47,7 +47,7 @@ void UserAgentManager::setActiveAgent(const QString &category, const UserAgent &
 {
     m_activeAgentCategory = category;
     m_activeAgent = agent;
-    m_settings->setValue("CustomUserAgent", true);
+    m_settings->setValue(BrowserSetting::CustomUserAgent, true);
     QWebEngineProfile::defaultProfile()->setHttpUserAgent(m_activeAgent.Value);
 }
 
@@ -70,7 +70,7 @@ void UserAgentManager::disableActiveAgent()
 {
     m_activeAgent = UserAgent();
     m_activeAgentCategory.clear();
-    m_settings->setValue("CustomUserAgent", false);
+    m_settings->setValue(BrowserSetting::CustomUserAgent, false);
     QWebEngineProfile::defaultProfile()->setHttpUserAgent(QString());
 }
 
@@ -121,7 +121,7 @@ void UserAgentManager::onUserAgentAdded()
 
 void UserAgentManager::load()
 {
-    QFile dataFile(m_settings->getPathValue("UserAgentsFile"));
+    QFile dataFile(m_settings->getPathValue(BrowserSetting::UserAgentsFile));
     if (!dataFile.exists() || !dataFile.open(QIODevice::ReadOnly))
         return;
 
@@ -179,7 +179,7 @@ void UserAgentManager::load()
 
 void UserAgentManager::save()
 {
-    QFile dataFile(m_settings->getPathValue("UserAgentsFile"));
+    QFile dataFile(m_settings->getPathValue(BrowserSetting::UserAgentsFile));
     if (!dataFile.open(QIODevice::WriteOnly))
         return;
 

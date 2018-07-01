@@ -118,7 +118,7 @@ void CookieJar::removeThirdPartyExemption(const QUrl &hostUrl)
 
 void CookieJar::loadExemptThirdParties()
 {
-    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(QLatin1String("ExemptThirdPartyCookieFile")));
+    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(BrowserSetting::ExemptThirdPartyCookieFile));
     if (!exemptFile.exists() || !exemptFile.open(QIODevice::ReadOnly))
         return;
 
@@ -140,7 +140,7 @@ void CookieJar::saveExemptThirdParties()
     if (m_exemptParties.empty())
         return;
 
-    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(QLatin1String("ExemptThirdPartyCookieFile")));
+    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(BrowserSetting::ExemptThirdPartyCookieFile));
     if (!exemptFile.open(QIODevice::WriteOnly))
         return;
 

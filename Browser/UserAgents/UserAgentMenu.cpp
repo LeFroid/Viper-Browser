@@ -43,7 +43,7 @@ void UserAgentMenu::resetItems()
         subMenu = new QMenu(it.key(), this);
         addMenu(subMenu);
 
-        bool hasActiveAgentInMenu = (settings->getValue("CustomUserAgent").toBool()
+        bool hasActiveAgentInMenu = (settings->getValue(BrowserSetting::CustomUserAgent).toBool()
                 && (uaManager->getUserAgentCategory().compare(it.key()) == 0));
 
         for (auto agentIt = it->cbegin(); agentIt != it->cend(); ++agentIt)

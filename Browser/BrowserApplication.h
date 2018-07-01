@@ -16,7 +16,7 @@ class BookmarkManager;
 class CookieJar;
 class CookieWidget;
 class DownloadManager;
-class ExtStorage;
+//class ExtStorage;
 class FaviconStorage;
 class HistoryManager;
 class HistoryWidget;
@@ -101,7 +101,7 @@ public:
     CookieWidget *getCookieManager();
 
     /// Returns a pointer to the extension storage object
-    ExtStorage *getExtStorage();
+    //ExtStorage *getExtStorage();
 
 signals:
     /// Emitted when each browsing window's history menu should reset its contents
@@ -191,7 +191,7 @@ private:
     CookieWidget *m_cookieUI;
 
     /// Web extension storage - used to store user script data on a per-script basis rather than per-site
-    std::unique_ptr<ExtStorage> m_extStorage;
+    //std::unique_ptr<ExtStorage> m_extStorage;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

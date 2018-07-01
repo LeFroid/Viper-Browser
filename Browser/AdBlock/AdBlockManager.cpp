@@ -43,9 +43,9 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     // Fetch some global settings before loading ad block data
     std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
 
-    m_enabled = settings->getValue(QStringLiteral("AdBlockPlusEnabled")).toBool();
-    m_configFile = settings->getPathValue(QStringLiteral("AdBlockPlusConfig"));
-    m_subscriptionDir = settings->getPathValue(QStringLiteral("AdBlockPlusDataDir"));
+    m_enabled = settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool();
+    m_configFile = settings->getPathValue(BrowserSetting::AdBlockPlusConfig);
+    m_subscriptionDir = settings->getPathValue(BrowserSetting::AdBlockPlusDataDir);
 
     // Create data dir if it does not yet exist
     QDir subscriptionDir(m_subscriptionDir);

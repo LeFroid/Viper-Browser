@@ -50,7 +50,7 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
     QString fileName;
 
     // Check settings to determine if download path should be set by the user or handled by the web engine
-    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(QLatin1String("AskWhereToSaveDownloads")).toBool();
+    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
 
     // Get file path for download
     if (askWhereToSave)
