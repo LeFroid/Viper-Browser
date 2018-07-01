@@ -22,6 +22,8 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::BypassWindowManagerHint);
     setContentsMargins(0, 0, 0, 0);
 
+    m_lineEdit = nullptr;
+
     // Setup suggestion list view
     m_suggestionList = new QListView(this);
     m_suggestionList->setSelectionBehavior(QListView::SelectRows);
@@ -67,7 +69,7 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
             if (key == Qt::Key_Tab || key == Qt::Key_Backtab)
             {
                 if ((keyEvent->modifiers() & (~Qt::ShiftModifier)) != Qt::NoModifier)
-                    return true;
+                    return false;
 
                 const bool shiftMod = keyEvent->modifiers() == Qt::ShiftModifier;
                 if (key == Qt::Key_Backtab || (key == Qt::Key_Tab && shiftMod))
@@ -162,12 +164,12 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
             QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
             const QModelIndex index = m_suggestionList->indexAt(mapFromGlobal(mouseEvent->globalPos()));
             m_suggestionList->setCurrentIndex(index);
-            return false;
+            return true;
         }
         default:
-            return false;
+            break;
     }
-    return false;
+    return QObject::eventFilter(watched, event);
 }
 
 void URLSuggestionWidget::alignAndShow(const QPoint &urlBarPos, const QRect &urlBarGeom)
