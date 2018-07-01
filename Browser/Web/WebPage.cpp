@@ -9,6 +9,7 @@
 
 #include <QFile>
 #include <QMessageBox>
+#include <QTimer>
 #include <QWebChannel>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
@@ -46,6 +47,7 @@ void WebPage::setupSlots()
     connect(this, &WebPage::loadFinished,               this, &WebPage::onLoadFinished);
     connect(this, &WebPage::urlChanged,                 this, &WebPage::onMainFrameUrlChanged);
     connect(this, &WebPage::featurePermissionRequested, this, &WebPage::onFeaturePermissionRequested);
+    connect(this, &WebPage::renderProcessTerminated,    this, &WebPage::onRenderProcessTerminated);
 }
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
@@ -222,6 +224,27 @@ void WebPage::onLoadFinished(bool ok)
         runJavaScript(m_mainFrameAdBlockScript);
 
     m_needInjectAdBlockScript = true;
+}
+
+void WebPage::onRenderProcessTerminated(RenderProcessTerminationStatus terminationStatus, int exitCode)
+{
+    if (terminationStatus == WebPage::NormalTerminationStatus)
+        return;
+
+    qDebug() << "Render process terminated with status " << static_cast<int>(terminationStatus)
+             << ", exit code " << exitCode;
+
+    QTimer::singleShot(50, this, &WebPage::showTabCrashedPage);
+}
+
+void WebPage::showTabCrashedPage()
+{
+    QFile resource(":/crash");
+    if (resource.open(QIODevice::ReadOnly))
+    {
+        QString pageHtml = QString::fromUtf8(resource.readAll().constData()).arg(title());
+        setHtml(pageHtml, url());
+    }
 }
 
 void WebPage::injectUserJavaScript(ScriptInjectionTime injectionTime)

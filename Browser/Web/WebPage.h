@@ -62,6 +62,12 @@ private slots:
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
 
+    /// Handler for render process termination
+    void onRenderProcessTerminated(RenderProcessTerminationStatus terminationStatus, int exitCode);
+
+    /// Shows the render / tab crash page
+    void showTabCrashedPage();
+
     /// Injects any javascript into the page, if applicable
     void injectUserJavaScript(ScriptInjectionTime injectionTime);
 
