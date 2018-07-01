@@ -54,6 +54,9 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &BrowserTabBar::customContextMenuRequested, this, &BrowserTabBar::onContextMenuRequest);
 
+    // Adjust tab pin state on tab move event
+    connect(this, &BrowserTabBar::tabMoved, this, &BrowserTabBar::onTabMoved);
+
     m_tabPinMap[0] = false;
 }
 
@@ -91,14 +94,7 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     const QString pinTabText = isPinned ? tr("Unpin tab") : tr("Pin tab");
     menu.addAction(pinTabText, [=](){
         m_tabPinMap[tabIndex] = !isPinned;
-
-        // Force resize by 1px, then reset size to force a repaint
-        QSize currentSize(size());
-        currentSize.setWidth(currentSize.width() - 1);
-        resize(currentSize);
-        currentSize.setWidth(currentSize.width() + 1);
-        resize(currentSize);
-        update();
+        forceRepaint();
     });
 
     menu.addAction(tr("Duplicate tab"), [=]() {
@@ -138,9 +134,23 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
 
 void BrowserTabBar::onTabMoved(int from, int to)
 {
-    bool tmp = m_tabPinMap.at(from);
-    m_tabPinMap[from] = m_tabPinMap.at(to);
-    m_tabPinMap[to] = tmp;
+    bool stateFrom = m_tabPinMap.at(from);
+    if (from < to)
+    {
+        for (int i = from; i <= to; ++i)
+            m_tabPinMap[i] = m_tabPinMap[i + 1];
+    }
+    else if (from > to)
+    {
+        for (int i = to + 1; i <= from; ++i)
+            m_tabPinMap[i] = m_tabPinMap[i - 1];
+    }
+    else
+        return;
+
+    m_tabPinMap[to] = stateFrom;
+
+    forceRepaint();
 }
 
 void BrowserTabBar::mousePressEvent(QMouseEvent *event)
@@ -444,4 +454,19 @@ void BrowserTabBar::moveNewTabButton()
         m_buttonNewTab->move(barRect.left() + tabWidth, barRect.y());
         m_buttonNewTab->show();
     }
+}
+
+void BrowserTabBar::forceRepaint()
+{
+    // Force resize by 1px, then reset size to force a repaint
+    QSize currentSize(size());
+    int currentWidth = currentSize.width();
+
+    currentSize.setWidth(currentWidth - 1);
+    resize(currentSize);
+
+    currentSize.setWidth(currentWidth + 1);
+    resize(currentSize);
+
+    update();
 }

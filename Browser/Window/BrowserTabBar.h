@@ -117,6 +117,9 @@ private:
     /// Moves the "New Tab" button so that it is aligned to the right of the last tab in the tab bar
     void moveNewTabButton();
 
+    /// Forces a repaint by changing the width of the tab bar by 1 pixel, then restoring to the original size
+    void forceRepaint();
+
 private:
     /// The "New Tab" button to the right of the last tab in the tab bar
     QToolButton *m_buttonNewTab;
