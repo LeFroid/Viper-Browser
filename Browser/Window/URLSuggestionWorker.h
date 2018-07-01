@@ -35,6 +35,26 @@ private:
     /// The suggestion search operation working in a separate thread
     void searchForHits();
 
+    /// Applies the Rabin-Karp string matching algorithm to determine whether or not the haystack contains the search term
+    bool isStringMatch(const QString &haystack);
+
+    /// Generates a hash of the search term before looking for suggestions
+    void hashSearchTerm();
+
+    /// Computes and returns base^exp
+    inline quint64 quPow(quint64 base, quint64 exp) const
+    {
+        quint64 result = 1;
+        while (exp)
+        {
+            if (exp & 1)
+                result *= base;
+            exp >>= 1;
+            base *= base;
+        }
+        return result;
+    }
+
 private:
     /// True if the worker thread is active, false if else
     std::atomic_bool m_working;
@@ -50,6 +70,12 @@ private:
 
     /// Stores the suggested URLs based on the current input
     std::vector<URLSuggestion> m_suggestions;
+
+    /// Used for string hash comparisons in implementation of Rabin-Karp algorithm
+    quint64 m_differenceHash;
+
+    /// Contains a hash of the search term string
+    size_t m_searchTermHash;
 };
 
 #endif // URLSUGGESTIONWORKER_H
