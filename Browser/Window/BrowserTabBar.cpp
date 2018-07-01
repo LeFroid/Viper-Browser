@@ -193,6 +193,7 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
     int tabIdx = tabAt(m_dragStartPos);
     mimeData->setData("application/x-browser-tab", m_dragUrl.toEncoded());
     mimeData->setProperty("tab-origin-window-id", window()->winId());
+    mimeData->setProperty("tab-index", tabIdx);
     drag->setMimeData(mimeData);
     drag->setPixmap(m_dragPixmap);
 
@@ -308,8 +309,17 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
     else if (mimeData->hasFormat("application/x-browser-tab"))
     {
         if ((qulonglong)window()->winId() == mimeData->property("tab-origin-window-id").toULongLong())
-        {
-            event->acceptProposedAction();
+        {/*
+            int originalTabIndex = mimeData->property("tab-index").toInt();
+            int tabIndexAtPos = tabAt(event->pos());
+            if (originalTabIndex >= 0 && tabIndexAtPos >= 0 && originalTabIndex != tabIndexAtPos)
+            {
+                //the indexes are determined correctly, but moveTab does not seem to work..
+                //looking for a way to do this without closing the original tab and reloading the page
+                //just to rearrange the layout
+                moveTab(originalTabIndex, tabIndexAtPos);
+                setCurrentIndex(tabIndexAtPos);
+            }*/
             return;
         }
         qobject_cast<MainWindow*>(window())->dropEvent(event);
