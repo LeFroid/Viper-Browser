@@ -440,15 +440,16 @@ void BrowserTabBar::tabRemoved(int index)
 
 QSize BrowserTabBar::tabSizeHint(int index) const
 {
+    // Get the QTabBar size hint and keep width within an upper bound
+    QSize hint = QTabBar::tabSizeHint(index);
+
     if (m_tabPinMap.at(index))
     {
         QSize pinnedTabSize = iconSize();
         pinnedTabSize.setWidth(pinnedTabSize.width() * 3 + 6);
+        pinnedTabSize.setHeight(hint.height());
         return pinnedTabSize;
     }
-
-    // Get the QTabBar size hint and keep width within an upper bound
-    QSize hint = QTabBar::tabSizeHint(index);
 
     const int numTabs = count();
     int tabWidth = float(geometry().width() - m_buttonNewTab->width() - 1) / numTabs;
