@@ -39,9 +39,9 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
 
 void WebPage::setupSlots()
 {
-    //QWebChannel *channel = new QWebChannel(this);
-    //channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
-    //setWebChannel(channel);
+    QWebChannel *channel = new QWebChannel(this);
+    channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
+    setWebChannel(channel);
 
     connect(this, &WebPage::loadProgress,               this, &WebPage::onLoadProgress);
     connect(this, &WebPage::loadFinished,               this, &WebPage::onLoadFinished);

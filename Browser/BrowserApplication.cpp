@@ -6,7 +6,7 @@
 #include "CookieWidget.h"
 #include "DatabaseFactory.h"
 #include "DownloadManager.h"
-//#include "ExtStorage.h"
+#include "ExtStorage.h"
 #include "FaviconStorage.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
@@ -105,7 +105,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_userScriptMgr = new UserScriptManager(m_settings);
 
     // Setup extension storage manager
-    //m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
+    m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
 
     // Apply global web scripts
     installGlobalWebScripts();
@@ -227,10 +227,10 @@ CookieWidget *BrowserApplication::getCookieManager()
     return m_cookieUI;
 }
 
-/*ExtStorage *BrowserApplication::getExtStorage()
+ExtStorage *BrowserApplication::getExtStorage()
 {
     return m_extStorage.get();
-}*/
+}
 
 MainWindow *BrowserApplication::getNewWindow()
 {
@@ -323,7 +323,7 @@ void BrowserApplication::installGlobalWebScripts()
     printScript.setSourceCode(QLatin1String("(function() { window.print = function() { "
                                             "window.location = 'viper:print'; }; })()"));
 
-    /*QWebEngineScript webChannel;
+    QWebEngineScript webChannel;
     webChannel.setInjectionPoint(QWebEngineScript::DocumentCreation);
     webChannel.setName(QLatin1String("viper-web-channel"));
     webChannel.setRunsOnSubFrames(true);
@@ -334,13 +334,25 @@ void BrowserApplication::installGlobalWebScripts()
     if (webChannelFile.open(QIODevice::ReadOnly))
         webChannelJS = webChannelFile.readAll();
     webChannelFile.close();
-    webChannel.setSourceCode(webChannelJS);
-*/
+
+    QString webChannelScript;
+    QFile webChannelSetupFile(QLatin1String(":/WebChannelSetup.js"));
+    if (webChannelSetupFile.open(QIODevice::ReadOnly))
+    {
+        webChannelScript = webChannelSetupFile.readAll();
+        webChannelScript = webChannelScript.arg(webChannelJS);
+    }
+    webChannelSetupFile.close();
+    webChannel.setSourceCode(webChannelScript);
+
     auto scriptCollection = QWebEngineProfile::defaultProfile()->scripts();
     auto privateScriptCollection = m_privateProfile->scripts();
 
     scriptCollection->insert(printScript);
+    scriptCollection->insert(webChannel);
+
     privateScriptCollection->insert(printScript);
+    privateScriptCollection->insert(webChannel);
 }
 
 void BrowserApplication::beforeBrowserQuit()

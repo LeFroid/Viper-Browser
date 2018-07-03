@@ -7,8 +7,7 @@
 
 ExtStorage::ExtStorage(const QString &dbFile, QObject *parent) :
     QObject(parent),
-    DatabaseWorker(dbFile, QLatin1String("ExtStorage")),
-    m_this(this)
+    DatabaseWorker(dbFile, QLatin1String("ExtStorage"))
 {
     setObjectName("storage");
 }
@@ -34,13 +33,17 @@ QVariantMap ExtStorage::getResult(const QString &extUID, const QVariantMap &keys
     return results;
 }
 
-void ExtStorage::getItem(const QString &extUID, const QString &key)
+QVariant ExtStorage::getItem(const QString &extUID, const QString &key)
 {
+    QVariant result;
+
     QSqlQuery query(m_database);
     query.prepare(QLatin1String("SELECT value FROM ItemTable WHERE key = (:key)"));
     query.bindValue(QLatin1String(":key"), QString("%1%2").arg(extUID).arg(key));
     if (query.exec() && query.first())
-        m_getItemResult = query.value(0);
+        result = query.value(0);
+
+    return result;
 }
 
 void ExtStorage::setItem(const QString &extUID, const QString &key, const QVariant &value)

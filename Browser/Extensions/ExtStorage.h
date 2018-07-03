@@ -18,8 +18,6 @@ class ExtStorage : public QObject, private DatabaseWorker
 
     Q_OBJECT
 
-    Q_PROPERTY(QVariant itemResult READ getItemResult NOTIFY itemResultChanged)
-
 public:
     /// Constructs the extension storage object, given the path of the storage file, the name of the database, and an
     /// optional pointer to the parent object
@@ -27,11 +25,6 @@ public:
 
     /// Extension storage destructor
     virtual ~ExtStorage();
-
-    const QVariant getItemResult() { return m_getItemResult; }
-
-signals:
-    void itemResultChanged(const QVariant&);
 
 public slots:
     /**
@@ -50,7 +43,7 @@ public slots:
      * @param key Name of the key
      * @return The value associated with the key for that extension, or a null QVariant if the key was not found
      */
-    void getItem(const QString &extUID, const QString &key);
+    QVariant getItem(const QString &extUID, const QString &key);
 
     /**
      * @brief Inserts or updates the key-value pair in storage for the caller
@@ -87,13 +80,6 @@ protected:
 
     /// Loads records from the database
     void load() override {}
-
-private:
-    ExtStorage *m_this;
-
-    QVariant m_getItemResult;
 };
-
-Q_DECLARE_METATYPE(ExtStorage*)
 
 #endif // EXTSTORAGE_H

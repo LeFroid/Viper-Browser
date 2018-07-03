@@ -134,11 +134,7 @@
     const entries = {
         'log': GM_log,
         'addStyle': GM_addStyle,
-        'deleteValue': GM_deleteValue,
-        'getValue': GM_getValue,
-        'listValues': GM_listValues,
         'openInTab': GM_openInTab,
-        'setValue': GM_setValue,
         'xmlHttpRequest': GM_xmlhttpRequest,
     }
     for (newKey in entries) {
@@ -151,6 +147,50 @@
                 });
             };
         }
+    };
+
+    var onWebChannelSetup = function(cb) {
+        if (window._webchannel_initialized) {
+            cb();
+        } else {
+            document.addEventListener("_webchannel_setup", cb);
+        }
+    };
+
+    GM.getValue = function(name, defaultValue) {
+        return new Promise(function(resolve) {
+			onWebChannelSetup(() => {
+				window.viper.storage.getItem(_uuid, name, function(result) {
+					resolve(result);
+				});
+			});
+        });
+    };
+    
+	GM.setValue = function(name, value) {
+        return new Promise(function(resolve) {
+			onWebChannelSetup(() => {
+				window.viper.storage.setItem(_uuid, name, value);
+				resolve();
+			});
+        });
+    };
+    
+	GM.deleteValue = function(name) {
+        return new Promise(function(resolve) {
+			onWebChannelSetup(() => {
+				window.viper.storage.removeItem(_uuid, name);
+				resolve();
+			});
+        });
+    };
+
+	GM.listValues = function() {
+        return new Promise(function(resolve) {
+			onWebChannelSetup(() => {
+				window.viper.storage.listKeys(_uuid, resolve);
+			});
+        });
     };
 
     const unsafeWindow = window;

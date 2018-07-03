@@ -16,6 +16,7 @@
         <file alias="AdBlock.js">JavaScript/AdBlock.js</file>
         <file alias="ContextMenuHelper.js">JavaScript/ContextMenuHelper.js</file>
         <file alias="GetFavicon.js">JavaScript/GetFavicon.js</file>
+        <file alias="WebChannelSetup.js">JavaScript/WebChannelSetup.js</file>
         <file alias="viewer.html">PDFJS/viewer.html</file>
         <file alias="viewer.css">PDFJS/viewer.css</file>
         <file alias="pdf.js">PDFJS/pdf.js</file>
