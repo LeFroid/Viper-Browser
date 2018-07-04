@@ -390,8 +390,10 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         case QWebEngineUrlRequestInfo::ResourceTypePluginResource:
             elemType |= ElementType::ObjectSubrequest;
             break;
-        case QWebEngineUrlRequestInfo::ResourceTypeFontResource:
         case QWebEngineUrlRequestInfo::ResourceTypeObject:
+            elemType |= ElementType::Object;
+            break;
+        case QWebEngineUrlRequestInfo::ResourceTypeFontResource:
         case QWebEngineUrlRequestInfo::ResourceTypeMedia:
         case QWebEngineUrlRequestInfo::ResourceTypeWorker:
         case QWebEngineUrlRequestInfo::ResourceTypeSharedWorker:
@@ -400,7 +402,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         case QWebEngineUrlRequestInfo::ResourceTypeFavicon:
         case QWebEngineUrlRequestInfo::ResourceTypeCspReport:
         default:
-            elemType |= ElementType::Object;
+            elemType |= ElementType::Other;
             break;
     }
     
