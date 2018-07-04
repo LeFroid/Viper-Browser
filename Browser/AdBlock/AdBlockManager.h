@@ -63,6 +63,9 @@ public:
     /// Returns true if the given request should be blocked, false if else
     bool shouldBlockRequest(QWebEngineUrlRequestInfo &info);
 
+    /// Returns the total number of network requests that have been blocked by the ad blocking system
+    quint64 getRequestsBlockedCount() const;
+
 public slots:
     /// Attempt to update ad block subscriptions
     void updateSubscriptions();
@@ -196,6 +199,9 @@ private:
 
     /// Ad Block model, used to indirectly view and modify subscriptions in the user interface
     AdBlockModel *m_adBlockModel;
+
+    /// Stores the number of network requests that have been blocked by the ad block system
+    quint64 m_numRequestsBlocked;
 };
 
 #endif // ADBLOCKMANAGER_H

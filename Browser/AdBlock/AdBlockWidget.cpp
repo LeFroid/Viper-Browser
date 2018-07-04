@@ -39,6 +39,11 @@ AdBlockWidget::~AdBlockWidget()
     delete ui;
 }
 
+void AdBlockWidget::updateBlockedCountLabel()
+{
+    ui->labelRequestsBlockedValue->setText(QString::number(AdBlockManager::instance().getRequestsBlockedCount()));
+}
+
 void AdBlockWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);

@@ -38,7 +38,8 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_domainStylesheetCache(24),
     m_jsInjectionCache(24),
     m_emptyStr(),
-    m_adBlockModel(nullptr)
+    m_adBlockModel(nullptr),
+    m_numRequestsBlocked(0)
 {
     // Fetch some global settings before loading ad block data
     std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
@@ -419,6 +420,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     {
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
+            ++m_numRequestsBlocked;
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             if (filter->isRedirect())
             {
@@ -440,6 +442,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     {
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
+            ++m_numRequestsBlocked;
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             if (filter->isRedirect())
             {
@@ -450,6 +453,11 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         }
     }
     return false;
+}
+
+quint64 AdBlockManager::getRequestsBlockedCount() const
+{
+    return m_numRequestsBlocked;
 }
 
 QString AdBlockManager::getResource(const QString &key) const
@@ -627,7 +635,13 @@ void AdBlockManager::loadSubscriptions()
     QJsonObject subscriptionObj;
     for (auto it = configObj.begin(); it != configObj.end(); ++it)
     {
-        AdBlockSubscription subscription(it.key());
+        const QString key = it.key();
+        if (key.compare(QLatin1String("requests_blocked")) == 0)
+        {
+            m_numRequestsBlocked = it.value().toString().toULongLong();
+            continue;
+        }
+        AdBlockSubscription subscription(key);
 
         subscriptionObj = it.value().toObject();
         subscription.setEnabled(subscriptionObj.value(QLatin1String("enabled")).toBool());
@@ -818,11 +832,16 @@ void AdBlockManager::save()
         return;
 
     // Construct configuration JSON object
-    // Format: { "/path/to/subscription1.txt": { subscription object 1 },
-    //           "/path/to/subscription2.txt": { subscription object 2 } }
+    // Format:
+    // {
+    //     "requests_blocked": "total requests blocked",
+    //     "/path/to/subscription1.txt": { subscription object 1 },
+    //     "/path/to/subscription2.txt": { subscription object 2 }
+    // }
     // Subscription object format: { "enabled": (true|false), "last_update": (timestamp),
     //                               "next_update": (timestamp), "source": "origin_url" }
     QJsonObject configObj;
+    configObj.insert(QLatin1String("requests_blocked"), QJsonValue(QString::number(m_numRequestsBlocked)));
     for (auto it = m_subscriptions.cbegin(); it != m_subscriptions.cend(); ++it)
     {
         QJsonObject subscriptionObj;

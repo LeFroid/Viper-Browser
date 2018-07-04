@@ -476,6 +476,7 @@ void MainWindow::openAdBlockManager()
             m_adBlockWidget = nullptr;
         });
     }
+    m_adBlockWidget->updateBlockedCountLabel();
     m_adBlockWidget->show();
     m_adBlockWidget->raise();
     m_adBlockWidget->activateWindow();
