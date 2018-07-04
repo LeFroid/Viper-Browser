@@ -227,14 +227,15 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
     if (match)
     {
         // Check for domain restrictions
-        if (hasDomainRules() && !isDomainMatch(m_evalString, baseUrl))
+        if (hasDomainRules() && !isDomainStyleMatch(baseUrl)) //!isDomainMatch(m_evalString, baseUrl))
             return false;
 
         // Check for element type restrictions (in specific order)
-        std::array<ElementType, 12> elemTypes = {{ ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
+        std::array<ElementType, 13> elemTypes = {{ ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
                                                   ElementType::Subdocument,      ElementType::ThirdParty, ElementType::Image,
                                                   ElementType::Script,           ElementType::Stylesheet, ElementType::WebSocket,
-                                                  ElementType::ObjectSubrequest, ElementType::Ping,       ElementType::CSP }};
+                                                  ElementType::ObjectSubrequest, ElementType::Ping,       ElementType::CSP,
+                                                  ElementType::Other }};
 
         if (hasElementType(m_blockedTypes, ElementType::InlineScript) && !hasElementType(typeMask, ElementType::InlineScript))
             match = false;
@@ -261,39 +262,20 @@ bool AdBlockFilter::isDomainStyleMatch(const QString &domain)
     if (m_disabled)
         return false;
 
-    if (hasElementType(m_blockedTypes, ElementType::CSP) && m_domainBlacklist.empty() && m_domainWhitelist.empty())
+    if (m_domainBlacklist.empty() && m_domainWhitelist.empty())
         return true;
 
-    if (m_domainBlacklist.isEmpty())
+    for (const QString &d : m_domainWhitelist)
     {
-        for (const QString &d : m_domainWhitelist)
-        {
-            if (isDomainMatch(domain, d))
-                return false;
-        }
+        if (isDomainMatch(domain, d))
+            return false;
     }
-    else if (m_domainWhitelist.isEmpty())
+    for (const QString &d : m_domainBlacklist)
     {
-        for (const QString &d : m_domainBlacklist)
-        {
-            if (isDomainMatch(domain, d))
-                return true;
-        }
-        return false;
+        if (isDomainMatch(domain, d))
+            return true;
     }
-    else
-    {
-        for (const QString &d : m_domainWhitelist)
-        {
-            if (isDomainMatch(domain, d))
-                return false;
-        }
-        for (const QString &d : m_domainBlacklist)
-        {
-            if (isDomainMatch(domain, d))
-                return true;
-        }
-    }
+
     return false;
 }
 

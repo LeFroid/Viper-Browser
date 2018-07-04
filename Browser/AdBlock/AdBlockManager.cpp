@@ -216,9 +216,9 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     if (!m_enabled)
         return m_emptyStr;
 
-    QString domain = url.getSecondLevelDomain();
+    QString domain = url.host().toLower();
     if (domain.isEmpty())
-        domain = url.host().toLower();
+        domain = url.getSecondLevelDomain();
 
     // Check for a cache hit
     std::string domainStdStr = domain.toStdString();
@@ -275,9 +275,9 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
                                    "})();");
     bool usedCspScript = false;
 
-    QString domain = url.getSecondLevelDomain();
+    QString domain = url.host().toLower();
     if (domain.isEmpty())
-        domain = url.host().toLower();
+        domain = url.getSecondLevelDomain();
 
     QString requestUrl = url.toString(QUrl::FullyEncoded).toLower();
 
@@ -347,7 +347,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     // Get request URL and the originating URL
     QString requestUrl = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
-    QString baseUrl = info.firstPartyUrl().toString(QUrl::FullyEncoded).toLower();
+    QString baseUrl = getSecondLevelDomain(info.firstPartyUrl()).toLower();//.toString(QUrl::FullyEncoded).toLower();
 
     if (baseUrl.isEmpty())
         baseUrl = requestUrl;
@@ -371,9 +371,6 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         case QWebEngineUrlRequestInfo::ResourceTypeImage:
             elemType |= ElementType::Image;
             break;
-        case QWebEngineUrlRequestInfo::ResourceTypeFontResource:
-            elemType |= ElementType::Other;
-            break;
         case QWebEngineUrlRequestInfo::ResourceTypeSubResource:
             if (requestUrl.endsWith(QLatin1String("htm"))
                 || requestUrl.endsWith(QLatin1String("html"))
@@ -381,47 +378,36 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
             {
                 elemType |= ElementType::Subdocument;
             }
+            else
+                elemType |= ElementType::Other;
             break;
-        case QWebEngineUrlRequestInfo::ResourceTypeObject:
-        case QWebEngineUrlRequestInfo::ResourceTypeMedia:
-            elemType |= ElementType::Object;
-            break;
-/*
-        case QWebEngineUrlRequestInfo::ResourceTypeWorker:
-            elemType |= ElementType::Script;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeSharedWorker:
-            elemType |= ElementType::Script;
-            break;
-*/
         case QWebEngineUrlRequestInfo::ResourceTypeXhr:
             elemType |= ElementType::XMLHTTPRequest;
             break;
         case QWebEngineUrlRequestInfo::ResourceTypePing:
             elemType |= ElementType::Ping;
             break;
-/*
-        case QWebEngineUrlRequestInfo::ResourceTypeServiceWorker:
-            elemType |= ElementType::Script;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeCspReport:
-            elemType |= ElementType::Other;
-            break;
-*/
         case QWebEngineUrlRequestInfo::ResourceTypePluginResource:
             elemType |= ElementType::ObjectSubrequest;
             break;
+        case QWebEngineUrlRequestInfo::ResourceTypeFontResource:
+        case QWebEngineUrlRequestInfo::ResourceTypeObject:
+        case QWebEngineUrlRequestInfo::ResourceTypeMedia:
+        case QWebEngineUrlRequestInfo::ResourceTypeWorker:
+        case QWebEngineUrlRequestInfo::ResourceTypeSharedWorker:
+        case QWebEngineUrlRequestInfo::ResourceTypeServiceWorker:
+        case QWebEngineUrlRequestInfo::ResourceTypePrefetch:
+        case QWebEngineUrlRequestInfo::ResourceTypeFavicon:
+        case QWebEngineUrlRequestInfo::ResourceTypeCspReport:
         default:
- //           elemType |= ElementType::Other;
-            break; 
+            elemType |= ElementType::Object;
+            break;
     }
     
     // Perform document type and third party type checking
-    if (requestUrl.compare(baseUrl) == 0)
-        elemType |= ElementType::Document;
-    QString secondLevelDomain = getSecondLevelDomain(info.requestUrl());
-    if (secondLevelDomain.isEmpty())
-        secondLevelDomain = info.requestUrl().host();
+    QString domain = info.requestUrl().host().toLower();
+    if (domain.isEmpty())
+        domain = getSecondLevelDomain(info.requestUrl());
 
     if (getSecondLevelDomain(info.requestUrl()) != getSecondLevelDomain(info.firstPartyUrl()))
         elemType |= ElementType::ThirdParty;
@@ -429,7 +415,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     // Compare to filters
     for (AdBlockFilter *filter : m_importantBlockFilters)
     {
-        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             if (filter->isRedirect())
@@ -442,12 +428,15 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     }
     for (AdBlockFilter *filter : m_allowFilters)
     {
-        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
+        {
+            //qDebug() << "allowed " << requestUrl << " by rule " << filter->getRule();
             return false;
+        }
     }
     for (AdBlockFilter *filter : m_blockFilters)
     {
-        if (filter->isMatch(baseUrl, requestUrl, secondLevelDomain, elemType))
+        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             if (filter->isRedirect())
@@ -572,7 +561,6 @@ void AdBlockManager::loadResourceFile(const QString &path)
     if (!f.exists() || !f.open(QIODevice::ReadOnly))
         return;
 
-    //TODO: handle non-javascript types properly for redirect filter option
     bool readingValue = false;
     QString currentKey, mimeType;
     QByteArray currentValue;
