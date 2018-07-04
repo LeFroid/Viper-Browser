@@ -218,6 +218,8 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
         return m_emptyStr;
 
     QString domain = url.host().toLower();
+    if (domain.startsWith(QLatin1String("www.")))
+        domain = domain.mid(4);
     if (domain.isEmpty())
         domain = url.getSecondLevelDomain();
 
@@ -256,6 +258,9 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
             stylesheet.append(filter->getEvalString());
     }
 
+    if (domain.contains(QLatin1String("zeroh")))
+        qDebug() << "Domain stylesheet for: " << domain << ": " << stylesheet;
+
     // Insert the stylesheet into cache
     m_domainStylesheetCache.put(domainStdStr, stylesheet);
     return m_domainStylesheetCache.get(domainStdStr);
@@ -277,6 +282,8 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     bool usedCspScript = false;
 
     QString domain = url.host().toLower();
+    if (domain.startsWith(QLatin1String("www.")))
+        domain = domain.mid(4);
     if (domain.isEmpty())
         domain = url.getSecondLevelDomain();
 
@@ -409,6 +416,8 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     
     // Perform document type and third party type checking
     QString domain = info.requestUrl().host().toLower();
+    if (domain.startsWith(QLatin1String("www.")))
+        domain = domain.mid(4);
     if (domain.isEmpty())
         domain = getSecondLevelDomain(info.requestUrl());
 
