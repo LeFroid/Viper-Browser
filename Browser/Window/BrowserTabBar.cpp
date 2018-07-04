@@ -425,6 +425,11 @@ void BrowserTabBar::tabInserted(int index)
 
 void BrowserTabBar::tabRemoved(int index)
 {
+    size_t unsignedIdx = static_cast<size_t>(index);
+    bool needRepaint = false;
+    if (unsignedIdx < m_tabPinMap.size())
+        needRepaint = m_tabPinMap.at(unsignedIdx);
+
     std::map<int, bool> tabPinMap;
     for (auto it : m_tabPinMap)
     {
@@ -436,6 +441,9 @@ void BrowserTabBar::tabRemoved(int index)
     m_tabPinMap = tabPinMap;
 
     QTabBar::tabRemoved(index);
+
+    if (needRepaint)
+        forceRepaint();
 }
 
 QSize BrowserTabBar::tabSizeHint(int index) const
