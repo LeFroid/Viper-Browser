@@ -68,6 +68,7 @@ void URLSuggestionWorker::searchForHits()
             suggestion.Title = it->getName();
             suggestion.URL = it->getURL();
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
+            suggestion.IsBookmark = true;
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
             continue;
@@ -82,6 +83,7 @@ void URLSuggestionWorker::searchForHits()
             suggestion.Title = it->getName();
             suggestion.URL = it->getURL();
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
+            suggestion.IsBookmark = true;
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
         }
@@ -106,6 +108,7 @@ void URLSuggestionWorker::searchForHits()
             suggestion.Title = it->Title;
             suggestion.URL = url;
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
+            suggestion.IsBookmark = false;
             m_suggestions.push_back(suggestion);
             continue;
         }
@@ -120,6 +123,7 @@ void URLSuggestionWorker::searchForHits()
             suggestion.Title = it->Title;
             suggestion.URL = url;
             suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
+            suggestion.IsBookmark = false;
             m_suggestions.push_back(suggestion);
         }
     }

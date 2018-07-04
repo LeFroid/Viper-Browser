@@ -15,10 +15,11 @@ struct URLSuggestion
     QIcon Favicon;
     QString Title;
     QString URL;
+    bool IsBookmark;
 
     URLSuggestion() = default;
 
-    URLSuggestion(const QIcon &icon, const QString &title, const QString &url);
+    URLSuggestion(const QIcon &icon, const QString &title, const QString &url, bool isBookmark);
 };
 
 /**
@@ -33,9 +34,10 @@ class URLSuggestionListModel : public QAbstractListModel
 public:
     enum Role
     {
-        Favicon = Qt::UserRole + 1,
-        Title   = Qt::UserRole + 2,
-        Link    = Qt::UserRole + 3
+        Favicon  = Qt::UserRole + 1,
+        Title    = Qt::UserRole + 2,
+        Link     = Qt::UserRole + 3,
+        Bookmark = Qt::UserRole + 4
     };
 
 public:

@@ -1,9 +1,10 @@
 #include "URLSuggestionListModel.h"
 
-URLSuggestion::URLSuggestion(const QIcon &icon, const QString &title, const QString &url) :
+URLSuggestion::URLSuggestion(const QIcon &icon, const QString &title, const QString &url, bool isBookmark) :
     Favicon(icon),
     Title(title),
-    URL(url)
+    URL(url),
+    IsBookmark(isBookmark)
 {
 }
 
@@ -30,6 +31,8 @@ QVariant URLSuggestionListModel::data(const QModelIndex &index, int role) const
         return item.Title;
     else if (role == Role::Link)
         return item.URL;
+    else if (role == Role::Bookmark)
+        return item.IsBookmark;
 
     return QVariant();
 }
