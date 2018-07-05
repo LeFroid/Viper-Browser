@@ -57,20 +57,26 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
         // Second, search DB for host match.
         query = m_queryMap.at(StoredQuery::FindIconLikeURL).get();
         query->bindValue(QLatin1String(":url"), QString("%%1%").arg(url.host()));
-        if (query->exec() && query->first())
+        if (query->exec())
         {
-            QString iconURL = query->value(0).toString();
-            auto it = m_favicons.find(iconURL);
-            if (it != m_favicons.end())
-                return it->icon;
+            while (query->next())
+            {
+                QString iconURL = query->value(0).toString();
+                auto it = m_favicons.find(iconURL);
+                if (it != m_favicons.end())
+                    return it->icon;
+            }
         }
         query->bindValue(QLatin1String(":url"), QString("%%1%").arg(URL(url).getSecondLevelDomain()));
-        if (query->exec() && query->first())
+        if (query->exec())
         {
-            QString iconURL = query->value(0).toString();
-            auto it = m_favicons.find(iconURL);
-            if (it != m_favicons.end())
-                return it->icon;
+            while (query->next())
+            {
+                QString iconURL = query->value(0).toString();
+                auto it = m_favicons.find(iconURL);
+                if (it != m_favicons.end())
+                    return it->icon;
+            }
         }
     }
     return QIcon(QLatin1String(":/blank_favicon.png"));
