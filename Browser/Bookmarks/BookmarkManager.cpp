@@ -513,6 +513,7 @@ bool BookmarkManager::removeBookmarkFromDB(BookmarkNode *bookmark)
     query.prepare(QLatin1String("UPDATE Bookmarks SET Position = Position - 1 WHERE FolderID = (:folderId) AND Position > "
                   "(SELECT Position FROM Bookmarks WHERE URL = (:url))"));
     query.bindValue(QLatin1String(":folderId"), bookmark->getFolderId());
+    query.bindValue(QLatin1String(":url"), bookmark->getURL());
 
     // Error checking not needed for this query
     static_cast<void>(query.exec());
