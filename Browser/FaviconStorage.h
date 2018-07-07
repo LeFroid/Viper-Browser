@@ -5,6 +5,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <QHash>
 #include <QIcon>
 #include <QSet>
@@ -122,6 +123,9 @@ private:
 
     /// Map of query types to pointers of commonly used prepared statements
     std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
+
+    /// Mutex
+    mutable std::mutex m_mutex;
 };
 
 #endif // FAVICONSTORAGE_H

@@ -180,9 +180,12 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
     if (m_disabled)
         return false;
 
-    // Don't process the filter if the AdBlockManager is only looking for one specific type
+    // Special cases
     if (typeMask == ElementType::InlineScript && !hasElementType(m_blockedTypes, ElementType::InlineScript))
         return false;
+    if (hasElementType(m_blockedTypes, ElementType::ThirdParty) && !hasElementType(typeMask, ElementType::ThirdParty))
+        return false;
+
 
     bool match = m_matchAll;
 

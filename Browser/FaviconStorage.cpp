@@ -19,7 +19,8 @@ FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
     m_favicons(),
     m_newFaviconID(1),
     m_newDataID(1),
-    m_queryMap()
+    m_queryMap(),
+    m_mutex()
 {
     setupQueries();
 }
@@ -31,6 +32,8 @@ FaviconStorage::~FaviconStorage()
 
 QIcon FaviconStorage::getFavicon(const QUrl &url) const
 {
+    std::lock_guard<std::mutex> _(m_mutex);
+
     // Truncate page url if it contains a '?' or '#' towards the end of the string
     QString pageUrl = url.toString();
     if (pageUrl.isEmpty())
@@ -84,6 +87,8 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
 
 void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon)
 {
+    std::lock_guard<std::mutex> _(m_mutex);
+
     if (iconHRef.isEmpty())
         return;
 
@@ -128,6 +133,8 @@ void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon 
 
 void FaviconStorage::onReplyFinished()
 {
+    std::lock_guard<std::mutex> _(m_mutex);
+
     if (!m_reply)
         return;
 

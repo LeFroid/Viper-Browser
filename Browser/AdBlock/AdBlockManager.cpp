@@ -355,7 +355,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     QString baseUrl = getSecondLevelDomain(info.firstPartyUrl()).toLower();//.toString(QUrl::FullyEncoded).toLower();
 
     if (baseUrl.isEmpty())
-        baseUrl = requestUrl;
+        baseUrl = info.firstPartyUrl().host().toLower();
 
     // Convert QWebEngine request info type to ours
     ElementType elemType = ElementType::None;
