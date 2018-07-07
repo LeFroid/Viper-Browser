@@ -30,6 +30,7 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     m_suggestionList->setSelectionMode(QListView::SingleSelection);
     m_suggestionList->setEditTriggers(QListView::NoEditTriggers);
     m_suggestionList->setItemDelegate(new URLSuggestionItemDelegate(this));
+    m_suggestionList->setMouseTracking(true);
     connect(m_suggestionList, &QListView::clicked, this, &URLSuggestionWidget::onSuggestionClicked);
 
     // Setup model for view

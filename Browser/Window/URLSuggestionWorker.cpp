@@ -4,6 +4,7 @@
 #include "HistoryManager.h"
 #include "URLSuggestionWorker.h"
 
+#include <algorithm>
 #include <QtConcurrent>
 #include <QSet>
 #include <QUrl>
@@ -45,6 +46,10 @@ void URLSuggestionWorker::searchForHits()
     m_working.store(true);
     m_suggestions.clear();
 
+    // Set upper bound on number of suggestions for each type of item being checked
+    const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 15;
+    int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
+
     const bool searchTermHasScheme = m_searchTerm.startsWith(QLatin1String("HTTP"))
             || m_searchTerm.startsWith(QLatin1String("FILE"));
 
@@ -64,34 +69,40 @@ void URLSuggestionWorker::searchForHits()
 
         if (isStringMatch(it->getName().toUpper()))
         {
-            URLSuggestion suggestion;
-            suggestion.Title = it->getName();
-            suggestion.URL = it->getURL();
-            suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
-            suggestion.IsBookmark = true;
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->getURL()), it->getName(), it->getURL(), true);
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
+
+            if (++numSuggestedBookmarks == maxSuggestedBookmarks)
+                break;
+
             continue;
         }
+
         QString bookmarkUrl = it->getURL();
         int prefix = bookmarkUrl.indexOf(QLatin1String("://"));
         if (!searchTermHasScheme && prefix >= 0)
             bookmarkUrl = bookmarkUrl.mid(prefix + 3);
+
         if (isStringMatch(bookmarkUrl.toUpper()))
         {
-            URLSuggestion suggestion;
-            suggestion.Title = it->getName();
-            suggestion.URL = it->getURL();
-            suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
-            suggestion.IsBookmark = true;
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->getURL()), it->getName(), it->getURL(), true);
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
+
+            if (++numSuggestedBookmarks == maxSuggestedBookmarks)
+                break;
         }
     }
+
+    std::sort(m_suggestions.begin(), m_suggestions.end(), [](const URLSuggestion &a, const URLSuggestion &b) {
+        return a.URL.size() < b.URL.size();
+    });
 
     if (!m_working.load())
         return;
 
+    std::vector<URLSuggestion> histSuggestions;
     HistoryManager *historyMgr = sBrowserApplication->getHistoryManager();
     for (auto it = historyMgr->getHistIterBegin(); it != historyMgr->getHistIterEnd(); ++it)
     {
@@ -104,14 +115,15 @@ void URLSuggestionWorker::searchForHits()
 
         if (isStringMatch(it->Title.toUpper()))
         {
-            URLSuggestion suggestion;
-            suggestion.Title = it->Title;
-            suggestion.URL = url;
-            suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
-            suggestion.IsBookmark = false;
-            m_suggestions.push_back(suggestion);
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, url, false);
+            histSuggestions.push_back(suggestion);
+
+            if (++numSuggestedHistory == maxSuggestedHistory)
+                break;
+
             continue;
         }
+
         QString urlUpper = url.toUpper();
         int prefix = urlUpper.indexOf(QLatin1String("://"));
         if (!searchTermHasScheme && prefix >= 0)
@@ -119,14 +131,20 @@ void URLSuggestionWorker::searchForHits()
 
         if (isStringMatch(urlUpper))
         {
-            URLSuggestion suggestion;
-            suggestion.Title = it->Title;
-            suggestion.URL = url;
-            suggestion.Favicon = faviconStore->getFavicon(suggestion.URL);
-            suggestion.IsBookmark = false;
-            m_suggestions.push_back(suggestion);
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, url, false);
+            histSuggestions.push_back(suggestion);
+
+            if (++numSuggestedHistory == maxSuggestedHistory)
+                break;
         }
     }
+
+    std::sort(histSuggestions.begin(), histSuggestions.end(),
+              [](const URLSuggestion &a, const URLSuggestion &b) {
+        return a.URL.size() < b.URL.size();
+    });
+
+    m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
 
     m_working.store(false);
 }

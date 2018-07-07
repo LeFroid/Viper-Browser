@@ -121,7 +121,7 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
             if (m_mainWindow != watched)
                 break;
 
-            QTimer::singleShot(150, [=](){
+            QTimer::singleShot(50, [=](){
                 const int screenWidth = sBrowserApplication->desktop()->screenGeometry().width();
                 const QRect winGeom = m_mainWindow->geometry();
                 if (winGeom.left() + m_mainWindow->width() > screenWidth)

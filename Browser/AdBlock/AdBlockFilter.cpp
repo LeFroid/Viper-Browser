@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include "AdBlockFilter.h"
 #include "Bitfield.h"
 
