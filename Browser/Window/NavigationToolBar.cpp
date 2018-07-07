@@ -1,3 +1,4 @@
+#include "AdBlockButton.h"
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
 #include "NavigationToolBar.h"
@@ -18,7 +19,8 @@ NavigationToolBar::NavigationToolBar(const QString &title, QWidget *parent) :
     m_stopRefresh(nullptr),
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
-    m_splitter(nullptr)
+    m_splitter(nullptr),
+    m_adBlockButton(nullptr)
 {
     setupUI();
 }
@@ -30,7 +32,8 @@ NavigationToolBar::NavigationToolBar(QWidget *parent) :
     m_stopRefresh(nullptr),
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
-    m_splitter(nullptr)
+    m_splitter(nullptr),
+    m_adBlockButton(nullptr)
 {
     setupUI();
 }
@@ -134,6 +137,11 @@ void NavigationToolBar::setupUI()
 
     addAction(m_stopRefresh);
     addWidget(splitter);
+
+    // Ad block button
+    m_adBlockButton = new AdBlockButton;
+    connect(m_adBlockButton, &AdBlockButton::clicked, this, &NavigationToolBar::clickedAdBlockButton);
+    addWidget(m_adBlockButton);
 }
 
 void NavigationToolBar::bindWithTabWidget()
@@ -171,6 +179,8 @@ void NavigationToolBar::onLoadProgress(int value)
         m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
         m_stopRefresh->setToolTip(tr("Reload the page"));
     }
+
+    m_adBlockButton->updateCount();
 }
 
 void NavigationToolBar::onURLInputEntered()
@@ -179,7 +189,7 @@ void NavigationToolBar::onURLInputEntered()
     if (!win)
         return;
 
-    WebView *view = win->getTabWidget()->currentWebView();
+    WebView *view = win->currentWebView();
     if (!view)
         return;
 
@@ -197,7 +207,7 @@ void NavigationToolBar::onStopRefreshActionTriggered()
     if (!win)
         return;
 
-    if (WebView *view = win->getTabWidget()->currentWebView())
+    if (WebView *view = win->currentWebView())
     {
         int progress = view->getProgress();
         if (progress > 0 && progress < 100)

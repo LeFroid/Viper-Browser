@@ -1,3 +1,4 @@
+#include "AdBlockManager.h"
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "BrowserTabBar.h"
@@ -273,6 +274,11 @@ WebView *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int speci
     connect(view, &WebView::titleChanged,           this, &BrowserTabWidget::onTitleChanged);
     connect(view, &WebView::viewCloseRequested,     this, &BrowserTabWidget::onViewCloseRequested);
     connect(view, &WebView::fullScreenRequested, m_mainWindow, &MainWindow::onToggleFullScreen);
+
+    connect(view, &WebView::loadStarted, [view](){
+        AdBlockManager::instance().loadStarted(view->url());
+    });
+
     if (!m_privateBrowsing)
     {
         connect(view, &WebView::iconUrlChanged, [=](const QUrl &url) {

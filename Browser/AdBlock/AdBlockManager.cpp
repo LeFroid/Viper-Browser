@@ -39,7 +39,8 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_jsInjectionCache(24),
     m_emptyStr(),
     m_adBlockModel(nullptr),
-    m_numRequestsBlocked(0)
+    m_numRequestsBlocked(0),
+    m_pageAdBlockCount()
 {
     // Fetch some global settings before loading ad block data
     std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
@@ -186,6 +187,11 @@ void AdBlockManager::createUserSubscription()
         m_adBlockModel->endInsertRows();
 
     // Don't bother reloading filters until some data is set within the filter, through the editor widget
+}
+
+void AdBlockManager::loadStarted(const QUrl &url)
+{
+    m_pageAdBlockCount[url] = 0;
 }
 
 AdBlockModel *AdBlockManager::getModel()
@@ -427,6 +433,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
             ++m_numRequestsBlocked;
+            ++m_pageAdBlockCount[info.firstPartyUrl()];
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             if (filter->isRedirect())
             {
@@ -449,6 +456,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
             ++m_numRequestsBlocked;
+            ++m_pageAdBlockCount[info.firstPartyUrl()];
             //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             if (filter->isRedirect())
             {
@@ -464,6 +472,15 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 quint64 AdBlockManager::getRequestsBlockedCount() const
 {
     return m_numRequestsBlocked;
+}
+
+int AdBlockManager::getNumberAdsBlocked(const QUrl &url)
+{
+    auto it = m_pageAdBlockCount.find(url);
+    if (it != m_pageAdBlockCount.end())
+        return *it;
+
+    return 0;
 }
 
 QString AdBlockManager::getResource(const QString &key) const

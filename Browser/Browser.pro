@@ -133,7 +133,8 @@ SOURCES += \
     Network/BlockedSchemeHandler.cpp \
     Window/URLSuggestionListModel.cpp \
     Window/URLSuggestionWorker.cpp \
-    Web/WebWidget.cpp
+    Web/WebWidget.cpp \
+    AdBlock/AdBlockButton.cpp
 
 HEADERS += \
     Bitfield.h \
@@ -228,7 +229,8 @@ HEADERS += \
     Network/BlockedSchemeHandler.h \
     Window/URLSuggestionListModel.h \
     Window/URLSuggestionWorker.h \
-    Web/WebWidget.h
+    Web/WebWidget.h \
+    AdBlock/AdBlockButton.h
 
 FORMS += \
     Cookies/cookiewidget.ui \

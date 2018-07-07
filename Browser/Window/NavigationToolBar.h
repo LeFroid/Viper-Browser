@@ -3,6 +3,7 @@
 
 #include <QToolBar>
 
+class AdBlockButton;
 class MainWindow;
 class SearchEngineLineEdit;
 class URLLineEdit;
@@ -39,6 +40,10 @@ public:
     /// Sets the minimum heights for the toolbar and its sub-widgets
     void setMinHeights(int size);
 
+signals:
+    /// Emitted when the ad block button is clicked
+    void clickedAdBlockButton();
+
 private:
     /// Initializes the toolbar's properties and sub-widgets
     void setupUI();
@@ -74,6 +79,9 @@ private:
 
     /// Splitter that lets the user adjust the widths of the URL navigation widget and the search engine widget
     QSplitter *m_splitter;
+
+    /// Button that is used to show information about advertisements being blocked on the current page
+    AdBlockButton *m_adBlockButton;
 };
 
 #endif // NAVIGATIONTOOLBAR_H

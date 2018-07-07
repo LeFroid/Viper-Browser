@@ -84,6 +84,8 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     setupBookmarks();
     setupMenuBar();
 
+    connect(ui->toolBar, &NavigationToolBar::clickedAdBlockButton, this, &MainWindow::openAdBlockManager);
+
     ui->dockWidget->hide();
     ui->widgetFindText->hide();
     m_tabWidget->currentWebView()->setFocus();

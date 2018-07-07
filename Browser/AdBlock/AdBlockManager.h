@@ -66,6 +66,9 @@ public:
     /// Returns the total number of network requests that have been blocked by the ad blocking system
     quint64 getRequestsBlockedCount() const;
 
+    /// Returns the number of ads that were blocked on the page with the given URL during its last page load
+    int getNumberAdsBlocked(const QUrl &url);
+
 public slots:
     /// Attempt to update ad block subscriptions
     void updateSubscriptions();
@@ -84,6 +87,9 @@ public slots:
 
     /// Creates and registers new \ref AdBlockSubscription to be associated with user-set filter rules
     void createUserSubscription();
+
+    /// Informs the AdBlockManager to begin keeping track of the number of ads that were blocked on the page with the given url
+    void loadStarted(const QUrl &url);
 
 // Called by AdBlockFilterParser and BlockedSchemeHandler:
 protected:
@@ -202,6 +208,9 @@ private:
 
     /// Stores the number of network requests that have been blocked by the ad block system
     quint64 m_numRequestsBlocked;
+
+    /// Hash map of URLs to the number of requests that were blocked on that given URL
+    QHash<QUrl, int> m_pageAdBlockCount;
 };
 
 #endif // ADBLOCKMANAGER_H
