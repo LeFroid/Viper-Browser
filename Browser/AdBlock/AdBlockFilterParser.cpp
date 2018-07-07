@@ -545,7 +545,7 @@ void AdBlockFilterParser::parseOptions(const QString &optionString, AdBlockFilte
         }
         else if (option.compare(QStringLiteral("first-party")) == 0)
         {
-            filter->m_blockedTypes |= ElementType::ThirdParty;
+            filter->m_allowedTypes |= ElementType::ThirdParty;
         }
         else if (!filter->m_exception && (option.compare(QStringLiteral("important")) == 0))
         {

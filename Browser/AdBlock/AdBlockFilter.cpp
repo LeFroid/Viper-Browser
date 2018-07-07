@@ -186,7 +186,8 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
         return false;
     if (hasElementType(m_blockedTypes, ElementType::ThirdParty) && !hasElementType(typeMask, ElementType::ThirdParty))
         return false;
-
+    if (hasElementType(m_allowedTypes, ElementType::ThirdParty) && hasElementType(typeMask, ElementType::ThirdParty))
+        return false;
 
     bool match = m_matchAll;
 
