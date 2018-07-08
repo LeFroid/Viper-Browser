@@ -24,6 +24,9 @@ public:
     /// Sets the pointer to the bookmark manager
     void setBookmarkManager(BookmarkManager *manager);
 
+    /// Sets the pointer to the favicon store, used to load bookmark icons when refreshing the widget
+    void setFaviconStore(FaviconStorage *faviconStore);
+
     /// Refreshes the items belonging to the bookmark bar
     void refresh();
 
@@ -43,7 +46,7 @@ private slots:
 
 private:
     /// Adds items belonging to the given folder into the menu
-    void addFolderItems(QMenu *menu, BookmarkNode *folder, FaviconStorage *iconStorage);
+    void addFolderItems(QMenu *menu, BookmarkNode *folder);
 
     /// Loads all bookmarks belonging to the given folder in new browser tabs
     void openFolderItemsNewTabs(BookmarkNode *folder);
@@ -61,6 +64,9 @@ private:
 private:
     /// Pointer to the bookmark manager
     BookmarkManager *m_bookmarkManager;
+
+    /// Pointer to the favicon store
+    FaviconStorage *m_faviconStore;
 
     /// Horizontal layout manager
     QHBoxLayout *m_layout;

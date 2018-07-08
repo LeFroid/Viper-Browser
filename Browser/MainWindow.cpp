@@ -45,13 +45,14 @@
 #include <QtGlobal>
 #include <QToolButton>
 
-MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, bool privateWindow, QWidget *parent) :
+MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, FaviconStorage *faviconStore, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_privateWindow(privateWindow),
     m_settings(settings),
     m_bookmarkManager(bookmarkManager),
     m_bookmarkUI(nullptr),
+    m_faviconStore(faviconStore),
     m_clearHistoryDialog(nullptr),
     m_tabWidget(nullptr),
     m_preferences(nullptr),
@@ -230,7 +231,7 @@ void MainWindow::setupMenuBar()
 void MainWindow::setupTabWidget()
 {
     // Create tab widget and insert into the layout
-    m_tabWidget = new BrowserTabWidget(m_settings, m_privateWindow, this);
+    m_tabWidget = new BrowserTabWidget(m_settings, m_faviconStore, m_privateWindow, this);
     ui->verticalLayout->insertWidget(ui->verticalLayout->indexOf(ui->widgetFindText), m_tabWidget);
 
     // Add change tab slot after removing dummy tabs to avoid segfaulting
@@ -513,7 +514,7 @@ void MainWindow::openFileInBrowser()
         loadUrl(QUrl(QString("file://%1").arg(fileName)));
 }
 
-void MainWindow::onLoadFinished(bool /*ok*/)
+void MainWindow::onLoadFinished(bool ok)
 {
     WebView *view = qobject_cast<WebView*>(sender());
     if (!view)
@@ -522,7 +523,7 @@ void MainWindow::onLoadFinished(bool /*ok*/)
     const QString pageTitle = view->getTitle();
     QIcon icon = view->icon();
     if (icon.isNull())
-        icon = sBrowserApplication->getFaviconStorage()->getFavicon(view->url());
+        icon = m_faviconStore->getFavicon(view->url());
     updateTabIcon(icon, m_tabWidget->indexOf(view));
     updateTabTitle(pageTitle, m_tabWidget->indexOf(view));
 
@@ -535,7 +536,7 @@ void MainWindow::onLoadFinished(bool /*ok*/)
             view->setFocus();
     }
 
-    if (m_privateWindow)
+    if (m_privateWindow || !ok)
         return;
 
     // Get favicon and inform HistoryManager of the title and favicon associated with the page's url
@@ -563,7 +564,7 @@ void MainWindow::onLoadFinished(bool /*ok*/)
         }
         else if (iconRef.startsWith('/'))
             iconRef.prepend(pageUrlNoPath);
-        sBrowserApplication->getFaviconStorage()->updateIcon(iconRef, pageUrl, favicon);
+        m_faviconStore->updateIcon(iconRef, pageUrl, favicon);
     });
 }
 

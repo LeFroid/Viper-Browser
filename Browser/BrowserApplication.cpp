@@ -236,7 +236,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), false);
+    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), m_faviconStorage.get(), false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
     //connect(w, &MainWindow::destroyed, [this, w](){
@@ -271,7 +271,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), true);
+    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), m_faviconStorage.get(), true);
     m_browserWindows.append(w);
     //connect(w, &MainWindow::destroyed, [this, w](){
     //    m_browserWindows.removeOne(w);

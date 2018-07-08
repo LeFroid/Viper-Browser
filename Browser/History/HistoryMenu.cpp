@@ -98,10 +98,10 @@ void HistoryMenu::setup()
     connect(app->getHistoryManager(), &HistoryManager::pageVisited, this, &HistoryMenu::onPageVisited);
     connect(app, &BrowserApplication::resetHistoryMenu, this, &HistoryMenu::resetItems);
 
-    m_actionShowHistory = addAction(QStringLiteral("&Show all History"));
+    m_actionShowHistory = addAction(QLatin1String("&Show all History"));
     m_actionShowHistory->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_H));
 
-    m_actionClearHistory = addAction(QStringLiteral("&Clear Recent History..."));
+    m_actionClearHistory = addAction(QLatin1String("&Clear Recent History..."));
     m_actionClearHistory->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Delete));
 
     addSeparator();
