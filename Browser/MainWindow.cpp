@@ -165,20 +165,12 @@ void MainWindow::setupMenuBar()
     connect(ui->actionNew_Tab, &QAction::triggered, [=](bool){
         m_tabWidget->newTab();
     });
-    connect(ui->actionNew_Window, &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewWindow);
+    connect(ui->actionNew_Window,         &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewWindow);
     connect(ui->actionNew_Private_Window, &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewPrivateWindow);
-    connect(ui->actionClose_Tab, &QAction::triggered, [=](){
-        m_tabWidget->closeTab(m_tabWidget->currentIndex());
-    });
-    connect(ui->actionClose_Window, &QAction::triggered, this, &MainWindow::close);
-    connect(ui->action_Quit,        &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
-    connect(ui->actionOpen_File,    &QAction::triggered, this, &MainWindow::openFileInBrowser);
-    connect(ui->action_Print,       &QAction::triggered, this, &MainWindow::printTabContents);
-
+    connect(ui->actionClose_Tab,          &QAction::triggered, m_tabWidget,         &BrowserTabWidget::closeCurrentTab);
+    connect(ui->action_Quit,              &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
+    //connect(ui->action_Save_Page_As, &QAction::triggered, this, &MainWindow::onSavePageTriggered);
     addWebProxyAction(WebPage::SavePage, ui->action_Save_Page_As);
-
-    // Find action
-    connect(ui->action_Find, &QAction::triggered, this, &MainWindow::onFindTextAction);
 
     // Add proxy functionality to edit menu actions
     addWebProxyAction(WebPage::Undo, ui->action_Undo);
@@ -195,20 +187,11 @@ void MainWindow::setupMenuBar()
     connect(ui->actionZoom_Out, &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomOutCurrentView);
     connect(ui->actionReset_Zoom, &QAction::triggered, m_tabWidget, &BrowserTabWidget::resetZoomCurrentView);
 
-    // Full screen view mode
-    connect(ui->action_Full_Screen, &QAction::triggered, this, &MainWindow::onToggleFullScreen);
-
-    // Preferences window
-    connect(ui->actionPreferences, &QAction::triggered, this, &MainWindow::openPreferences);
-
-    // View-related
-    connect(ui->actionPage_So_urce, &QAction::triggered, this, &MainWindow::onRequestViewSource);
-
     // History menu
     connect(ui->menuHistory, &HistoryMenu::loadUrl, this, &MainWindow::loadUrl);
 
     // History menu items
-    connect(ui->menuHistory->m_actionShowHistory, &QAction::triggered, this, &MainWindow::onShowAllHistory);
+    connect(ui->menuHistory->m_actionShowHistory,  &QAction::triggered, this, &MainWindow::onShowAllHistory);
     connect(ui->menuHistory->m_actionClearHistory, &QAction::triggered, this, &MainWindow::openClearHistoryDialog);
 
     // Bookmark bar setting
@@ -815,4 +798,19 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 void MainWindow::onLinkHovered(const QUrl &url)
 {
     m_linkHoverLabel->setText(url.toString());
+}
+
+void MainWindow::onSavePageTriggered()
+{
+    QString fileName = m_settings->getValue(BrowserSetting::DownloadDir).toString() + QDir::separator()
+            + m_tabWidget->tabText(m_tabWidget->currentIndex());
+    fileName = QFileDialog::getSaveFileName(this, tr("Save as..."), fileName,
+                                            tr("HTML page(*.html);;MIME HTML page(*.mhtml)"));
+    if (!fileName.isEmpty())
+    {
+        auto format = QWebEngineDownloadItem::SingleHtmlSaveFormat;
+        if (fileName.endsWith(QLatin1String("mhtml")))
+            format = QWebEngineDownloadItem::MimeHtmlSaveFormat;
+        m_tabWidget->currentWebView()->page()->save(fileName, format);
+    }
 }

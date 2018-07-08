@@ -89,6 +89,9 @@ public slots:
     /// Called when a tab is to be closed
     void closeTab(int index = -1);
 
+    /// Closes the currently active tab
+    void closeCurrentTab();
+
     /// Creates a new duplicate of the tab at the given index
     void duplicateTab(int index);
 

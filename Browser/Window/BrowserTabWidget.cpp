@@ -236,6 +236,11 @@ void BrowserTabWidget::closeTab(int index)
     removeTab(index);
 }
 
+void BrowserTabWidget::closeCurrentTab()
+{
+    closeTab(currentIndex());
+}
+
 void BrowserTabWidget::duplicateTab(int index)
 {
     if (WebView *view = getWebView(index))

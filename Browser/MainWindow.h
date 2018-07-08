@@ -190,6 +190,9 @@ private slots:
     /// Called when a link is hovered by the user
     void onLinkHovered(const QUrl &url);
 
+    /// Called by the "Save Page As..." file menu option - spawns a save file dialog and passes the save event to the appropriate handler
+    void onSavePageTriggered();
+
 protected slots:
     /**
      * @brief Called by a \ref WebView when it is requested that some content be opened in a new tab.
