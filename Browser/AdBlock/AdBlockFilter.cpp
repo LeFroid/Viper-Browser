@@ -300,7 +300,7 @@ bool AdBlockFilter::isDomainMatch(QString base, const QString &domainStr) const
 {
     // Check if domain match is being performed on an entity filter
     if (domainStr.endsWith(QChar('.')))
-        base = base.left(base.lastIndexOf(QChar('.') + 1));
+        base = base.left(base.lastIndexOf(QChar('.')) + 1);
 
     if (base.compare(domainStr) == 0)
         return true;

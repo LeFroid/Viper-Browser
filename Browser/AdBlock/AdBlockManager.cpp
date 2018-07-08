@@ -224,10 +224,9 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
         return m_emptyStr;
 
     QString domain = url.host().toLower();
+    QString sld = url.getSecondLevelDomain();
     if (domain.startsWith(QLatin1String("www.")))
         domain = domain.mid(4);
-    if (domain.isEmpty())
-        domain = url.getSecondLevelDomain();
 
     // Check for a cache hit
     std::string domainStdStr = domain.toStdString();
@@ -238,7 +237,7 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     int numStylesheetRules = 0;
     for (AdBlockFilter *filter : m_domainStyleFilters)
     {
-        if (filter->isDomainStyleMatch(domain) && !filter->isException())
+        if ((filter->isDomainStyleMatch(domain) || filter->isDomainStyleMatch(sld)) && !filter->isException())
         {
             stylesheet.append(filter->getEvalString() + QChar(','));
             if (numStylesheetRules > 1000)
@@ -260,7 +259,7 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     // Check for custom stylesheet rules
     for (AdBlockFilter *filter : m_customStyleFilters)
     {
-        if (filter->isDomainStyleMatch(domain))
+        if ((filter->isDomainStyleMatch(domain) || filter->isDomainStyleMatch(sld)))
             stylesheet.append(filter->getEvalString());
     }
 
