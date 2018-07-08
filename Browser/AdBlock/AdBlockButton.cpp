@@ -26,8 +26,14 @@ AdBlockButton::AdBlockButton(QWidget *parent) :
 
 void AdBlockButton::updateCount()
 {
+    if (!isVisible())
+        return;
+
     if (MainWindow *win = qobject_cast<MainWindow*>(window()))
     {
+        if (win->isMinimized())
+            return;
+
         if (WebView *view = win->currentWebView())
         {
             const int adBlockCount = AdBlockManager::instance().getNumberAdsBlocked(view->url());
