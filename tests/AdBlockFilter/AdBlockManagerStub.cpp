@@ -1,25 +1,27 @@
 #include "AdBlockManager.h"
-#include "AdBlockModel.h"
 #include "Bitfield.h"
-#include "BrowserApplication.h"
-#include "InternalDownloadItem.h"
-#include "DownloadManager.h"
-#include "Settings.h"
 
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
+#include <QHash>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <QNetworkRequest>
+#include <string>
 
 #include <QDebug>
 
+class AdBlockModel
+{
+public:
+    AdBlockModel() = default;
+};
+
 AdBlockManager::AdBlockManager(QObject *parent) :
     QObject(parent),
-    m_enabled(true),
-    m_configFile(),
+    m_enabled(false),
+    m_configFile("AdBlockStub.json"),
     m_subscriptionDir(),
     m_stylesheet(),
     m_cosmeticJSTemplate(),
@@ -41,25 +43,10 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_numRequestsBlocked(0),
     m_pageAdBlockCount()
 {
-    // Fetch some global settings before loading ad block data
-    std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
-
-    m_enabled = settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool();
-    m_configFile = settings->getPathValue(BrowserSetting::AdBlockPlusConfig);
-    m_subscriptionDir = settings->getPathValue(BrowserSetting::AdBlockPlusDataDir);
-
-    // Create data dir if it does not yet exist
-    QDir subscriptionDir(m_subscriptionDir);
-    if (!subscriptionDir.exists())
-        subscriptionDir.mkpath(m_subscriptionDir);
-
-    loadDynamicTemplate();
-    loadUBOResources();
 }
 
 AdBlockManager::~AdBlockManager()
 {
-    save();
 }
 
 AdBlockManager &AdBlockManager::instance()
@@ -72,8 +59,6 @@ void AdBlockManager::setEnabled(bool value)
 {
     m_enabled = value;
 
-    // Clear filters regardless of state, and re-extract
-    // filter data from subscriptions if being set to enabled
     clearFilters();
     if (value)
         extractFilters();
@@ -83,109 +68,22 @@ void AdBlockManager::updateSubscriptions()
 {
     if (!m_enabled)
         return;
-
-    // Try updating the subscription if its next_update is hit
-    // Check if subscription should be updated
-    for (size_t i = 0; i < m_subscriptions.size(); ++i)
-    {
-        AdBlockSubscription *subPtr = &(m_subscriptions[i]);
-        if (!subPtr)
-            continue;
-        const QDateTime &updateTime = subPtr->getNextUpdate();
-        QDateTime now = QDateTime::currentDateTime();
-        if (!updateTime.isNull() && updateTime < now)
-        {
-            const QUrl &srcUrl = subPtr->getSourceUrl();
-            if (srcUrl.isValid() && !srcUrl.isLocalFile())
-            {
-                QNetworkRequest request;
-                request.setUrl(srcUrl);
-
-                InternalDownloadItem *item = sBrowserApplication->getDownloadManager()->downloadInternal(request, m_subscriptionDir, false, true);
-                connect(item, &InternalDownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath){
-                    if (filePath != subPtr->getFilePath())
-                    {
-                        QFile oldFile(subPtr->getFilePath());
-                        oldFile.remove();
-                        subPtr->setFilePath(filePath);
-                    }
-                    item->deleteLater();
-                    subPtr->setLastUpdate(now);
-                    subPtr->setNextUpdate(now.addDays(7));
-                });
-            }
-        }
-    }
 }
 
 void AdBlockManager::installResource(const QUrl &url)
 {
     if (!url.isValid())
         return;
-
-    QNetworkRequest request;
-    request.setUrl(url);
-
-    DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir + QDir::separator() + QString("resources"), false);
-    connect(item, &InternalDownloadItem::downloadFinished, this, &AdBlockManager::loadResourceFile);
 }
 
 void AdBlockManager::installSubscription(const QUrl &url)
 {
     if (!url.isValid())
         return;
-
-    QNetworkRequest request;
-    request.setUrl(url);
-
-    DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
-    connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
-        AdBlockSubscription subscription(filePath);
-        subscription.setSourceUrl(url);
-
-        // Update ad block model
-        int rowNum = static_cast<int>(m_subscriptions.size());
-        const bool hasModel = m_adBlockModel != nullptr;
-        if (hasModel)
-            m_adBlockModel->beginInsertRows(QModelIndex(), rowNum, rowNum);
-
-        m_subscriptions.push_back(std::move(subscription));
-
-        if (hasModel)
-            m_adBlockModel->endInsertRows();
-
-        // Reload filters
-        clearFilters();
-        extractFilters();
-    });
 }
 
 void AdBlockManager::createUserSubscription()
 {
-    // Associate new subscription with file "custom.txt"
-    QString userFile = m_subscriptionDir;
-    userFile.append(QDir::separator());
-    userFile.append(QLatin1String("custom.txt"));
-    QString userFileUrl = QString("file://%1").arg(QFileInfo(userFile).absoluteFilePath());
-
-    AdBlockSubscription subscription(userFile);
-    subscription.setSourceUrl(QUrl(userFileUrl));
-
-    // Update AdBlockModel if it is instantiated
-    // Update ad block model
-    int rowNum = static_cast<int>(m_subscriptions.size());
-    const bool hasModel = m_adBlockModel != nullptr;
-    if (hasModel)
-        m_adBlockModel->beginInsertRows(QModelIndex(), rowNum, rowNum);
-
-    m_subscriptions.push_back(std::move(subscription));
-
-    if (hasModel)
-        m_adBlockModel->endInsertRows();
-
-    // Don't bother reloading filters until some data is set within the filter, through the editor widget
 }
 
 void AdBlockManager::loadStarted(const QUrl &url)
@@ -195,10 +93,7 @@ void AdBlockManager::loadStarted(const QUrl &url)
 
 AdBlockModel *AdBlockManager::getModel()
 {
-    if (m_adBlockModel == nullptr)
-        m_adBlockModel = new AdBlockModel(this);
-
-    return m_adBlockModel;
+    return nullptr;
 }
 
 const QString &AdBlockManager::getStylesheet(const URL &url) const
@@ -414,7 +309,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
             elemType |= ElementType::Other;
             break;
     }
-    
+
     // Perform document type and third party type checking
     QString domain = info.requestUrl().host().toLower();
     if (domain.startsWith(QLatin1String("www.")))
@@ -424,7 +319,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     if (getSecondLevelDomain(info.requestUrl()) != getSecondLevelDomain(info.firstPartyUrl()))
         elemType |= ElementType::ThirdParty;
-    
+
     // Compare to filters
     for (AdBlockFilter *filter : m_importantBlockFilters)
     {

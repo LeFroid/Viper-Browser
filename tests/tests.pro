@@ -1,2 +1,3 @@
 TEMPLATE = subdirs
-SUBDIRS += regexp-test
+SUBDIRS = regexp-test \
+    AdBlockFilter

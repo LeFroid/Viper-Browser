@@ -305,11 +305,11 @@ bool AdBlockFilter::isDomainMatch(QString base, const QString &domainStr) const
     if (base.compare(domainStr) == 0)
         return true;
 
-    if (!domainStr.endsWith(base))
+    if (!base.endsWith(domainStr))
         return false;
 
-    int evalIdx = domainStr.indexOf(base);
-    return (evalIdx > 0 && domainStr.at(evalIdx - 1) == QChar('.'));
+    int evalIdx = base.indexOf(domainStr);
+    return (evalIdx > 0 && base.at(evalIdx - 1) == QChar('.'));
 }
 
 bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const

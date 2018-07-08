@@ -27,6 +27,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 RESOURCES  = application.qrc
 
+top_srcdir=./
+
 INCLUDEPATH += \
     $$PWD/AdBlock \
     $$PWD/Bookmarks \
@@ -46,6 +48,8 @@ INCLUDEPATH += \
 
 SOURCES += \
     main.cpp \
+    AdBlock/AdBlockManager.cpp \
+    AdBlock/AdBlockModel.cpp \
     History/HistoryTableModel.cpp \
     Cookies/CookieJar.cpp \
     Cookies/CookieModifyDialog.cpp \
@@ -99,25 +103,20 @@ SOURCES += \
     UserAgents/UserAgentsWindow.cpp \
     SessionManager.cpp \
     Network/ViperNetworkReply.cpp \
-    AdBlock/AdBlockFilter.cpp \
-    AdBlock/AdBlockSubscription.cpp \
     UserScripts/UserScript.cpp \
     UserScripts/UserScriptManager.cpp \
     UserScripts/UserScriptWidget.cpp \
     UserScripts/UserScriptModel.cpp \
     Highlighters/JavaScriptHighlighter.cpp \
     Widgets/CodeEditor.cpp \
-    AdBlock/AdBlockManager.cpp \
     Extensions/ExtStorage.cpp \
     UserScripts/UserScriptEditor.cpp \
-    AdBlock/AdBlockModel.cpp \
     AdBlock/AdBlockWidget.cpp \
     Widgets/CheckableTableView.cpp \
     UserScripts/AddUserScriptDialog.cpp \
     History/HistoryMenu.cpp \
     UserAgents/UserAgentMenu.cpp \
     Bookmarks/BookmarkMenu.cpp \
-    AdBlock/AdBlockFilterParser.cpp \
     AdBlock/AdBlockSubscribeDialog.cpp \
     AdBlock/CustomFilterEditor.cpp \
     Widgets/BookmarkDialog.cpp \
@@ -125,7 +124,6 @@ SOURCES += \
     UserScripts/WebEngineScriptAdapter.cpp \
     Preferences/PrivacyTab.cpp \
     Preferences/ExemptThirdPartyCookieDialog.cpp \
-    Web/URL.cpp \
     Web/WebHitTestResult.cpp \
     Window/NavigationToolBar.cpp \
     Window/URLSuggestionWidget.cpp \
@@ -137,10 +135,10 @@ SOURCES += \
     AdBlock/AdBlockButton.cpp
 
 HEADERS += \
-    Bitfield.h \
     TreeNode.h \
-    History/HistoryTableModel.h \
+    AdBlock/AdBlockModel.h \
     Cache/LRUCache.h \
+    History/HistoryTableModel.h \
     Cookies/CookieJar.h \
     Cookies/CookieModifyDialog.h \
     Cookies/CookieTableModel.h \
@@ -194,18 +192,14 @@ HEADERS += \
     UserAgents/UserAgentsWindow.h \
     SessionManager.h \
     Network/ViperNetworkReply.h \
-    AdBlock/AdBlockFilter.h \
-    AdBlock/AdBlockSubscription.h \
     UserScripts/UserScript.h \
     UserScripts/UserScriptManager.h \
     UserScripts/UserScriptWidget.h \
     UserScripts/UserScriptModel.h \
     Highlighters/JavaScriptHighlighter.h \
     Widgets/CodeEditor.h \
-    AdBlock/AdBlockManager.h \
     Extensions/ExtStorage.h \
     UserScripts/UserScriptEditor.h \
-    AdBlock/AdBlockModel.h \
     AdBlock/AdBlockWidget.h \
     Widgets/CheckableTableView.h \
     UserScripts/AddUserScriptDialog.h \
@@ -213,7 +207,6 @@ HEADERS += \
     History/HistoryMenu.h \
     UserAgents/UserAgentMenu.h \
     Bookmarks/BookmarkMenu.h \
-    AdBlock/AdBlockFilterParser.h \
     AdBlock/AdBlockSubscribeDialog.h \
     AdBlock/CustomFilterEditor.h \
     Widgets/BookmarkDialog.h \
@@ -221,7 +214,6 @@ HEADERS += \
     UserScripts/WebEngineScriptAdapter.h \
     Preferences/PrivacyTab.h \
     Preferences/ExemptThirdPartyCookieDialog.h \
-    Web/URL.h \
     Web/WebHitTestResult.h \
     Window/NavigationToolBar.h \
     Window/URLSuggestionWidget.h \
@@ -261,3 +253,5 @@ FORMS += \
     Preferences/PrivacyTab.ui \
     Preferences/ExemptThirdPartyCookieDialog.ui \
     MainWindow.ui
+
+include(Browser.pri)
