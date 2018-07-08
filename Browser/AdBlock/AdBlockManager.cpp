@@ -128,7 +128,7 @@ void AdBlockManager::installResource(const QUrl &url)
     request.setUrl(url);
 
     DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
+    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir + QDir::separator() + QString("resources"), false);
     connect(item, &InternalDownloadItem::downloadFinished, this, &AdBlockManager::loadResourceFile);
 }
 
