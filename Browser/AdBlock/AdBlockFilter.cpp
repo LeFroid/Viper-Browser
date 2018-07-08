@@ -2,6 +2,7 @@
 #include <array>
 #include "AdBlockFilter.h"
 #include "Bitfield.h"
+#include "URL.h"
 
 AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_category(FilterCategory::None),
@@ -201,10 +202,10 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
             case FilterCategory::StylesheetCustom:
                 return false;
             case FilterCategory::Domain:
-                match = isDomainMatch(m_evalString, requestDomain);
+                match = isDomainMatch(requestDomain, m_evalString);
                 break;
             case FilterCategory::DomainStart:
-                match = isDomainStartMatch(requestUrl, requestDomain);
+                match = isDomainStartMatch(requestUrl, URL(requestDomain).getSecondLevelDomain());
                 break;
             case FilterCategory::StringStartMatch:
                 match = requestUrl.startsWith(m_evalString, caseSensitivity);
@@ -308,7 +309,7 @@ bool AdBlockFilter::isDomainMatch(QString base, const QString &domainStr) const
     if (!base.endsWith(domainStr))
         return false;
 
-    int evalIdx = base.indexOf(domainStr);
+    int evalIdx = base.indexOf(domainStr); //domainStr.indexOf(base);
     return (evalIdx > 0 && base.at(evalIdx - 1) == QChar('.'));
 }
 

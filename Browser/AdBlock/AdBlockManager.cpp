@@ -432,7 +432,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         {
             ++m_numRequestsBlocked;
             ++m_pageAdBlockCount[info.firstPartyUrl()];
-            //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
+            qDebug() << "blocked " << requestUrl << " by IMPORTANT rule " << filter->getRule();
             if (filter->isRedirect())
             {
                 info.redirect(QUrl(QString("blocked:%1").arg(filter->getRedirectName())));
@@ -455,7 +455,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         {
             ++m_numRequestsBlocked;
             ++m_pageAdBlockCount[info.firstPartyUrl()];
-            //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
+            qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
             if (filter->isRedirect())
             {
                 info.redirect(QUrl(QString("blocked:%1").arg(filter->getRedirectName())));

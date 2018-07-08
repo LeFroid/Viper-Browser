@@ -19,15 +19,27 @@ private Q_SLOTS:
     //void initTestCase();
     //void cleanupTestCase();
     void testCase1();
+    void testCase2();
+    void testCase3();
 
 private:
     std::unique_ptr<AdBlockFilter> domainCSSFilter;
+
+    std::unique_ptr<AdBlockFilter> blockDomainRule;
+    std::unique_ptr<AdBlockFilter> allowDomainRule;
+
+    std::unique_ptr<AdBlockFilter> redirectScriptRule;
 };
 
 AdBlockFilterTest::AdBlockFilterTest()
 {
     AdBlockFilterParser parser;
     domainCSSFilter = parser.makeFilter(QLatin1String("slashdot.org##.ntv-sponsored"));
+
+    blockDomainRule = parser.makeFilter(QLatin1String("|https://$image,media,script,third-party,domain=watchvid.com"));
+    allowDomainRule = parser.makeFilter(QLatin1String("@@||mycdn.com^$image,media,object,stylesheet,domain=watchvid.com"));
+
+    redirectScriptRule = parser.makeFilter(QLatin1String("||google-analytics.com/ga.js$script,redirect=google-analytics.com/ga.js"));
 }
 
 QString AdBlockFilterTest::getSecondLevelDomain(const QUrl &url) const
@@ -60,6 +72,51 @@ void AdBlockFilterTest::testCase1()
     QVERIFY2(domainCSSFilter->isDomainStyleMatch(domain1) && !domainCSSFilter->isException(), "The Domain CSS filter did not match the target url");
 
     QVERIFY2(domainCSSFilter->isDomainStyleMatch(domain2) && !domainCSSFilter->isException(), "The Domain CSS filter did not match the target url");
+}
+
+void AdBlockFilterTest::testCase2()
+{
+    QUrl allowedUrl = QUrl::fromUserInput(QLatin1String("https://subdomain.mycdn.com/videos/thumbnails/5.jpg"));
+
+    QString requestUrl = allowedUrl.toString(QUrl::FullyEncoded).toLower();
+    QString firstPartyUrl = QLatin1String("https://www.watchvid.com/watch?id=123456");
+
+    QString baseUrl = getSecondLevelDomain(QUrl(firstPartyUrl)).toLower();//.toString(QUrl::FullyEncoded).toLower();
+
+    if (baseUrl.isEmpty())
+        baseUrl = QUrl(firstPartyUrl).host().toLower();
+
+    ElementType elemType = ElementType::Image | ElementType::ThirdParty;
+
+    // Perform document type and third party type checking
+    QString domain = allowedUrl.host().toLower();
+    if (domain.startsWith(QLatin1String("www.")))
+        domain = domain.mid(4);
+    if (domain.isEmpty())
+        domain = getSecondLevelDomain(allowedUrl);
+
+
+    QVERIFY2(allowDomainRule->isMatch(baseUrl, requestUrl, domain, elemType), "Allow rule should match the request");
+    QVERIFY2(blockDomainRule->isMatch(baseUrl, requestUrl, domain, elemType), "Block rule should match the request");
+}
+
+void AdBlockFilterTest::testCase3()
+{
+    QUrl requestUrl = QUrl::fromUserInput(QLatin1String("https://ssl.google-analytics.com/ga.js"));
+    QString requestUrlStr = requestUrl.toString(QUrl::FullyEncoded).toLower();
+
+    QUrl firstPartyUrl = QUrl::fromUserInput(QLatin1String("https://unrelatedsite.com"));
+
+    QString baseUrl = getSecondLevelDomain(QUrl(firstPartyUrl)).toLower();
+    ElementType elemType = ElementType::Script | ElementType::ThirdParty;
+
+    QString domain = requestUrl.host().toLower();
+    if (domain.startsWith(QLatin1String("www.")))
+        domain = domain.mid(4);
+    if (domain.isEmpty())
+        domain = getSecondLevelDomain(requestUrl);
+
+    QVERIFY2(redirectScriptRule->isMatch(baseUrl, requestUrlStr, domain, elemType), "Block rule should match the request");
 }
 
 QTEST_APPLESS_MAIN(AdBlockFilterTest)
