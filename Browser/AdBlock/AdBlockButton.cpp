@@ -13,10 +13,11 @@
 
 AdBlockButton::AdBlockButton(QWidget *parent) :
     QToolButton(parent),
+    m_icon(QLatin1String(":/AdBlock.png")),
     m_timer(),
     m_lastCount(0)
 {
-    setIcon(QIcon(QLatin1String(":/AdBlock.png")));
+    setIcon(m_icon);
     setStyleSheet(QLatin1String("QToolButton { margin-right: 6px; }"));
     setToolTip(tr("No ads blocked on this page"));
 
@@ -42,11 +43,9 @@ void AdBlockButton::updateCount()
 
             m_lastCount = adBlockCount;
 
-            QIcon baseIcon = QIcon(QLatin1String(":/AdBlock.png"));
-
             if (adBlockCount == 0)
             {
-                setIcon(baseIcon);
+                setIcon(m_icon);
                 setToolTip(tr("No ads blocked on this page"));
                 return;
             }
@@ -54,7 +53,7 @@ void AdBlockButton::updateCount()
             QString numAdsBlocked = QString::number(adBlockCount);
 
             // Draw the count inside a box towards the bottom of the ad block icon
-            QPixmap adBlockPixmap = baseIcon.pixmap(width(), height());
+            QPixmap adBlockPixmap = m_icon.pixmap(width(), height());
             QPainter painter(&adBlockPixmap);
 
             // Setup font

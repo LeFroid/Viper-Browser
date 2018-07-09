@@ -1,6 +1,7 @@
 #ifndef ADBLOCKBUTTON_H
 #define ADBLOCKBUTTON_H
 
+#include <QIcon>
 #include <QTimer>
 #include <QToolButton>
 
@@ -22,6 +23,9 @@ public slots:
     void updateCount();
 
 private:
+    /// Base icon shown in the button
+    QIcon m_icon;
+
     /// Timer that periodically calls the updateCount() method
     QTimer m_timer;
 
