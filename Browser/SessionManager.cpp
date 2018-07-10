@@ -2,7 +2,7 @@
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
-#include "WebView.h"
+#include "WebWidget.h"
 
 #include <QByteArray>
 #include <QFile>
@@ -49,17 +49,17 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
         int numTabs = tabWidget->count();
         for (int i = 0; i < numTabs; ++i)
         {
-            WebView *view = tabWidget->getWebView(i);
-            if (!view)
+            WebWidget *ww = tabWidget->getWebWidget(i);
+            if (!ww)
                 continue;
 
             QJsonObject tabInfoObj;
-            tabInfoObj.insert(QLatin1String("url"), QJsonValue(view->url().toString()));
+            tabInfoObj.insert(QLatin1String("url"), QJsonValue(ww->url().toString()));
             tabInfoObj.insert(QLatin1String("isPinned"), QJsonValue(tabWidget->isTabPinned(i)));
 
             QByteArray tabHistory;
             QDataStream stream(&tabHistory, QIODevice::ReadWrite);
-            stream << *(view->history());
+            stream << *(ww->history());
             stream.device()->seek(0);
 
             auto tabHistoryB64 = tabHistory.toBase64();
@@ -137,16 +137,16 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
             {
                 QJsonObject tabInfoObj = tabIt->toObject();
 
-                WebView *view = tabWidget->newTab();
-                view->load(QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString()));
+                WebWidget *ww = tabWidget->newTab();
+                ww->load(QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString()));
 
-                tabWidget->setTabPinned(tabWidget->indexOf(view),
+                tabWidget->setTabPinned(tabWidget->indexOf(ww),
                                         tabInfoObj.value(QLatin1String("isPinned")).toBool());
 
                 const QByteArray encodedHistory = tabInfoObj.value(QLatin1String("history")).toString().toLatin1();
                 QByteArray tabHistory = QByteArray::fromBase64(encodedHistory);
                 QDataStream historyStream(&tabHistory, QIODevice::ReadWrite);
-                historyStream >> *(view->history());
+                historyStream >> *(ww->history());
             }
         }
 

@@ -1,8 +1,8 @@
 #ifndef WEBACTIONPROXY_H
 #define WEBACTIONPROXY_H
 
+#include "WebPage.h"
 #include <QObject>
-#include <QWebEnginePage>
 
 class QAction;
 
@@ -15,10 +15,10 @@ class WebActionProxy : public QObject
     Q_OBJECT
 public:
     /// Constructs a new web action proxy
-    explicit WebActionProxy(QWebEnginePage::WebAction action, QAction *proxyAction, QObject *parent = nullptr);
+    explicit WebActionProxy(WebPage::WebAction action, QAction *proxyAction, QObject *parent = nullptr);
 
     /// Sets the pointer to the active web page
-    void setPage(QWebEnginePage *page);
+    void setPage(WebPage *page);
 
 private slots:
     /// Called to trigger the web page's WebAction when the main UI's associated
@@ -39,10 +39,10 @@ private:
     QAction *m_proxyAction;
 
     /// Web page associated with the action proxy
-    QWebEnginePage *m_page;
+    WebPage *m_page;
 
     /// Web page action type
-    QWebEnginePage::WebAction m_pageAction;
+    WebPage::WebAction m_pageAction;
 };
 
 #endif // WEBACTIONPROXY_H

@@ -21,6 +21,7 @@
 #include "WebHitTestResult.h"
 #include "WebView.h"
 #include "WebPage.h"
+#include "WebWidget.h"
 
 WebView::WebView(bool privateView, QWidget *parent) :
     QWebEngineView(parent),
@@ -302,7 +303,7 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
         case QWebEnginePage::WebBrowserWindow:    // Open a new window
         {
             MainWindow *win = m_privateView ? sBrowserApplication->getNewPrivateWindow() : sBrowserApplication->getNewWindow();
-            return win->getTabWidget()->currentWebView();
+            return win->getTabWidget()->currentWebWidget()->view();
         }	
         case QWebEnginePage::WebBrowserBackgroundTab:
         case QWebEnginePage::WebBrowserTab:

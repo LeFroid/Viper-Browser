@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 #include "WebPage.h"
 #include "WebView.h"
+#include "WebWidget.h"
 
 #include <QApplication>
 #include <QDrag>
@@ -120,9 +121,9 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
     if (tabWidget)
     {
-        if (WebView *view = tabWidget->getWebView(tabIndex))
+        if (WebWidget *ww = tabWidget->getWebWidget(tabIndex))
         {
-            WebPage *page = qobject_cast<WebPage*>(view->page());
+            WebPage *page = ww->page();
             const bool isTabMuted = page->isAudioMuted();
 
             const QString muteActionText = isTabMuted ? tr("Unmute tab") : tr("Mute tab");
@@ -178,7 +179,7 @@ void BrowserTabBar::mousePressEvent(QMouseEvent *event)
         if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
         {
             m_dragStartPos = event->pos();
-            m_dragUrl = tabWidget->getWebView(tabIdx)->url();
+            m_dragUrl = tabWidget->getWebWidget(tabIdx)->url();
 
             QRect dragTabRect = tabRect(tabIdx);
             m_dragPixmap = QPixmap(dragTabRect.size());
@@ -224,9 +225,10 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
         else
         {
             BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
-            WebView *view = tabWidget->getWebView(tabIdx);
+            WebWidget *ww = tabWidget->getWebWidget(tabIdx);
             tabWidget->removeTab(tabIdx);
-            view->deleteLater();
+            delete ww;
+            //ww->deleteLater();
         }
     }
 
@@ -303,16 +305,16 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
         {
             if (m_externalDropInfo.Location == DropIndicatorLocation::Center)
             {
-                WebView *view = tabWidget->getWebView(newTabIndex);
-                view->load(url);
+                WebWidget *ww = tabWidget->getWebWidget(newTabIndex);
+                ww->load(url);
 
                 m_externalDropInfo.Location = DropIndicatorLocation::Right;
             }
             else
             {
                 int tabOffset = (m_externalDropInfo.Location == DropIndicatorLocation::Right) ? 1 : 0;
-                WebView *view = tabWidget->newTab(false, true, newTabIndex + tabOffset);
-                view->load(url);
+                WebWidget *ww = tabWidget->newTab(false, true, newTabIndex + tabOffset);
+                ww->load(url);
 
                 newTabIndex += tabOffset;
             }

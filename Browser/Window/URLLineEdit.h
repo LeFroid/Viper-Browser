@@ -10,7 +10,7 @@
 
 class MainWindow;
 class URLSuggestionWidget;
-class WebView;
+class WebWidget;
 class QToolButton;
 
 /// Security icon types used by the url line edit
@@ -62,7 +62,7 @@ public:
 
     /// Called when the browser window's tab has changed - stores any user text in a hash map so the contents
     /// will not be lost if they go back to the tab
-    void tabChanged(WebView *newView);
+    void tabChanged(WebWidget *newView);
 
 signals:
     /// Called when the user requests to view the security information regarding the current page
@@ -73,7 +73,7 @@ signals:
 
 public slots:
     /// Removes the given view pointer from the map of webviews to user-set text in the line edit
-    void removeMappedView(WebView *view);
+    void removeMappedView(WebWidget *view);
 
 private slots:
     /// Called when a URL from the \ref URLSuggestionWidget is chosen by the user
@@ -104,10 +104,10 @@ private:
     QToolButton *m_bookmarkButton;
 
     /// Hashmap of WebView pointers and any text set by the user while the view was last active
-    std::unordered_map<WebView*, QString> m_userTextMap;
+    std::unordered_map<WebWidget*, QString> m_userTextMap;
 
     /// Pointer to the active web view
-    WebView *m_activeWebView;
+    WebWidget *m_activeWebView;
 
     /// URL suggestion widget
     URLSuggestionWidget *m_suggestionWidget;

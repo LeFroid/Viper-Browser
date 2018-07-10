@@ -2,6 +2,7 @@
 #include "AdBlockManager.h"
 #include "MainWindow.h"
 #include "WebView.h"
+#include "WebWidget.h"
 
 #include <algorithm>
 #include <QFont>
@@ -35,9 +36,9 @@ void AdBlockButton::updateCount()
         if (win->isMinimized())
             return;
 
-        if (WebView *view = win->currentWebView())
+        if (WebWidget *ww = win->currentWebWidget())
         {
-            const int adBlockCount = AdBlockManager::instance().getNumberAdsBlocked(view->url());
+            const int adBlockCount = AdBlockManager::instance().getNumberAdsBlocked(ww->url());
             if (adBlockCount == m_lastCount)
                 return;
 

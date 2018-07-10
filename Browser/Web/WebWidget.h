@@ -3,10 +3,13 @@
 
 #include <QWidget>
 
+class MainWindow;
+class WebPage;
 class WebView;
 
 class QIcon;
 class QUrl;
+class QWebEngineHistory;
 
 /**
  * @class WebWidget
@@ -15,7 +18,10 @@ class QUrl;
  */
 class WebWidget : public QWidget
 {
+    friend class BrowserTabWidget;
+
     Q_OBJECT
+
 public:
     /**
      * @brief Constructs the WebWidget
@@ -53,19 +59,85 @@ public:
     /// Loads the specified url and displays it
     void load(const QUrl &url);
 
+    /// Returns a pointer to the view's history
+    QWebEngineHistory *history() const;
+
+    /// Returns the current url
+    QUrl url() const;
+
+    /// Returns a pointer to the web page
+    WebPage *page() const;
+
+    /// Returns a pointer to the web view
+    WebView *view() const;
+
+    /// Event filter
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
+public slots:
+    /// Reloads the current page
+    void reload();
+
+    /// Stops loading the current page
+    void stop();
+
 signals:
+    /// Emitted when the web view should be closed
+    void closeRequest();
+
     /// Emitted when the icon associated with the view is changed. The new icon is specified by icon.
     void iconChanged(const QIcon &icon);
 
     /// Emitted when the URL of the icon associated with the view is changed. The new URL is specified by url.
     void iconUrlChanged(const QUrl &url);
 
-    /*
-public slots:*/
+    /// Emitted when the inspector should be shown
+    void inspectElement();
+
+    /// Emitted when the current page has finished loading. If parameter 'ok' is true, the load was successful.
+    void loadFinished(bool ok);
+
+    /// Emitted when the current page has loaded by the given percent, as an integer in range [0,100]
+    void loadProgress(int value);
+
+    /// Emitted when the user requests to open a link in the current web page
+    void openRequest(const QUrl &url);
+
+    /// Called when the user requests to open a link in a new browser tab
+    void openInNewTabRequest(const QUrl &url, bool makeCurrent = false);
+
+    /// Called when the user requests to open a link in a new browser window
+    void openInNewWindowRequest(const QUrl &url, bool privateWindow);
+
+    /// Emitted when a link is hovered over by the user
+    void linkHovered(const QUrl &url);
+
+    /// Emitted when the title of the current page has changed to the given string
+    void titleChanged(const QString &title);
+
+protected:
+    /// Initializes the web view
+    void setupView();
+
+    /// Handles the focus in event
+    void focusInEvent(QFocusEvent *event) override;
+
+private slots:
+    /// Shows the context menu on the web page
+    void showContextMenuForView();
 
 private:
     /// The actual web view widget being used to render and access web content
     WebView *m_view;
+
+    /// Pointer to the widget's parent window
+    MainWindow *m_mainWindow;
+
+    /// True if the widget's view is on a private browsing setting, false if else
+    bool m_privateMode;
+
+    /// Global and relative positions of the requested context menu from the active web view
+    QPoint m_contextMenuPosGlobal, m_contextMenuPosRelative;
 };
 
 #endif // WEBWIDGET_H
