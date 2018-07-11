@@ -177,10 +177,10 @@ void BrowserTabWidget::closeTab(int index)
         return;
 
     saveTab(index);
-    WebWidget *view = getWebWidget(index);
-    emit tabClosing(view);
+    WebWidget *ww = getWebWidget(index);
+    emit tabClosing(ww);
 
-    view->deleteLater();
+    //ww->deleteLater();
 
     // If closed tab was the active tab, set current to opposite direction of the last active tab (if possible)
     if (index == m_currentTabIndex)
@@ -203,6 +203,8 @@ void BrowserTabWidget::closeTab(int index)
     }
 
     removeTab(index);
+
+    delete ww;
 }
 
 void BrowserTabWidget::closeCurrentTab()

@@ -598,9 +598,10 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
             inspectorView = new WebView(ui->dockWidget);
             inspectorView->setObjectName(QLatin1String("inspectorView"));
             inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+            inspectorView->setContextMenuPolicy(Qt::NoContextMenu);
             ui->dockWidget->setWidget(inspectorView);
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-            inspectorView->setContextMenuPolicy(Qt::CustomContextMenu);
+            //inspectorView->setContextMenuPolicy(Qt::CustomContextMenu);
             connect(inspectorView, &WebView::openRequest, this, &MainWindow::openLinkNewTab);
             connect(inspectorView, &WebView::openInNewTabRequest, this, &MainWindow::openLinkNewTab);
 #endif

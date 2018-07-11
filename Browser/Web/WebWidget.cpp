@@ -20,7 +20,7 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     m_contextMenuPosRelative()
 {
     setFocusPolicy(Qt::StrongFocus);
-    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 void WebWidget::setupView()
