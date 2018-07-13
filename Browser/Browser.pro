@@ -40,6 +40,7 @@ INCLUDEPATH += \
     $$PWD/Highlighters \
     $$PWD/Network \
     $$PWD/Preferences \
+    $$PWD/URLSuggestion \
     $$PWD/UserAgents \
     $$PWD/UserScripts \
     $$PWD/Web \
@@ -126,11 +127,11 @@ SOURCES += \
     Preferences/ExemptThirdPartyCookieDialog.cpp \
     Web/WebHitTestResult.cpp \
     Window/NavigationToolBar.cpp \
-    Window/URLSuggestionWidget.cpp \
-    Window/URLSuggestionItemDelegate.cpp \
+    URLSuggestion/URLSuggestionWidget.cpp \
+    URLSuggestion/URLSuggestionItemDelegate.cpp \
     Network/BlockedSchemeHandler.cpp \
-    Window/URLSuggestionListModel.cpp \
-    Window/URLSuggestionWorker.cpp \
+    URLSuggestion/URLSuggestionListModel.cpp \
+    URLSuggestion/URLSuggestionWorker.cpp \
     Web/WebWidget.cpp \
     AdBlock/AdBlockButton.cpp
 
@@ -216,11 +217,11 @@ HEADERS += \
     Preferences/ExemptThirdPartyCookieDialog.h \
     Web/WebHitTestResult.h \
     Window/NavigationToolBar.h \
-    Window/URLSuggestionWidget.h \
-    Window/URLSuggestionItemDelegate.h \
+    URLSuggestion/URLSuggestionWidget.h \
+    URLSuggestion/URLSuggestionItemDelegate.h \
     Network/BlockedSchemeHandler.h \
-    Window/URLSuggestionListModel.h \
-    Window/URLSuggestionWorker.h \
+    URLSuggestion/URLSuggestionListModel.h \
+    URLSuggestion/URLSuggestionWorker.h \
     Web/WebWidget.h \
     AdBlock/AdBlockButton.h
 
