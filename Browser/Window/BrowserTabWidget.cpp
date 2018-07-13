@@ -47,6 +47,8 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, FaviconSt
     m_mainWindow(qobject_cast<MainWindow*>(parent)),
     m_closedTabs()
 {
+    setObjectName(QLatin1String("tabWidget"));
+
     // Set tab bar
     setTabBar(m_tabBar);
 

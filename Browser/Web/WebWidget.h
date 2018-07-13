@@ -1,6 +1,7 @@
 #ifndef WEBWIDGET_H
 #define WEBWIDGET_H
 
+#include <QPointer>
 #include <QWidget>
 
 class MainWindow;
@@ -119,9 +120,6 @@ protected:
     /// Initializes the web view
     void setupView();
 
-    /// Handles the focus in event
-    void focusInEvent(QFocusEvent *event) override;
-
 private slots:
     /// Shows the context menu on the web page
     void showContextMenuForView();
@@ -138,6 +136,9 @@ private:
 
     /// Global and relative positions of the requested context menu from the active web view
     QPoint m_contextMenuPosGlobal, m_contextMenuPosRelative;
+
+    /// Pointer to the WebView's focus proxy
+    QPointer<QWidget> m_viewFocusProxy;
 };
 
 #endif // WEBWIDGET_H

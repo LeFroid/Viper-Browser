@@ -32,6 +32,7 @@ WebView::WebView(bool privateView, QWidget *parent) :
     m_jsCallbackResult()
 {
     setAcceptDrops(true);
+    setObjectName(QLatin1String("webView"));
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     if (privateView)
@@ -58,7 +59,7 @@ WebView::WebView(bool privateView, QWidget *parent) :
     });
 
     // Load context menu helper script for image URL detection
-    QFile contextScriptFile(":/ContextMenuHelper.js");
+    QFile contextScriptFile(QLatin1String(":/ContextMenuHelper.js"));
     if (contextScriptFile.open(QIODevice::ReadOnly))
     {
         m_contextMenuHelper = QString(contextScriptFile.readAll());
@@ -73,12 +74,12 @@ int WebView::getProgress() const
 
 void WebView::loadBlankPage()
 {
-    load(QUrl("viper://blank"));
+    load(QUrl(QLatin1String("viper://blank")));
 }
 
 bool WebView::isOnBlankPage() const
 {
-    return url() == QUrl("viper://blank");
+    return url() == QUrl(QLatin1String("viper://blank"));
 }
 
 QString WebView::getTitle() const

@@ -21,6 +21,7 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_activeWebView(nullptr),
     m_suggestionWidget(nullptr)
 {
+    setObjectName(QLatin1String("urlLineEdit"));
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     QFont lineEditFont = font();
@@ -111,10 +112,10 @@ void URLLineEdit::setURL(const QUrl &url)
 {
     setText(url.toString(QUrl::FullyEncoded));
 
+    const QString scheme = url.scheme();
     SecurityIcon secureIcon = SecurityIcon::Standard;
 
-    const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
-    if (isHttps)
+    if (scheme == QLatin1String("https") || scheme == QLatin1String("viper"));
         secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
 
     setSecurityIcon(secureIcon);

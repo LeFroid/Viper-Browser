@@ -43,6 +43,7 @@
 #include <QPrintPreviewDialog>
 #include <QPushButton>
 #include <QShortcut>
+#include <QTimer>
 #include <QtGlobal>
 #include <QToolButton>
 
@@ -243,9 +244,15 @@ void MainWindow::setupTabWidget()
     connect(m_tabWidget, &BrowserTabWidget::newTabCreated, this, &MainWindow::onNewTabCreated);
     connect(m_tabWidget, &BrowserTabWidget::loadProgress, [=](int progress) {
         if (progress > 0 && progress < 100)
+        {
             m_linkHoverLabel->setText(QString("%1% loaded...").arg(progress));
+            //ui->statusBar->show();
+        }
         else
+        {
             m_linkHoverLabel->setText(QString());
+            //ui->statusBar->hide();
+        }
     });
     ui->toolBar->bindWithTabWidget();
 
@@ -801,7 +808,23 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
 void MainWindow::onLinkHovered(const QUrl &url)
 {
-    m_linkHoverLabel->setText(url.toString());
+    const QString urlStr = url.toString();
+    m_linkHoverLabel->setText(urlStr);
+
+    /*
+    if (!urlStr.isEmpty())
+    {
+        QFontMetrics urlFMetrics(m_linkHoverLabel->font());
+        int urlWidth = urlFMetrics.width(urlStr);
+        ui->statusBar->setMaximumWidth(std::min(urlWidth + 6, width()));
+        ui->statusBar->show();
+    }
+    else
+    {
+        QTimer::singleShot(250, this, [this](){
+            ui->statusBar->hide();
+        });
+    }*/
 }
 
 void MainWindow::onSavePageTriggered()

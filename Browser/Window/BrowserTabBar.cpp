@@ -34,6 +34,7 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     setTabsClosable(true);
     setSelectionBehaviorOnRemove(QTabBar::SelectPreviousTab);
     setMovable(true);
+    setObjectName(QLatin1String("tabBar"));
     setUsesScrollButtons(false);
     setElideMode(Qt::ElideRight);
 

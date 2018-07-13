@@ -4,7 +4,6 @@
 #include "WebPage.h"
 #include "WebView.h"
 
-#include <QFocusEvent>
 #include <QIcon>
 #include <QTimer>
 #include <QUrl>
@@ -17,9 +16,10 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     m_mainWindow(nullptr),
     m_privateMode(privateMode),
     m_contextMenuPosGlobal(),
-    m_contextMenuPosRelative()
+    m_contextMenuPosRelative(),
+    m_viewFocusProxy(nullptr)
 {
-    setFocusPolicy(Qt::StrongFocus);
+    setObjectName(QLatin1String("webWidget"));
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
@@ -35,6 +35,7 @@ void WebWidget::setupView()
 
     connect(m_view, &WebView::iconChanged, this, &WebWidget::iconChanged);
     connect(m_view, &WebView::iconUrlChanged, this, &WebWidget::iconUrlChanged);
+    connect(m_view, &WebView::linkHovered, this, &WebWidget::linkHovered);
     connect(m_view, &WebView::loadFinished, this, &WebWidget::loadFinished);
     connect(m_view, &WebView::loadProgress, this, &WebWidget::loadProgress);
     connect(m_view, &WebView::openRequest, this, &WebWidget::openRequest);
@@ -54,14 +55,8 @@ void WebWidget::setupView()
     vLayout->setContentsMargins(0, 0, 0, 0);
     vLayout->addWidget(m_view);
     setLayout(vLayout);
-}
 
-void WebWidget::focusInEvent(QFocusEvent *event)
-{
-    QWidget::focusInEvent(event);
-
-    if (m_view)
-        m_view->setFocus();
+    setFocusProxy(m_view);
 }
 
 int WebWidget::getProgress() const
@@ -140,28 +135,30 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
     {
         case QEvent::ChildAdded:
         {
-            if (WebView *view = qobject_cast<WebView*>(watched))
+            if (watched == m_view)
             {
-                if (qobject_cast<MainWindow*>(view->window()) != m_mainWindow)
-                    return false;
-
-                QChildEvent *childAddedEvent = static_cast<QChildEvent*>(event);
-                if (QObject *child = childAddedEvent->child())
-                    child->installEventFilter(this);
+                QTimer::singleShot(0, this, [this](){
+                    if (m_view->focusProxy() && m_view->focusProxy() != m_viewFocusProxy)
+                    {
+                        m_viewFocusProxy = m_view->focusProxy();
+                        m_viewFocusProxy->installEventFilter(this);
+                    }
+                });
             }
             break;
         }
         case QEvent::ContextMenu:
         {
-            if (WebView *view = qobject_cast<WebView*>(watched))
+            if (watched == m_viewFocusProxy)
             {
-                if (qobject_cast<MainWindow*>(view->window()) != m_mainWindow)
-                    return false;
-
                 QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
                 m_contextMenuPosGlobal = contextMenuEvent->globalPos();
                 m_contextMenuPosRelative = contextMenuEvent->pos();
                 QTimer::singleShot(10, this, &WebWidget::showContextMenuForView);
+                return true;
+            }
+            else if (watched == this || watched == m_view)
+            {
                 return true;
             }
             break;
