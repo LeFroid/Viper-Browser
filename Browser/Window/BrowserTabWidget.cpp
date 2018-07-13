@@ -174,7 +174,7 @@ void BrowserTabWidget::saveTab(int index)
 
 void BrowserTabWidget::closeTab(int index)
 {
-    int numTabs = count();
+    const int numTabs = count();
     if (index < 0 || numTabs == 1 || index >= numTabs)
         return;
 
@@ -182,15 +182,13 @@ void BrowserTabWidget::closeTab(int index)
     WebWidget *ww = getWebWidget(index);
     emit tabClosing(ww);
 
-    //ww->deleteLater();
-
     // If closed tab was the active tab, set current to opposite direction of the last active tab (if possible)
     if (index == m_currentTabIndex)
     {
         if (index == 0)
             setCurrentIndex(1);
-        else if (index == count() - 1)
-            setCurrentIndex(count() - 2);
+        else if (index == numTabs - 1)
+            setCurrentIndex(numTabs - 2);
         else
         {
             int nextIndex = (m_lastTabIndex > index ? index - 1 : index + 1);
@@ -224,8 +222,6 @@ WebWidget *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int spe
 {
     WebWidget *ww = new WebWidget(m_privateBrowsing, this);
     ww->setupView();
-    //WebView *view = new WebView(m_privateBrowsing, m_mainWindow);
-    //view->installEventFilter(this);
 
     QString tabLabel;
     if (!skipHomePage)
@@ -253,11 +249,6 @@ WebWidget *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int spe
     connect(ww, &WebWidget::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(ww, &WebWidget::titleChanged,           this, &BrowserTabWidget::onTitleChanged);
     connect(ww, &WebWidget::closeRequest,           this, &BrowserTabWidget::onViewCloseRequested);
-    //connect(view, &WebWidget::fullScreenRequested, m_mainWindow, &MainWindow::onToggleFullScreen);
-
-    //connect(view, &WebView::loadStarted, [view](){
-    //    AdBlockManager::instance().loadStarted(view->url());
-    //});
 
     if (!m_privateBrowsing)
     {

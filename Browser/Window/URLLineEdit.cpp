@@ -115,7 +115,7 @@ void URLLineEdit::setURL(const QUrl &url)
     const QString scheme = url.scheme();
     SecurityIcon secureIcon = SecurityIcon::Standard;
 
-    if (scheme == QLatin1String("https") || scheme == QLatin1String("viper"));
+    if (scheme == QLatin1String("https") || scheme == QLatin1String("viper"))
         secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
 
     setSecurityIcon(secureIcon);

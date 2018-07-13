@@ -98,7 +98,7 @@ public slots:
     void duplicateTab(int index);
 
     /**
-     * @brief Creates a new tab, assigning a WebWidget as its associated widget.
+     * @brief Creates a new tab, assigning to it a WebWidget.
      * @param makeCurrent If true, the TabWidget's active tab will be switched to this new tab
      * @param skipHomePage If true, the home page will not be loaded.
      * @param specificIndex If the given index is >= 0, the tab will be inserted at that index
