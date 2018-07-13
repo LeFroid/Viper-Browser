@@ -35,7 +35,7 @@ signals:
     void loadBookmark(const QUrl &url);
 
     /// Emitted when the user requests to load a bookmark onto a new tab
-    void loadBookmarkNewTab(const QUrl &url, bool makeCurrent = false);
+    void loadBookmarkNewTab(const QUrl &url);
 
     /// Emitted when the user requests to load a bookmark onto a new tab
     void loadBookmarkNewWindow(const QUrl &url);

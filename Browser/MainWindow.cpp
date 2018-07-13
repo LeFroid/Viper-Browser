@@ -136,7 +136,7 @@ void MainWindow::loadUrl(const QUrl &url)
 
 void MainWindow::openLinkNewTab(const QUrl &url)
 {
-    m_tabWidget->openLinkInNewTab(url);
+    m_tabWidget->openLinkInNewBackgroundTab(url);
 }
 
 void MainWindow::openLinkNewWindow(const QUrl &url)
@@ -157,7 +157,7 @@ void MainWindow::setupBookmarks()
     ui->bookmarkBar->setFaviconStore(m_faviconStore);
     ui->bookmarkBar->setBookmarkManager(m_bookmarkManager);
     connect(ui->bookmarkBar, &BookmarkBar::loadBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
-    connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
+    connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewBackgroundTab);
     connect(ui->bookmarkBar, &BookmarkBar::loadBookmarkNewWindow, [=](const QUrl &url){
         m_tabWidget->openLinkInNewWindow(url, m_privateWindow);
     });
@@ -167,7 +167,7 @@ void MainWindow::setupMenuBar()
 {
     // File menu slots
     connect(ui->actionNew_Tab, &QAction::triggered, [=](bool){
-        m_tabWidget->newTab();
+        m_tabWidget->newBackgroundTab();
     });
     connect(ui->actionNew_Window,         &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewWindow);
     connect(ui->actionNew_Private_Window, &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewPrivateWindow);
@@ -257,7 +257,7 @@ void MainWindow::setupTabWidget()
     ui->toolBar->bindWithTabWidget();
 
     // Add first tab
-    m_tabWidget->newTab(true);
+    static_cast<void>(m_tabWidget->newTab());
 }
 
 void MainWindow::setupStatusBar()
@@ -584,11 +584,11 @@ void MainWindow::onShowAllHistory()
 
     // Attach signals to current browser window
     disconnect(histWidget, &HistoryWidget::openLink, m_tabWidget, &BrowserTabWidget::loadUrl);
-    disconnect(histWidget, &HistoryWidget::openLinkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
+    disconnect(histWidget, &HistoryWidget::openLinkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewBackgroundTab);
     disconnect(histWidget, &HistoryWidget::openLinkNewWindow, this, &MainWindow::openLinkNewWindow);
 
     connect(histWidget, &HistoryWidget::openLink, m_tabWidget, &BrowserTabWidget::loadUrl);
-    connect(histWidget, &HistoryWidget::openLinkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
+    connect(histWidget, &HistoryWidget::openLinkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewBackgroundTab);
     connect(histWidget, &HistoryWidget::openLinkNewWindow, this, &MainWindow::openLinkNewWindow);
 
     histWidget->show();
@@ -610,7 +610,7 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
             //inspectorView->setContextMenuPolicy(Qt::CustomContextMenu);
             connect(inspectorView, &WebView::openRequest, this, &MainWindow::openLinkNewTab);
-            connect(inspectorView, &WebView::openInNewTabRequest, this, &MainWindow::openLinkNewTab);
+            connect(inspectorView, &WebView::openInNewTab, this, &MainWindow::openLinkNewTab);
 #endif
         }
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
@@ -742,11 +742,6 @@ void MainWindow::onClickBookmarkIcon()
         // Set position of add bookmark dialog to align just under the URL bar on the right side
         m_bookmarkDialog->alignAndShow(frameGeometry(), ui->toolBar->frameGeometry(), ui->toolBar->getURLWidget()->frameGeometry());
     }
-}
-
-WebView *MainWindow::getNewTabWebView(bool makeCurrent)
-{
-    return m_tabWidget->newTab(makeCurrent)->view();
 }
 
 BrowserTabWidget *MainWindow::getTabWidget() const

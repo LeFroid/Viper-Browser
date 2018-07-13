@@ -314,7 +314,7 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
             else
             {
                 int tabOffset = (m_externalDropInfo.Location == DropIndicatorLocation::Right) ? 1 : 0;
-                WebWidget *ww = tabWidget->newTab(false, true, newTabIndex + tabOffset);
+                WebWidget *ww = tabWidget->newBackgroundTabAtIndex(newTabIndex + tabOffset);
                 ww->load(url);
 
                 newTabIndex += tabOffset;

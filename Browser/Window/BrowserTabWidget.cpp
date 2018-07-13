@@ -61,7 +61,7 @@ BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, FaviconSt
     connect(this, &BrowserTabWidget::currentChanged, this, &BrowserTabWidget::onCurrentChanged);
 
     connect(m_tabBar, &BrowserTabBar::duplicateTabRequest, this, &BrowserTabWidget::duplicateTab);
-    connect(m_tabBar, &BrowserTabBar::newTabRequest, [=](){ newTab(); });
+    connect(m_tabBar, &BrowserTabBar::newTabRequest, [=](){ newBackgroundTab(); });
     connect(m_tabBar, &BrowserTabBar::reloadTabRequest, [=](int index){
         if (WebWidget *view = getWebWidget(index))
             view->reload();
@@ -151,7 +151,7 @@ void BrowserTabWidget::reopenLastTab()
         return;
 
     auto &tabInfo = m_closedTabs.front();
-    WebWidget *ww = newTab(false, false, tabInfo.index);
+    WebWidget *ww = newBackgroundTabAtIndex(tabInfo.index);
     ww->load(tabInfo.url);
     QDataStream historyStream(&tabInfo.pageHistory, QIODevice::ReadWrite);
     historyStream >> *(ww->history());
@@ -215,37 +215,21 @@ void BrowserTabWidget::closeCurrentTab()
 void BrowserTabWidget::duplicateTab(int index)
 {
     if (WebWidget *ww = getWebWidget(index))
-        openLinkInNewTab(ww->url(), false);
+        openLinkInNewBackgroundTab(ww->url());
 }
 
-WebWidget *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int specificIndex)
+WebWidget *BrowserTabWidget::createWebWidget()
 {
     WebWidget *ww = new WebWidget(m_privateBrowsing, this);
     ww->setupView();
-
-    QString tabLabel;
-    if (!skipHomePage)
-    {
-        auto newTabPage = m_settings->getValue(BrowserSetting::NewTabsLoadHomePage).toBool() ? HomePage : BlankPage;
-        switch (newTabPage)
-        {
-            case HomePage:
-                ww->load(QUrl::fromUserInput(m_settings->getValue(BrowserSetting::HomePage).toString()));
-                tabLabel = tr("Home Page");
-                break;
-            case BlankPage:
-                ww->loadBlankPage();
-                tabLabel = tr("New Tab");
-                break;
-        }
-    }
 
     // Connect web view signals to functionalty
     connect(ww, &WebWidget::iconChanged,            this, &BrowserTabWidget::onIconChanged);
     connect(ww, &WebWidget::loadFinished,           this, &BrowserTabWidget::resetHistoryButtonMenus);
     connect(ww, &WebWidget::loadProgress,           this, &BrowserTabWidget::onLoadProgress);
     connect(ww, &WebWidget::openRequest,            this, &BrowserTabWidget::loadUrl);
-    connect(ww, &WebWidget::openInNewTabRequest,    this, &BrowserTabWidget::openLinkInNewTab);
+    connect(ww, &WebWidget::openInNewTab,           this, &BrowserTabWidget::openLinkInNewTab);
+    connect(ww, &WebWidget::openInNewBackgroundTab, this, &BrowserTabWidget::openLinkInNewBackgroundTab);
     connect(ww, &WebWidget::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(ww, &WebWidget::titleChanged,           this, &BrowserTabWidget::onTitleChanged);
     connect(ww, &WebWidget::closeRequest,           this, &BrowserTabWidget::onViewCloseRequested);
@@ -257,34 +241,77 @@ WebWidget *BrowserTabWidget::newTab(bool makeCurrent, bool skipHomePage, int spe
         });
     }
 
-    if (specificIndex >= 0)
+    auto newTabPage = m_settings->getValue(BrowserSetting::NewTabsLoadHomePage).toBool() ? HomePage : BlankPage;
+    switch (newTabPage)
     {
-        if (specificIndex > count())
-            specificIndex = count();
+        case HomePage:
+            ww->load(QUrl::fromUserInput(m_settings->getValue(BrowserSetting::HomePage).toString()));
+            break;
+        case BlankPage:
+            ww->loadBlankPage();
+            break;
+    }
 
-        specificIndex = insertTab(specificIndex, ww, tabLabel);
-        if (specificIndex < m_nextTabIndex)
+    return ww;
+}
+
+WebWidget *BrowserTabWidget::newTab()
+{
+    return newTabAtIndex(m_nextTabIndex);
+}
+
+WebWidget *BrowserTabWidget::newTabAtIndex(int index)
+{
+    WebWidget *ww = createWebWidget();
+
+    if (index >= 0)
+    {
+        if (index > count())
+            index = count();
+
+        index = insertTab(index, ww, QLatin1String("New Tab"));
+        if (index < m_nextTabIndex)
             ++m_nextTabIndex;
     }
     else
-        m_nextTabIndex = insertTab(m_nextTabIndex, ww, tabLabel) + 1;
+        m_nextTabIndex = insertTab(m_nextTabIndex, ww, QLatin1String("New Tab")) + 1;
 
-    if (makeCurrent)
-    {
-        m_activeView = ww;
-        setCurrentWidget(ww);
-    }
-    else
-    {
-        ww->resize(currentWidget()->size());
-        ww->show();
-    }
+    m_activeView = ww;
+    setCurrentWidget(ww);
 
     if (count() == 1)
     {
         m_activeView = ww;
         emit currentChanged(currentIndex());
     }
+
+    emit newTabCreated(ww);
+    return ww;
+}
+
+WebWidget *BrowserTabWidget::newBackgroundTab()
+{
+    return newBackgroundTabAtIndex(m_nextTabIndex);
+}
+
+WebWidget *BrowserTabWidget::newBackgroundTabAtIndex(int index)
+{
+    WebWidget *ww = createWebWidget();
+
+    if (index >= 0)
+    {
+        if (index > count())
+            index = count();
+
+        index = insertTab(index, ww, QLatin1String("New Tab"));
+        if (index < m_nextTabIndex)
+            ++m_nextTabIndex;
+    }
+    else
+        m_nextTabIndex = insertTab(m_nextTabIndex, ww, QLatin1String("New Tab")) + 1;
+
+    ww->resize(currentWidget()->size());
+    ww->show();
 
     emit newTabCreated(ww);
     return ww;
@@ -305,10 +332,15 @@ void BrowserTabWidget::onIconChanged()
 }
 
 
-void BrowserTabWidget::openLinkInNewTab(const QUrl &url, bool makeCurrent)
+void BrowserTabWidget::openLinkInNewTab(const QUrl &url)
 {
-    // Create view, load home page, add view to tab widget
-    WebWidget *ww = newTab(makeCurrent, true);
+    WebWidget *ww = newTab();
+    ww->load(url);
+}
+
+void BrowserTabWidget::openLinkInNewBackgroundTab(const QUrl &url)
+{
+    WebWidget *ww = newBackgroundTab();
     ww->load(url);
 }
 

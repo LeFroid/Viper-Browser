@@ -152,7 +152,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     if (!linkUrl.isEmpty())
     {
         menu.addAction(tr("Open link in new tab"), [=](){
-            emit openInNewTabRequest(linkUrl);
+            emit openInNewBackgroundTab(linkUrl);
         });
         menu.addAction(tr("Open link in new window"), [=](){
             emit openInNewWindowRequest(linkUrl, m_privateView);
@@ -166,7 +166,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     if (mediaType == WebHitTestResult::MediaTypeImage)
     {
         menu.addAction(tr("Open image in new tab"), [=](){
-            emit openInNewTabRequest(contextMenuData.mediaUrl());
+            emit openInNewBackgroundTab(contextMenuData.mediaUrl());
         });
         menu.addAction(tr("Open image"), [=](){
             emit openRequest(contextMenuData.mediaUrl());
@@ -230,16 +230,19 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         // Search for current selection menu option
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
         menu.addAction(tr("Search %1 for selected text").arg(searchMgr->getDefaultSearchEngine()), [=](){
+            QString textArg = text;
+            textArg.replace(QLatin1Char(' '), QLatin1Char('+'));
+
             QString searchUrl = searchMgr->getQueryString(searchMgr->getDefaultSearchEngine());
-            searchUrl.replace("=%s", QString("=%1").arg(text));
-            emit openInNewTabRequest(QUrl::fromUserInput(searchUrl));
+            searchUrl.replace("=%s", QString("=%1").arg(textArg));
+            emit openInNewBackgroundTab(QUrl::fromUserInput(searchUrl));
         });
 
         QUrl selectionUrl = QUrl::fromUserInput(text);
         if (selectionUrl.isValid() && !selectionUrl.topLevelDomain().isEmpty())
         {
             menu.addAction(tr("Go to %1").arg(text), [=](){
-                emit openInNewTabRequest(selectionUrl, true);
+                emit openInNewTab(selectionUrl);
             });
         }
 
@@ -317,8 +320,13 @@ QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
             const bool switchToNewTab = (type == QWebEnginePage::WebBrowserTab
                                          && !sBrowserApplication->getSettings()->getValue(BrowserSetting::OpenAllTabsInBackground).toBool());
 
-            if (MainWindow *mw = dynamic_cast<MainWindow*>(obj))
-                return mw->getNewTabWebView(switchToNewTab);
+            if (MainWindow *mw = qobject_cast<MainWindow*>(obj))
+            {
+                if (switchToNewTab)
+                    return mw->getTabWidget()->newTab()->view();
+
+                return mw->getTabWidget()->newBackgroundTab()->view();
+            }
             break;
         }
         case QWebEnginePage::WebDialog:     // Open a web dialog

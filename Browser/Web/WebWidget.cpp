@@ -39,7 +39,8 @@ void WebWidget::setupView()
     connect(m_view, &WebView::loadFinished, this, &WebWidget::loadFinished);
     connect(m_view, &WebView::loadProgress, this, &WebWidget::loadProgress);
     connect(m_view, &WebView::openRequest, this, &WebWidget::openRequest);
-    connect(m_view, &WebView::openInNewTabRequest, this, &WebWidget::openInNewTabRequest);
+    connect(m_view, &WebView::openInNewTab, this, &WebWidget::openInNewTab);
+    connect(m_view, &WebView::openInNewBackgroundTab, this, &WebWidget::openInNewBackgroundTab);
     connect(m_view, &WebView::openInNewWindowRequest, this, &WebWidget::openInNewWindowRequest);
     connect(m_view, &WebView::titleChanged, this, &WebWidget::titleChanged);
     connect(m_view, &WebView::viewCloseRequested, this, &WebWidget::closeRequest);

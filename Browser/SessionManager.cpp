@@ -129,6 +129,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
 
         QJsonObject winObject = winIt->toObject();
         QJsonArray tabArray = winObject.value("tabs").toArray();
+        int i = 1;
         for (auto tabIt = tabArray.constBegin(); tabIt != tabArray.constEnd(); ++tabIt)
         {
             if (tabIt->isString())
@@ -137,7 +138,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
             {
                 QJsonObject tabInfoObj = tabIt->toObject();
 
-                WebWidget *ww = tabWidget->newTab();
+                WebWidget *ww = tabWidget->newBackgroundTabAtIndex(i++);
                 ww->load(QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString()));
 
                 tabWidget->setTabPinned(tabWidget->indexOf(ww),

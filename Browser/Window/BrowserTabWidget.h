@@ -98,19 +98,36 @@ public slots:
     void duplicateTab(int index);
 
     /**
-     * @brief Creates a new tab, assigning to it a WebWidget.
-     * @param makeCurrent If true, the TabWidget's active tab will be switched to this new tab
-     * @param skipHomePage If true, the home page will not be loaded.
-     * @param specificIndex If the given index is >= 0, the tab will be inserted at that index
+     * @brief Creates a new tab, assigning to it a \ref WebWidget.
      * @return A pointer to the tab's WebWidget
      */
-    WebWidget *newTab(bool makeCurrent = false, bool skipHomePage = false, int specificIndex = -1);
+    WebWidget *newTab();
+
+    /**
+     * @brief Creates a new tab with a \ref WebWidget at the given index
+     * @param index The index at which, if valid, the tab will be inserted.
+     * @return A pointer to the tab's WebWidget
+     */
+    WebWidget *newTabAtIndex(int index);
+
+    /// Creates a new tab in the background, returning a pointer to its \ref WebWidget
+    WebWidget *newBackgroundTab();
+
+    /**
+     * @brief Creates a new tab in the background, with a \ref WebWidget at the given index
+     * @param index The index at which, if valid, the tab will be inserted.
+     * @return A pointer to the tab's WebWidget
+     */
+    WebWidget *newBackgroundTabAtIndex(int index);
 
     /// Called when the icon for a web view has changed
     void onIconChanged();
 
     /// Spawns a new browser tab, loading the given URL
-    void openLinkInNewTab(const QUrl &url, bool makeCurrent = false);
+    void openLinkInNewTab(const QUrl &url);
+
+    /// Spawns a new browser tab in the background, loading the given URL
+    void openLinkInNewBackgroundTab(const QUrl &url);
 
     /// Opens the given link in a new browser window, and sets the window to private mode if requested
     void openLinkInNewWindow(const QUrl &url, bool privateWindow);
@@ -147,6 +164,10 @@ private slots:
     void resetHistoryButtonMenus(bool ok);
 
 private:
+    /// Creates a new \ref WebWidget, binding its signals to the appropriate handlers, setting up properties of the widget, etc.
+    /// and returning a pointer to the widget. Used during creation of a new tab
+    WebWidget *createWebWidget();
+
     /// Saves the tab at the given index before closing it
     void saveTab(int index);
 

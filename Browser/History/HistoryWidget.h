@@ -49,7 +49,7 @@ signals:
     void openLink(const QUrl &url);
 
     /// Emitted when the user requests to open the given link in a new browser tab
-    void openLinkNewTab(const QUrl &url, bool makeCurrent = false);
+    void openLinkNewTab(const QUrl &url);
 
     /// Emitted when the user requests to open the given link in a new browser window
     void openLinkNewWindow(const QUrl &url);

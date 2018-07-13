@@ -195,14 +195,6 @@ private slots:
     /// Called by the "Save Page As..." file menu option - spawns a save file dialog and passes the save event to the appropriate handler
     void onSavePageTriggered();
 
-protected slots:
-    /**
-     * @brief Called by a \ref WebView when it is requested that some content be opened in a new tab.
-     * @param makeCurrent If true, the tab widget will switch its active tab to the newly created view.
-     * @return A pointer to the new WebView.
-     */
-    WebView *getNewTabWebView(bool makeCurrent);
-
 protected:
     /// Returns a pointer to the tab widget. Used by \ref SessionManager to save the browsing session
     BrowserTabWidget *getTabWidget() const;
