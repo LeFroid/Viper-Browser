@@ -6,7 +6,7 @@
 
 QT       += core concurrent gui sql printsupport
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets webenginewidgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += quickwidgets widgets webenginewidgets
 
 TARGET = viper-browser
 TEMPLATE = app

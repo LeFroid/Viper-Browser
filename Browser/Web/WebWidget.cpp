@@ -143,6 +143,8 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                     {
                         m_viewFocusProxy = m_view->focusProxy();
                         m_viewFocusProxy->installEventFilter(this);
+
+                        m_view->setViewFocusProxy(m_viewFocusProxy);
                     }
                 });
             }
@@ -157,6 +159,23 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                 m_contextMenuPosRelative = contextMenuEvent->pos();
                 QTimer::singleShot(10, this, &WebWidget::showContextMenuForView);
                 return true;
+            }
+            break;
+        }
+        case QEvent::Wheel:
+        {
+            if (watched == m_viewFocusProxy)
+            {
+                QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
+
+                const bool wasAccepted =  event->isAccepted();
+                event->setAccepted(false);
+
+                m_view->_wheelEvent(wheelEvent);
+
+                const bool isAccepted = wheelEvent->isAccepted();
+                event->setAccepted(wasAccepted);
+                return isAccepted;
             }
             else if (watched == this || watched == m_view)
             {

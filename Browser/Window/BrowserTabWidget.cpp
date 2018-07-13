@@ -270,7 +270,7 @@ WebWidget *BrowserTabWidget::newTabAtIndex(int index)
             index = count();
 
         index = insertTab(index, ww, QLatin1String("New Tab"));
-        if (index < m_nextTabIndex)
+        if (index <= m_nextTabIndex)
             ++m_nextTabIndex;
     }
     else
@@ -304,7 +304,7 @@ WebWidget *BrowserTabWidget::newBackgroundTabAtIndex(int index)
             index = count();
 
         index = insertTab(index, ww, QLatin1String("New Tab"));
-        if (index < m_nextTabIndex)
+        if (index <= m_nextTabIndex)
             ++m_nextTabIndex;
     }
     else

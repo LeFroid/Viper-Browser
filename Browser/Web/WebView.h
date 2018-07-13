@@ -1,6 +1,7 @@
 #ifndef WEBVIEW_H
 #define WEBVIEW_H
 
+#include <QPointer>
 #include <QWebEngineContextMenuData>
 #include <QWebEngineFullScreenRequest>
 #include <QWebEngineView>
@@ -15,6 +16,8 @@ class QMenu;
  */
 class WebView : public QWebEngineView
 {
+    friend class WebWidget;
+
     Q_OBJECT
 
 public:
@@ -44,6 +47,9 @@ public:
     /// Loads the specified url and displays it
     void load(const QUrl &url);
 
+    /// Returns a pointer to the renderer widget
+    QWidget *getViewFocusProxy();
+
 public slots:
     /// Resets the zoom factor to its base value
     void resetZoom();
@@ -54,28 +60,35 @@ public slots:
     /// Decreases the zoom factor of the view by 10% of the base value
     void zoomOut();
 
-    /// Displays the context menu at the given position
-    void showContextMenu(const QPoint &globalPos, const QPoint &relativePos);
-
 private slots:
     /// Called when the page has requested fullscreen mode
     void onFullScreenRequested(QWebEngineFullScreenRequest request);
 
 protected:
+    /// Sets the pointer to the render focus widget
+    void setViewFocusProxy(QWidget *w);
+
+protected:
     /// Event handler for context menu displays
-    virtual void contextMenuEvent(QContextMenuEvent *event) override;
+    void showContextMenu(const QPoint &globalPos, const QPoint &relativePos);
+
+    /// Does nothing
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
     /// Called to hide the link ref label when the wheel is moved
-    virtual void wheelEvent(QWheelEvent *event) override;
+    void _wheelEvent(QWheelEvent *event);
 
     /// Creates a new popup window on request
     QWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override;
 
     /// Handles drag events
-    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
 
     /// Handles drop events
-    virtual void dropEvent(QDropEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+
+    /// Handles resize events
+    void resizeEvent(QResizeEvent *event) override;
 
 protected:
     /// returns the context menu helper script source, with the template parameters
@@ -122,6 +135,9 @@ private:
 
     /// Stores the result of an asynchronous javascript callback
     QVariant m_jsCallbackResult;
+
+    /// Pointer to the WebView's focus proxy
+    QPointer<QWidget> m_viewFocusProxy;
 };
 
 #endif // WEBVIEW_H

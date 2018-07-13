@@ -11,6 +11,8 @@
 #include <QWebEngineContextMenuData>
 #include <QWebEngineProfile>
 #include <QWheelEvent>
+#include <QVBoxLayout>
+#include <QQuickWidget>
 
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
@@ -29,7 +31,8 @@ WebView::WebView(bool privateView, QWidget *parent) :
     m_progress(0),
     m_privateView(privateView),
     m_contextMenuHelper(),
-    m_jsCallbackResult()
+    m_jsCallbackResult(),
+    m_viewFocusProxy(nullptr)
 {
     setAcceptDrops(true);
     setObjectName(QLatin1String("webView"));
@@ -65,6 +68,12 @@ WebView::WebView(bool privateView, QWidget *parent) :
         m_contextMenuHelper = QString(contextScriptFile.readAll());
         contextScriptFile.close();
     }
+
+    QLayout *l = layout();
+    delete l;
+    QVBoxLayout *vboxLayout = new QVBoxLayout(this);
+    vboxLayout->setContentsMargins(0, 0, 0, 0);
+    setLayout(vboxLayout);
 }
 
 int WebView::getProgress() const
@@ -111,6 +120,24 @@ void WebView::load(const QUrl &url)
         return;
 
     QWebEngineView::load(url);
+}
+
+QWidget *WebView::getViewFocusProxy()
+{
+    if (!m_viewFocusProxy.isNull())
+        return m_viewFocusProxy;
+
+    if (focusProxy() != nullptr)
+        return focusProxy();
+
+    QList<QQuickWidget*> children = findChildren<QQuickWidget*>();
+    for (int i = children.size() - 1; i >= 0; --i)
+    {
+        QQuickWidget *w = children.at(i);
+        if (w && w->isVisible())
+            return w;
+    }
+    return nullptr;
 }
 
 void WebView::resetZoom()
@@ -266,7 +293,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     menu.exec(globalPos);
 }
 
-void WebView::contextMenuEvent(QContextMenuEvent */*event*/)
+void WebView::contextMenuEvent(QContextMenuEvent * /*event*/)
 {
 }
 
@@ -276,7 +303,12 @@ void WebView::onFullScreenRequested(QWebEngineFullScreenRequest request)
     request.accept();
 }
 
-void WebView::wheelEvent(QWheelEvent *event)
+void WebView::setViewFocusProxy(QWidget *w)
+{
+    m_viewFocusProxy = w;
+}
+
+void WebView::_wheelEvent(QWheelEvent *event)
 {
     auto keyModifiers = QApplication::keyboardModifiers();
     if (keyModifiers & Qt::ControlModifier)
@@ -362,3 +394,8 @@ void WebView::dropEvent(QDropEvent *event)
     QWebEngineView::dropEvent(event);
 }
 
+void WebView::resizeEvent(QResizeEvent * /*event*/)
+{
+    if (QWidget *viewFocusProxy = getViewFocusProxy())
+        viewFocusProxy->setGeometry(rect());
+}

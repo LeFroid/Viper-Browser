@@ -181,7 +181,7 @@ void NavigationToolBar::onLoadProgress(int value)
         m_stopRefresh->setToolTip(tr("Reload the page"));
     }
 
-    m_adBlockButton->updateCount();
+    //m_adBlockButton->updateCount();
 }
 
 void NavigationToolBar::onURLInputEntered()
