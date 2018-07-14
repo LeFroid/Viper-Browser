@@ -95,6 +95,9 @@ signals:
     /// Emitted when the inspector should be shown
     void inspectElement();
 
+    /// Emitted when a link is hovered over by the user
+    void linkHovered(const QString &url);
+
     /// Emitted when the current page has finished loading. If parameter 'ok' is true, the load was successful.
     void loadFinished(bool ok);
 
@@ -112,9 +115,6 @@ signals:
 
     /// Called when the user requests to open a link in a new browser window
     void openInNewWindowRequest(const QUrl &url, bool privateWindow);
-
-    /// Emitted when a link is hovered over by the user
-    void linkHovered(const QUrl &url);
 
     /// Emitted when the title of the current page has changed to the given string
     void titleChanged(const QString &title);

@@ -311,6 +311,7 @@ WebWidget *BrowserTabWidget::newBackgroundTabAtIndex(int index)
         m_nextTabIndex = insertTab(m_nextTabIndex, ww, QLatin1String("New Tab")) + 1;
 
     ww->resize(currentWidget()->size());
+    ww->view()->resize(ww->size());
     ww->show();
 
     emit newTabCreated(ww);

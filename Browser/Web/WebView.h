@@ -50,6 +50,9 @@ public:
     /// Returns a pointer to the renderer widget
     QWidget *getViewFocusProxy();
 
+    /// Returns a pointer to the \ref WebPage
+    WebPage *getPage() const;
+
 public slots:
     /// Resets the zoom factor to its base value
     void resetZoom();
@@ -65,6 +68,9 @@ private slots:
     void onFullScreenRequested(QWebEngineFullScreenRequest request);
 
 protected:
+    /// Initializes the view's \ref WebPage
+    void setupPage();
+
     /// Sets the pointer to the render focus widget
     void setViewFocusProxy(QWidget *w);
 
@@ -110,12 +116,6 @@ signals:
 
     /// Called when the user requests to inspect an element
     void inspectElement();
-
-    /// Emitted when a link is hovered over by the user
-    void linkHovered(const QUrl &url);
-
-    /// Emitted when the view's page requests to be closed
-    void viewCloseRequested();
 
     /// Emitted when the page of the view has requested full screen to be enabled if on is true, or disabled if on is false
     void fullScreenRequested(bool on);

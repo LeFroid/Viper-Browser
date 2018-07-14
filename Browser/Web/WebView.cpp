@@ -38,29 +38,6 @@ WebView::WebView(bool privateView, QWidget *parent) :
     setObjectName(QLatin1String("webView"));
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
-    if (privateView)
-    {
-        auto profile = sBrowserApplication->getPrivateBrowsingProfile();
-        m_page = new WebPage(profile, this); 
-    }
-    else
-        m_page = new WebPage(this);
-
-    setPage(m_page);
-
-    // Setup link hover signal
-    connect(m_page, &WebPage::linkHovered, this, &WebView::linkHovered);
-
-    // Emit a viewCloseRequested signal when the page emits windowCloseRequested
-    connect(m_page, &WebPage::windowCloseRequested, this, &WebView::viewCloseRequested);
-
-    // Handle full screen requests
-    connect(m_page, &WebPage::fullScreenRequested, this, &WebView::onFullScreenRequested);
-
-    connect(this, &WebView::loadProgress, [=](int value){
-       m_progress = value;
-    });
-
     // Load context menu helper script for image URL detection
     QFile contextScriptFile(QLatin1String(":/ContextMenuHelper.js"));
     if (contextScriptFile.open(QIODevice::ReadOnly))
@@ -68,12 +45,6 @@ WebView::WebView(bool privateView, QWidget *parent) :
         m_contextMenuHelper = QString(contextScriptFile.readAll());
         contextScriptFile.close();
     }
-
-    QLayout *l = layout();
-    delete l;
-    QVBoxLayout *vboxLayout = new QVBoxLayout(this);
-    vboxLayout->setContentsMargins(0, 0, 0, 0);
-    setLayout(vboxLayout);
 }
 
 int WebView::getProgress() const
@@ -138,6 +109,31 @@ QWidget *WebView::getViewFocusProxy()
             return w;
     }
     return nullptr;
+}
+
+WebPage *WebView::getPage() const
+{
+    return m_page;
+}
+
+void WebView::setupPage()
+{
+    if (m_page != nullptr)
+        return;
+
+    QWebEngineProfile *profile = m_privateView ? sBrowserApplication->getPrivateBrowsingProfile() : QWebEngineProfile::defaultProfile();
+
+    m_page = new WebPage(profile);
+    m_page->setParent(this);
+
+    QWebEngineView::setPage(m_page);
+
+    // Handle full screen requests
+    connect(m_page, &WebPage::fullScreenRequested, this, &WebView::onFullScreenRequested);
+
+    connect(this, &WebView::loadProgress, [=](int value){
+       m_progress = value;
+    });
 }
 
 void WebView::resetZoom()
@@ -329,7 +325,8 @@ void WebView::_wheelEvent(QWheelEvent *event)
             return;
         }
     }
-    QWebEngineView::wheelEvent(event);
+
+    //QWebEngineView::wheelEvent(event);
 }
 
 QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)

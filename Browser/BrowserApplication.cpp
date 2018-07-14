@@ -36,6 +36,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QCoreApplication::setApplicationName(QLatin1String("Viper Browser"));
     QCoreApplication::setApplicationVersion(QLatin1String("0.7"));
 
+    setAttribute(Qt::AA_EnableHighDpiScaling, true);
     setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
@@ -239,9 +240,10 @@ MainWindow *BrowserApplication::getNewWindow()
     MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), m_faviconStorage.get(), false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
-    //connect(w, &MainWindow::destroyed, [this, w](){
-    //    m_browserWindows.removeOne(w);
-    //});
+    connect(w, &MainWindow::destroyed, [this, w](){
+        if (m_browserWindows.contains(w))
+            m_browserWindows.removeOne(w);
+    });
 
     w->show();
 
@@ -273,9 +275,10 @@ MainWindow *BrowserApplication::getNewPrivateWindow()
 {
     MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), m_faviconStorage.get(), true);
     m_browserWindows.append(w);
-    //connect(w, &MainWindow::destroyed, [this, w](){
-    //    m_browserWindows.removeOne(w);
-    //});
+    connect(w, &MainWindow::destroyed, [this, w](){
+        if (m_browserWindows.contains(w))
+            m_browserWindows.removeOne(w);
+    });
 
     w->show();
     return w;

@@ -31,24 +31,28 @@ void WebWidget::setupView()
     m_mainWindow = qobject_cast<MainWindow*>(window());
 
     m_view = new WebView(m_privateMode, this);
+    m_view->setupPage();
     m_view->installEventFilter(this);
 
-    connect(m_view, &WebView::iconChanged, this, &WebWidget::iconChanged);
-    connect(m_view, &WebView::iconUrlChanged, this, &WebWidget::iconUrlChanged);
-    connect(m_view, &WebView::linkHovered, this, &WebWidget::linkHovered);
+    WebPage *page = m_view->getPage();
+
+    connect(page, &WebPage::iconChanged,          this, &WebWidget::iconChanged);
+    connect(page, &WebPage::iconUrlChanged,       this, &WebWidget::iconUrlChanged);
+    connect(page, &WebPage::linkHovered,          this, &WebWidget::linkHovered);
+    connect(page, &WebPage::titleChanged,         this, &WebWidget::titleChanged);
+    connect(page, &WebPage::windowCloseRequested, this, &WebWidget::closeRequest);
+
+    connect(page, &WebPage::loadStarted, [=](){
+        AdBlockManager::instance().loadStarted(m_view->url());
+    });
+
     connect(m_view, &WebView::loadFinished, this, &WebWidget::loadFinished);
     connect(m_view, &WebView::loadProgress, this, &WebWidget::loadProgress);
     connect(m_view, &WebView::openRequest, this, &WebWidget::openRequest);
     connect(m_view, &WebView::openInNewTab, this, &WebWidget::openInNewTab);
     connect(m_view, &WebView::openInNewBackgroundTab, this, &WebWidget::openInNewBackgroundTab);
     connect(m_view, &WebView::openInNewWindowRequest, this, &WebWidget::openInNewWindowRequest);
-    connect(m_view, &WebView::titleChanged, this, &WebWidget::titleChanged);
-    connect(m_view, &WebView::viewCloseRequested, this, &WebWidget::closeRequest);
     connect(m_view, &WebView::inspectElement, this, &WebWidget::inspectElement);
-
-    connect(m_view, &WebView::loadStarted, [=](){
-        AdBlockManager::instance().loadStarted(m_view->url());
-    });
 
     connect(m_view, &WebView::fullScreenRequested, m_mainWindow, &MainWindow::onToggleFullScreen);
 

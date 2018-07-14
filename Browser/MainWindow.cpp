@@ -801,10 +801,9 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     ui->bookmarkBar->setMaximumWidth(winWidth);
 }
 
-void MainWindow::onLinkHovered(const QUrl &url)
+void MainWindow::onLinkHovered(const QString &url)
 {
-    const QString urlStr = url.toString();
-    m_linkHoverLabel->setText(urlStr);
+    m_linkHoverLabel->setText(url);
 
     /*
     if (!urlStr.isEmpty())

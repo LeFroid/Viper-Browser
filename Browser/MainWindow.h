@@ -190,7 +190,7 @@ private slots:
     void printTabContents();
 
     /// Called when a link is hovered by the user
-    void onLinkHovered(const QUrl &url);
+    void onLinkHovered(const QString &url);
 
     /// Called by the "Save Page As..." file menu option - spawns a save file dialog and passes the save event to the appropriate handler
     void onSavePageTriggered();
