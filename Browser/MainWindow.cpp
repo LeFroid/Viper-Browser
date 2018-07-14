@@ -625,7 +625,7 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
     });
     connect(ww, &WebWidget::linkHovered, this, &MainWindow::onLinkHovered);
 
-    if (WebPage *page = dynamic_cast<WebPage*>(ww->page()))
+    if (WebPage *page = ww->page())
     {
         connect(page, &WebPage::printPageRequest, this, &MainWindow::printTabContents);
     }
@@ -706,7 +706,7 @@ void MainWindow::printTabContents()
     if (!page)
     {
         if (WebWidget *currentView = m_tabWidget->currentWebWidget())
-            page = qobject_cast<WebPage*>(currentView->page());
+            page = currentView->page();
     }
     if (!page)
         return;
