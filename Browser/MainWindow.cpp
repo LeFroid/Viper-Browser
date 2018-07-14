@@ -599,10 +599,11 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
     // Connect signals to slots for UI updates (page title, icon changes)
     connect(ww, &WebWidget::loadFinished, this, &MainWindow::onLoadFinished);
     connect(ww, &WebWidget::inspectElement, [=]() {
-        WebView *inspectorView = dynamic_cast<WebView*>(ui->dockWidget->widget());
+        WebView *inspectorView = qobject_cast<WebView*>(ui->dockWidget->widget());
         if (!inspectorView)
         {
             inspectorView = new WebView(ui->dockWidget);
+            inspectorView->setupPage();
             inspectorView->setObjectName(QLatin1String("inspectorView"));
             inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
             inspectorView->setContextMenuPolicy(Qt::NoContextMenu);
@@ -614,7 +615,7 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
 #endif
         }
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-        WebPage *inspectorPage = dynamic_cast<WebPage*>(inspectorView->page());
+        WebPage *inspectorPage = inspectorView->getPage();
         inspectorPage->setInspectedPage(ww->page());
 #else
         QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue(BrowserSetting::InspectorPort).toString());

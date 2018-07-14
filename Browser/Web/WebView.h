@@ -16,6 +16,7 @@ class QMenu;
  */
 class WebView : public QWebEngineView
 {
+    friend class MainWindow;
     friend class WebWidget;
 
     Q_OBJECT

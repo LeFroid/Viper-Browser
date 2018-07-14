@@ -121,7 +121,7 @@ QUrl WebWidget::url() const
 
 WebPage *WebWidget::page() const
 {
-    return qobject_cast<WebPage*>(m_view->page());
+    return m_view->getPage();
 }
 
 WebView *WebWidget::view() const
