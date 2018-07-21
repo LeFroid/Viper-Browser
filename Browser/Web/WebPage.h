@@ -9,6 +9,11 @@
 #include <QWebEnginePage>
 #include <QtWebEngineCoreVersion>
 
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+#include <QWebEngineQuotaRequest>
+#include <QWebEngineRegisterProtocolHandlerRequest>
+#endif
+
 class QWebEngineProfile;
 
 /**
@@ -61,6 +66,14 @@ private slots:
 
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    /// Called when a page requests larger persistent storage than the application's current allocation in File System API.
+    void onQuotaRequested(QWebEngineQuotaRequest quotaRequest);
+
+    /// Called when a page tries to register a custom protocol using the registerProtocolHandler API
+    void onRegisterProtocolHandlerRequested(QWebEngineRegisterProtocolHandlerRequest request);
+#endif
 
     /// Handler for render process termination
     void onRenderProcessTerminated(RenderProcessTerminationStatus terminationStatus, int exitCode);

@@ -56,9 +56,6 @@ private:
     /// Sets the icon for the download's file type
     void setIconForItem(const QString &fileName);
 
-    /// Converts the given value in bytes to a user-friendly string. Ex: 1048576 -> 1 MB
-    QString getUserByteString(qint64 value) const;
-
 private:
     /// User interface
     Ui::DownloadItem *ui;

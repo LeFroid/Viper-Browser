@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "CommonUtil.h"
 #include "DownloadItem.h"
 #include "ui_downloaditem.h"
 #include "DownloadManager.h"
@@ -97,14 +98,14 @@ void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     ui->progressBarDownload->setValue(downloadPct);
 
     // Update download file size label
-    ui->labelDownloadSize->setText(QString("%1 of %2").arg(getUserByteString(bytesReceived)).arg(getUserByteString(bytesTotal)));
+    ui->labelDownloadSize->setText(QString("%1 of %2").arg(CommonUtil::bytesToUserFriendlyStr(bytesReceived)).arg(CommonUtil::bytesToUserFriendlyStr(bytesTotal)));
 }
 
 void DownloadItem::onFinished()
 {
     ui->progressBarDownload->setValue(100);
     ui->progressBarDownload->setDisabled(true);
-    ui->labelDownloadSize->setText(getUserByteString(m_bytesReceived));
+    ui->labelDownloadSize->setText(CommonUtil::bytesToUserFriendlyStr(m_bytesReceived));
     ui->pushButtonOpenFolder->show();
 }
 
@@ -114,7 +115,7 @@ void DownloadItem::onStateChanged(QWebEngineDownloadItem::DownloadState state)
     {
         ui->progressBarDownload->setValue(0);
         ui->progressBarDownload->setDisabled(true);
-        ui->labelDownloadSize->setText(QString("Cancelled - %1 downloaded").arg(getUserByteString(m_bytesReceived)));
+        ui->labelDownloadSize->setText(QString("Cancelled - %1 downloaded").arg(CommonUtil::bytesToUserFriendlyStr(m_bytesReceived)));
     }
     else if (state == QWebEngineDownloadItem::DownloadInterrupted)
     {
@@ -128,42 +129,4 @@ void DownloadItem::openDownloadFolder()
 {
     QString folderUrlStr = QString("file://%1").arg(m_downloadDir);
     static_cast<void>(QDesktopServices::openUrl(QUrl(folderUrlStr, QUrl::TolerantMode)));
-}
-
-QString DownloadItem::getUserByteString(qint64 value) const
-{
-    QString userStr;
-    double valDiv = value;
-
-    if (value >= 1099511627776)
-    {
-        // >= 1 TB
-        valDiv /= 1099511627776;
-        userStr = QString::number(valDiv, 'f', 2) + " TB";
-    }
-    else if (value >= 1073741824)
-    {
-        // >= 1 GB
-        valDiv /= 1073741824;
-        userStr = QString::number(valDiv, 'f', 2) + " GB";
-    }
-    else if (value >= 1048576)
-    {
-        // >= 1 MB
-        valDiv /= 1048576;
-        userStr = QString::number(valDiv, 'f', 2) + " MB";
-    }
-    else if (value > 1024)
-    {
-        // >= 1 KB
-        valDiv /= 1024;
-        userStr = QString::number(valDiv, 'f', 2) + " KB";
-    }
-    else
-    {
-        // < 1 KB
-        return QString::number(value) + " bytes";
-    }
-
-    return userStr;
 }

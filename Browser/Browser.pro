@@ -134,7 +134,8 @@ SOURCES += \
     URLSuggestion/URLSuggestionListModel.cpp \
     URLSuggestion/URLSuggestionWorker.cpp \
     Web/WebWidget.cpp \
-    AdBlock/AdBlockButton.cpp
+    AdBlock/AdBlockButton.cpp \
+    CommonUtil.cpp
 
 HEADERS += \
     TreeNode.h \
@@ -224,7 +225,8 @@ HEADERS += \
     URLSuggestion/URLSuggestionListModel.h \
     URLSuggestion/URLSuggestionWorker.h \
     Web/WebWidget.h \
-    AdBlock/AdBlockButton.h
+    AdBlock/AdBlockButton.h \
+    CommonUtil.h
 
 FORMS += \
     Cookies/cookiewidget.ui \
