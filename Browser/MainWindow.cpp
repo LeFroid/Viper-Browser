@@ -29,6 +29,7 @@
 #include <functional>
 #include <QActionGroup>
 #include <QCloseEvent>
+#include <QDesktopWidget>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -81,6 +82,9 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
 
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");
+
+    const int screenWidth = sBrowserApplication->desktop()->screenGeometry().width();
+    setMaximumWidth(screenWidth);
 
     setupStatusBar();
     setupTabWidget();
@@ -798,13 +802,19 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     QMainWindow::resizeEvent(event);
 
     const int winWidth = event->size().width();
-    m_tabWidget->setMaximumWidth(winWidth);
+    //m_tabWidget->setMaximumWidth(winWidth);
     ui->bookmarkBar->setMaximumWidth(winWidth);
 }
 
 void MainWindow::onLinkHovered(const QString &url)
 {
-    m_linkHoverLabel->setText(url);
+    if (!url.isEmpty())
+    {
+        QFontMetrics urlFontMetrics(m_linkHoverLabel->font());
+        m_linkHoverLabel->setText(urlFontMetrics.elidedText(url, Qt::ElideRight, std::max(ui->statusBar->width() - 12, 0)));
+    }
+    else
+        m_linkHoverLabel->setText(url);
 
     /*
     if (!urlStr.isEmpty())

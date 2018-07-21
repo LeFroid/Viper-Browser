@@ -119,10 +119,6 @@ signals:
     /// Emitted when the title of the current page has changed to the given string
     void titleChanged(const QString &title);
 
-protected:
-    /// Initializes the web view
-    void setupView();
-
 private slots:
     /// Shows the context menu on the web page
     void showContextMenuForView();

@@ -9,7 +9,7 @@
 #include "WebWidget.h"
 
 #include <algorithm>
-#include <QDesktopWidget>
+//#include <QDesktopWidget>
 #include <QMenu>
 #include <QTimer>
 #include <QWebEngineHistory>
@@ -93,7 +93,7 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
             break;
         }
 
-        case QEvent::Resize:
+        /*case QEvent::Resize:
         {
             if (m_mainWindow != watched)
                 break;
@@ -113,7 +113,7 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
             });
 
             break;
-        }
+        }*/
         case QEvent::KeyPress:
         {
             if (m_mainWindow && m_mainWindow->isFullScreen())
@@ -222,7 +222,11 @@ void BrowserTabWidget::duplicateTab(int index)
 WebWidget *BrowserTabWidget::createWebWidget()
 {
     WebWidget *ww = new WebWidget(m_privateBrowsing, this);
-    ww->setupView();
+    if (m_mainWindow)
+    {
+        ww->setMaximumWidth(m_mainWindow->maximumWidth());
+        ww->view()->setMaximumWidth(m_mainWindow->maximumWidth());
+    }
 
     // Connect web view signals to functionalty
     connect(ww, &WebWidget::iconChanged,            this, &BrowserTabWidget::onIconChanged);

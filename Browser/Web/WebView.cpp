@@ -108,7 +108,7 @@ QWidget *WebView::getViewFocusProxy()
         if (w && w->isVisible())
             return w;
     }
-    return nullptr;
+    return this;
 }
 
 WebPage *WebView::getPage() const

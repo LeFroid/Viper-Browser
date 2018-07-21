@@ -20,13 +20,6 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     m_viewFocusProxy(nullptr)
 {
     setObjectName(QLatin1String("webWidget"));
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-}
-
-void WebWidget::setupView()
-{
-    if (m_view != nullptr)
-        return;
 
     m_mainWindow = qobject_cast<MainWindow*>(window());
 
@@ -58,6 +51,7 @@ void WebWidget::setupView()
 
     QVBoxLayout *vLayout = new QVBoxLayout(this);
     vLayout->setContentsMargins(0, 0, 0, 0);
+    vLayout->setSpacing(0);
     vLayout->addWidget(m_view);
     setLayout(vLayout);
 
