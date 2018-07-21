@@ -150,6 +150,16 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
 
                         m_view->setViewFocusProxy(m_viewFocusProxy);
                     }
+                    else
+                    {
+                        QWidget *w = m_view->getViewFocusProxy();
+                        if (w && w != m_viewFocusProxy)
+                        {
+                            m_viewFocusProxy = w;
+                            m_viewFocusProxy->installEventFilter(this);
+                            m_view->setViewFocusProxy(m_viewFocusProxy);
+                        }
+                    }
                 });
             }
             break;

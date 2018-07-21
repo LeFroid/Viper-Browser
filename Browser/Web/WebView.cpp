@@ -168,19 +168,19 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
 
     const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
 
-    QMenu menu;
+    QMenu *menu = new QMenu(this);
 
     // Link menu options
     const auto linkUrl = contextMenuData.linkUrl();
     if (!linkUrl.isEmpty())
     {
-        menu.addAction(tr("Open link in new tab"), [=](){
+        menu->addAction(tr("Open link in new tab"), [=](){
             emit openInNewBackgroundTab(linkUrl);
         });
-        menu.addAction(tr("Open link in new window"), [=](){
+        menu->addAction(tr("Open link in new window"), [=](){
             emit openInNewWindowRequest(linkUrl, m_privateView);
         });
-        menu.addSeparator();
+        menu->addSeparator();
     }
 
     auto mediaType = contextMenuData.mediaType();
@@ -188,38 +188,38 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     // Image menu options
     if (mediaType == WebHitTestResult::MediaTypeImage)
     {
-        menu.addAction(tr("Open image in new tab"), [=](){
+        menu->addAction(tr("Open image in new tab"), [=](){
             emit openInNewBackgroundTab(contextMenuData.mediaUrl());
         });
-        menu.addAction(tr("Open image"), [=](){
+        menu->addAction(tr("Open image"), [=](){
             emit openRequest(contextMenuData.mediaUrl());
         });
-        menu.addSeparator();
+        menu->addSeparator();
 
         QAction *a = pageAction(WebPage::DownloadImageToDisk);
 
         // Set text to 'save image as...' if setting is to always ask where to save
         if (askWhereToSave)
             a->setText(tr("Save image as..."));
-        menu.addAction(a);
+        menu->addAction(a);
 
-        menu.addAction(pageAction(WebPage::CopyImageToClipboard));
-        menu.addAction(pageAction(WebPage::CopyImageUrlToClipboard));
+        menu->addAction(pageAction(WebPage::CopyImageToClipboard));
+        menu->addAction(pageAction(WebPage::CopyImageUrlToClipboard));
 
-        menu.addSeparator();
+        menu->addSeparator();
     }
     else if (mediaType == WebHitTestResult::MediaTypeVideo
              || mediaType == WebHitTestResult::MediaTypeAudio)
     {
-        menu.addAction(pageAction(WebPage::ToggleMediaPlayPause));
-        menu.addAction(pageAction(WebPage::ToggleMediaMute));
-        menu.addAction(pageAction(WebPage::ToggleMediaLoop));
-        menu.addAction(pageAction(WebPage::ToggleMediaControls));
-        menu.addSeparator();
+        menu->addAction(pageAction(WebPage::ToggleMediaPlayPause));
+        menu->addAction(pageAction(WebPage::ToggleMediaMute));
+        menu->addAction(pageAction(WebPage::ToggleMediaLoop));
+        menu->addAction(pageAction(WebPage::ToggleMediaControls));
+        menu->addSeparator();
 
-        menu.addAction(pageAction(WebPage::DownloadMediaToDisk));
-        menu.addAction(pageAction(WebPage::CopyMediaUrlToClipboard));
-        menu.addSeparator();
+        menu->addAction(pageAction(WebPage::DownloadMediaToDisk));
+        menu->addAction(pageAction(WebPage::CopyMediaUrlToClipboard));
+        menu->addSeparator();
     }
 
     // Link menu options continued
@@ -228,10 +228,10 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         QAction *a = pageAction(WebPage::DownloadLinkToDisk);
         if (askWhereToSave)
             a->setText(tr("Save link as..."));
-        menu.addAction(a);
+        menu->addAction(a);
 
-        menu.addAction(pageAction(WebPage::CopyLinkToClipboard));
-        menu.addSeparator();
+        menu->addAction(pageAction(WebPage::CopyLinkToClipboard));
+        menu->addSeparator();
     }
 
     // Text selection options
@@ -241,18 +241,18 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
 
         const bool isEditable = contextMenuData.isContentEditable();
         if (isEditable)
-            menu.addAction(pageAction(WebPage::Cut));
-        menu.addAction(pageAction(WebPage::Copy));
+            menu->addAction(pageAction(WebPage::Cut));
+        menu->addAction(pageAction(WebPage::Copy));
         if (isEditable)
         {
             QClipboard *clipboard = sBrowserApplication->clipboard();
             if (!clipboard->text(QClipboard::Clipboard).isEmpty())
-                menu.addAction(pageAction(WebPage::Paste));
+                menu->addAction(pageAction(WebPage::Paste));
         }
 
         // Search for current selection menu option
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
-        menu.addAction(tr("Search %1 for selected text").arg(searchMgr->getDefaultSearchEngine()), [=](){
+        menu->addAction(tr("Search %1 for selected text").arg(searchMgr->getDefaultSearchEngine()), [=](){
             QString textArg = text;
             textArg.replace(QLatin1Char(' '), QLatin1Char('+'));
 
@@ -264,12 +264,12 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         QUrl selectionUrl = QUrl::fromUserInput(text);
         if (selectionUrl.isValid() && !selectionUrl.topLevelDomain().isEmpty())
         {
-            menu.addAction(tr("Go to %1").arg(text), [=](){
+            menu->addAction(tr("Go to %1").arg(text), [=](){
                 emit openInNewTab(selectionUrl);
             });
         }
 
-        menu.addSeparator();
+        menu->addSeparator();
     }
 
     // Default menu options
@@ -277,16 +277,18 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
             && contextMenuData.selectedText().isEmpty()
             && contextMenuData.mediaType() == WebHitTestResult::MediaTypeNone)
     {
-        menu.addAction(pageAction(WebPage::Back));
-        menu.addAction(pageAction(WebPage::Forward));
-        menu.addAction(pageAction(WebPage::Reload));
-        menu.addSeparator();
+        menu->addAction(pageAction(WebPage::Back));
+        menu->addAction(pageAction(WebPage::Forward));
+        menu->addAction(pageAction(WebPage::Reload));
+        menu->addSeparator();
     }
 
     // Web inspector
-    menu.addAction(tr("Inspect element"), this, &WebView::inspectElement);
+    menu->addAction(tr("Inspect element"), this, &WebView::inspectElement);
 
-    menu.exec(globalPos);
+    connect(menu, &QMenu::triggered, menu, &QMenu::deleteLater);
+
+    menu->exec(globalPos);
 }
 
 void WebView::contextMenuEvent(QContextMenuEvent * /*event*/)

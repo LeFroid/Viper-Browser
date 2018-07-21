@@ -332,7 +332,7 @@ void HistoryManager::load()
             {
                 QDateTime date = QDateTime::fromMSecsSinceEpoch(query.value(idDate).toULongLong());
                 it->Visits.prepend(date);
-                m_recentItems.push_front(*it);
+                m_recentItems.push_back(*it);
             }
         }
     }

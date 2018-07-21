@@ -20,11 +20,12 @@
 
 #define BT_BUF_SIZE 100
 
-void handleCrash(int signum)
+void _handleCrash(int s)
 {
-    if (signum != SIGSEGV)
+    std::cout << "handleCrash (1)\n";
+    if (s != SIGSEGV)
         return;
-
+    std::cout << "handleCrash (2)\n";
     void *buffer[BT_BUF_SIZE];
 
     int nptrs = backtrace(buffer, BT_BUF_SIZE);
@@ -73,7 +74,7 @@ void handleCrash(int signum)
 int main(int argc, char *argv[])
 {
 #ifdef Q_OS_LINUX
-    signal(SIGSEGV, handleCrash);
+    signal(SIGSEGV, _handleCrash);
 #endif
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))

@@ -85,7 +85,10 @@ void BookmarkDialog::onRemoveBookmark()
 void BookmarkDialog::saveAndClose()
 {
     if (m_currentUrl.isEmpty())
+    {
+        close();
         return;
+    }   
 
 	QFuture<void> f = QtConcurrent::run([this]() {
 		// Remove bookmark and re-add it with current name, url and parent folder values
