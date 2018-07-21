@@ -2,6 +2,8 @@
 #include "ui_BookmarkDialog.h"
 #include "BookmarkNode.h"
 
+#include <QtConcurrent>
+#include <QFuture>
 #include <QQueue>
 
 BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
@@ -85,9 +87,11 @@ void BookmarkDialog::saveAndClose()
     if (m_currentUrl.isEmpty())
         return;
 
-    // Remove bookmark and re-add it with current name, url and parent folder values
-    m_bookmarkManager->removeBookmark(m_currentUrl);
-    BookmarkNode *parentNode = (BookmarkNode*) ui->comboBoxFolder->currentData().value<void*>();
-    m_bookmarkManager->appendBookmark(ui->lineEditName->text(), m_currentUrl, parentNode);
+	QFuture<void> f = QtConcurrent::run([this]() {
+		// Remove bookmark and re-add it with current name, url and parent folder values
+		m_bookmarkManager->removeBookmark(m_currentUrl);
+		BookmarkNode *parentNode = (BookmarkNode*)ui->comboBoxFolder->currentData().value<void*>();
+		m_bookmarkManager->appendBookmark(ui->lineEditName->text(), m_currentUrl, parentNode);
+	});
     close();
 }
