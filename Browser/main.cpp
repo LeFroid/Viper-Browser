@@ -6,6 +6,11 @@
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
 
+#ifndef Q_OS_WIN
+#include <stdio.h>
+#include <stdlib.h>
+#endif
+
 #ifdef Q_OS_LINUX
 
 #include <QDateTime>
@@ -71,8 +76,40 @@ void _handleCrash(int s)
 
 #endif
 
+#ifndef Q_OS_WIN
+
+// from http://doc.qt.io/qt-5/qtglobal.html
+void viperQtMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QByteArray localMsg = msg.toLocal8Bit();
+    switch (type)
+    {
+        case QtDebugMsg:
+            fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+            break;
+        case QtInfoMsg:
+            fprintf(stderr, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+            break;
+        case QtWarningMsg:
+            fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+            break;
+        case QtCriticalMsg:
+            fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+            break;
+        case QtFatalMsg:
+            fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
+            abort();
+    }
+}
+
+#endif
+
 int main(int argc, char *argv[])
 {
+#ifndef Q_OS_WIN
+    qInstallMessageHandler(&viperQtMessageHandler);
+#endif
+
 #ifdef Q_OS_LINUX
     signal(SIGSEGV, _handleCrash);
 #endif
