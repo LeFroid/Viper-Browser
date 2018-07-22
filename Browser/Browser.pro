@@ -135,7 +135,8 @@ SOURCES += \
     URLSuggestion/URLSuggestionWorker.cpp \
     Web/WebWidget.cpp \
     AdBlock/AdBlockButton.cpp \
-    CommonUtil.cpp
+    CommonUtil.cpp \
+    Network/AuthDialog.cpp
 
 HEADERS += \
     TreeNode.h \
@@ -226,7 +227,8 @@ HEADERS += \
     URLSuggestion/URLSuggestionWorker.h \
     Web/WebWidget.h \
     AdBlock/AdBlockButton.h \
-    CommonUtil.h
+    CommonUtil.h \
+    Network/AuthDialog.h
 
 FORMS += \
     Cookies/cookiewidget.ui \
@@ -256,6 +258,7 @@ FORMS += \
     Widgets/BookmarkDialog.ui \
     Preferences/PrivacyTab.ui \
     Preferences/ExemptThirdPartyCookieDialog.ui \
-    MainWindow.ui
+    MainWindow.ui \
+    Network/AuthDialog.ui
 
 include(Browser.pri)

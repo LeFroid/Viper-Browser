@@ -55,6 +55,12 @@ protected:
     bool certificateError(const QWebEngineCertificateError &certificateError) override;
 
 private slots:
+    /// Opens an authentication dialog when requested by the given URL
+    void onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator);
+
+    /// Opens a proxy authentication dialog when requested by the given URL for the proxy host
+    void onProxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator, const QString &proxyHost);
+
     /// Handles the feature permission request signal
     void onFeaturePermissionRequested(const QUrl &securityOrigin, Feature feature);
 
