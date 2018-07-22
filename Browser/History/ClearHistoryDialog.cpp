@@ -2,6 +2,7 @@
 #include "ui_clearhistorydialog.h"
 
 #include <QStringList>
+#include <QStyle>
 
 ClearHistoryDialog::ClearHistoryDialog(QWidget *parent) :
     QDialog(parent),

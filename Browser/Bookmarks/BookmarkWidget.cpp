@@ -15,6 +15,7 @@
 #include <QMenu>
 #include <QRegExp>
 #include <QResizeEvent>
+#include <QStyle>
 #include <QDebug>
 
 BookmarkWidget::BookmarkWidget(QWidget *parent) :

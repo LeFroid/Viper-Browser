@@ -153,13 +153,18 @@ void BookmarkManager::removeBookmark(const QString &url)
 
     for (BookmarkNode *node : m_nodeList)
     {
+        if (node->m_type != BookmarkNode::Bookmark || node->m_url.size() != url.size())
+            continue;
+
         // Bookmark URLs are unique, once match is found, remove bookmark and return
         if (node->m_url.compare(url) == 0)
         {
             if (!removeBookmarkFromDB(node))
                 qDebug() << "Could not remove bookmark from DB";
+
             if (BookmarkNode *parent = node->getParent())
                 parent->removeNode(node);
+
             onBookmarksChanged();
             return;
         }

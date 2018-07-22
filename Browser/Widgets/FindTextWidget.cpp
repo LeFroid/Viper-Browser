@@ -4,10 +4,10 @@
 
 #include <QPaintEvent>
 #include <QPlainTextEdit>
+#include <QStyle>
 #include <QTextCharFormat>
 #include <QTextCursor>
 #include <QTextDocument>
-//#include <QWebFrame>
 
 FindTextWidget::FindTextWidget(QWidget *parent) :
     QWidget(parent),
