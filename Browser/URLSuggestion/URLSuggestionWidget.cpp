@@ -82,6 +82,11 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
             // Handle key codes
             switch (key)
             {
+                case Qt::Key_Escape:
+                {
+                    close();
+                    return true;
+                }
                 case Qt::Key_End:
                 case Qt::Key_Home:
                     if (keyEvent->modifiers() & Qt::ControlModifier)
@@ -191,7 +196,11 @@ void URLSuggestionWidget::suggestForInput(const QString &text)
         m_model->setSuggestions(std::vector<URLSuggestion>());
         return;
     }
+
     m_worker->findSuggestionsFor(text);
+
+    if (!isVisible() && m_lineEdit != nullptr)
+        alignAndShow(m_lineEdit->mapToGlobal(m_lineEdit->pos()), m_lineEdit->frameGeometry());
 }
 
 void URLSuggestionWidget::setURLLineEdit(URLLineEdit *lineEdit)
