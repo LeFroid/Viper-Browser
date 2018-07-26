@@ -26,6 +26,7 @@ class BookmarkWidget;
 class BrowserTabWidget;
 class ClearHistoryDialog;
 class FaviconStorage;
+class HttpRequest;
 class Preferences;
 class SearchEngineLineEdit;
 class URLLineEdit;
@@ -105,6 +106,9 @@ public slots:
 
     /// Attempts to load the URL into the active tab
     void loadUrl(const QUrl &url);
+
+    /// Loads the HTTP request into the active web widget
+    void loadHttpRequest(const HttpRequest &request);
 
     /// Attempts to load the URL into a new browsing tab
     void openLinkNewTab(const QUrl &url);

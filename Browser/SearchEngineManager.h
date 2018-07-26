@@ -6,6 +6,19 @@
 #include <QObject>
 #include <QString>
 
+/// Contains HTTP request information about a search engine
+struct SearchEngine
+{
+    /// Query string used in GET search operations
+    QString QueryString;
+
+    /// URL used for POST search operations
+    QUrl PostUrl;
+
+    /// POST data template sent to the POST URL
+    QString PostTemplate;
+};
+
 /**
  * @class SearchEngineManager
  * @brief Handles search engine data used by the \ref SearchEngineLineEdit widget
@@ -31,6 +44,9 @@ public:
 
     /// Returns a list of the names of all search engines stored by the search engine manager
     QList<QString> getSearchEngineNames() const;
+
+    /// Returns the \ref SearchEngine associated with the given name
+    SearchEngine getSearchEngineInfo(const QString &name) const;
 
     /// Returns the query string associated with the given search engine, or a null string if not found
     QString getQueryString(const QString &searchEngine) const;
@@ -75,8 +91,8 @@ private:
     /// Name of the default search engine
     QString m_defaultEngine;
 
-    /// Hashmap of search engines, where key = user friendly name of the engine, and value = the search URL
-    QHash<QString, QString> m_searchEngines;
+    /// Hashmap of search engines, where key = name of the engine, and value = the search URL
+    QHash<QString, SearchEngine> m_searchEngines;
 };
 
 #endif // SEARCHENGINEMANAGER_H

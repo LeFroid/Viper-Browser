@@ -14,6 +14,7 @@
 #include "ClearHistoryDialog.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
+#include "HttpRequest.h"
 #include "HTMLHighlighter.h"
 #include "Preferences.h"
 #include "SecurityManager.h"
@@ -136,6 +137,11 @@ void MainWindow::loadBlankPage()
 void MainWindow::loadUrl(const QUrl &url)
 {
     m_tabWidget->loadUrl(url);
+}
+
+void MainWindow::loadHttpRequest(const HttpRequest &request)
+{
+    m_tabWidget->currentWebWidget()->load(request);
 }
 
 void MainWindow::openLinkNewTab(const QUrl &url)

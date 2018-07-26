@@ -1,7 +1,7 @@
 #include "BrowserApplication.h"
 #include "FaviconStorage.h"
+#include "HttpRequest.h"
 #include "SearchEngineLineEdit.h"
-#include "SearchEngineManager.h"
 
 #include <QMenu>
 #include <QResizeEvent>
@@ -40,11 +40,26 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
         if (term.isNull() || term.isEmpty())
             return;
 
-        //term.replace(QLatin1String("+"), QLatin1String("%2B"));
+        if (!m_currentEngine.PostUrl.isEmpty())
+        {
+            HttpRequest request(m_currentEngine.PostUrl, HttpRequestMethod::POST);
+            request.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        QString searchUrl = m_currentEngineQuery;
-        searchUrl.replace(QLatin1String("=%s"), QString("=%1").arg(term));
-        emit requestPageLoad(QUrl::fromUserInput(searchUrl));
+            QString termPercentEncoded = QUrl::toPercentEncoding(term);
+            QString postData = m_currentEngine.PostTemplate;
+            postData.replace(QLatin1String("=%s"), QString("=%1").arg(termPercentEncoded));
+
+            request.setPostData(postData.toUtf8());
+
+            emit requestPageLoadPost(request);
+        }
+        else
+        {
+            term.replace(QLatin1String("+"), QLatin1String("%2B"));
+            QString searchUrl = m_currentEngine.QueryString;
+            searchUrl.replace(QLatin1String("=%s"), QString("=%1").arg(term));
+            emit requestPageLoad(QUrl::fromUserInput(searchUrl));
+        }
     });
 
     // Connect search engine manager's signals for search engines being added or removed to appropriate slots
@@ -82,13 +97,21 @@ void SearchEngineLineEdit::loadSearchEngines()
 
 void SearchEngineLineEdit::setSearchEngine(const QString &name)
 {
+    SearchEngine engine = SearchEngineManager::instance().getSearchEngineInfo(name);
+    if (!engine.QueryString.isNull())
+    {
+        m_currentEngineName = name;
+        m_currentEngine = engine;
+        setPlaceholderText(tr("Search %1").arg(name));
+    }
+    /*
     QString engineQueryStr = SearchEngineManager::instance().getQueryString(name);
     if (!engineQueryStr.isNull())
     {
         m_currentEngineName = name;
         m_currentEngineQuery = engineQueryStr;
         setPlaceholderText(tr("Search %1").arg(name));
-    }
+    }*/
 }
 
 void SearchEngineLineEdit::addSearchEngine(const QString &name)

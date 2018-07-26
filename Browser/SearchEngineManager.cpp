@@ -6,6 +6,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QUrl>
 
 SearchEngineManager::SearchEngineManager(QObject *parent) :
     QObject(parent),
@@ -53,11 +54,20 @@ QList<QString> SearchEngineManager::getSearchEngineNames() const
     return m_searchEngines.keys();
 }
 
+SearchEngine SearchEngineManager::getSearchEngineInfo(const QString &name) const
+{
+    auto it = m_searchEngines.find(name);
+    if (it != m_searchEngines.end())
+        return it.value();
+
+    return SearchEngine();
+}
+
 QString SearchEngineManager::getQueryString(const QString &searchEngine) const
 {
     auto it = m_searchEngines.find(searchEngine);
     if (it != m_searchEngines.end())
-        return it.value();
+        return it.value().QueryString;
 
     return QString();
 }
@@ -70,12 +80,16 @@ void SearchEngineManager::addSearchEngine(const QString &name, const QString &qu
     // Check if already in collection, if so, then simply update query string associated with name
     if (m_searchEngines.contains(name))
     {
-        m_searchEngines[name] = query;
+        SearchEngine &engine = m_searchEngines[name];
+        engine.QueryString = query;
+
         m_shouldSave = true;
         return;
     }
 
-    m_searchEngines.insert(name, query);
+    SearchEngine engine;
+    engine.QueryString = query;
+    m_searchEngines.insert(name, engine);
     m_shouldSave = true;
     emit engineAdded(name);
 }
@@ -129,12 +143,20 @@ void SearchEngineManager::loadSearchEngines(const QString &fileName)
      *     ]
      * }
      */
-    QJsonArray engineArray = engineObj.value("Engines").toArray();
+    QJsonArray engineArray = engineObj.value(QLatin1String("Engines")).toArray();
     QJsonObject currentEngine;
     for (auto it = engineArray.begin(); it != engineArray.end(); ++it)
     {
         currentEngine = it->toObject();
-        m_searchEngines.insert(currentEngine.value("Name").toString(), currentEngine.value("Query").toString());
+
+        SearchEngine engine;
+        engine.QueryString = currentEngine.value(QLatin1String("Query")).toString();
+        if (currentEngine.contains(QLatin1String("PostURL")))
+            engine.PostUrl = QUrl::fromUserInput(currentEngine.value(QLatin1String("PostURL")).toString());
+        if (currentEngine.contains(QLatin1String("PostTemplate")))
+            engine.PostTemplate = currentEngine.value(QLatin1String("PostTemplate")).toString();
+
+        m_searchEngines.insert(currentEngine.value(QLatin1String("Name")).toString(), engine);
     }
 
     // Set search engine to the default value
@@ -158,14 +180,20 @@ void SearchEngineManager::save()
     QJsonArray engineArray;
     for (auto it = m_searchEngines.begin(); it != m_searchEngines.end(); ++it)
     {
+        const SearchEngine &engine = it.value();
+
         QJsonObject currentEngine;
-        currentEngine.insert("Name", it.key());
-        currentEngine.insert("Query", it.value());
+        currentEngine.insert(QLatin1String("Name"), it.key());
+        currentEngine.insert(QLatin1String("Query"), engine.QueryString);
+        if (!engine.PostUrl.isEmpty())
+            currentEngine.insert(QLatin1String("PostURL"), engine.PostUrl.toString(QUrl::FullyEncoded));
+        if (!engine.PostTemplate.isEmpty())
+            currentEngine.insert(QLatin1String("PostTemplate"), engine.PostTemplate);
 
         engineArray.append(QJsonValue(currentEngine));
     }
 
-    searchObj.insert("Engines", QJsonValue(engineArray));
+    searchObj.insert(QLatin1String("Engines"), QJsonValue(engineArray));
 
     // Format root object as a document, and write to the file
     QJsonDocument searchDoc(searchObj);

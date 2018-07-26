@@ -11,6 +11,8 @@
         },
         {
             "Name": "StartPage",
+            "PostURL": "https://www.startpage.com/do/search",
+            "PostTemplate": "language=english&cat=web&query=%s",
             "Query": "https://www.startpage.com/do/dsearch?query=%s&cat=web&pl=opensearch&language=english"
         }
     ]

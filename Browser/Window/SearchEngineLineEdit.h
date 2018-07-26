@@ -1,10 +1,13 @@
 #ifndef SEARCHENGINELINEEDIT_H
 #define SEARCHENGINELINEEDIT_H
 
+#include "SearchEngineManager.h"
+
 #include <QHash>
 #include <QLineEdit>
 #include <QUrl>
 
+class HttpRequest;
 class QMenu;
 class QToolButton;
 
@@ -24,6 +27,9 @@ public:
 signals:
     /// Emitted when the user enters a search term and the current browser tab should load the given URL
     void requestPageLoad(const QUrl &url);
+
+    /// Emitted when the user enters a search term and the current browser tab should load the given POST request
+    void requestPageLoadPost(const HttpRequest &request);
 
 private slots:
     /// Sets the current search engine to the engine that is mapped to the given name
@@ -62,6 +68,9 @@ private:
 
     /// Query string of the current search engine
     QString m_currentEngineQuery;
+
+    /// Current search engine
+    SearchEngine m_currentEngine;
 };
 
 #endif // SEARCHENGINELINEEDIT_H
