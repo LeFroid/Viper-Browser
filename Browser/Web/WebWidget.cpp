@@ -1,4 +1,5 @@
 #include "AdBlockManager.h"
+#include "HttpRequest.h"
 #include "MainWindow.h"
 #include "WebWidget.h"
 #include "WebPage.h"
@@ -17,7 +18,8 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     m_privateMode(privateMode),
     m_contextMenuPosGlobal(),
     m_contextMenuPosRelative(),
-    m_viewFocusProxy(nullptr)
+    m_viewFocusProxy(nullptr),
+    m_hibernating(false)
 {
     setObjectName(QLatin1String("webWidget"));
 
@@ -68,6 +70,11 @@ void WebWidget::loadBlankPage()
     m_view->loadBlankPage();
 }
 
+bool WebWidget::isHibernating() const
+{
+    return m_hibernating;
+}
+
 bool WebWidget::isOnBlankPage() const
 {
     return m_view->isOnBlankPage();
@@ -93,6 +100,11 @@ void WebWidget::load(const QUrl &url)
     m_view->load(url);
 }
 
+void WebWidget::load(const HttpRequest &request)
+{
+    m_view->load(request);
+}
+
 void WebWidget::reload()
 {
     m_view->reload();
@@ -101,6 +113,12 @@ void WebWidget::reload()
 void WebWidget::stop()
 {
     m_view->stop();
+}
+
+void WebWidget::setHibernation(bool on)
+{
+    m_hibernating = on;
+    //todo: state change, deleting m_view
 }
 
 QWebEngineHistory *WebWidget::history() const

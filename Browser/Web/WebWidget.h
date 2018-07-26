@@ -4,6 +4,7 @@
 #include <QPointer>
 #include <QWidget>
 
+class HttpRequest;
 class MainWindow;
 class WebPage;
 class WebView;
@@ -37,6 +38,9 @@ public:
     /// Loads the resource of the blank page into the view
     void loadBlankPage();
 
+    /// Returns true if the web widget is in hibernation mode, false if else
+    bool isHibernating() const;
+
     /// Returns true if the view's page is blank, with no resources being loaded
     bool isOnBlankPage() const;
 
@@ -60,6 +64,9 @@ public:
     /// Loads the specified url and displays it
     void load(const QUrl &url);
 
+    /// Loads the given HTTP request onto the page
+    void load(const HttpRequest &request);
+
     /// Returns a pointer to the view's history
     QWebEngineHistory *history() const;
 
@@ -81,6 +88,13 @@ public slots:
 
     /// Stops loading the current page
     void stop();
+
+    /**
+     * @brief Sets the hibernation status of the web widget.
+     * @param on If true, the web widget's status will be saved and its WebView will be destroyed. If false, the
+     *           web widget will reactivate its WebView
+     */
+    void setHibernation(bool on);
 
 signals:
     /// Emitted when the web view should be closed
@@ -138,6 +152,9 @@ private:
 
     /// Pointer to the WebView's focus proxy
     QPointer<QWidget> m_viewFocusProxy;
+
+    /// True if the widget is in hibernation mode, false if else
+    bool m_hibernating;
 };
 
 #endif // WEBWIDGET_H

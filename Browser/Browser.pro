@@ -136,7 +136,8 @@ SOURCES += \
     Web/WebWidget.cpp \
     AdBlock/AdBlockButton.cpp \
     CommonUtil.cpp \
-    Network/AuthDialog.cpp
+    Network/AuthDialog.cpp \
+    Network/HttpRequest.cpp
 
 HEADERS += \
     TreeNode.h \
@@ -228,7 +229,8 @@ HEADERS += \
     Web/WebWidget.h \
     AdBlock/AdBlockButton.h \
     CommonUtil.h \
-    Network/AuthDialog.h
+    Network/AuthDialog.h \
+    Network/HttpRequest.h
 
 FORMS += \
     Cookies/cookiewidget.ui \

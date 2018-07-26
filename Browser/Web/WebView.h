@@ -6,6 +6,7 @@
 #include <QWebEngineFullScreenRequest>
 #include <QWebEngineView>
 
+class HttpRequest;
 class WebPage;
 class QLabel;
 class QMenu;
@@ -47,6 +48,9 @@ public:
 
     /// Loads the specified url and displays it
     void load(const QUrl &url);
+
+    /// Loads the given HTTP request
+    void load(const HttpRequest &request);
 
     /// Returns a pointer to the renderer widget
     QWidget *getViewFocusProxy();

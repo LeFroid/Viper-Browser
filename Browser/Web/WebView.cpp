@@ -9,6 +9,7 @@
 #include <QMimeData>
 #include <QUrl>
 #include <QWebEngineContextMenuData>
+#include <QWebEngineHttpRequest>
 #include <QWebEngineProfile>
 #include <QWheelEvent>
 #include <QVBoxLayout>
@@ -16,6 +17,7 @@
 
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
+#include "HttpRequest.h"
 #include "MainWindow.h"
 #include "SearchEngineManager.h"
 #include "Settings.h"
@@ -91,6 +93,14 @@ void WebView::load(const QUrl &url)
         return;
 
     QWebEngineView::load(url);
+}
+
+void WebView::load(const HttpRequest &request)
+{
+    if (!m_page->acceptNavigationRequest(request.getUrl(), WebPage::NavigationTypeTyped, true))
+        return;
+
+    m_page->load(request.toWebEngineRequest());
 }
 
 QWidget *WebView::getViewFocusProxy()
