@@ -3,6 +3,7 @@
 
 #include "BookmarkManager.h"
 #include <deque>
+#include <QModelIndex>
 #include <QUrl>
 #include <QWidget>
 

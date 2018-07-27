@@ -45,6 +45,7 @@
 #include <QPrintPreviewDialog>
 #include <QPushButton>
 #include <QShortcut>
+#include <QTabBar>
 #include <QTimer>
 #include <QtGlobal>
 #include <QToolButton>
