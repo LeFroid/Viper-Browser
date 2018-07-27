@@ -151,8 +151,11 @@ private slots:
     /// Called when the current tab has been changed
     void onCurrentChanged(int index);
 
-    /// Called by a web view when it has made progress loading a page
+    /// Called by a web widget when it has made progress loading a page
     void onLoadProgress(int progress);
+
+    /// Called by a web widget when its page is finished loading
+    void onLoadFinished(bool ok);
 
     /// Called when a web page's title has changed to the given value
     void onTitleChanged(const QString &title);
@@ -161,7 +164,7 @@ private slots:
     void onViewCloseRequested();
 
     /// Resets the items in the back and forward button menus, populating them with the current tab's history
-    void resetHistoryButtonMenus(bool ok);
+    void resetHistoryButtonMenus();
 
 private:
     /// Creates a new \ref WebWidget, binding its signals to the appropriate handlers, setting up properties of the widget, etc.

@@ -21,13 +21,10 @@ class Preferences : public QWidget
 
 public:
     /// Constructs the preferences widget given a shared pointer to the global settings object and an optional parent
-    explicit Preferences(std::shared_ptr<Settings> settings, QWidget *parent = 0);
+    explicit Preferences(std::shared_ptr<Settings> settings, QWidget *parent = nullptr);
 
     /// Preferences destructor
     ~Preferences();
-
-    /// Sets the UI values corresponding to browser settings
-    void loadSettings();
 
 signals:
     /// Emitted when the user requests to clear their browsing history.
@@ -39,6 +36,10 @@ signals:
 private slots:
     /// Called when
     void onCloseWithSave();
+
+private:
+    /// Sets the UI values corresponding to browser settings
+    void loadSettings();
 
 private:
     /// User interface

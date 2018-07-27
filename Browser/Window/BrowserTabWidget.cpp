@@ -230,7 +230,7 @@ WebWidget *BrowserTabWidget::createWebWidget()
 
     // Connect web view signals to functionalty
     connect(ww, &WebWidget::iconChanged,            this, &BrowserTabWidget::onIconChanged);
-    connect(ww, &WebWidget::loadFinished,           this, &BrowserTabWidget::resetHistoryButtonMenus);
+    connect(ww, &WebWidget::loadFinished,           this, &BrowserTabWidget::onLoadFinished);
     connect(ww, &WebWidget::loadProgress,           this, &BrowserTabWidget::onLoadProgress);
     connect(ww, &WebWidget::openRequest,            this, &BrowserTabWidget::loadUrl);
     connect(ww, &WebWidget::openInNewTab,           this, &BrowserTabWidget::openLinkInNewTab);
@@ -285,10 +285,7 @@ WebWidget *BrowserTabWidget::newTabAtIndex(int index)
     setCurrentWidget(ww);
 
     if (count() == 1)
-    {
-        m_activeView = ww;
         emit currentChanged(currentIndex());
-    }
 
     emit newTabCreated(ww);
     return ww;
@@ -360,7 +357,8 @@ void BrowserTabWidget::openLinkInNewWindow(const QUrl &url, bool privateWindow)
 
 void BrowserTabWidget::loadUrl(const QUrl &url)
 {
-    currentWebWidget()->load(url);
+    if (m_activeView)
+        m_activeView->load(url);
 }
 
 void BrowserTabWidget::setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu)
@@ -398,7 +396,7 @@ void BrowserTabWidget::onCurrentChanged(int index)
 
     m_activeView = ww;
 
-    resetHistoryButtonMenus(true);
+    resetHistoryButtonMenus();
 
     m_lastTabIndex = m_currentTabIndex;
     m_currentTabIndex = index;
@@ -410,17 +408,40 @@ void BrowserTabWidget::onCurrentChanged(int index)
     emit viewChanged(index);
 }
 
+void BrowserTabWidget::onLoadFinished(bool ok)
+{
+    WebWidget *ww = qobject_cast<WebWidget*>(sender());
+    if (!ww)
+        return;
+
+    const int tabIndex = indexOf(ww);
+    if (tabIndex < 0)
+        return;
+
+    const QString pageTitle = ww->getTitle();
+    QIcon icon = ww->getIcon();
+    if (icon.isNull())
+        icon = m_faviconStore->getFavicon(ww->url());
+
+    setTabIcon(tabIndex, icon);
+    setTabText(tabIndex, pageTitle);
+    setTabToolTip(tabIndex, pageTitle);
+
+    if (ok && ww == m_activeView)
+        resetHistoryButtonMenus();
+}
+
 void BrowserTabWidget::onLoadProgress(int progress)
 {
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
-    if (ww == currentWebWidget())
+    if (ww == m_activeView)
         emit loadProgress(progress);
 }
 
 void BrowserTabWidget::onTitleChanged(const QString &title)
 {
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
-    int viewTabIndex = indexOf(ww);
+    const int viewTabIndex = indexOf(ww);
     if (viewTabIndex >= 0)
     {
         setTabText(viewTabIndex, title);
@@ -434,7 +455,7 @@ void BrowserTabWidget::onViewCloseRequested()
     closeTab(indexOf(ww));
 }
 
-void BrowserTabWidget::resetHistoryButtonMenus(bool /*ok*/)
+void BrowserTabWidget::resetHistoryButtonMenus()
 {
     m_backMenu->clear();
     m_forwardMenu->clear();

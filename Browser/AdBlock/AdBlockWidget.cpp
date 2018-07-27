@@ -21,6 +21,7 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->setupUi(this);
 
+    // Setup ad block subscription table
     ui->tableView->setModel(AdBlockManager::instance().getModel());
     connect(ui->tableView, &CheckableTableView::clicked, this, &AdBlockWidget::onItemClicked);
 
@@ -32,16 +33,14 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
 
     connect(ui->pushButtonCustomFilters,      &QPushButton::clicked, this, &AdBlockWidget::editUserFilters);
     connect(ui->pushButtonDeleteSubscription, &QPushButton::clicked, this, &AdBlockWidget::deleteSelectedSubscriptions);
+
+    // Show total number of ads that have been blocked since using ad blocker
+    ui->labelRequestsBlockedValue->setText(QString::number(AdBlockManager::instance().getRequestsBlockedCount()));
 }
 
 AdBlockWidget::~AdBlockWidget()
 {
     delete ui;
-}
-
-void AdBlockWidget::updateBlockedCountLabel()
-{
-    ui->labelRequestsBlockedValue->setText(QString::number(AdBlockManager::instance().getRequestsBlockedCount()));
 }
 
 void AdBlockWidget::resizeEvent(QResizeEvent *event)

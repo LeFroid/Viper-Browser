@@ -24,9 +24,6 @@ public:
     /// Destructor
     ~AdBlockWidget();
 
-    /// Updates the "total number of blocked network requests" label before displaying the widget
-    void updateBlockedCountLabel();
-
 protected:
     /// Called when the widget is resized - resizes the columns of the table view
     void resizeEvent(QResizeEvent *event) override;

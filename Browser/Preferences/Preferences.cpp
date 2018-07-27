@@ -13,6 +13,8 @@ Preferences::Preferences(std::shared_ptr<Settings> settings, QWidget *parent) :
     ui(new Ui::Preferences),
     m_settings(settings)
 {
+    setAttribute(Qt::WA_DeleteOnClose, true);
+
     ui->setupUi(this);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &Preferences::onCloseWithSave);
@@ -20,6 +22,8 @@ Preferences::Preferences(std::shared_ptr<Settings> settings, QWidget *parent) :
 
     connect(ui->tabPrivacy, &PrivacyTab::clearHistoryRequested, this, &Preferences::clearHistoryRequested);
     connect(ui->tabPrivacy, &PrivacyTab::viewHistoryRequested, this, &Preferences::viewHistoryRequested);
+
+    loadSettings();
 }
 
 Preferences::~Preferences()
