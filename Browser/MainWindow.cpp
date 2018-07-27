@@ -697,7 +697,7 @@ void MainWindow::printTabContents()
     connect(&dialog, &QPrintPreviewDialog::paintRequested, [=](QPrinter *p){
         page->print(p, [](bool){});
     });
-    dialog.exec();
+    static_cast<void>(dialog.exec());
 }
 
 void MainWindow::onClickBookmarkIcon()
