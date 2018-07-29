@@ -396,6 +396,8 @@ void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldV
         if (!query.exec())
             qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not modify bookmark name. Error message: "
                      << query.lastError().text();
+        else
+            emit bookmarksChanged();
     }
     else
     {
@@ -423,6 +425,8 @@ void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldV
         if (!query.exec())
             qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not insert updated bookmark to database. "
                         "Error message: " << query.lastError().text();
+        else
+            emit bookmarksChanged();
     }
 }
 
@@ -445,6 +449,8 @@ void BookmarkManager::updatedFolderName(BookmarkNode *folder)
     query.bindValue(QLatin1String(":parentID"), parentId);
     if (!query.exec())
         qDebug() << "Error updating name of bookmark folder in database. Message: " << query.lastError().text();
+    else
+        emit bookmarksChanged();
 }
 
 void BookmarkManager::loadFolder(BookmarkNode *folder)
