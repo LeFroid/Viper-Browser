@@ -3,6 +3,7 @@
 #include "NetworkAccessManager.h"
 #include "URL.h"
 
+#include <array>
 #include <QBuffer>
 #include <QFileInfo>
 #include <QNetworkRequest>
@@ -20,6 +21,7 @@ FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
     m_newFaviconID(1),
     m_newDataID(1),
     m_queryMap(),
+    m_iconCache(25),
     m_mutex()
 {
     setupQueries();
@@ -30,7 +32,7 @@ FaviconStorage::~FaviconStorage()
     save();
 }
 
-QIcon FaviconStorage::getFavicon(const QUrl &url) const
+QIcon FaviconStorage::getFavicon(const QUrl &url, bool useCache)
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
@@ -44,6 +46,15 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
     if (pageUrl.contains(QChar('?')))
         pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('?')));
 
+    const std::string urlStdStr = pageUrl.toStdString();
+
+    if (useCache)
+    {
+        // Check for cache hit
+        if (m_iconCache.has(urlStdStr))
+            return m_iconCache.get(urlStdStr);
+    }
+
     // Three step icon fetch process:
     // First, search DB for exact URL match.
     QSqlQuery *query = m_queryMap.at(StoredQuery::FindIconExactURL).get();
@@ -53,13 +64,22 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
         QString iconURL = query->value(0).toString();
         auto it = m_favicons.find(iconURL);
         if (it != m_favicons.end())
+        {
+            if (useCache)
+                m_iconCache.put(urlStdStr, it->icon);
             return it->icon;
+        }
     }
-    else
+
+    // Second, search DB for host match. If still no hit, check for second level domain match
+    QString searchTemplate("%%1%");
+    std::array<QString, 2> fallbacks = { searchTemplate.arg(url.host()),
+                                         searchTemplate.arg(URL(url).getSecondLevelDomain()) };
+
+    query = m_queryMap.at(StoredQuery::FindIconLikeURL).get();
+    for (size_t i = 0; i < fallbacks.size(); ++i)
     {
-        // Second, search DB for host match.
-        query = m_queryMap.at(StoredQuery::FindIconLikeURL).get();
-        query->bindValue(QLatin1String(":url"), QString("%%1%").arg(url.host()));
+        query->bindValue(QLatin1String(":url"), fallbacks.at(i));
         if (query->exec())
         {
             while (query->next())
@@ -67,21 +87,15 @@ QIcon FaviconStorage::getFavicon(const QUrl &url) const
                 QString iconURL = query->value(0).toString();
                 auto it = m_favicons.find(iconURL);
                 if (it != m_favicons.end())
+                {
+                    if (useCache)
+                        m_iconCache.put(urlStdStr, it->icon);
                     return it->icon;
-            }
-        }
-        query->bindValue(QLatin1String(":url"), QString("%%1%").arg(URL(url).getSecondLevelDomain()));
-        if (query->exec())
-        {
-            while (query->next())
-            {
-                QString iconURL = query->value(0).toString();
-                auto it = m_favicons.find(iconURL);
-                if (it != m_favicons.end())
-                    return it->icon;
+                }
             }
         }
     }
+
     return QIcon(QLatin1String(":/blank_favicon.png"));
 }
 

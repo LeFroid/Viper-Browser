@@ -329,7 +329,7 @@ void BrowserTabWidget::onIconChanged()
 
     QIcon icon = ww->getIcon();
     if (icon.isNull())
-        icon = m_faviconStore->getFavicon(ww->url());
+        icon = m_faviconStore->getFavicon(ww->url(), true);
 
     setTabIcon(tabIndex, icon);
 }
@@ -421,7 +421,7 @@ void BrowserTabWidget::onLoadFinished(bool ok)
     const QString pageTitle = ww->getTitle();
     QIcon icon = ww->getIcon();
     if (icon.isNull())
-        icon = m_faviconStore->getFavicon(ww->url());
+        icon = m_faviconStore->getFavicon(ww->url(), true);
 
     setTabIcon(tabIndex, icon);
     setTabText(tabIndex, pageTitle);

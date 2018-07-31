@@ -2,6 +2,7 @@
 #define FAVICONSTORAGE_H
 
 #include "DatabaseWorker.h"
+#include "LRUCache.h"
 
 #include <map>
 #include <memory>
@@ -53,8 +54,8 @@ public:
     virtual ~FaviconStorage();
 
     /// Returns the favicon associated with the given URL if found in the database, otherwise
-    /// returns an empty icon
-    QIcon getFavicon(const QUrl &url) const;
+    /// returns an empty icon. If useCache is set to true, the url:icon mapping is stored in a LRUCache
+    QIcon getFavicon(const QUrl &url, bool useCache = false);
 
     /**
      * @brief Attempts to update the database about the favicon associated with a given page.
@@ -123,6 +124,9 @@ private:
 
     /// Map of query types to pointers of commonly used prepared statements
     std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
+
+    /// Cache of most recently visited URLs and the icons associated with those pages
+    LRUCache<std::string, QIcon> m_iconCache;
 
     /// Mutex
     mutable std::mutex m_mutex;
