@@ -45,6 +45,6 @@ QIODevice *ViperSchemeHandler::loadFile(QWebEngineUrlRequestJob *request)
         return nullptr;
     }
 
-    connect(f, &QFile::aboutToClose, f, &QFile::deleteLater);
+    connect(request, &QObject::destroyed, f, &QFile::deleteLater);
     return f;
 }

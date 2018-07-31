@@ -46,7 +46,7 @@ void BlockedSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
         return;
     }
 
-    connect(buffer, &QBuffer::aboutToClose, buffer, &QBuffer::deleteLater);
+    connect(request, &QObject::destroyed, buffer, &QBuffer::deleteLater);
 
     request->reply(mimeType, buffer);
 }
