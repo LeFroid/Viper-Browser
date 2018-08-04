@@ -4,12 +4,14 @@
 
 #include <QBuffer>
 #include <QDateTime>
+#include <QFuture>
 #include <QIcon>
 #include <QImage>
 #include <QRegExp>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
+#include <QtConcurrent>
 #include <QUrl>
 #include <QDebug>
 
@@ -21,7 +23,8 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     m_recentItems(),
     m_queryHistoryItem(nullptr),
     m_queryVisit(nullptr),
-    m_storagePolicy(HistoryStoragePolicy::Remember)
+    m_storagePolicy(HistoryStoragePolicy::Remember),
+    m_mutex()
 {
     m_storagePolicy = static_cast<HistoryStoragePolicy>(sBrowserApplication->getSettings()->getValue(BrowserSetting::HistoryStoragePolicy).toInt());
 }
@@ -59,9 +62,11 @@ void HistoryManager::addHistoryEntry(const QString &url, const QString &title)
     if (hashPos > 0)
         urlFormatted = urlFormatted.left(hashPos);
 
+    const QString urlUpper = urlFormatted.toUpper();
+
     const bool emptyTitle = title.isEmpty();
 
-    auto it = m_historyItems.find(urlFormatted);
+    auto it = m_historyItems.find(urlUpper);
     if (it != m_historyItems.end())
     {
         it->Visits.prepend(visitTime);
@@ -73,7 +78,8 @@ void HistoryManager::addHistoryEntry(const QString &url, const QString &title)
 
         if (!it->Title.isEmpty())
         {
-            saveVisit(*it, visitTime);
+            //saveVisit(*it, visitTime);
+            QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
             emit pageVisited(urlFormatted, it->Title);
         }
         return;
@@ -86,38 +92,45 @@ void HistoryManager::addHistoryEntry(const QString &url, const QString &title)
         item.Title = title;
     item.Visits.prepend(visitTime);
 
-    m_historyItems.insert(urlFormatted, item);
+    m_historyItems.insert(urlUpper, item);
     m_recentItems.push_front(item);
     while (m_recentItems.size() > 15)
         m_recentItems.pop_back();
 
-    saveVisit(item, visitTime);
+    QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
     emit pageVisited(urlFormatted, title);
 }
 
 void HistoryManager::clearAllHistory()
 {
-    if (!exec(QLatin1String("DELETE FROM History")))
-        qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear History table.";
+    {
+        std::lock_guard<std::mutex> _(m_mutex);
 
-    if (!exec(QLatin1String("DELETE FROM Visits")))
-        qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear Visits table.";
+        if (!exec(QLatin1String("DELETE FROM History")))
+            qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear History table.";
 
+        if (!exec(QLatin1String("DELETE FROM Visits")))
+            qDebug() << "[Error]: In HistoryManager::clearAllHistory - Unable to clear Visits table.";
+    }
     m_recentItems.clear();
     m_historyItems.clear();
 }
 
 void HistoryManager::clearHistoryFrom(const QDateTime &start)
 {
-    // Perform database query and reload data
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("DELETE FROM Visits WHERE Date > (:date)"));
-    query.bindValue(QLatin1String(":date"), start.toMSecsSinceEpoch());
-    if (!query.exec())
     {
-        qDebug() << "[Error]: In HistoryManager::clearHistoryFrom - Unable to clear history. Message: "
-                 << query.lastError().text();
-        return;
+        std::lock_guard<std::mutex> _(m_mutex);
+
+        // Perform database query and reload data
+        QSqlQuery query(m_database);
+        query.prepare(QLatin1String("DELETE FROM Visits WHERE Date > (:date)"));
+        query.bindValue(QLatin1String(":date"), start.toMSecsSinceEpoch());
+        if (!query.exec())
+        {
+            qDebug() << "[Error]: In HistoryManager::clearHistoryFrom - Unable to clear history. Message: "
+                     << query.lastError().text();
+            return;
+        }
     }
 
     m_recentItems.clear();
@@ -127,16 +140,20 @@ void HistoryManager::clearHistoryFrom(const QDateTime &start)
 
 void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 {
-    // Perform database query and reload data
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("DELETE FROM Visits WHERE Date > (:startDate) AND Date < (:endDate)"));
-    query.bindValue(QLatin1String(":startDate"), range.first.toMSecsSinceEpoch());
-    query.bindValue(QLatin1String(":endDate"), range.second.toMSecsSinceEpoch());
-    if (!query.exec())
     {
-        qDebug() << "[Error]: In HistoryManager::clearHistoryFrom - Unable to clear history. Message: "
-                 << query.lastError().text();
-        return;
+        std::lock_guard<std::mutex> _(m_mutex);
+
+        // Perform database query and reload data
+        QSqlQuery query(m_database);
+        query.prepare(QLatin1String("DELETE FROM Visits WHERE Date > (:startDate) AND Date < (:endDate)"));
+        query.bindValue(QLatin1String(":startDate"), range.first.toMSecsSinceEpoch());
+        query.bindValue(QLatin1String(":endDate"), range.second.toMSecsSinceEpoch());
+        if (!query.exec())
+        {
+            qDebug() << "[Error]: In HistoryManager::clearHistoryFrom - Unable to clear history. Message: "
+                     << query.lastError().text();
+            return;
+        }
     }
 
     m_recentItems.clear();
@@ -146,43 +163,11 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 
 bool HistoryManager::historyContains(const QString &url) const
 {
-    return (m_historyItems.find(url) != m_historyItems.end());
+    return (m_historyItems.find(url.toUpper()) != m_historyItems.end());
 }
 
 std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate) const
 {
-    /*std::vector<WebHistoryItem> items;
-
-    if (!startDate.isValid())
-        return items;
-
-    // Get startDate in msec format
-    qint64 startMSec = startDate.toMSecsSinceEpoch();
-
-    // Prepare DB query (date is in MSecsSinceEpoch())
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:id) AND Date >= (:date)"));
-
-    // Iterate through list of all visited URLs, searching the DB to confirm the date is between startDate and now
-    for (const auto &it : m_historyItems)
-    {
-        WebHistoryItem item;
-        item.Title = it.Title;
-        item.URL = it.URL;
-        item.VisitID = it.VisitID;
-        //item.Visits = it.Visits;
-
-        // Check DB
-        query.bindValue(QLatin1String(":id"), it.VisitID);
-        query.bindValue(QLatin1String(":date"), startMSec);
-        if (query.exec())
-        {
-            while (query.next())
-                item.Visits.append(QDateTime::fromMSecsSinceEpoch(query.value(0).toLongLong()));
-        }
-        items.push_back(item);
-    }
-    return items;*/
     return getHistoryBetween(startDate, QDateTime::currentDateTime());
 }
 
@@ -312,7 +297,7 @@ void HistoryManager::load()
             item.VisitID = query.value(idVisit).toInt();
 
             m_lastVisitID = item.VisitID;
-            m_historyItems.insert(item.URL.toString(), item);
+            m_historyItems.insert(item.URL.toString().toUpper(), item);
         }
     }
     else
@@ -327,7 +312,7 @@ void HistoryManager::load()
         int idUrl = rec.indexOf(QLatin1String("URL"));
         while (query.next())
         {
-            auto it = m_historyItems.find(query.value(idUrl).toString());
+            auto it = m_historyItems.find(query.value(idUrl).toString().toUpper());
             if (it != m_historyItems.end())
             {
                 QDateTime date = QDateTime::fromMSecsSinceEpoch(query.value(idDate).toULongLong());
@@ -346,6 +331,8 @@ void HistoryManager::save()
 
 void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visitTime)
 {
+    std::lock_guard<std::mutex> _(m_mutex);
+
     if (m_queryHistoryItem == nullptr)
     {
         m_queryHistoryItem = new QSqlQuery(m_database);

@@ -12,6 +12,7 @@
 #include <QUrl>
 
 #include <deque>
+#include <mutex>
 #include <vector>
 
 /// Available policies for storage of browsing history data
@@ -149,6 +150,9 @@ private:
 
     /// History storage policy
     HistoryStoragePolicy m_storagePolicy;
+
+    /// Mutex
+    mutable std::mutex m_mutex;
 };
 
 #endif // HISTORYMANAGER_H
