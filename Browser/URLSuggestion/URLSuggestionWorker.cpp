@@ -131,7 +131,7 @@ void URLSuggestionWorker::searchForHits()
 
         if (isStringMatch(urlUpper))
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, url, false);
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, url.toLower(), false);
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)
