@@ -97,7 +97,7 @@ void HistoryManager::addHistoryEntry(const QString &url, const QString &title)
     while (m_recentItems.size() > 15)
         m_recentItems.pop_back();
 
-    QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
+    QtConcurrent::run(this, &HistoryManager::saveVisit, item, visitTime);
     emit pageVisited(urlFormatted, title);
 }
 
