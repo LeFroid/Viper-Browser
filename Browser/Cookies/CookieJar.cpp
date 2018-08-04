@@ -83,13 +83,19 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
     if (value)
         m_store->setCookieFilter(nullptr);
     else
+        //matchDomain(domain, cookieDomain)
         m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) {
             if (request.thirdParty && m_enableCookies)
             {
                 const QString originHost = request.origin.host();
                 for (auto &url : m_exemptParties)
                 {
-                    if (url.host() == originHost)
+                    const QString urlHost = url.host();
+                    if (urlHost == originHost)
+                        return true;
+
+                    const int domainIndex = originHost.indexOf(urlHost);
+                    if (domainIndex > 0 && originHost.at(domainIndex - 1) == QLatin1Char('.'))
                         return true;
                 }
                 return false;

@@ -8,6 +8,7 @@
 #include <QTextLayout>
 #include <QUrl>
 
+class BookmarkNode;
 class MainWindow;
 class URLSuggestionWidget;
 class WebWidget;
@@ -51,8 +52,12 @@ public:
     /// URLLineEdit destructor
     ~URLLineEdit();
 
+    /// Returns a pointer to the bookmark node of the page with the URL currently in the widget, or a
+    /// null pointer if the current page is not bookmarked
+    BookmarkNode *getBookmarkNode() const;
+
     /// Sets the bookmark state of the current page, to be reflected by the bookmark icon
-    void setCurrentPageBookmarked(bool isBookmarked);
+    void setCurrentPageBookmarked(bool isBookmarked, BookmarkNode *node = nullptr);
 
     /// Sets the security icon at the left side of the line edit widget
     void setSecurityIcon(SecurityIcon iconType);
@@ -111,6 +116,9 @@ private:
 
     /// URL suggestion widget
     URLSuggestionWidget *m_suggestionWidget;
+
+    /// Pointer to the bookmark node of the page associated with the current URL, or a null pointer if the page is not bookmarked
+    BookmarkNode *m_bookmarkNode;
 };
 
 #endif // URLLINEEDIT_H

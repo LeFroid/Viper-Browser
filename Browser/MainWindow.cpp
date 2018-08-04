@@ -36,6 +36,8 @@
 #include <QDropEvent>
 #include <QFile>
 #include <QFileDialog>
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QKeySequence>
 #include <QLabel>
 #include <QMessageBox>
@@ -49,6 +51,7 @@
 #include <QTimer>
 #include <QtGlobal>
 #include <QToolButton>
+#include <QtConcurrent>
 
 MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, FaviconStorage *faviconStore, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
@@ -179,18 +182,18 @@ void MainWindow::setupMenuBar()
     addWebProxyAction(WebPage::SavePage, ui->action_Save_Page_As);
 
     // Add proxy functionality to edit menu actions
-    addWebProxyAction(WebPage::Undo, ui->action_Undo);
-    addWebProxyAction(WebPage::Redo, ui->action_Redo);
-    addWebProxyAction(WebPage::Cut, ui->actionCu_t);
-    addWebProxyAction(WebPage::Copy, ui->action_Copy);
+    addWebProxyAction(WebPage::Undo,  ui->action_Undo);
+    addWebProxyAction(WebPage::Redo,  ui->action_Redo);
+    addWebProxyAction(WebPage::Cut,   ui->actionCu_t);
+    addWebProxyAction(WebPage::Copy,  ui->action_Copy);
     addWebProxyAction(WebPage::Paste, ui->action_Paste);
 
     // Add proxy for reload action in menu bar
     addWebProxyAction(QWebEnginePage::Reload, ui->actionReload);
 
     // Zoom in / out / reset slots
-    connect(ui->actionZoom_In, &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomInCurrentView);
-    connect(ui->actionZoom_Out, &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomOutCurrentView);
+    connect(ui->actionZoom_In,    &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomInCurrentView);
+    connect(ui->actionZoom_Out,   &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomOutCurrentView);
     connect(ui->actionReset_Zoom, &QAction::triggered, m_tabWidget, &BrowserTabWidget::resetZoomCurrentView);
 
     // History menu
@@ -275,9 +278,17 @@ void MainWindow::checkPageForBookmark()
     if (!ww)
         return;
 
-    const bool isBookmarked = m_bookmarkManager->isBookmarked(ww->url().toString());
-    ui->menuBookmarks->setCurrentPageBookmarked(isBookmarked);
-    ui->toolBar->getURLWidget()->setCurrentPageBookmarked(isBookmarked);
+    const QString pageUrl = ww->url().toString();
+    QFutureWatcher<bool> *watcher = new QFutureWatcher<bool>(this);
+    connect(watcher, &QFutureWatcher<bool>::finished, [=](){
+        const bool isBookmarked = watcher->future().result();
+        BookmarkNode *n = isBookmarked ? m_bookmarkManager->getBookmark(pageUrl) : nullptr;
+        ui->menuBookmarks->setCurrentPageBookmarked(isBookmarked);
+        ui->toolBar->getURLWidget()->setCurrentPageBookmarked(isBookmarked, n);
+        watcher->deleteLater();
+    });
+    QFuture<bool> b = QtConcurrent::run(m_bookmarkManager, &BookmarkManager::isBookmarked, pageUrl);
+    watcher->setFuture(b);
 }
 
 void MainWindow::onTabChanged(int index)
@@ -421,8 +432,7 @@ void MainWindow::addPageToBookmarks()
 
     const QString bookmarkName = ww->getTitle();
     const QString bookmarkUrl = ww->url().toString();
-    if (m_bookmarkManager->isBookmarked(bookmarkUrl))
-        return;
+
     m_bookmarkManager->appendBookmark(bookmarkName, bookmarkUrl);
 
     if (!m_bookmarkDialog)
@@ -707,7 +717,7 @@ void MainWindow::onClickBookmarkIcon()
         return;
 
     // Search for bookmark already existing, if not found, add to bookmarks, otherwise edit the existing bookmark
-    BookmarkNode *node = m_bookmarkManager->getBookmark(currentView->url().toString());
+    BookmarkNode *node = ui->toolBar->getURLWidget()->getBookmarkNode();
     if (node == nullptr)
         addPageToBookmarks();
     else

@@ -1,3 +1,4 @@
+#include "BookmarkNode.h"
 #include "BrowserApplication.h"
 #include "MainWindow.h"
 #include "SecurityManager.h"
@@ -19,7 +20,8 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_bookmarkButton(nullptr),
     m_userTextMap(),
     m_activeWebView(nullptr),
-    m_suggestionWidget(nullptr)
+    m_suggestionWidget(nullptr),
+    m_bookmarkNode(nullptr)
 {
     setObjectName(QLatin1String("urlLineEdit"));
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -65,8 +67,14 @@ URLLineEdit::~URLLineEdit()
     delete m_suggestionWidget;
 }
 
-void URLLineEdit::setCurrentPageBookmarked(bool isBookmarked)
+BookmarkNode *URLLineEdit::getBookmarkNode() const
 {
+    return m_bookmarkNode;
+}
+
+void URLLineEdit::setCurrentPageBookmarked(bool isBookmarked, BookmarkNode *node)
+{
+    m_bookmarkNode = node;
     setBookmarkIcon(isBookmarked ? BookmarkIcon::Bookmarked : BookmarkIcon::NotBookmarked);
 }
 

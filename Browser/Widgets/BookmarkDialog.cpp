@@ -38,7 +38,7 @@ BookmarkDialog::~BookmarkDialog()
 void BookmarkDialog::alignAndShow(const QRect &windowGeom, const QRect &toolbarGeom, const QRect &urlBarGeom)
 {
     QPoint dialogPos;
-    dialogPos.setX(windowGeom.x() + toolbarGeom.x() + urlBarGeom.x() + urlBarGeom.width() - width());
+    dialogPos.setX(windowGeom.x() + toolbarGeom.x() + urlBarGeom.x() + urlBarGeom.width() - (width() / 2));
     dialogPos.setY(windowGeom.y() + toolbarGeom.y() + toolbarGeom.height() + (urlBarGeom.height() * 2 / 3));
 
     move(dialogPos);
@@ -47,6 +47,7 @@ void BookmarkDialog::alignAndShow(const QRect &windowGeom, const QRect &toolbarG
 
 void BookmarkDialog::setDialogHeader(const QString &text)
 {
+    setWindowTitle(text);
     ui->labelDialogHeader->setText(text);
 }
 
