@@ -2,9 +2,11 @@
 #define BOOKMARKMANAGER_H
 
 #include "DatabaseWorker.h"
+#include "LRUCache.h"
 
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <QObject>
@@ -167,6 +169,9 @@ private:
 
     /// Bookmark import state - true if bookmarks being imported, false if else
     bool m_importState;
+
+    /// Cache of bookmark nodes that were recently searched for within the application
+    LRUCache<std::string, BookmarkNode*> m_lookupCache;
 
 /*
 private:
