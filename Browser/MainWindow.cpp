@@ -342,6 +342,9 @@ void MainWindow::openBookmarkWidget()
         connect(m_bookmarkUI, &BookmarkWidget::openBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
         connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewWindow, this, &MainWindow::openLinkNewWindow);
+        connect(m_bookmarkUI, &BookmarkWidget::destroyed, [=](){
+            m_bookmarkUI = nullptr;
+        });
     }
     m_bookmarkUI->show();
 }

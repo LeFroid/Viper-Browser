@@ -25,6 +25,8 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     m_folderBackHistory(),
     m_folderForwardHistory()
 {
+    setAttribute(Qt::WA_DeleteOnClose, true);
+
     ui->setupUi(this);
 
     // Setup history buttons

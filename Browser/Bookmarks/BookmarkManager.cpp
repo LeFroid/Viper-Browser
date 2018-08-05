@@ -97,6 +97,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QString &url, Bo
     // Create new bookmark
     BookmarkNode *b = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
     b->setURL(url);
+    b->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(url)));
 
     // Add bookmark to the database
     if (!addBookmarkToDB(b, folder))
@@ -119,6 +120,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QString &url, Bo
     // Create new bookmark        
     BookmarkNode *b = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
     b->setURL(url);
+    b->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(url)));
 
     // Update positions of items in same folder
     QSqlQuery query(m_database);
@@ -442,6 +444,9 @@ void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldV
         else
             qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not fetch position of bookmark with "
                         "URL " << oldValue.getURL() << ". Error message: " << query.lastError().text();
+        // Update icon
+        bookmark->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(bookmark->m_url)));
+
         query.prepare(QLatin1String("DELETE FROM Bookmarks WHERE URL = (:url)"));
         query.bindValue(QLatin1String(":url"), oldValue.getURL());
         static_cast<void>(query.exec());
