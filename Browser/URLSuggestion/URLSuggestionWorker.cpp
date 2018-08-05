@@ -109,7 +109,7 @@ void URLSuggestionWorker::searchForHits()
         if (!m_working.load())
             return;
 
-        const QString &url = it.key();
+        const QString &url = it->URL.toString();
         if (hits.contains(url))
             continue;
 
@@ -131,7 +131,7 @@ void URLSuggestionWorker::searchForHits()
 
         if (isStringMatch(urlUpper))
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, it->URL.toString(), false);
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, url, false);
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)
