@@ -14,7 +14,7 @@
 
 AdBlockButton::AdBlockButton(QWidget *parent) :
     QToolButton(parent),
-    m_icon(QLatin1String(":/AdBlock.png")),
+    m_icon(QLatin1String(":/AdBlock.svg")),
     m_timer(),
     m_lastCount(0)
 {

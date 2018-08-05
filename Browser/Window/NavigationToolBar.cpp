@@ -65,6 +65,7 @@ void NavigationToolBar::setMinHeights(int size)
     m_nextPage->setMinimumHeight(subWidgetMinHeight);
     m_urlInput->setMinimumHeight(subWidgetMinHeight);
     m_searchEngineLineEdit->setMinimumHeight(subWidgetMinHeight);
+    m_adBlockButton->setMinimumHeight(subWidgetMinHeight);
 }
 
 void NavigationToolBar::setupUI()
