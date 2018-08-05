@@ -12,7 +12,6 @@ class BrowserTabBar;
 class FaviconStorage;
 class MainWindow;
 class QMenu;
-class WebView;
 class WebWidget;
 
 /**
@@ -25,22 +24,30 @@ struct ClosedTabInfo
     /// Index of the tab in the tab bar
     int index;
 
-    /// Last URL loaded into the tab's WebView
+    /// Last URL loaded into the tab's WebWidget
     QUrl url;
 
     /// Stores the page history of the tab
     QByteArray pageHistory;
 
+    /// Flag determining whether or not the tab was pinned
+    bool pinned;
+
     /// Default constructor
     ClosedTabInfo() = default;
 
-    /// Constructs the ClosedTabInfo given a tab index and a pointer to the tab's WebView
-    ClosedTabInfo(int tabIndex, WebView *view);
+    /**
+     * @brief ClosedTabInfo contains the state of a tab that was removed from the \ref BrowserTabWidget
+     * @param tabIndex Index of the tab
+     * @param isPinned True if the tab is pinned, false if else
+     * @param webWidget Pointer to the tab's \ref WebWidget
+     */
+    ClosedTabInfo(int tabIndex, bool isPinned, WebWidget *webWidget);
 };
 
 /**
  * @class BrowserTabWidget
- * @brief Handles rendering of browser tabs containing WebView widgets
+ * @brief Handles browser tabs containing WebWidgets
  */
 class BrowserTabWidget : public QTabWidget
 {

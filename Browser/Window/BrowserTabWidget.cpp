@@ -9,23 +9,23 @@
 #include "WebWidget.h"
 
 #include <algorithm>
-//#include <QDesktopWidget>
 #include <QMenu>
 #include <QTimer>
 #include <QWebEngineHistory>
 #include <QWebEngineHistoryItem>
 
-ClosedTabInfo::ClosedTabInfo(int tabIndex, WebView *view) :
+ClosedTabInfo::ClosedTabInfo(int tabIndex, bool isPinned, WebWidget *webWidget) :
     index(tabIndex),
     url(),
-    pageHistory()
+    pageHistory(),
+    pinned(isPinned)
 {
-    if (view)
+    if (webWidget)
     {
-        url = view->url();
+        url = webWidget->url();
 
         QDataStream stream(&pageHistory, QIODevice::ReadWrite);
-        stream << *(view->history());
+        stream << *(webWidget->history());
         stream.device()->seek(0);
     }
 }
@@ -92,28 +92,6 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
                 m_mainWindow->onMouseMoveFullscreen(static_cast<QMouseEvent*>(event)->y());
             break;
         }
-
-        /*case QEvent::Resize:
-        {
-            if (m_mainWindow != watched)
-                break;
-
-            QTimer::singleShot(50, [=](){
-                const int screenWidth = sBrowserApplication->desktop()->screenGeometry().width();
-                const QRect winGeom = m_mainWindow->geometry();
-                if (winGeom.left() + m_mainWindow->width() > screenWidth)
-                {
-                    QSize winSize = m_mainWindow->size();
-                    winSize.setWidth(screenWidth - winGeom.left());
-                    m_mainWindow->resize(winSize);
-
-                    setMaximumWidth(winSize.width());
-                    currentWebWidget()->setMaximumWidth(winSize.width());
-                }
-            });
-
-            break;
-        }*/
         case QEvent::KeyPress:
         {
             if (m_mainWindow && m_mainWindow->isFullScreen())
@@ -152,6 +130,7 @@ void BrowserTabWidget::reopenLastTab()
 
     auto &tabInfo = m_closedTabs.front();
     WebWidget *ww = newBackgroundTabAtIndex(tabInfo.index);
+    m_tabBar->setTabPinned(tabInfo.index, tabInfo.pinned);
     ww->load(tabInfo.url);
     QDataStream historyStream(&tabInfo.pageHistory, QIODevice::ReadWrite);
     historyStream >> *(ww->history());
@@ -165,7 +144,7 @@ void BrowserTabWidget::saveTab(int index)
     if (!ww)
         return;
 
-    ClosedTabInfo tabInfo(index, ww->view());
+    ClosedTabInfo tabInfo(index, m_tabBar->isTabPinned(index), ww);
     m_closedTabs.push_front(tabInfo);
 
     while (m_closedTabs.size() > 30)
