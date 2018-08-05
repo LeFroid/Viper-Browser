@@ -15,7 +15,6 @@
 BookmarkBar::BookmarkBar(QWidget *parent) :
     QWidget(parent),
     m_bookmarkManager(nullptr),
-    m_faviconStore(nullptr),
     m_layout(new QHBoxLayout(this))
 {
     setMinimumHeight(32);
@@ -28,11 +27,6 @@ void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
 {
     m_bookmarkManager = manager;
     refresh();
-}
-
-void BookmarkBar::setFaviconStore(FaviconStorage *faviconStore)
-{
-    m_faviconStore = faviconStore;
 }
 
 void BookmarkBar::showBookmarkContextMenu(const QPoint &pos)
@@ -81,7 +75,7 @@ void BookmarkBar::clear()
 
 void BookmarkBar::refresh()
 {
-    if (!m_bookmarkManager || !m_faviconStore)
+    if (!m_bookmarkManager)
         return;
 
     clear();
@@ -119,7 +113,7 @@ void BookmarkBar::refresh()
         }
         else
         {
-            button->setIcon(m_faviconStore->getFavicon(QUrl(child->getURL())));
+            button->setIcon(child->getIcon());
             connect(button, &QPushButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(child->getURL())); });
         }
 
@@ -148,7 +142,7 @@ void BookmarkBar::refresh()
                 else
                 {
                     QUrl nodeUrl(child->getURL());
-                    extraBookmarksMenu->addAction(m_faviconStore->getFavicon(nodeUrl), child->getName(), this, [=](){
+                    extraBookmarksMenu->addAction(child->getIcon(), child->getName(), this, [=](){
                         emit loadBookmark(nodeUrl);
                     });
                 }
@@ -177,7 +171,7 @@ void BookmarkBar::addFolderItems(QMenu *menu, BookmarkNode *folder)
         else
         {
             QUrl nodeUrl(child->getURL());
-            menu->addAction(m_faviconStore->getFavicon(nodeUrl), child->getName(), this, [=](){
+            menu->addAction(child->getIcon(), child->getName(), this, [=](){
                 emit loadBookmark(nodeUrl);
             });
         }

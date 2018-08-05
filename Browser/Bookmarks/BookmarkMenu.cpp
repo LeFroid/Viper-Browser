@@ -1,7 +1,6 @@
 #include "BookmarkMenu.h"
 #include "BrowserApplication.h"
 #include "BookmarkManager.h"
-#include "FaviconStorage.h"
 
 #include <deque>
 
@@ -49,8 +48,6 @@ void BookmarkMenu::resetMenu()
     std::deque< std::pair<BookmarkNode*, QMenu*> > folders;
     folders.push_back({ sBrowserApplication->getBookmarkManager()->getRoot(), this });
 
-    FaviconStorage *iconStorage = sBrowserApplication->getFaviconStorage();
-
     while (!folders.empty())
     {
         auto &current = folders.front();
@@ -69,7 +66,7 @@ void BookmarkMenu::resetMenu()
             }
 
             QUrl link(n->getURL());
-            QAction *item = currentMenu->addAction(iconStorage->getFavicon(link), n->getName());
+            QAction *item = currentMenu->addAction(n->getIcon(), n->getName());
             item->setIconVisibleInMenu(true);
             currentMenu->addAction(item);
             connect(item, &QAction::triggered, [=](){ emit loadUrlRequest(link); });

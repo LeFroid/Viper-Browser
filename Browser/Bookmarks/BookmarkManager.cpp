@@ -1,5 +1,7 @@
+#include "BrowserApplication.h"
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "FaviconStorage.h"
 
 #include <deque>
 #include <iterator>
@@ -489,6 +491,8 @@ void BookmarkManager::loadFolder(BookmarkNode *folder)
         return;
     }
 
+    FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
+
     QSqlQuery query(m_database);
     query.prepare(QLatin1String("SELECT FolderID, Type, Name, URL FROM Bookmarks WHERE ParentID = (:id) ORDER BY Position ASC"));
 
@@ -520,6 +524,7 @@ void BookmarkManager::loadFolder(BookmarkNode *folder)
                 // Load bookmark data
                 case BookmarkNode::Bookmark:
                     subNode->setURL(query.value(3).toString());
+                    subNode->setIcon(faviconStore->getFavicon(QUrl(subNode->m_url)));
                     break;
             }
         }

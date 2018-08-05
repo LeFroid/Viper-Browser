@@ -1,6 +1,6 @@
 #include "BookmarkTableModel.h"
-#include "BrowserApplication.h"
-#include "FaviconStorage.h"
+#include "BookmarkManager.h"
+#include "BookmarkNode.h"
 
 #include <deque>
 
@@ -72,11 +72,9 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
             QIcon nodeIcon;
             switch (b->getType())
             {
+                case BookmarkNode::Bookmark:
                 case BookmarkNode::Folder:
                     nodeIcon = b->getIcon();
-                    break;
-                case BookmarkNode::Bookmark:
-                    nodeIcon = sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(b->getURL()));
                     break;
             }
             if (role == Qt::DecorationRole)
