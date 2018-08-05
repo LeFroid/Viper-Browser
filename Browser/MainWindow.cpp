@@ -221,7 +221,7 @@ void MainWindow::setupMenuBar()
     connect(ui->actionAbout, &QAction::triggered, [=](){
         QString appName = sBrowserApplication->applicationName();
         QString appVersion = sBrowserApplication->applicationVersion();
-        QMessageBox::about(this, QString("About %1").arg(appName), QString("%1 - Version %2\nDeveloped by Timothy Vaccarelli").arg(appName).arg(appVersion));
+        QMessageBox::about(this, tr("About %1").arg(appName), tr("%1 - Version %2\nDeveloped by Timothy Vaccarelli").arg(appName).arg(appVersion));
     });
     connect(ui->actionAbout_Qt, &QAction::triggered, [=](){
         QMessageBox::aboutQt(this, tr("About Qt"));
@@ -250,7 +250,7 @@ void MainWindow::setupTabWidget()
     connect(m_tabWidget, &BrowserTabWidget::loadProgress, [=](int progress) {
         if (progress > 0 && progress < 100)
         {
-            m_linkHoverLabel->setText(QString("%1% loaded...").arg(progress));
+            m_linkHoverLabel->setText(tr("%1% loaded...").arg(progress));
             //ui->statusBar->show();
         }
         else
