@@ -669,15 +669,15 @@ void AdBlockManager::loadSubscriptions()
 
         // Get last update as unix epoch value
         bool ok;
-        uint lastUpdateUInt = subscriptionObj.value(QLatin1String("last_update")).toVariant().toUInt(&ok);
-        QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromTime_t(lastUpdateUInt) : QDateTime::currentDateTime());
+        quint64 lastUpdateUInt = subscriptionObj.value(QLatin1String("last_update")).toVariant().toULongLong(&ok);
+        QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromSecsSinceEpoch(lastUpdateUInt) : QDateTime::currentDateTime());
         subscription.setLastUpdate(lastUpdate);
 
         // Attempt to get next update time as unix epoch value
-        uint nextUpdateUInt = subscriptionObj.value(QLatin1String("next_update")).toVariant().toUInt(&ok);
+        quint64 nextUpdateUInt = subscriptionObj.value(QLatin1String("next_update")).toVariant().toULongLong(&ok);
         if (ok && nextUpdateUInt > 0)
         {
-            QDateTime nextUpdate = QDateTime::fromTime_t(nextUpdateUInt);
+            QDateTime nextUpdate = QDateTime::fromSecsSinceEpoch(nextUpdateUInt);
             subscription.setNextUpdate(nextUpdate);
         }
 
@@ -875,8 +875,8 @@ void AdBlockManager::save()
     {
         QJsonObject subscriptionObj;
         subscriptionObj.insert(QLatin1String("enabled"), it->isEnabled());
-        subscriptionObj.insert(QLatin1String("last_update"), QJsonValue::fromVariant(QVariant(it->getLastUpdate().toTime_t())));
-        subscriptionObj.insert(QLatin1String("next_update"), QJsonValue::fromVariant(QVariant(it->getNextUpdate().toTime_t())));
+        subscriptionObj.insert(QLatin1String("last_update"), QJsonValue::fromVariant(QVariant(it->getLastUpdate().toSecsSinceEpoch())));
+        subscriptionObj.insert(QLatin1String("next_update"), QJsonValue::fromVariant(QVariant(it->getNextUpdate().toSecsSinceEpoch())));
         subscriptionObj.insert(QLatin1String("source"), it->getSourceUrl().toString(QUrl::FullyEncoded));
 
         configObj.insert(it->getFilePath(), QJsonValue(subscriptionObj));
