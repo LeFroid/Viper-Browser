@@ -59,7 +59,7 @@ std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) con
 
         QRegularExpression::PatternOptions options =
                 (filterPtr->m_matchCase ? QRegularExpression::NoPatternOption : QRegularExpression::CaseInsensitiveOption);
-        filterPtr->m_regExp = std::make_unique<QRegularExpression>(rule.replace("\\", "\\\\"), options);
+        filterPtr->m_regExp = std::make_unique<QRegularExpression>(rule, options);
         return filter;
     }
 
