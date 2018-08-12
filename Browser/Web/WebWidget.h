@@ -1,7 +1,9 @@
 #ifndef WEBWIDGET_H
 #define WEBWIDGET_H
 
+#include <QIcon>
 #include <QPointer>
+#include <QUrl>
 #include <QWidget>
 
 class HttpRequest;
@@ -9,9 +11,19 @@ class MainWindow;
 class WebPage;
 class WebView;
 
-class QIcon;
-class QUrl;
 class QWebEngineHistory;
+
+/// Saves the state of a \ref WebWidget so it can be placed in or out of hibernation
+struct SavedWebState
+{
+    QIcon icon;
+    QUrl iconUrl;
+    QString title;
+    QUrl url;
+    QByteArray pageHistory;
+
+    SavedWebState() = default;
+};
 
 /**
  * @class WebWidget
@@ -97,6 +109,12 @@ public slots:
     void setHibernation(bool on);
 
 signals:
+    /// Emitted when the widget is about to go into hibernation state
+    void aboutToHibernate();
+
+    /// Emitted when the widget is about to wake up from its hibernated state
+    void aboutToWake();
+
     /// Emitted when the web view should be closed
     void closeRequest();
 
@@ -133,9 +151,20 @@ signals:
     /// Emitted when the title of the current page has changed to the given string
     void titleChanged(const QString &title);
 
+protected:
+    /// Handles mouse press events when the widget is in hibernate mode, otherwise forwards the event to the appropriate handler
+    void mousePressEvent(QMouseEvent *event) override;
+
 private slots:
     /// Shows the context menu on the web page
     void showContextMenuForView();
+
+private:
+    /// Saves the state of the web widget before it is hibernated
+    void saveState();
+
+    /// Instantiates the web view and its page, binding them to the web widget
+    void setupWebView();
 
 private:
     /// The actual web view widget being used to render and access web content
@@ -155,6 +184,9 @@ private:
 
     /// True if the widget is in hibernation mode, false if else
     bool m_hibernating;
+
+    /// Saves the state of the web page (icon, page title, url, etc.) in order to transition in and out of hibernation mode
+    SavedWebState m_savedState;
 };
 
 #endif // WEBWIDGET_H

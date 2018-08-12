@@ -311,7 +311,12 @@ void MainWindow::onTabChanged(int index)
 
     // Show dock widget with dev tools UI if it was opened in the last tab
     if (ui->dockWidget->isVisible())
-        ww->inspectElement();
+    {
+        if (ww->isHibernating())
+            ui->dockWidget->hide();
+        else
+            ww->inspectElement();
+    }
 
     checkPageForBookmark();
 
@@ -587,6 +592,9 @@ void MainWindow::onShowAllHistory()
 void MainWindow::onNewTabCreated(WebWidget *ww)
 {
     // Connect signals to slots for UI updates (page title, icon changes)
+    connect(ww, &WebWidget::aboutToWake, [this,ww](){
+        ui->widgetFindText->setWebView(ww->view());
+    });
     connect(ww, &WebWidget::loadFinished, this, &MainWindow::onLoadFinished);
     connect(ww, &WebWidget::inspectElement, [=]() {
         WebView *inspectorView = qobject_cast<WebView*>(ui->dockWidget->widget());
@@ -607,9 +615,18 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
         WebPage *inspectorPage = inspectorView->getPage();
         inspectorPage->setInspectedPage(ww->page());
+
+        connect(ww, &WebWidget::aboutToHibernate, [=](){
+            if (inspectorPage->inspectedPage() == ww->page())
+                inspectorPage->setInspectedPage(nullptr);
+        });
 #else
         QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue(BrowserSetting::InspectorPort).toString());
         inspectorView->load(QUrl(inspectorUrl));
+        connect(ww, &WebWidget::aboutToHibernate, [=](){
+            if (m_tabWidget->currentWebWidget() == ww && ui->dockWidget->isVisible())
+                inspectorView->load(QUrl(inspectorUrl));
+        });
 #endif
         ui->dockWidget->show();
     });

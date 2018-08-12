@@ -441,6 +441,8 @@ void BrowserTabWidget::resetHistoryButtonMenus()
 
     int maxMenuSize = 10;
     QWebEngineHistory *hist = m_activeView->history();
+    if (hist == nullptr)
+        return;
     QAction *histAction = nullptr, *prevAction = nullptr;
 
     // Setup back button history menu

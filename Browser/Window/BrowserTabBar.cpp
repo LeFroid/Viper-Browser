@@ -124,12 +124,19 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     {
         if (WebWidget *ww = tabWidget->getWebWidget(tabIndex))
         {
-            WebPage *page = ww->page();
-            const bool isTabMuted = page->isAudioMuted();
+            if (WebPage *page = ww->page())
+            {
+                const bool isTabMuted = page->isAudioMuted();
 
-            const QString muteActionText = isTabMuted ? tr("Unmute tab") : tr("Mute tab");
-            menu.addAction(muteActionText, [=]() {
-                page->setAudioMuted(!isTabMuted);
+                const QString muteActionText = isTabMuted ? tr("Unmute tab") : tr("Mute tab");
+                menu.addAction(muteActionText, [=]() {
+                    page->setAudioMuted(!isTabMuted);
+                });
+            }
+
+            const QString hibernateActionText = ww->isHibernating() ? tr("Wake up tab") : tr("Hibernate tab");
+            menu.addAction(hibernateActionText, [ww](){
+                ww->setHibernation(!ww->isHibernating());
             });
         }
     }
