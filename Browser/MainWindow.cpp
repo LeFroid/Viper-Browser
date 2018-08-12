@@ -531,7 +531,7 @@ void MainWindow::onLoadFinished(bool ok)
         ui->toolBar->getURLWidget()->setURL(ww->url());
         checkPageForBookmark();
 
-        if (!ww->isOnBlankPage())
+        if (!ww->isOnBlankPage() && !ui->widgetFindText->getLineEdit()->hasFocus())
             ww->setFocus();
     }
 
