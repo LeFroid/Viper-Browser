@@ -218,6 +218,15 @@ WebWidget *BrowserTabWidget::createWebWidget()
     connect(ww, &WebWidget::titleChanged,           this, &BrowserTabWidget::onTitleChanged);
     connect(ww, &WebWidget::closeRequest,           this, &BrowserTabWidget::onViewCloseRequested);
 
+	connect(ww, &WebWidget::aboutToHibernate, [=]() {
+		if (currentWebWidget() == ww) {
+			// temporary measure until the webenginehistory items are encapsulated in a WebHistory class
+			// that will wake up the tab before triggering the history item's back/forward action
+			m_backMenu->clear();
+			m_forwardMenu->clear();
+		}
+	});
+
     if (!m_privateBrowsing)
     {
         connect(ww, &WebWidget::iconUrlChanged, [=](const QUrl &url) {
