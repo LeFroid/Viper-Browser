@@ -135,6 +135,8 @@ void WebWidget::setHibernation(bool on)
         layout()->removeWidget(m_view);
         delete m_view;
         m_view = nullptr;
+
+        setCursor(Qt::PointingHandCursor);
     }
     else
     {
@@ -146,6 +148,8 @@ void WebWidget::setHibernation(bool on)
         m_view->load(m_savedState.url);
         QDataStream historyStream(&m_savedState.pageHistory, QIODevice::ReadWrite);
         historyStream >> *(m_view->history());
+
+        unsetCursor();
     }
 }
 
