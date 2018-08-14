@@ -85,8 +85,9 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");
 
-    const int screenWidth = sBrowserApplication->desktop()->screenGeometry().width();
-    setMaximumWidth(screenWidth);
+	QDesktopWidget *desktop = sBrowserApplication->desktop();
+	const int availableWidth = desktop->availableGeometry().width(), availableHeight = desktop->availableGeometry().height();
+	setGeometry(availableWidth / 8, availableHeight / 8, availableWidth * 3 / 4, availableHeight * 3 / 4);
 
     setupStatusBar();
     setupTabWidget();
