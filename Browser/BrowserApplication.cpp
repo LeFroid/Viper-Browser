@@ -332,7 +332,7 @@ void BrowserApplication::installGlobalWebScripts()
     webChannel.setInjectionPoint(QWebEngineScript::DocumentCreation);
     webChannel.setName(QLatin1String("viper-web-channel"));
     webChannel.setRunsOnSubFrames(true);
-    webChannel.setWorldId(QWebEngineScript::MainWorld);
+    webChannel.setWorldId(QWebEngineScript::ApplicationWorld);
 
     QString webChannelJS;
     QFile webChannelFile(QLatin1String(":/qtwebchannel/qwebchannel.js"));

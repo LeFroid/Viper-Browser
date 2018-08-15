@@ -8,7 +8,7 @@ WebEngineScriptAdapter::WebEngineScriptAdapter(const UserScript &script) :
 {
     m_script.setName(script.getName());
     m_script.setRunsOnSubFrames(script.isEnabledOnSubFrames());
-    m_script.setWorldId(QWebEngineScript::MainWorld);
+    m_script.setWorldId(QWebEngineScript::ApplicationWorld);
 
     auto injectionTime = script.getInjectionTime();
     QWebEngineScript::InjectionPoint webEngineInjectionPoint = QWebEngineScript::DocumentCreation;

@@ -44,7 +44,7 @@ void WebPage::setupSlots()
 {
     QWebChannel *channel = new QWebChannel(this);
     channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
-    setWebChannel(channel);
+    setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
     connect(this, &WebPage::authenticationRequired,      this, &WebPage::onAuthenticationRequired);
     connect(this, &WebPage::proxyAuthenticationRequired, this, &WebPage::onProxyAuthenticationRequired);
