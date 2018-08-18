@@ -69,11 +69,19 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
             tabArray.append(QJsonValue(tabInfoObj));
         }
 
-        winObj.insert(QString("tabs"), QJsonValue(tabArray));
-        winObj.insert(QString("current_tab"), QJsonValue(tabWidget->currentIndex()));
+        winObj.insert(QLatin1String("tabs"), QJsonValue(tabArray));
+        winObj.insert(QLatin1String("current_tab"), QJsonValue(tabWidget->currentIndex()));
+
+        // Store geometry of window
+        const QRect &winGeom = win->geometry();
+        winObj.insert(QLatin1String("geom_x"), QJsonValue(winGeom.x()));
+        winObj.insert(QLatin1String("geom_y"), QJsonValue(winGeom.y()));
+        winObj.insert(QLatin1String("geom_width"), QJsonValue(winGeom.width()));
+        winObj.insert(QLatin1String("geom_height"), QJsonValue(winGeom.height()));
+
         windowArray.append(QJsonValue(winObj));
     }
-    sessionObj.insert(QString("windows"), QJsonValue(windowArray));
+    sessionObj.insert(QLatin1String("windows"), QJsonValue(windowArray));
 
     // Save to file
     QJsonDocument sessionDoc(sessionObj);
@@ -109,7 +117,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
         return;
 
     QJsonObject sessionObj = sessionDoc.object();
-    auto it = sessionObj.find("windows");
+    auto it = sessionObj.find(QLatin1String("windows"));
     if (it == sessionObj.end())
         return;
 
@@ -125,10 +133,22 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
         else
             isFirstWindow = false;
 
+        QJsonObject winObject = winIt->toObject();
+
+        // See if geometry information was saved
+        if (winObject.contains(QLatin1String("geom_x")))
+        {
+            QRect winGeom;
+            winGeom.setX(winObject.value(QLatin1String("geom_x")).toInt());
+            winGeom.setY(winObject.value(QLatin1String("geom_y")).toInt());
+            winGeom.setWidth(winObject.value(QLatin1String("geom_width")).toInt(100));
+            winGeom.setHeight(winObject.value(QLatin1String("geom_height")).toInt(100));
+            currentWindow->setGeometry(winGeom);
+        }
+
         BrowserTabWidget *tabWidget = currentWindow->getTabWidget();
 
-        QJsonObject winObject = winIt->toObject();
-        QJsonArray tabArray = winObject.value("tabs").toArray();
+        QJsonArray tabArray = winObject.value(QLatin1String("tabs")).toArray();
         int i = 1;
         for (auto tabIt = tabArray.constBegin(); tabIt != tabArray.constEnd(); ++tabIt)
         {
@@ -155,7 +175,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
         tabWidget->closeTab(0);
 
         // Set current tab to the last active tab
-        int currentTab = winObject.value("current_tab").toInt();
+        int currentTab = winObject.value(QLatin1String("current_tab")).toInt();
         tabWidget->setCurrentIndex(currentTab);
     }
 }
