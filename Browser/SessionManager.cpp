@@ -79,6 +79,8 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
         winObj.insert(QLatin1String("geom_width"), QJsonValue(winGeom.width()));
         winObj.insert(QLatin1String("geom_height"), QJsonValue(winGeom.height()));
 
+        winObj.insert(QLatin1String("is_maximized"), QJsonValue(win->isMaximized()));
+
         windowArray.append(QJsonValue(winObj));
     }
     sessionObj.insert(QLatin1String("windows"), QJsonValue(windowArray));
@@ -135,8 +137,13 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
 
         QJsonObject winObject = winIt->toObject();
 
-        // See if geometry information was saved
-        if (winObject.contains(QLatin1String("geom_x")))
+        bool isMaximized = false;
+        if (winObject.contains(QLatin1String("is_maximized")))
+            isMaximized = winObject.value(QLatin1String("is_maximized")).toBool();
+
+        if (isMaximized)
+            currentWindow->showMaximized();
+        else if (winObject.contains(QLatin1String("geom_x")))
         {
             QRect winGeom;
             winGeom.setX(winObject.value(QLatin1String("geom_x")).toInt());
