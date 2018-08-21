@@ -489,6 +489,9 @@ void AdBlockFilterParser::parseForCSP(AdBlockFilter *filter) const
 void AdBlockFilterParser::parseDomains(const QString &domainString, QChar delimiter, AdBlockFilter *filter) const
 {
     QStringList domainList = domainString.split(delimiter, QString::SkipEmptyParts);
+	if (domainList.isEmpty())
+		domainList.append(domainString);
+
     for (QString &domain : domainList)
     {
         // Check if domain is an entity filter type
