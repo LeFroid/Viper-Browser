@@ -59,7 +59,9 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
 
             QByteArray tabHistory;
             QDataStream stream(&tabHistory, QIODevice::ReadWrite);
-            stream << *(ww->history());
+            auto history = ww->history();
+            if (history != nullptr)
+                stream << *history;
             stream.device()->seek(0);
 
             auto tabHistoryB64 = tabHistory.toBase64();
