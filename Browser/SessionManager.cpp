@@ -55,7 +55,8 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
 
             QJsonObject tabInfoObj;
             tabInfoObj.insert(QLatin1String("url"), QJsonValue(ww->url().toString()));
-            tabInfoObj.insert(QLatin1String("isPinned"), QJsonValue(tabWidget->isTabPinned(i)));
+            tabInfoObj.insert(QLatin1String("is_pinned"), QJsonValue(tabWidget->isTabPinned(i)));
+            tabInfoObj.insert(QLatin1String("is_hibernating"), QJsonValue(ww->isHibernating()));
 
             QByteArray tabHistory;
             QDataStream stream(&tabHistory, QIODevice::ReadWrite);
@@ -97,17 +98,6 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
 
 void SessionManager::restoreSession(MainWindow *firstWindow)
 {
-    /* browsing session data is of the following format:
-     * {
-     *     "windows": [
-     *         {
-     *             "tabs": [ "url 1", "url 2", ... ]
-     *             "current_tab": n
-     *         },
-     *         { ... }, ..., { ... }
-     *     ]
-     */
-
     QFile dataFile(m_dataFile);
     if (!dataFile.exists() || !dataFile.open(QIODevice::ReadOnly))
         return;
@@ -171,12 +161,14 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
                 ww->load(QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString()));
 
                 tabWidget->setTabPinned(tabWidget->indexOf(ww),
-                                        tabInfoObj.value(QLatin1String("isPinned")).toBool());
+                                        tabInfoObj.value(QLatin1String("is_pinned")).toBool());
 
                 const QByteArray encodedHistory = tabInfoObj.value(QLatin1String("history")).toString().toLatin1();
                 QByteArray tabHistory = QByteArray::fromBase64(encodedHistory);
                 QDataStream historyStream(&tabHistory, QIODevice::ReadWrite);
                 historyStream >> *(ww->history());
+
+                ww->setHibernation(tabInfoObj.value(QLatin1String("is_hibernating")).toBool());
             }
         }
 

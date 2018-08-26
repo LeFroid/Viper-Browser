@@ -264,6 +264,8 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
             if (watched == m_view)
             {
                 QTimer::singleShot(0, this, [this](){
+                    if (m_hibernating)
+                        return;
                     if (m_view->focusProxy() && m_view->focusProxy() != m_viewFocusProxy)
                     {
                         m_viewFocusProxy = m_view->focusProxy();
