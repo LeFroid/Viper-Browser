@@ -20,6 +20,8 @@ DownloadManager::DownloadManager(QWidget *parent) :
     m_downloads()
 {
     ui->setupUi(this);
+
+    connect(ui->pushButtonClear, &QPushButton::clicked, this, &DownloadManager::clearDownloads);
 }
 
 DownloadManager::~DownloadManager()
@@ -40,6 +42,20 @@ const QString &DownloadManager::getDownloadDir() const
 void DownloadManager::setNetworkAccessManager(NetworkAccessManager *manager)
 {
     m_accessMgr = manager;
+}
+
+void DownloadManager::clearDownloads()
+{
+    if (m_downloads.empty())
+        return;
+
+    for (int i = m_downloads.size() - 1; i >= 0; --i)
+    {
+        DownloadItem *item = m_downloads.at(i);
+        ui->tableWidget->removeRow(i);
+        m_downloads.removeAt(i);
+        delete item;
+    }
 }
 
 void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)

@@ -43,6 +43,9 @@ public:
     void setNetworkAccessManager(NetworkAccessManager *manager);
 
 public slots:
+    /// Clears all downloads from the list
+    void clearDownloads();
+
     /// Called when a download request is initiated
     void onDownloadRequest(QWebEngineDownloadItem *item);
 
