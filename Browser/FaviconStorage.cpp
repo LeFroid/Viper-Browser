@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "CommonUtil.h"
 #include "FaviconStorage.h"
 #include "NetworkAccessManager.h"
 #include "URL.h"
@@ -190,29 +191,6 @@ void FaviconStorage::onReplyFinished()
     m_reply = nullptr;
 }
 
-QIcon FaviconStorage::iconFromBase64(QByteArray data)
-{
-    QByteArray decoded = QByteArray::fromBase64(data);
-
-    QBuffer buffer(&decoded);
-    QImage img;
-    img.load(&buffer, "PNG");
-
-    return QIcon(QPixmap::fromImage(img));
-}
-
-QByteArray FaviconStorage::iconToBase64(QIcon icon)
-{
-    // First convert the icon into a QImage, and from that place data into a byte array
-    QImage img = icon.pixmap(16, 16).toImage();
-
-    QByteArray data;
-    QBuffer buffer(&data);
-    img.save(&buffer, "PNG");
-
-    return data.toBase64();
-}
-
 void FaviconStorage::saveToDB(const QString &faviconUrl, const FaviconInfo &favicon)
 {
     QSqlQuery *query = m_queryMap.at(StoredQuery::InsertFavicon).get();
@@ -225,7 +203,7 @@ void FaviconStorage::saveToDB(const QString &faviconUrl, const FaviconInfo &favi
     query = m_queryMap.at(StoredQuery::InsertIconData).get();
     query->bindValue(QLatin1String(":dataId"), favicon.dataID);
     query->bindValue(QLatin1String(":iconId"), favicon.iconID);
-    query->bindValue(QLatin1String(":data"), iconToBase64(favicon.icon));
+    query->bindValue(QLatin1String(":data"), CommonUtil::iconToBase64(favicon.icon));
     if (!query->exec())
         qDebug() << "In FaviconStorage::saveToDB - could not add favicon icon data to FaviconData table. Message: "
                  << query->lastError().text();
@@ -294,7 +272,7 @@ void FaviconStorage::load()
             FaviconInfo info;
             info.iconID = query.value(idFaviconID).toInt();
             info.dataID = query.value(idDataID).toInt();
-            info.icon = iconFromBase64(query.value(idData).toByteArray());
+            info.icon = CommonUtil::iconFromBase64(query.value(idData).toByteArray());
             m_favicons.insert(iconUrl, info);
         }
     }

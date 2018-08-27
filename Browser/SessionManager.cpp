@@ -1,6 +1,7 @@
 #include "SessionManager.h"
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
+#include "CommonUtil.h"
 #include "MainWindow.h"
 #include "WebWidget.h"
 
@@ -57,6 +58,11 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
             tabInfoObj.insert(QLatin1String("url"), QJsonValue(ww->url().toString()));
             tabInfoObj.insert(QLatin1String("is_pinned"), QJsonValue(tabWidget->isTabPinned(i)));
             tabInfoObj.insert(QLatin1String("is_hibernating"), QJsonValue(ww->isHibernating()));
+            tabInfoObj.insert(QLatin1String("title"), QJsonValue(ww->getTitle()));
+
+            QByteArray faviconB64 = CommonUtil::iconToBase64(ww->getIcon());
+            auto faviconEncoded = QLatin1String(faviconB64.data());
+            tabInfoObj.insert(QLatin1String("icon"), QJsonValue(faviconEncoded));
 
             QByteArray tabHistory;
             QDataStream stream(&tabHistory, QIODevice::ReadWrite);
@@ -129,9 +135,8 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
 
         QJsonObject winObject = winIt->toObject();
 
-        bool isMaximized = false;
-        if (winObject.contains(QLatin1String("is_maximized")))
-            isMaximized = winObject.value(QLatin1String("is_maximized")).toBool();
+        // Restore window properties
+        const bool isMaximized = winObject.value(QLatin1String("is_maximized")).toBool(false);
 
         if (isMaximized)
             currentWindow->showMaximized();
@@ -145,6 +150,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
             currentWindow->setGeometry(winGeom);
         }
 
+        // Restore tabs belonging to the window
         BrowserTabWidget *tabWidget = currentWindow->getTabWidget();
 
         QJsonArray tabArray = winObject.value(QLatin1String("tabs")).toArray();
@@ -157,7 +163,21 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
             {
                 QJsonObject tabInfoObj = tabIt->toObject();
 
-                WebWidget *ww = tabWidget->newBackgroundTabAtIndex(i++);
+                WebWidget *ww = tabWidget->newBackgroundTabAtIndex(i);
+
+                QString tabTitle = tabInfoObj.value(QLatin1String("title")).toString();
+                if (!tabTitle.isNull())
+                {
+                    tabWidget->setTabText(i, tabTitle);
+                    tabWidget->setTabToolTip(i, tabTitle);
+                }
+
+                const QByteArray faviconData = tabInfoObj.value(QLatin1String("icon")).toString().toLatin1();
+                if (!faviconData.isNull())
+                {
+                    tabWidget->setTabIcon(i, CommonUtil::iconFromBase64(faviconData));
+                }
+
                 ww->load(QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString()));
 
                 tabWidget->setTabPinned(tabWidget->indexOf(ww),
@@ -169,6 +189,8 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
                 historyStream >> *(ww->history());
 
                 ww->setHibernation(tabInfoObj.value(QLatin1String("is_hibernating")).toBool());
+
+                ++i;
             }
         }
 

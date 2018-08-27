@@ -70,12 +70,6 @@ private slots:
     void onReplyFinished();
 
 private:
-    /// Converts the base64-encoded byte array into a QIcon
-    QIcon iconFromBase64(QByteArray data);
-
-    /// Returns the base64 encoding of the given icon
-    QByteArray iconToBase64(QIcon icon);
-
     /// Saves the specific favicon with its URL and data structure into the database
     void saveToDB(const QString &faviconUrl, const FaviconInfo &favicon);
 

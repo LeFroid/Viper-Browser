@@ -1,5 +1,7 @@
 #include "CommonUtil.h"
 
+#include <QBuffer>
+
 namespace CommonUtil
 {
     QString bytesToUserFriendlyStr(quint64 amount)
@@ -38,5 +40,28 @@ namespace CommonUtil
         }
 
         return userStr;
+    }
+
+    QIcon iconFromBase64(QByteArray data)
+    {
+        QByteArray decoded = QByteArray::fromBase64(data);
+
+        QBuffer buffer(&decoded);
+        QImage img;
+        img.load(&buffer, "PNG");
+
+        return QIcon(QPixmap::fromImage(img));
+    }
+
+    QByteArray iconToBase64(QIcon icon)
+    {
+        // First convert the icon into a QImage, and from that place data into a byte array
+        QImage img = icon.pixmap(32, 32).toImage();
+
+        QByteArray data;
+        QBuffer buffer(&data);
+        img.save(&buffer, "PNG");
+
+        return data.toBase64();
     }
 }
