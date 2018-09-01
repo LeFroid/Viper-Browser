@@ -58,18 +58,21 @@ public:
     QIcon getFavicon(const QUrl &url, bool useCache = false);
 
     /**
-     * @brief Attempts to update the database about the favicon associated with a given page.
-     * @param iconHRef Reference to the HTTP location where the favicon is stored.
-     * @param pageUrl The URL of the page, in string form.
-     * @param pageIcon The icon of the page, or a null icon if it could not be directly taken from the page.
+     * @brief Attempts to update favicon for a specific URL in the database.
+     * @param iconHRef The location in which the favicon is stored.
+     * @param pageUrl The URL of the page displaying the favicon.
+     * @param pageIcon The favicon on the page.
      */
-    void updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon = QIcon());
+    void updateIcon(const QString &iconHRef, const QUrl &pageUrl, QIcon pageIcon = QIcon());
 
 private slots:
     /// Called after the request for a favicon has been completed
     void onReplyFinished();
 
 private:
+    /// Converts the given url into a string that is of a consistent format across the favicon storage system
+    QString getUrlAsString(const QUrl &url) const;
+
     /// Saves the specific favicon with its URL and data structure into the database
     void saveToDB(const QString &faviconUrl, const FaviconInfo &favicon);
 

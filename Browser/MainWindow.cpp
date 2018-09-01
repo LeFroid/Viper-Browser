@@ -549,13 +549,13 @@ void MainWindow::onLoadFinished(bool ok)
     HistoryManager *historyMgr = browserApp->getHistoryManager();
 
     QIcon favicon = ww->getIcon();
-    QString pageUrl = ww->url().toString();
+    QUrl pageUrl = ww->url();
     QString pageUrlNoPath = ww->url().toString(QUrl::RemovePath);
     QString pageScheme = ww->url().scheme();
     const bool isBlankPage = ww->isOnBlankPage();
 
     if (!isBlankPage && !pageUrl.isEmpty())
-        historyMgr->addHistoryEntry(pageUrl, ww->getTitle());
+        historyMgr->addHistoryEntry(pageUrl.toString(), ww->getTitle());
 
     // Attempt to fetch the URL of the favicon from the page
     ww->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {

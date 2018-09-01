@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core concurrent gui sql printsupport
+QT       += core concurrent gui sql svg printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += quickwidgets widgets webenginewidgets
 
@@ -36,6 +36,7 @@ INCLUDEPATH += \
     $$PWD/Bookmarks \
     $$PWD/Cache \
     $$PWD/Cookies \
+    $$PWD/Credentials \
     $$PWD/Downloads \
     $$PWD/Extensions \
     $$PWD/History \
@@ -48,6 +49,12 @@ INCLUDEPATH += \
     $$PWD/Web \
     $$PWD/Widgets \
     $$PWD/Window
+
+packagesExist(KWallet) {
+QT += KWallet
+DEFINES += USE_KWALLET
+message("Using KWallet for secure storage")
+}
 
 SOURCES += \
     main.cpp \
@@ -138,7 +145,8 @@ SOURCES += \
     AdBlock/AdBlockButton.cpp \
     CommonUtil.cpp \
     Network/AuthDialog.cpp \
-    Network/HttpRequest.cpp
+    Network/HttpRequest.cpp \
+    Credentials/CredentialStore.cpp
 
 HEADERS += \
     TreeNode.h \
@@ -231,7 +239,8 @@ HEADERS += \
     AdBlock/AdBlockButton.h \
     CommonUtil.h \
     Network/AuthDialog.h \
-    Network/HttpRequest.h
+    Network/HttpRequest.h \
+    Credentials/CredentialStore.h
 
 FORMS += \
     Cookies/cookiewidget.ui \

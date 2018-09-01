@@ -230,7 +230,7 @@ WebWidget *BrowserTabWidget::createWebWidget()
     if (!m_privateBrowsing)
     {
         connect(ww, &WebWidget::iconUrlChanged, [=](const QUrl &url) {
-            m_faviconStore->updateIcon(url.toString(QUrl::FullyEncoded), ww->url().toString(), ww->getIcon());
+            m_faviconStore->updateIcon(url.toString(QUrl::FullyEncoded), ww->url(), ww->getIcon());
         });
     }
 

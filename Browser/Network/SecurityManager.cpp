@@ -57,7 +57,7 @@ bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certi
 
     m_insecureHosts.insert(hostName);
 
-    QString warning = tr("The website you are attempting to load is not secure.");
+    QString warning = tr("The website you are attempting to load at \"%1\" is not secure.").arg(certificateError.url().host());
     QString preface = tr("The following errors were found:");
     QString option = tr("Do you wish to proceed?");
 

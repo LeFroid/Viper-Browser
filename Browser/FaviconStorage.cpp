@@ -9,8 +9,10 @@
 #include <QFileInfo>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QPainter>
 #include <QSqlError>
 #include <QSqlRecord>
+#include <QSvgRenderer>
 #include <QDebug>
 
 FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
@@ -37,15 +39,9 @@ QIcon FaviconStorage::getFavicon(const QUrl &url, bool useCache)
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
-    // Truncate page url if it contains a '?' or '#' towards the end of the string
-    QString pageUrl = url.toString();
+    QString pageUrl = getUrlAsString(url);
     if (pageUrl.isEmpty())
         return QIcon();
-
-    if (pageUrl.contains(QChar('#')))
-        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('#')));
-    if (pageUrl.contains(QChar('?')))
-        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('?')));
 
     const std::string urlStdStr = pageUrl.toStdString();
 
@@ -100,22 +96,18 @@ QIcon FaviconStorage::getFavicon(const QUrl &url, bool useCache)
     return QIcon(QLatin1String(":/blank_favicon.png"));
 }
 
-void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon pageIcon)
+void FaviconStorage::updateIcon(const QString &iconHRef, const QUrl &pageUrl, QIcon pageIcon)
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
     if (iconHRef.isEmpty())
         return;
 
-    // Truncate page url if it contains a '?' or '#' towards the end of the string
-    if (pageUrl.contains(QChar('#')))
-        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('#')));
-    if (pageUrl.contains(QChar('?')))
-        pageUrl = pageUrl.left(pageUrl.lastIndexOf(QChar('?')));
+    QString pageUrlStr = getUrlAsString(pageUrl);
 
     auto it = m_favicons.find(iconHRef);
     if (it != m_favicons.end())
-        it->urlSet.insert(pageUrl);
+        it->urlSet.insert(pageUrlStr);
     else
     {
         // Fetch icon and add info to hash map
@@ -123,7 +115,7 @@ void FaviconStorage::updateIcon(const QString &iconHRef, QString pageUrl, QIcon 
         info.iconID = m_newFaviconID++;
         info.dataID = m_newDataID++;
         info.icon = pageIcon;
-        info.urlSet.insert(pageUrl);
+        info.urlSet.insert(pageUrlStr);
         m_favicons.insert(iconHRef, info);
 
         // Manually make request for icon if QWebSettings could not get the icon
@@ -157,10 +149,11 @@ void FaviconStorage::onReplyFinished()
     auto it = m_favicons.find(m_reply->url().toString());
     if (it != m_favicons.end())
     {
-        QString format = QFileInfo(m_reply->url().toString()).suffix();
-        if (format.contains("?"))
-            format = format.left(format.indexOf("?"));
+        QString format = QFileInfo(getUrlAsString(m_reply->url())).suffix();
         QByteArray data = m_reply->readAll();
+
+        QImage img;
+        bool success = false;
 
         // Handle compressed data
         if (format.compare(QLatin1String("gzip")) == 0)
@@ -168,12 +161,24 @@ void FaviconStorage::onReplyFinished()
             data = qUncompress(data);
             format.clear();
         }
+        // Handle SVG favicons
+        else if (format.compare(QLatin1String("svg")) == 0)
+        {
+            QSvgRenderer svgRenderer(data);
+            img = QImage(32, 32, QImage::Format_ARGB32);
+            QPainter painter(&img);
+            svgRenderer.render(&painter);
+            success = !img.isNull();
+        }
+        // Default handler
+        else
+        {
+            QBuffer buffer(&data);
+            const char *imgFormat = format.isEmpty() ? nullptr : format.toStdString().c_str();
+            success = img.load(&buffer, imgFormat);
+        }
 
-        QBuffer buffer(&data);
-        QImage img;
-        const char *imgFormat = format.isEmpty() ? nullptr : format.toStdString().c_str();
-
-        if (!img.load(&buffer, imgFormat))
+        if (!success)
         {
             qDebug() << "FaviconStorage::onReplyFinished - failed to load image from response. Format was " << format;
             m_favicons.erase(it);
@@ -189,6 +194,11 @@ void FaviconStorage::onReplyFinished()
 
     m_reply->deleteLater();
     m_reply = nullptr;
+}
+
+QString FaviconStorage::getUrlAsString(const QUrl &url) const
+{
+    return url.toString(QUrl::RemoveUserInfo | QUrl::RemoveQuery | QUrl::RemoveFragment);
 }
 
 void FaviconStorage::saveToDB(const QString &faviconUrl, const FaviconInfo &favicon)
