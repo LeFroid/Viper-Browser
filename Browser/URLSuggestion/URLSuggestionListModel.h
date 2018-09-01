@@ -50,6 +50,10 @@ public:
     /// Returns the data stored under the given role for the item referred to by the index.
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    /// Removes count rows starting with the given row under parent parent from the model.
+    /// Returns true if the rows were successfully removed, otherwise returns false.
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+
 public slots:
     /// Sets the suggested items to be displayed in the model
     void setSuggestions(std::vector<URLSuggestion> suggestions);

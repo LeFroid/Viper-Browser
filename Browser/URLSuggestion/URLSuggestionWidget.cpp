@@ -148,6 +148,12 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
                     }
                     return false;
                 }
+                case Qt::Key_Delete:
+                {
+                    if (currentIndex.isValid())
+                        return m_model->removeRow(currentIndex.row());
+                    return false;
+                }
                 default:
                     return false;
             }

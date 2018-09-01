@@ -43,3 +43,15 @@ void URLSuggestionListModel::setSuggestions(std::vector<URLSuggestion> suggestio
     m_suggestions = std::move(suggestions);
     endResetModel();
 }
+
+bool URLSuggestionListModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    if (row < 0 || row + count > rowCount())
+        return false;
+
+    beginRemoveRows(parent, row, row + count - 1);
+    m_suggestions.erase(m_suggestions.begin() + row, m_suggestions.begin() + row + count);
+    endRemoveRows();
+
+    return true;
+}
