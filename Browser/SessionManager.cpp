@@ -60,18 +60,16 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
             tabInfoObj.insert(QLatin1String("is_hibernating"), QJsonValue(ww->isHibernating()));
             tabInfoObj.insert(QLatin1String("title"), QJsonValue(ww->getTitle()));
 
-            QByteArray faviconB64 = CommonUtil::iconToBase64(ww->getIcon());
+            QIcon icon = ww->getIcon();
+            if (icon.isNull())
+                icon = tabWidget->tabIcon(i);
+
+            QByteArray faviconB64 = CommonUtil::iconToBase64(icon);
             auto faviconEncoded = QLatin1String(faviconB64.data());
             tabInfoObj.insert(QLatin1String("icon"), QJsonValue(faviconEncoded));
+            tabInfoObj.insert(QLatin1String("icon_url"), QJsonValue(ww->getIconUrl().toString()));
 
-            QByteArray tabHistory;
-            QDataStream stream(&tabHistory, QIODevice::ReadWrite);
-            auto history = ww->history();
-            if (history != nullptr)
-                stream << *history;
-            stream.device()->seek(0);
-
-            auto tabHistoryB64 = tabHistory.toBase64();
+            QByteArray tabHistoryB64 = ww->getEncodedHistory().toBase64();
             auto tabHistoryEncoded = QLatin1String(tabHistoryB64.data());
             tabInfoObj.insert(QLatin1String("history"), QJsonValue(tabHistoryEncoded));
 
@@ -163,32 +161,26 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
             {
                 QJsonObject tabInfoObj = tabIt->toObject();
 
-                WebWidget *ww = tabWidget->newBackgroundTabAtIndex(i);
-
-                QString tabTitle = tabInfoObj.value(QLatin1String("title")).toString();
-                if (!tabTitle.isNull())
-                {
-                    tabWidget->setTabText(i, tabTitle);
-                    tabWidget->setTabToolTip(i, tabTitle);
-                }
+                SavedWebState webState;
+                webState.title = tabInfoObj.value(QLatin1String("title")).toString();
+                webState.iconUrl = QUrl::fromUserInput(tabInfoObj.value(QLatin1String("icon_url")).toString());
+                webState.url = QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString());
 
                 const QByteArray faviconData = tabInfoObj.value(QLatin1String("icon")).toString().toLatin1();
                 if (!faviconData.isNull())
-                {
-                    tabWidget->setTabIcon(i, CommonUtil::iconFromBase64(faviconData));
-                }
-
-                ww->load(QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString()));
-
-                tabWidget->setTabPinned(tabWidget->indexOf(ww),
-                                        tabInfoObj.value(QLatin1String("is_pinned")).toBool());
+                    webState.icon = CommonUtil::iconFromBase64(faviconData);
 
                 const QByteArray encodedHistory = tabInfoObj.value(QLatin1String("history")).toString().toLatin1();
-                QByteArray tabHistory = QByteArray::fromBase64(encodedHistory);
-                QDataStream historyStream(&tabHistory, QIODevice::ReadWrite);
-                historyStream >> *(ww->history());
+                webState.pageHistory = QByteArray::fromBase64(encodedHistory);
+
+                WebWidget *ww = tabWidget->newBackgroundTabAtIndex(i);
+
+                tabWidget->setTabPinned(i,
+                                        tabInfoObj.value(QLatin1String("is_pinned")).toBool());
 
                 ww->setHibernation(tabInfoObj.value(QLatin1String("is_hibernating")).toBool());
+
+                ww->setWebState(webState);
 
                 ++i;
             }

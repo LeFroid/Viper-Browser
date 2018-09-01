@@ -2,6 +2,7 @@
 #define WEBWIDGET_H
 
 #include <QIcon>
+#include <QMetaType>
 #include <QPointer>
 #include <QUrl>
 #include <QWidget>
@@ -73,6 +74,9 @@ public:
      */
     QString getTitle() const;
 
+    /// Returns the state of the web widget, used for serialization
+    const SavedWebState &getState();
+
     /// Loads the specified url and displays it
     void load(const QUrl &url);
 
@@ -81,6 +85,9 @@ public:
 
     /// Returns a pointer to the view's history
     QWebEngineHistory *history() const;
+
+    /// Returns the widget's web history as a serialized byte array
+    QByteArray getEncodedHistory() const;
 
     /// Returns the current url
     QUrl url() const;
@@ -107,6 +114,9 @@ public slots:
      *           web widget will reactivate its WebView
      */
     void setHibernation(bool on);
+
+    /// Sets the state of the web widget as it was during a hibernation event
+    void setWebState(const SavedWebState &state);
 
 signals:
     /// Emitted when the widget is about to go into hibernation state

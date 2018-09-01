@@ -88,6 +88,15 @@ QString WebWidget::getTitle() const
     return m_view->getTitle();
 }
 
+const SavedWebState &WebWidget::getState()
+{
+    if (m_hibernating)
+        return m_savedState;
+
+    saveState();
+    return m_savedState;
+}
+
 void WebWidget::load(const QUrl &url)
 {
     if (m_hibernating)
@@ -153,12 +162,38 @@ void WebWidget::setHibernation(bool on)
     }
 }
 
+void WebWidget::setWebState(const SavedWebState &state)
+{
+    m_savedState = state;
+
+    if (!m_hibernating)
+    {
+        load(state.url);
+        QDataStream historyStream(&m_savedState.pageHistory, QIODevice::ReadWrite);
+        historyStream >> *(m_view->history());
+    }
+    else
+        emit loadFinished(false);
+}
+
 QWebEngineHistory *WebWidget::history() const
 {
     if (m_hibernating)
         return nullptr;
 
     return m_view->history();
+}
+
+QByteArray WebWidget::getEncodedHistory() const
+{
+    if (m_hibernating)
+        return m_savedState.pageHistory;
+
+    QByteArray pageHistory;
+    QDataStream historyStream(&pageHistory, QIODevice::ReadWrite);
+    historyStream << *(m_view->history());
+    historyStream.device()->seek(0);
+    return pageHistory;
 }
 
 QUrl WebWidget::url() const
@@ -204,7 +239,7 @@ void WebWidget::showContextMenuForView()
 }
 
 void WebWidget::saveState()
-{
+{    
     m_savedState.icon = m_view->icon();
     if (m_savedState.icon.isNull())
     {
@@ -213,14 +248,17 @@ void WebWidget::saveState()
     }
 
     m_savedState.iconUrl = m_view->iconUrl();
-
     m_savedState.title = m_view->title();
-
     m_savedState.url = m_view->url();
 
     QDataStream stream(&m_savedState.pageHistory, QIODevice::ReadWrite);
     stream << *(m_view->history());
     stream.device()->seek(0);
+
+    emit iconChanged(m_savedState.icon);
+
+    if (!m_savedState.title.isEmpty())
+        emit titleChanged(m_savedState.title);
 }
 
 void WebWidget::setupWebView()
