@@ -67,26 +67,20 @@ void URLSuggestionWorker::searchForHits()
         if (it->getType() != BookmarkNode::Bookmark)
             continue;
 
-        if (isStringMatch(it->getName().toUpper()))
+        bool isMatching = isStringMatch(it->getName().toUpper());
+        if (!isMatching)
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->getURL()), it->getName(), it->getURL(), true);
-            hits.insert(suggestion.URL);
-            m_suggestions.push_back(suggestion);
+            QString bookmarkUrl = it->getURL();
+            int prefix = bookmarkUrl.indexOf(QLatin1String("://"));
+            if (!searchTermHasScheme && prefix >= 0)
+                bookmarkUrl = bookmarkUrl.mid(prefix + 3);
 
-            if (++numSuggestedBookmarks == maxSuggestedBookmarks)
-                break;
-
-            continue;
+            isMatching = isStringMatch(bookmarkUrl.toUpper());
         }
 
-        QString bookmarkUrl = it->getURL();
-        int prefix = bookmarkUrl.indexOf(QLatin1String("://"));
-        if (!searchTermHasScheme && prefix >= 0)
-            bookmarkUrl = bookmarkUrl.mid(prefix + 3);
-
-        if (isStringMatch(bookmarkUrl.toUpper()))
+        if (isMatching)
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->getURL()), it->getName(), it->getURL(), true);
+            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), it->getURL(), true);
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
 
@@ -113,25 +107,20 @@ void URLSuggestionWorker::searchForHits()
         if (hits.contains(url))
             continue;
 
-        if (isStringMatch(it->Title.toUpper()))
+        bool isMatching = isStringMatch(it->Title.toUpper());
+        if (!isMatching)
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, url, false);
-            histSuggestions.push_back(suggestion);
+            QString urlUpper = url.toUpper();
+            int prefix = urlUpper.indexOf(QLatin1String("://"));
+            if (!searchTermHasScheme && prefix >= 0)
+                urlUpper = urlUpper.mid(prefix + 3);
 
-            if (++numSuggestedHistory == maxSuggestedHistory)
-                break;
-
-            continue;
+            isMatching = isStringMatch(urlUpper);
         }
 
-        QString urlUpper = url.toUpper();
-        int prefix = urlUpper.indexOf(QLatin1String("://"));
-        if (!searchTermHasScheme && prefix >= 0)
-            urlUpper = urlUpper.mid(prefix + 3);
-
-        if (isStringMatch(urlUpper))
+        if (isMatching)
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(url), it->Title, url, false);
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->URL), it->Title, url, false);
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)

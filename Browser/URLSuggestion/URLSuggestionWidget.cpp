@@ -89,9 +89,12 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
                 }
                 case Qt::Key_End:
                 case Qt::Key_Home:
+                {
                     if (keyEvent->modifiers() & Qt::ControlModifier)
                         return false;
+
                     break;
+                }
                 case Qt::Key_Up:
                 {
                     // Shift selection up by 1
@@ -152,6 +155,7 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
                 {
                     if (currentIndex.isValid())
                         return m_model->removeRow(currentIndex.row());
+
                     return false;
                 }
                 default:
