@@ -138,7 +138,7 @@ void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel le
 
 bool WebPage::certificateError(const QWebEngineCertificateError &certificateError)
 {
-    return SecurityManager::instance().onCertificateError(certificateError);
+    return SecurityManager::instance().onCertificateError(certificateError, view()->window());
 }
 
 void WebPage::onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)

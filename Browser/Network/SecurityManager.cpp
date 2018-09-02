@@ -48,7 +48,7 @@ bool SecurityManager::isInsecure(const QString &host)
     return m_insecureHosts.contains(host);
 }
 
-bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certificateError)
+bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certificateError, QWidget *window)
 {
     auto hostName = certificateError.url().host();
 
@@ -63,7 +63,7 @@ bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certi
 
     QString messageBoxText = QString("%1<p>%2</p><ul><li>%3</li></ul><p>%4</p>").arg(warning, preface, certificateError.errorDescription(), option);
     QMessageBox::StandardButtons buttons = QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No);
-    int response = QMessageBox::question(nullptr, tr("Security Threat"), messageBoxText, buttons, QMessageBox::NoButton);
+    int response = QMessageBox::question(window, tr("Security Threat"), messageBoxText, buttons, QMessageBox::NoButton);
     if (response == QMessageBox::Yes)
     {
         m_exemptInsecureHosts.insert(certificateError.url().host());

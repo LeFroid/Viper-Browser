@@ -23,7 +23,10 @@ class SecurityManager : public QObject
 {
     Q_OBJECT
 public:
+    /// Constructor
     explicit SecurityManager(QObject *parent = nullptr);
+
+    /// Destructor
     ~SecurityManager();
 
     /// Returns the security manager singleton
@@ -33,7 +36,7 @@ public:
     bool isInsecure(const QString &host);
 
     /// Called by a \ref WebPage when the given certificate error has been encountered during a page load
-    bool onCertificateError(const QWebEngineCertificateError &certificateError);
+    bool onCertificateError(const QWebEngineCertificateError &certificateError, QWidget *window);
 
 public slots:
     /// Shows a dialog containing the certificate information (or lack thereof) for the host of the given url
