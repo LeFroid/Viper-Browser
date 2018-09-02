@@ -24,9 +24,12 @@ ClosedTabInfo::ClosedTabInfo(int tabIndex, bool isPinned, WebWidget *webWidget) 
     {
         url = webWidget->url();
 
-        QDataStream stream(&pageHistory, QIODevice::ReadWrite);
-        stream << *(webWidget->history());
-        stream.device()->seek(0);
+        if (QWebEngineHistory *history = webWidget->history())
+        {
+            QDataStream stream(&pageHistory, QIODevice::ReadWrite);
+            stream << *history;
+            stream.device()->seek(0);
+        }
     }
 }
 
