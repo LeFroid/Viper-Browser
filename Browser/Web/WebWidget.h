@@ -7,23 +7,45 @@
 #include <QUrl>
 #include <QWidget>
 
+class BrowserTabWidget;
 class HttpRequest;
 class MainWindow;
 class WebPage;
 class WebView;
+class WebWidget;
 
 class QWebEngineHistory;
 
-/// Saves the state of a \ref WebWidget so it can be placed in or out of hibernation
-struct SavedWebState
+/// Contains the information about a \ref WebWidget that is needed to hibernate/wake a tab,
+/// or save and restore a tab across browsing sessions
+struct WebState
 {
+    /// The index of the page in its parent \ref BrowserTabWidget
+    int index;
+
+    /// True if the page is pinned in its \ref BrowserTabWidget, false if else
+    bool isPinned;
+
+    /// The icon associated with the page at its URL
     QIcon icon;
+
+    /// The URL of the icon
     QUrl iconUrl;
+
+    /// The title of the page its URL
     QString title;
+
+    /// The page's current URL
     QUrl url;
+
+    /// Serialized history of the page
     QByteArray pageHistory;
 
-    SavedWebState() = default;
+    /// Default constructor
+    WebState() = default;
+
+    /// Constructs the WebState, given a pointer to the WebWidget and its parent BrowserTabWidget
+    WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget);
 };
 
 /**
@@ -75,7 +97,7 @@ public:
     QString getTitle() const;
 
     /// Returns the state of the web widget, used for serialization
-    const SavedWebState &getState();
+    const WebState &getState();
 
     /// Loads the specified url and displays it
     void load(const QUrl &url);
@@ -116,7 +138,7 @@ public slots:
     void setHibernation(bool on);
 
     /// Sets the state of the web widget as it was during a hibernation event
-    void setWebState(const SavedWebState &state);
+    void setWebState(const WebState &state);
 
 signals:
     /// Emitted when the widget is about to go into hibernation state
@@ -195,8 +217,8 @@ private:
     /// True if the widget is in hibernation mode, false if else
     bool m_hibernating;
 
-    /// Saves the state of the web page (icon, page title, url, etc.) in order to transition in and out of hibernation mode
-    SavedWebState m_savedState;
+    /// Current state of the web page (icon, page title, url, etc.) in order to transition in and out of hibernation mode, close and re-open a tab, etc
+    WebState m_savedState;
 };
 
 #endif // WEBWIDGET_H

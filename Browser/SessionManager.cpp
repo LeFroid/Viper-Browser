@@ -161,7 +161,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
             {
                 QJsonObject tabInfoObj = tabIt->toObject();
 
-                SavedWebState webState;
+                WebState webState;
                 webState.title = tabInfoObj.value(QLatin1String("title")).toString();
                 webState.iconUrl = QUrl::fromUserInput(tabInfoObj.value(QLatin1String("icon_url")).toString());
                 webState.url = QUrl::fromUserInput(tabInfoObj.value(QLatin1String("url")).toString());

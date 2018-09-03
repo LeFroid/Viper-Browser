@@ -6,32 +6,12 @@
 #include "MainWindow.h"
 #include "WebPage.h"
 #include "WebView.h"
-#include "WebWidget.h"
 
 #include <algorithm>
 #include <QMenu>
 #include <QTimer>
 #include <QWebEngineHistory>
 #include <QWebEngineHistoryItem>
-
-ClosedTabInfo::ClosedTabInfo(int tabIndex, bool isPinned, WebWidget *webWidget) :
-    index(tabIndex),
-    url(),
-    pageHistory(),
-    pinned(isPinned)
-{
-    if (webWidget)
-    {
-        url = webWidget->url();
-
-        if (QWebEngineHistory *history = webWidget->history())
-        {
-            QDataStream stream(&pageHistory, QIODevice::ReadWrite);
-            stream << *history;
-            stream.device()->seek(0);
-        }
-    }
-}
 
 BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, FaviconStorage *faviconStore, bool privateMode, QWidget *parent) :
     QTabWidget(parent),
@@ -132,11 +112,13 @@ void BrowserTabWidget::reopenLastTab()
         return;
 
     auto &tabInfo = m_closedTabs.front();
+
     WebWidget *ww = newBackgroundTabAtIndex(tabInfo.index);
-    m_tabBar->setTabPinned(tabInfo.index, tabInfo.pinned);
-    ww->load(tabInfo.url);
-    QDataStream historyStream(&tabInfo.pageHistory, QIODevice::ReadWrite);
-    historyStream >> *(ww->history());
+    m_tabBar->setTabPinned(tabInfo.index, tabInfo.isPinned);
+    setTabText(tabInfo.index, tabInfo.title);
+    setTabToolTip(tabInfo.index, tabInfo.title);
+    setTabIcon(tabInfo.index, tabInfo.icon);
+    ww->setWebState(tabInfo);
 
     m_closedTabs.pop_front();
 }
@@ -147,8 +129,8 @@ void BrowserTabWidget::saveTab(int index)
     if (!ww)
         return;
 
-    ClosedTabInfo tabInfo(index, m_tabBar->isTabPinned(index), ww);
-    m_closedTabs.push_front(tabInfo);
+    WebState tabState(ww, this);
+    m_closedTabs.push_front(tabState);
 
     while (m_closedTabs.size() > 30)
         m_closedTabs.pop_back();

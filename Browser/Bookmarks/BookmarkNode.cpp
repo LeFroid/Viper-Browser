@@ -3,6 +3,7 @@
 #include <utility>
 #include <cstdint>
 
+//TODO: shortcut field for bookmarks of type BookmarkNode::Bookmark
 BookmarkNode::BookmarkNode() :
     TreeNode<BookmarkNode>(),
     m_name(),

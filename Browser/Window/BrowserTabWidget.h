@@ -2,6 +2,7 @@
 #define BROWSERTABWIDGET_H
 
 #include "Settings.h"
+#include "WebWidget.h"
 
 #include <deque>
 #include <memory>
@@ -12,38 +13,6 @@ class BrowserTabBar;
 class FaviconStorage;
 class MainWindow;
 class QMenu;
-class WebWidget;
-
-/**
- * @struct ClosedTabInfo
- * @brief Contains information about a tab that was closed, used to restore a tab to
- *        its prior state.
- */
-struct ClosedTabInfo
-{
-    /// Index of the tab in the tab bar
-    int index;
-
-    /// Last URL loaded into the tab's WebWidget
-    QUrl url;
-
-    /// Stores the page history of the tab
-    QByteArray pageHistory;
-
-    /// Flag determining whether or not the tab was pinned
-    bool pinned;
-
-    /// Default constructor
-    ClosedTabInfo() = default;
-
-    /**
-     * @brief ClosedTabInfo contains the state of a tab that was removed from the \ref BrowserTabWidget
-     * @param tabIndex Index of the tab
-     * @param isPinned True if the tab is pinned, false if else
-     * @param webWidget Pointer to the tab's \ref WebWidget
-     */
-    ClosedTabInfo(int tabIndex, bool isPinned, WebWidget *webWidget);
-};
 
 /**
  * @class BrowserTabWidget
@@ -217,7 +186,7 @@ private:
     MainWindow *m_mainWindow;
 
     /// Maintains a record of up to 30 tabs that were closed within the tab widget
-    std::deque<ClosedTabInfo> m_closedTabs;
+    std::deque<WebState> m_closedTabs;
 };
 
 #endif // BROWSERTABWIDGET_H

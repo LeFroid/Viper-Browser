@@ -11,6 +11,32 @@
 #include <QVBoxLayout>
 #include <QWebEngineHistory>
 
+WebState::WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget) :
+    index(0),
+    isPinned(false),
+    icon(webWidget->getIcon()),
+    iconUrl(webWidget->getIconUrl()),
+    title(webWidget->getTitle()),
+    url(webWidget->url()),
+    pageHistory()
+{
+    if (tabWidget != nullptr)
+    {
+        index = tabWidget->indexOf(webWidget);
+        isPinned = tabWidget->isTabPinned(index);
+
+        if (icon.isNull())
+            icon = tabWidget->tabIcon(index);
+    }
+
+    if (QWebEngineHistory *history = webWidget->history())
+    {
+        QDataStream stream(&pageHistory, QIODevice::ReadWrite);
+        stream << *history;
+        stream.device()->seek(0);
+    }
+}
+
 WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     QWidget(parent),
     m_view(nullptr),
@@ -88,7 +114,7 @@ QString WebWidget::getTitle() const
     return m_view->getTitle();
 }
 
-const SavedWebState &WebWidget::getState()
+const WebState &WebWidget::getState()
 {
     if (m_hibernating)
         return m_savedState;
@@ -141,11 +167,14 @@ void WebWidget::setHibernation(bool on)
     {
         emit aboutToHibernate();
         saveState();
+
         layout()->removeWidget(m_view);
         delete m_view;
         m_view = nullptr;
 
         setCursor(Qt::PointingHandCursor);
+
+        emit loadFinished(false);
     }
     else
     {
@@ -162,7 +191,7 @@ void WebWidget::setHibernation(bool on)
     }
 }
 
-void WebWidget::setWebState(const SavedWebState &state)
+void WebWidget::setWebState(const WebState &state)
 {
     m_savedState = state;
 
@@ -239,26 +268,9 @@ void WebWidget::showContextMenuForView()
 }
 
 void WebWidget::saveState()
-{    
-    m_savedState.icon = m_view->icon();
-    if (m_savedState.icon.isNull())
-    {
-        if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
-            m_savedState.icon = tabWidget->tabIcon(tabWidget->indexOf(this));
-    }
-
-    m_savedState.iconUrl = m_view->iconUrl();
-    m_savedState.title = m_view->title();
-    m_savedState.url = m_view->url();
-
-    QDataStream stream(&m_savedState.pageHistory, QIODevice::ReadWrite);
-    stream << *(m_view->history());
-    stream.device()->seek(0);
-
-    emit iconChanged(m_savedState.icon);
-
-    if (!m_savedState.title.isEmpty())
-        emit titleChanged(m_savedState.title);
+{
+    BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+    m_savedState = WebState(this, tabWidget);
 }
 
 void WebWidget::setupWebView()

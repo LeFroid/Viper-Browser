@@ -196,6 +196,7 @@ void NavigationToolBar::onURLInputEntered()
     if (!view)
         return;
 
+    //todo: pass text to bookmark manager to see if user input matches a bookmark shortcut
     QUrl location = QUrl::fromUserInput(m_urlInput->text());
     if (location.isValid())
     {
