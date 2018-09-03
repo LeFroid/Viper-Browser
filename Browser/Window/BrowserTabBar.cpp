@@ -453,16 +453,26 @@ QSize BrowserTabBar::tabSizeHint(int index) const
     // Get the QTabBar size hint and keep width within an upper bound
     QSize hint = QTabBar::tabSizeHint(index);
 
+    QSize pinnedTabSize = iconSize();
+    pinnedTabSize.setWidth(pinnedTabSize.width() * 3 + 6);
+    pinnedTabSize.setHeight(hint.height());
+
     if (m_tabPinMap.at(index))
-    {
-        QSize pinnedTabSize = iconSize();
-        pinnedTabSize.setWidth(pinnedTabSize.width() * 3 + 6);
-        pinnedTabSize.setHeight(hint.height());
         return pinnedTabSize;
-    }
 
     const int numTabs = count();
-    int tabWidth = float(geometry().width() - m_buttonNewTab->width() - 1) / numTabs;
+
+    int numPinnedTabs = 0;
+    for (auto it : m_tabPinMap)
+    {
+        if (it.second)
+            ++numPinnedTabs;
+    }
+
+    int pinnedTabWidth = numPinnedTabs * pinnedTabSize.width();
+
+    int tabWidth = float(geometry().width() - m_buttonNewTab->width() - pinnedTabWidth - 1) / (numTabs - numPinnedTabs);
+    tabWidth = std::max(pinnedTabSize.width(), tabWidth);
 
     return hint.boundedTo(QSize(tabWidth, hint.height()));
 }

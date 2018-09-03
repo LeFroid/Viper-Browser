@@ -161,8 +161,6 @@ void WebWidget::setHibernation(bool on)
     if (m_hibernating == on)
         return;
 
-    m_hibernating = on;
-
     if (on)
     {
         emit aboutToHibernate();
@@ -173,8 +171,6 @@ void WebWidget::setHibernation(bool on)
         m_view = nullptr;
 
         setCursor(Qt::PointingHandCursor);
-
-        emit loadFinished(false);
     }
     else
     {
@@ -189,6 +185,8 @@ void WebWidget::setHibernation(bool on)
 
         unsetCursor();
     }
+
+    m_hibernating = on;
 }
 
 void WebWidget::setWebState(const WebState &state)
