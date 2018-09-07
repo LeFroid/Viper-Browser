@@ -174,6 +174,8 @@ void WebWidget::setHibernation(bool on)
     }
     else
     {
+        m_hibernating = false;
+
         setupWebView();
         layout()->addWidget(m_view);
         setFocusProxy(m_view);
@@ -273,6 +275,7 @@ void WebWidget::saveState()
 
 void WebWidget::setupWebView()
 {
+    m_viewFocusProxy = nullptr;
     m_view = new WebView(m_privateMode, this);
     m_view->setupPage();
     m_view->installEventFilter(this);
