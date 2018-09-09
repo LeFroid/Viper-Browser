@@ -67,7 +67,9 @@ void URLSuggestionWorker::searchForHits()
         if (it->getType() != BookmarkNode::Bookmark)
             continue;
 
-        bool isMatching = isStringMatch(it->getName().toUpper());
+        QString shortcut = it->getShortcut().toUpper();
+
+        bool isMatching = isStringMatch(it->getName().toUpper()) || (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut));
         if (!isMatching)
         {
             QString bookmarkUrl = it->getURL();

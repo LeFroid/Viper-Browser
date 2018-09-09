@@ -1,4 +1,7 @@
 #include "AdBlockButton.h"
+#include "BrowserApplication.h"
+#include "BookmarkManager.h"
+#include "BookmarkNode.h"
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
 #include "NavigationToolBar.h"
@@ -196,10 +199,44 @@ void NavigationToolBar::onURLInputEntered()
     if (!view)
         return;
 
-    //todo: pass text to bookmark manager to see if user input matches a bookmark shortcut
-    QUrl location = QUrl::fromUserInput(m_urlInput->text());
-    if (location.isValid())
+    QString urlText = m_urlInput->text();
+    if (urlText.isEmpty())
+        return;
+
+    QUrl location = QUrl::fromUserInput(urlText);
+    if (location.isValid() && !location.topLevelDomain().isNull())
     {
+        view->load(location);
+        m_urlInput->setText(location.toString(QUrl::FullyEncoded));
+    }
+    else
+    {
+        QString urlTextStart = urlText;
+        int delimIdx = urlTextStart.indexOf(QLatin1Char(' '));
+        if (delimIdx > 0)
+            urlTextStart = urlTextStart.left(delimIdx);
+
+        BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
+        for (auto it : *bookmarkMgr)
+        {
+            if (it->getType() == BookmarkNode::Bookmark
+                    && urlTextStart.compare(it->getShortcut()) == 0)
+            {
+                if (delimIdx > 0)
+                {
+                    QString temp = it->getURL();
+                    urlText = temp.replace(QLatin1String("%s"), urlText.mid(delimIdx + 1));
+                }
+                else
+                    urlText = it->getURL();
+
+                location = QUrl::fromUserInput(urlText);
+                view->load(location);
+                m_urlInput->setText(location.toString(QUrl::FullyEncoded));
+                return;
+            }
+        }
+
         view->load(location);
         m_urlInput->setText(location.toString(QUrl::FullyEncoded));
     }
