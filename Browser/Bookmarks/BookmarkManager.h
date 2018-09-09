@@ -100,6 +100,18 @@ public:
      */
     BookmarkNode *getBookmark(const QString &url);
 
+    /// Updates the name of a bookmark in the database
+    void updateBookmarkName(const QString &name, BookmarkNode *bookmark);
+
+    /// Updates the shortcut for a bookmark in the database
+    void updateBookmarkShortcut(const QString &shortcut, BookmarkNode *bookmark);
+
+    /// Updates the URL of a bookmark in the database
+    void updateBookmarkURL(const QString &url, BookmarkNode *bookmark);
+
+    /// Called by the BookmarkFolderModel when the name of a folder has been changed
+    void updatedFolderName(BookmarkNode *folder);
+
     /// Returns an iterator pointing to the first bookmark in the collection
     iterator begin() { return m_nodeList.begin(); }
 
@@ -109,13 +121,6 @@ public:
 signals:
     /// Emitted when there has been a change to the bookmark tree
     void bookmarksChanged();
-
-protected:
-    /// Called by the BookmarkTableModel when the URL and/or name of a bookmark has been modified
-    void updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID);
-
-    /// Called by the BookmarkFolderModel when the name of a folder has been changed
-    void updatedFolderName(BookmarkNode *folder);
 
 private:
     /// Loads bookmark information from the database

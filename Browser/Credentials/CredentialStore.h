@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <QDataStream>
+#include <QDateTime>
 #include <QMap>
 #include <QString>
 #include <QUrl>
@@ -14,15 +16,21 @@ struct WebCredentials
     /// Host location where the credentails are used
     QString Host;
 
+    /// The last time that the credentials were used to log in to the website
+    QDateTime LastLogin;
+
     /// Username or email value
     QString Username;
 
     /// Password value
     QString Password;
 
-    /// Map of the key-value pairs from the form
-    QMap<QString, QVariant> FormData;
+    /// Key-value pairs saved from the form.
+    QMap<QString, QString> FormData;
 };
+
+QDataStream& operator<<(QDataStream &out, const WebCredentials &creds);
+QDataStream& operator>>(QDataStream &in, WebCredentials &creds);
 
 /**
  * @class CredentialStore

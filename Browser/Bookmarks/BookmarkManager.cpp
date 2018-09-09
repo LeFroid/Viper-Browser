@@ -408,61 +408,84 @@ BookmarkNode *BookmarkManager::getBookmark(const QString &url)
     return nullptr;
 }
 
-void BookmarkManager::updatedBookmark(BookmarkNode *bookmark, BookmarkNode &oldValue, int folderID)
+void BookmarkManager::updateBookmarkName(const QString &name, BookmarkNode *bookmark)
 {
     if (!bookmark)
         return;
 
-    // Update database
     QSqlQuery query(m_database);
-    if (oldValue.m_url == bookmark->m_url)
+    query.prepare(QLatin1String("UPDATE Bookmarks SET Name = (:newName) WHERE URL = (:url)"));
+    query.bindValue(QLatin1String(":newName"), name);
+    query.bindValue(QLatin1String(":url"), bookmark->getURL());
+    if (query.exec())
     {
-        query.prepare(QLatin1String("UPDATE Bookmarks SET Name = (:newName) WHERE URL = (:url)"));
-        query.bindValue(QLatin1String(":newName"), bookmark->getName());
-        query.bindValue(QLatin1String(":url"), bookmark->getURL());
-        if (!query.exec())
-            qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not modify bookmark name. Error message: "
-                     << query.lastError().text();
-        else
-            emit bookmarksChanged();
+        bookmark->setName(name);
+        emit bookmarksChanged();
     }
     else
+        qDebug() << "[Warning]: BookmarkManager::updateBookmarkName(..) - Could not update name in database. Error message: "
+                 << query.lastError().text();
+}
+
+void BookmarkManager::updateBookmarkShortcut(const QString &shortcut, BookmarkNode *bookmark)
+{
+    if (!bookmark)
+        return;
+
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("UPDATE Bookmarks SET Shortcut = (:newShortcut) WHERE URL = (:url)"));
+    query.bindValue(QLatin1String(":newShortcut"), shortcut);
+    query.bindValue(QLatin1String(":url"), bookmark->getURL());
+    if (query.exec())
+        bookmark->setShortcut(shortcut);
+    else
+        qDebug() << "[Warning]: BookmarkManager::updateBookmarkShortcut(..) - Could not update shortcut of bookmark in database. Error message: "
+                 << query.lastError().text();
+}
+
+void BookmarkManager::updateBookmarkURL(const QString &url, BookmarkNode *bookmark)
+{
+    if (!bookmark)
+        return;
+
+    // Update cache if applicable
+    const std::string oldUrlStr = bookmark->m_url.toStdString();
+    if (m_lookupCache.has(oldUrlStr))
+        m_lookupCache.put(oldUrlStr, nullptr);
+
+    // URL field is unique, so the record must be deleted and re-entered into the DB
+    int position = 0;
+    int parentId = bookmark->getParent()->getFolderId();
+
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("SELECT Position FROM Bookmarks WHERE URL = (:url)"));
+    query.bindValue(QLatin1String(":url"), bookmark->m_url);
+    if (query.exec() && query.next())
+        position = query.value(0).toInt();
+
+    // Update icon
+    bookmark->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(bookmark->m_url)));
+
+    query.prepare(QLatin1String("DELETE FROM Bookmarks WHERE URL = (:url)"));
+    query.bindValue(QLatin1String(":url"), bookmark->m_url);
+    static_cast<void>(query.exec());
+    query.prepare(QLatin1String("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Shortcut, Position) "
+                                "VALUES(:folderID, :parentID, :type, :name, :url, :shortcut, :position)"));
+    query.bindValue(QLatin1String(":folderID"), parentId);
+    query.bindValue(QLatin1String(":parentID"), parentId);
+    query.bindValue(QLatin1String(":type"), static_cast<int>(bookmark->getType()));
+    query.bindValue(QLatin1String(":name"), bookmark->getName());
+    query.bindValue(QLatin1String(":url"), url);
+    query.bindValue(QLatin1String(":shortcut"), bookmark->getShortcut());
+    query.bindValue(QLatin1String(":position"), position);
+    if (query.exec())
     {
-        // Update cache if applicable
-        const std::string oldUrlStr = oldValue.m_url.toStdString();
-        if (m_lookupCache.has(oldUrlStr))
-            m_lookupCache.put(oldUrlStr, nullptr);
-
-        // If URL has changed, remove the old record and insert the bookmark as a new one
-        int position = 0;
-        query.prepare(QLatin1String("SELECT Position FROM Bookmarks WHERE URL = (:url)"));
-        query.bindValue(QLatin1String(":url"), oldValue.getURL());
-        if (query.exec() && query.next())
-        {
-            position = query.value(0).toInt();
-        }
-        else
-            qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not fetch position of bookmark with "
-                        "URL " << oldValue.getURL() << ". Error message: " << query.lastError().text();
-        // Update icon
-        bookmark->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(bookmark->m_url)));
-
-        query.prepare(QLatin1String("DELETE FROM Bookmarks WHERE URL = (:url)"));
-        query.bindValue(QLatin1String(":url"), oldValue.getURL());
-        static_cast<void>(query.exec());
-        query.prepare(QLatin1String("INSERT INTO Bookmarks(FolderID, ParentID, Type, Name, URL, Position) VALUES(:folderID, :parentID, :type, :name, :url, :position)"));
-        query.bindValue(QLatin1String(":folderID"), folderID);
-        query.bindValue(QLatin1String(":parentID"), folderID);
-        query.bindValue(QLatin1String(":type"), static_cast<int>(bookmark->getType()));
-        query.bindValue(QLatin1String(":name"), bookmark->getName());
-        query.bindValue(QLatin1String(":url"), bookmark->getURL());
-        query.bindValue(QLatin1String(":position"), position);
-        if (!query.exec())
-            qDebug() << "[Warning]: BookmarkManager::updatedBookmark(..) - Could not insert updated bookmark to database. "
-                        "Error message: " << query.lastError().text();
-        else
-            emit bookmarksChanged();
+        bookmark->setURL(url);
+        emit bookmarksChanged();
     }
+    else
+        qDebug() << "[Warning]: BookmarkManager::updateBookmarkURL(..) - Could not update the bookmark record. "
+                    "Error message: " << query.lastError().text();
 }
 
 void BookmarkManager::updatedFolderName(BookmarkNode *folder)
@@ -499,7 +522,7 @@ void BookmarkManager::loadFolder(BookmarkNode *folder)
     FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
 
     QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT FolderID, Type, Name, URL FROM Bookmarks WHERE ParentID = (:id) ORDER BY Position ASC"));
+    query.prepare(QLatin1String("SELECT FolderID, Type, Name, URL, Shortcut FROM Bookmarks WHERE ParentID = (:id) ORDER BY Position ASC"));
 
     // Iteratively load folder and all of its subfolders
     std::deque<BookmarkNode*> subFolders;
@@ -529,6 +552,7 @@ void BookmarkManager::loadFolder(BookmarkNode *folder)
                 // Load bookmark data
                 case BookmarkNode::Bookmark:
                     subNode->setURL(query.value(3).toString());
+                    subNode->setShortcut(query.value(4).toString());
                     subNode->setIcon(faviconStore->getFavicon(QUrl(subNode->m_url)));
                     break;
             }
@@ -626,7 +650,7 @@ void BookmarkManager::setup()
     // Setup table structures
     QSqlQuery query(m_database);
     if (!query.exec(QLatin1String("CREATE TABLE Bookmarks(ID INTEGER PRIMARY KEY, FolderID INTEGER, ParentID INTEGER DEFAULT 0, "
-               "Type INTEGER DEFAULT 0, Name TEXT, URL TEXT UNIQUE, Position INTEGER DEFAULT 0)")))
+               "Type INTEGER DEFAULT 0, Name TEXT, URL TEXT UNIQUE, Shortcut TEXT, Position INTEGER DEFAULT 0)")))
             qDebug() << "Error creating table Bookmarks. Message: " << query.lastError().text();
 
     // Insert root bookmark folder
@@ -650,6 +674,27 @@ void BookmarkManager::setup()
 
 void BookmarkManager::load()
 {
+    // Check if table structure needs update before loading
+    QSqlQuery query(m_database);
+    if (query.exec(QLatin1String("PRAGMA table_info(Bookmarks)")))
+    {
+        bool hasSortcutColumn = false;
+        QString shortcutColumn("Shortcut");
+
+        while (query.next())
+        {
+            QString columnName = query.value(1).toString();
+            if (columnName.compare(shortcutColumn) == 0)
+                hasSortcutColumn = true;
+        }
+
+        if (!hasSortcutColumn)
+        {
+            if (!query.exec(QLatin1String("ALTER TABLE Bookmarks ADD Shortcut TEXT")))
+                qDebug() << "Error updating bookmark table with shortcut column";
+        }
+    }
+
     // Don't load twice
     if (m_rootNode->getNumChildren() == 0)
         loadFolder(m_rootNode.get());

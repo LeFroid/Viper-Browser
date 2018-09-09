@@ -97,20 +97,29 @@ bool BookmarkTableModel::setData(const QModelIndex &index, const QVariant &value
     if (index.isValid() && role == Qt::EditRole && rowCount() > index.row())
     {
         BookmarkNode *b = getBookmark(index.row());
-        if (b == nullptr || b->getType() != BookmarkNode::Bookmark)
+        QString newValue = value.toString();
+
+        if (b == nullptr || b->getType() != BookmarkNode::Bookmark || newValue.isEmpty())
             return false;
 
-        // Copy contents of bookmark before modifying, so the old record can be found in the DB
-        BookmarkNode oldValue;
-        oldValue.setName(b->getName());
-        oldValue.setURL(b->getURL());
         switch (index.column())
         {
-            case 0: b->setName(value.toString()); break;
-            case 1: b->setURL(value.toString()); break;
+            // Name
+            case 0:
+            {
+                m_bookmarkMgr->updateBookmarkName(newValue, b);
+                break;
+            }
+            // URL
+            case 1:
+            {
+                m_bookmarkMgr->updateBookmarkURL(newValue, b);
+                break;
+            }
+            default:
+                break;
         }
 
-        m_bookmarkMgr->updatedBookmark(b, oldValue, b->getParent()->getFolderId());
         emit dataChanged(index, index);
         return true;
     }

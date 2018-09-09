@@ -22,6 +22,7 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::BookmarkWidget),
     m_bookmarkManager(nullptr),
+    m_currentNode(nullptr),
     m_folderBackHistory(),
     m_folderForwardHistory()
 {
@@ -55,6 +56,10 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
 
     // Enable search for bookmarks
     connect(ui->lineEditSearch, &QLineEdit::returnPressed, this, &BookmarkWidget::searchBookmarks);
+
+    connect(ui->lineEditName, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeName);
+    connect(ui->lineEditLocation, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeURL);
+    connect(ui->lineEditShortcut, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeShortcut);
 }
 
 BookmarkWidget::~BookmarkWidget()
@@ -82,6 +87,10 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
     ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableView, &QTableView::customContextMenuRequested, this, &BookmarkWidget::onBookmarkContextMenu);
 
+    connect(ui->tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &BookmarkWidget::onBookmarkSelectionChanged);
+
+    connect(tableModel, &BookmarkTableModel::dataChanged, this, &BookmarkWidget::onTableDataChanged);
+
     // Set up bookmark folder model and view
     BookmarkFolderModel *treeViewModel = new BookmarkFolderModel(bookmarkManager, this);
     ui->treeView->setModel(treeViewModel);
@@ -93,12 +102,14 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
     ui->treeView->setExpanded(root, true);
     m_folderBackHistory.push_back(root);
 
+    connect(treeViewModel, &BookmarkFolderModel::dataChanged, this, &BookmarkWidget::onFolderDataChanged);
+
     // Add context menu to folder view (for adding or removing folders)
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeView, &QTreeView::customContextMenuRequested, this, &BookmarkWidget::onFolderContextMenu);
 
     // Connect change in selection in tree view to a change in data display in table view
-    connect(ui->treeView, &QTreeView::clicked, this, &BookmarkWidget::onChangeFolderSelection);
+    connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &BookmarkWidget::onFolderSelectionChanged);
 
     // Connect change in folder data via table model to an update in the folder model
     connect(tableModel, &BookmarkTableModel::movedFolder, this, &BookmarkWidget::resetFolderModel);
@@ -205,8 +216,24 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
     menu.exec(mapToGlobal(pos));
 }
 
-void BookmarkWidget::onChangeFolderSelection(const QModelIndex &index)
+void BookmarkWidget::onBookmarkSelectionChanged(const QModelIndex &current, const QModelIndex &/*previous*/)
 {
+    if (!current.isValid())
+        return;
+
+    // Get node and update line edit widgets
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
+    if (BookmarkNode *node = model->getBookmark(current.row()))
+        showInfoForNode(node);
+    else
+        m_currentNode = nullptr;
+}
+
+void BookmarkWidget::onFolderSelectionChanged(const QModelIndex &current, const QModelIndex &/*previous*/)
+{
+    if (!current.isValid())
+        return;
+
     // Store the currently selected index at the front of the history queue
     if (m_folderBackHistory.size() < 2)
         ui->buttonBack->setEnabled(true);
@@ -214,9 +241,11 @@ void BookmarkWidget::onChangeFolderSelection(const QModelIndex &index)
     ui->buttonForward->setEnabled(false);
 
     // Get the pointer to the new folder and update the tabel model
-    BookmarkNode *f = static_cast<BookmarkNode*>(index.internalPointer());
+    BookmarkNode *f = static_cast<BookmarkNode*>(current.internalPointer());
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(f);
+
+    showInfoForNode(f);
 
     m_folderBackHistory.push_back(ui->treeView->currentIndex());
 }
@@ -355,15 +384,23 @@ void BookmarkWidget::searchBookmarks()
     const QString term = ui->lineEditSearch->text();
     BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
     tableModel->searchFor(term);
+
+    showInfoForNode(nullptr);
 }
 
 void BookmarkWidget::resetFolderModel()
 {
     QAbstractItemModel *oldModel = ui->treeView->model();
+    disconnect(oldModel, &QAbstractItemModel::dataChanged, this, &BookmarkWidget::onFolderDataChanged);
+
     BookmarkFolderModel *updatedModel = new BookmarkFolderModel(m_bookmarkManager, this);
     ui->treeView->setModel(updatedModel);
     oldModel->deleteLater();
     ui->treeView->setExpanded(updatedModel->index(0, 0), true);
+
+    connect(updatedModel, &BookmarkFolderModel::dataChanged, this, &BookmarkWidget::onFolderDataChanged);
+
+    showInfoForNode(nullptr);
 
     // Clear history items
     m_folderBackHistory.clear();
@@ -384,6 +421,8 @@ void BookmarkWidget::endResetTableModel()
     BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
     tableModel->endResetModel();
     tableModel->setCurrentFolder(tableModel->getCurrentFolder());
+
+    showInfoForNode(nullptr);
 
     // Clear history items
     m_folderBackHistory.clear();
@@ -428,6 +467,8 @@ void BookmarkWidget::onClickBackButton()
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(f);
 
+    showInfoForNode(nullptr);
+
     ui->treeView->setCurrentIndex(idx);
     m_folderBackHistory.pop_back();
 
@@ -453,10 +494,147 @@ void BookmarkWidget::onClickForwardButton()
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     model->setCurrentFolder(f);
 
+    showInfoForNode(nullptr);
+
     m_folderForwardHistory.pop_back();
 
     if (m_folderForwardHistory.empty())
         ui->buttonForward->setEnabled(false);
+}
+
+void BookmarkWidget::onFolderDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &/*roles*/)
+{
+    if (!m_currentNode || m_currentNode->getType() != BookmarkNode::Folder || topLeft != bottomRight)
+        return;
+
+    BookmarkFolderModel *model = static_cast<BookmarkFolderModel*>(ui->treeView->model());
+    if (m_currentNode == model->getItem(topLeft))
+        showInfoForNode(m_currentNode);
+}
+
+void BookmarkWidget::onTableDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &/*roles*/)
+{
+    if (!m_currentNode)
+        return;
+
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
+    for (int row = topLeft.row(); row <= bottomRight.row(); ++row)
+    {
+        if (m_currentNode == model->getBookmark(row))
+        {
+            showInfoForNode(m_currentNode);
+            return;
+        }
+    }
+}
+
+void BookmarkWidget::onEditNodeName()
+{
+    if (!m_currentNode)
+        return;
+
+    QString newName = ui->lineEditName->text();
+    if (newName.isEmpty())
+        return;
+
+    if (m_currentNode->getType() == BookmarkNode::Bookmark)
+    {
+        // Edit through the table model
+        BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
+        int numRows = model->rowCount();
+        for (int i = 0; i < numRows; ++i)
+        {
+            if (m_currentNode == model->getBookmark(i))
+            {
+                static_cast<void>(model->setData(model->index(i, 0), newName, Qt::EditRole));
+                return;
+            }
+        }
+    }
+    else if (m_currentNode->getType() == BookmarkNode::Folder)
+    {
+        // Have to update both models in this case
+        BookmarkFolderModel *folderModel = static_cast<BookmarkFolderModel*>(ui->treeView->model());
+
+        bool foundIndex = false;
+        QModelIndex folderIndex;
+
+        std::deque<QModelIndex> indices;
+        indices.push_back(QModelIndex());
+        while (!indices.empty())
+        {
+            QModelIndex index = indices.front();
+            if (m_currentNode == folderModel->getItem(index))
+            {
+                foundIndex = true;
+                folderIndex = index;
+                break;
+            }
+
+            for (int i = 0; i < folderModel->rowCount(index); ++i)
+            {
+                QModelIndex child = folderModel->index(i, 0, index);
+                indices.push_back(child);
+            }
+            indices.pop_front();
+        }
+
+        bool isFolderInTableModel = false;
+        BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
+        int numRows = tableModel->rowCount();
+        for (int i = 0; i < numRows; ++i)
+        {
+            if (m_currentNode == tableModel->getBookmark(i))
+            {
+                isFolderInTableModel = true;
+                break;
+            }
+        }
+
+        if (isFolderInTableModel)
+            tableModel->beginResetModel();
+
+        if (foundIndex)
+            static_cast<void>(folderModel->setData(folderIndex, newName, Qt::EditRole));
+        else
+            qDebug() << "Couldn't find folder index";
+
+        if (isFolderInTableModel)
+        {
+            tableModel->endResetModel();
+            tableModel->setCurrentFolder(tableModel->getCurrentFolder());
+        }
+    }
+}
+
+void BookmarkWidget::onEditNodeURL()
+{
+    if (!m_currentNode || m_currentNode->getType() != BookmarkNode::Bookmark)
+        return;
+
+    QString newUrl = ui->lineEditLocation->text();
+    if (newUrl.isEmpty())
+        return;
+
+    // Edit URL through the table model
+    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
+    int numRows = model->rowCount();
+    for (int i = 0; i < numRows; ++i)
+    {
+        if (m_currentNode == model->getBookmark(i))
+        {
+            static_cast<void>(model->setData(model->index(i, 1), newUrl, Qt::EditRole));
+            return;
+        }
+    }
+}
+
+void BookmarkWidget::onEditNodeShortcut()
+{
+    if (!m_currentNode)
+        return;
+
+    m_bookmarkManager->updateBookmarkShortcut(ui->lineEditShortcut->text(), m_currentNode);
 }
 
 QUrl BookmarkWidget::getUrlForSelection()
@@ -465,4 +643,38 @@ QUrl BookmarkWidget::getUrlForSelection()
     BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
     QString link = model->data(model->index(row, 1)).toString();
     return QUrl::fromUserInput(link);
+}
+
+void BookmarkWidget::showInfoForNode(BookmarkNode *node)
+{
+    m_currentNode = node;
+
+    if (node == nullptr)
+    {
+        ui->lineEditName->setText(QString());
+        ui->lineEditLocation->setText(QString());
+        ui->lineEditShortcut->setText(QString());
+        return;
+    }
+
+    ui->lineEditName->setText(node->getName());
+
+    if (node->getType() == BookmarkNode::Bookmark)
+    {
+        ui->labelSelectedLocation->show();
+        ui->lineEditLocation->setText(node->getURL());
+        ui->lineEditLocation->show();
+
+        ui->labelSelectedShortcut->show();
+        ui->lineEditShortcut->setText(node->getShortcut());
+        ui->lineEditShortcut->show();
+    }
+    else
+    {
+        ui->labelSelectedLocation->hide();
+        ui->lineEditLocation->hide();
+
+        ui->labelSelectedShortcut->hide();
+        ui->lineEditShortcut->hide();
+    }
 }

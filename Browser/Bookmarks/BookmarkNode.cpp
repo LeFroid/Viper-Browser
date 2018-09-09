@@ -3,12 +3,12 @@
 #include <utility>
 #include <cstdint>
 
-//TODO: shortcut field for bookmarks of type BookmarkNode::Bookmark
 BookmarkNode::BookmarkNode() :
     TreeNode<BookmarkNode>(),
     m_name(),
     m_url(),
     m_icon(),
+    m_shortcut(),
     m_type(BookmarkNode::Bookmark),
     m_folderId(0)
 {
@@ -19,6 +19,7 @@ BookmarkNode::BookmarkNode(BookmarkNode::NodeType type, const QString &name) :
     m_name(name),
     m_url(),
     m_icon(),
+    m_shortcut(),
     m_type(type),
     m_folderId(0)
 {
@@ -28,6 +29,7 @@ BookmarkNode::BookmarkNode(BookmarkNode &&other)
 {
     m_name = other.m_name;
     m_url = other.m_url;
+    m_shortcut = other.m_shortcut;
     m_type = other.m_type;
     m_folderId = other.m_folderId;
     m_parent = other.m_parent;
@@ -79,6 +81,16 @@ const QString &BookmarkNode::getName() const
 void BookmarkNode::setName(const QString &name)
 {
     m_name = name;
+}
+
+const QString &BookmarkNode::getShortcut() const
+{
+    return m_shortcut;
+}
+
+void BookmarkNode::setShortcut(const QString &shortcut)
+{
+    m_shortcut = shortcut;
 }
 
 const QString &BookmarkNode::getURL() const

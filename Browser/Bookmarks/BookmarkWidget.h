@@ -5,6 +5,7 @@
 #include <deque>
 #include <QModelIndex>
 #include <QUrl>
+#include <QVector>
 #include <QWidget>
 
 namespace Ui {
@@ -28,7 +29,10 @@ class BookmarkWidget : public QWidget
     };
 
 public:
-    explicit BookmarkWidget(QWidget *parent = 0);
+    /// Constructs the bookmark manager widget
+    explicit BookmarkWidget(QWidget *parent = nullptr);
+
+    /// BookmarkWidget destructor
     ~BookmarkWidget();
 
     /// Sets the pointer to the user's bookmark manager
@@ -59,8 +63,11 @@ private slots:
     /// Creates a context menu for the folder view widget
     void onFolderContextMenu(const QPoint &pos);
 
+    /// Called when the selected bookmark node in a given folder has changed from the previous index to the current index
+    void onBookmarkSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
+
     /// Called when the user changes their bookmark folder selection
-    void onChangeFolderSelection(const QModelIndex &index);
+    void onFolderSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
 
     /// Called when the index of the active item has changed in the "Import/Export bookmarks from/to HTML" combo box
     void onImportExportBoxChanged(int index);
@@ -71,7 +78,6 @@ private slots:
     /// Emits the openBookmarkNewTab signal with the link parameter set to the URL of the bookmark requested to be opened
     void openInNewTab();
 
-    /// Emits the openBookmarkNewTab signal for each bookmark that has the given folder as its parent
     /**
      * @brief Opens each bookmark belonging to the given folder in a new browser tab. Does not open
      *        bookmarks that belong to sub-folders of the parent folder
@@ -119,9 +125,27 @@ private slots:
     /// Called when the user wants to go forward by one selection in the folder view
     void onClickForwardButton();
 
+    /// Updates any needed UI elements after a change has been made to the folder model
+    void onFolderDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+
+    /// Updates any needed UI elements after a change has been made to the table model
+    void onTableDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+
+    /// Triggered when the Return or Enter key is pressed from the bookmark name line edit
+    void onEditNodeName();
+
+    /// Triggered when the Return or Enter key is pressed from the bookmark URL line edit
+    void onEditNodeURL();
+
+    /// Triggered when the Return or Enter key is pressed from the bookmark shortcut line edit
+    void onEditNodeShortcut();
+
 private:
     /// Returns a QUrl containing the location of the bookmark that the user has selected in the table view
     QUrl getUrlForSelection();
+
+    /// Displays information about the given node at the bottom of the window
+    void showInfoForNode(BookmarkNode *node);
 
 private:
     /// Dialog's user interface elements
@@ -129,6 +153,9 @@ private:
 
     /// Pointer to the user's bookmark manager
     BookmarkManager *m_bookmarkManager;
+
+    /// Pointer to the selected bookmark node
+    BookmarkNode *m_currentNode;
 
     /// Stores the indices of previous selections made in the folder view. Used for the back button feature
     std::deque<QModelIndex> m_folderBackHistory;

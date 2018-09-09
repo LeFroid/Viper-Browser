@@ -67,7 +67,7 @@ public slots:
     /// the matching results in the model
     void searchFor(const QString &text);
 
-private:
+protected:
     /// Returns a pointer to the bookmark at the given row
     BookmarkNode *getBookmark(int row) const;
 

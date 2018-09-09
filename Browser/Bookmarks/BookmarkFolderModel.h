@@ -13,6 +13,8 @@ class BookmarkFolderModel : public QAbstractItemModel
 {
     Q_OBJECT
 
+    friend class BookmarkWidget;
+
 public:
     /// Constructs the bookmark folder model
     explicit BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent = nullptr);
@@ -57,7 +59,7 @@ signals:
     /// Emitted when a folder was moved to a new parent node, so the \ref BookmarkTableModel can update its data if necessary
     void movedFolder(BookmarkNode *folder, BookmarkNode *updatedPtr);
 
-private:
+protected:
     /// Returns the folder associated with the given model index, or the root folder if index is invalid
     BookmarkNode *getItem(const QModelIndex &index) const;
 

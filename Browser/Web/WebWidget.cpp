@@ -352,7 +352,7 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
         }
         case QEvent::Wheel:
         {
-            if (watched == m_viewFocusProxy)
+            if (watched == m_viewFocusProxy || watched == m_view->getViewFocusProxy())
             {
                 QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
 

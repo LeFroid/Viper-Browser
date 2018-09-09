@@ -56,6 +56,12 @@ public:
     /// Sets the name of the bookmark node to the given value
     void setName(const QString &name);
 
+    /// Returns the shortcut used to load the bookmark
+    const QString &getShortcut() const;
+
+    /// Sets the shortcut that can be used to load the bookmark
+    void setShortcut(const QString &shortcut);
+
     /// Returns the URL of the node if its type is bookmark, returns an empty QString otherwise
     const QString &getURL() const;
 
@@ -77,6 +83,9 @@ protected:
 
     /// Icon associated with the node. For folders, will be standard folder icon. For bookmarks, will be favicon
     QIcon m_icon;
+
+    /// Shortcut to load the bookmark through the \ref URLLineEdit
+    QString m_shortcut;
 
     /// Type of node
     NodeType m_type;
