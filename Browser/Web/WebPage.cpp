@@ -284,6 +284,7 @@ void WebPage::onQuotaRequested(QWebEngineQuotaRequest quotaRequest)
 
 void WebPage::onRegisterProtocolHandlerRequested(QWebEngineRegisterProtocolHandlerRequest request)
 {
+    //todo: save user response, add a "Site Preferences" UI where site permissions and such can be modified
     auto response = QMessageBox::question(view()->window(), tr("Permission Request"),
                                           tr("Allow %1 to open all %2 links?").arg(request.origin().host()).arg(request.scheme()));
     if (response == QMessageBox::Yes)

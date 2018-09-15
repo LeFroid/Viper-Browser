@@ -50,12 +50,6 @@ INCLUDEPATH += \
     $$PWD/Widgets \
     $$PWD/Window
 
-packagesExist(KWallet) {
-QT += KWallet
-DEFINES += USE_KWALLET
-message("Using KWallet for secure storage")
-}
-
 SOURCES += \
     main.cpp \
     AdBlock/AdBlockManager.cpp \
@@ -272,5 +266,13 @@ FORMS += \
     Preferences/ExemptThirdPartyCookieDialog.ui \
     MainWindow.ui \
     Network/AuthDialog.ui
+
+packagesExist(KWallet) {
+QT += KWallet
+DEFINES += USE_KWALLET
+SOURCES += Credentials/CredentialStoreKWallet.cpp
+HEADERS += Credentials/CredentialStoreKWallet.h
+message("Using KWallet for secure storage")
+}
 
 include(Browser.pri)

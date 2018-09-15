@@ -331,7 +331,10 @@ void BrowserTabWidget::openLinkInNewWindow(const QUrl &url, bool privateWindow)
 void BrowserTabWidget::loadUrl(const QUrl &url)
 {
     if (m_activeView)
+    {
         m_activeView->load(url);
+        m_activeView->setFocus();
+    }
 }
 
 void BrowserTabWidget::setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu)

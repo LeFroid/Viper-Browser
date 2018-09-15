@@ -64,6 +64,9 @@ enum class BrowserSetting
     /// Determines whether or not the 'Do Not Track' header should be sent with network requests
     SendDoNotTrack,
 
+    /// Determines whether or not the form AutoFill system is enabled
+    EnableAutoFill,
+
     /// Determines whether or not JavaScript should be enabled
     EnableJavascript,
 

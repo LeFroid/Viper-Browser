@@ -25,3 +25,7 @@ QDataStream& operator>>(QDataStream &in, WebCredentials &creds)
 CredentialStore::CredentialStore()
 {
 }
+
+#ifdef USE_KWALLET
+#  include "CredentialStoreKWallet.cpp"
+#endif

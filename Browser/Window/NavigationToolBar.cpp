@@ -207,6 +207,7 @@ void NavigationToolBar::onURLInputEntered()
     if (location.isValid() && !location.topLevelDomain().isNull())
     {
         view->load(location);
+        view->setFocus();
         m_urlInput->setText(location.toString(QUrl::FullyEncoded));
     }
     else
@@ -232,12 +233,14 @@ void NavigationToolBar::onURLInputEntered()
 
                 location = QUrl::fromUserInput(urlText);
                 view->load(location);
+                view->setFocus();
                 m_urlInput->setText(location.toString(QUrl::FullyEncoded));
                 return;
             }
         }
 
         view->load(location);
+        view->setFocus();
         m_urlInput->setText(location.toString(QUrl::FullyEncoded));
     }
 }

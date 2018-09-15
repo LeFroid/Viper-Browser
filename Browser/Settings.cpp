@@ -38,7 +38,7 @@ Settings::Settings() :
         { BrowserSetting::SerifFont, QLatin1String("SerifFont") },                    { BrowserSetting::OpenAllTabsInBackground, QLatin1String("OpenAllTabsInBackground") },
         { BrowserSetting::SansSerifFont, QLatin1String("SansSerifFont") },            { BrowserSetting::CursiveFont, QLatin1String("CursiveFont") },
         { BrowserSetting::FantasyFont, QLatin1String("FantasyFont") },                { BrowserSetting::FixedFont, QLatin1String("FixedFont") },
-        { BrowserSetting::StandardFontSize, QLatin1String("StandardFontSize") }
+        { BrowserSetting::StandardFontSize, QLatin1String("StandardFontSize") },      { BrowserSetting::EnableAutoFill, QLatin1String("EnableAutoFill") }
     }
 {
     // Check if defaults need to be set

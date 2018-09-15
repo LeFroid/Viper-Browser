@@ -186,6 +186,10 @@ void WebWidget::setHibernation(bool on)
         historyStream >> *(m_view->history());
 
         unsetCursor();
+
+        QTimer::singleShot(500, this, [=](){
+            m_viewFocusProxy = m_view->getViewFocusProxy();
+        });
     }
 
     m_hibernating = on;
