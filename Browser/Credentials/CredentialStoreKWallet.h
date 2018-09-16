@@ -50,5 +50,4 @@ private:
     QHash<QString, std::vector<WebCredentials>> m_credentials;
 };
 
-
 #endif // CREDENTIALSTOREKWALLET_H

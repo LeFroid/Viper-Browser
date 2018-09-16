@@ -5,6 +5,7 @@
 #include <QList>
 #include <QObject>
 #include <QString>
+#include <QUrl>
 
 /// Contains HTTP request information about a search engine
 struct SearchEngine

@@ -44,6 +44,7 @@ void WebPage::setupSlots()
 {
     QWebChannel *channel = new QWebChannel(this);
     channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
+    //channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(this));
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
     connect(this, &WebPage::authenticationRequired,      this, &WebPage::onAuthenticationRequired);

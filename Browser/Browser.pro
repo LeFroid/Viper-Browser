@@ -33,6 +33,7 @@ top_srcdir=./
 
 INCLUDEPATH += \
     $$PWD/AdBlock \
+    $$PWD/AutoFill \
     $$PWD/Bookmarks \
     $$PWD/Cache \
     $$PWD/Cookies \
@@ -140,7 +141,9 @@ SOURCES += \
     CommonUtil.cpp \
     Network/AuthDialog.cpp \
     Network/HttpRequest.cpp \
-    Credentials/CredentialStore.cpp
+    Credentials/CredentialStore.cpp \
+    AutoFill/AutoFill.cpp \
+    AutoFill/AutoFillBridge.cpp
 
 HEADERS += \
     TreeNode.h \
@@ -234,7 +237,10 @@ HEADERS += \
     CommonUtil.h \
     Network/AuthDialog.h \
     Network/HttpRequest.h \
-    Credentials/CredentialStore.h
+    Credentials/CredentialStore.h \
+    Credentials/CredentialStoreImpl.h \
+    AutoFill/AutoFill.h \
+    AutoFill/AutoFillBridge.h
 
 FORMS += \
     Cookies/cookiewidget.ui \
@@ -268,11 +274,11 @@ FORMS += \
     Network/AuthDialog.ui
 
 packagesExist(KWallet) {
-QT += KWallet
-DEFINES += USE_KWALLET
-SOURCES += Credentials/CredentialStoreKWallet.cpp
-HEADERS += Credentials/CredentialStoreKWallet.h
-message("Using KWallet for secure storage")
+    message("Using KWallet for secure storage")
+    QT += KWallet
+    DEFINES += USE_KWALLET
+    SOURCES += Credentials/CredentialStoreKWallet.cpp
+    HEADERS += Credentials/CredentialStoreKWallet.h
 }
 
 include(Browser.pri)

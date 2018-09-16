@@ -63,6 +63,8 @@ void CredentialStoreKWallet::updateCredentials(const WebCredentials &credentials
         return;
 
     std::vector<WebCredentials> &creds = m_credentials[credentials.Host];
+
+    bool updated = false;
     for (WebCredentials &item : creds)
     {
         if (item.Username.compare(credentials.Username) == 0)
@@ -70,10 +72,14 @@ void CredentialStoreKWallet::updateCredentials(const WebCredentials &credentials
             item.Password = credentials.Password;
             item.FormData = credentials.FormData;
             item.LastLogin = credentials.LastLogin;
+            updated = true;
         }
     }
 
-    saveCredentialsFor(credentials.Host);
+    if (updated)
+        saveCredentialsFor(credentials.Host);
+    else
+        addCredentials(credentials);
 }
 
 void CredentialStoreKWallet::openWallet()

@@ -6,7 +6,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <QUrl>
 
 SearchEngineManager::SearchEngineManager(QObject *parent) :
     QObject(parent),

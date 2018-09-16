@@ -8,6 +8,9 @@
 #include "WebView.h"
 
 #include <algorithm>
+#include <QEvent>
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include <QMenu>
 #include <QTimer>
 #include <QWebEngineHistory>
