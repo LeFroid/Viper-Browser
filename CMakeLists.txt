@@ -17,25 +17,25 @@ if (KF5Wallet_FOUND)
 endif()
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/Browser
-    ${CMAKE_SOURCE_DIR}/Browser/AdBlock
-    ${CMAKE_SOURCE_DIR}/Browser/AutoFill
-    ${CMAKE_SOURCE_DIR}/Browser/Bookmarks
-    ${CMAKE_SOURCE_DIR}/Browser/Cache
-    ${CMAKE_SOURCE_DIR}/Browser/Cookies
-    ${CMAKE_SOURCE_DIR}/Browser/Credentials
-    ${CMAKE_SOURCE_DIR}/Browser/Downloads
-    ${CMAKE_SOURCE_DIR}/Browser/Extensions
-    ${CMAKE_SOURCE_DIR}/Browser/Highlighters
-    ${CMAKE_SOURCE_DIR}/Browser/History
-    ${CMAKE_SOURCE_DIR}/Browser/Network
-    ${CMAKE_SOURCE_DIR}/Browser/Preferences
-    ${CMAKE_SOURCE_DIR}/Browser/URLSuggestion
-    ${CMAKE_SOURCE_DIR}/Browser/UserAgents
-    ${CMAKE_SOURCE_DIR}/Browser/UserScripts
-    ${CMAKE_SOURCE_DIR}/Browser/Web
-    ${CMAKE_SOURCE_DIR}/Browser/Widgets
-    ${CMAKE_SOURCE_DIR}/Browser/Window
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/AdBlock
+    ${CMAKE_SOURCE_DIR}/src/AutoFill
+    ${CMAKE_SOURCE_DIR}/src/Bookmarks
+    ${CMAKE_SOURCE_DIR}/src/Cache
+    ${CMAKE_SOURCE_DIR}/src/Cookies
+    ${CMAKE_SOURCE_DIR}/src/Credentials
+    ${CMAKE_SOURCE_DIR}/src/Downloads
+    ${CMAKE_SOURCE_DIR}/src/Extensions
+    ${CMAKE_SOURCE_DIR}/src/Highlighters
+    ${CMAKE_SOURCE_DIR}/src/History
+    ${CMAKE_SOURCE_DIR}/src/Network
+    ${CMAKE_SOURCE_DIR}/src/Preferences
+    ${CMAKE_SOURCE_DIR}/src/URLSuggestion
+    ${CMAKE_SOURCE_DIR}/src/UserAgents
+    ${CMAKE_SOURCE_DIR}/src/UserScripts
+    ${CMAKE_SOURCE_DIR}/src/Web
+    ${CMAKE_SOURCE_DIR}/src/Widgets
+    ${CMAKE_SOURCE_DIR}/src/Window
 )
 
-add_subdirectory(Browser)
+add_subdirectory(src)

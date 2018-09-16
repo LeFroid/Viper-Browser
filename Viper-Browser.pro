@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS += Browser tests
+SUBDIRS += src tests
