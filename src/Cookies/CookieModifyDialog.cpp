@@ -1,5 +1,5 @@
 #include "CookieModifyDialog.h"
-#include "ui_cookiemodifydialog.h"
+#include "ui_CookieModifyDialog.h"
 
 #include <QAbstractButton>
 #include <QPushButton>

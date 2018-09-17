@@ -1,5 +1,5 @@
 #include "HistoryWidget.h"
-#include "ui_historywidget.h"
+#include "ui_HistoryWidget.h"
 #include "HistoryManager.h"
 #include "HistoryTableModel.h"
 

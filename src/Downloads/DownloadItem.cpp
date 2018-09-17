@@ -1,7 +1,7 @@
 #include "BrowserApplication.h"
 #include "CommonUtil.h"
 #include "DownloadItem.h"
-#include "ui_downloaditem.h"
+#include "ui_DownloadItem.h"
 #include "DownloadManager.h"
 #include "NetworkAccessManager.h"
 

@@ -1,5 +1,5 @@
 #include "ClearHistoryDialog.h"
-#include "ui_clearhistorydialog.h"
+#include "ui_ClearHistoryDialog.h"
 
 #include <QStringList>
 #include <QStyle>

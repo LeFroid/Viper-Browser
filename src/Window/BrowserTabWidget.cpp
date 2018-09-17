@@ -86,6 +86,16 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
                 if (keyEvent->key() == Qt::Key_F11)
                     m_mainWindow->onToggleFullScreen(false);
             }
+            else if (sBrowserApplication->activeWindow() == m_mainWindow)
+            {
+                QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+                if (keyEvent->key() == Qt::Key_Tab && keyEvent->modifiers() == Qt::ControlModifier)
+                {
+                    // switch to the next tab
+                    setCurrentIndex((currentIndex() + 1) % count());
+                    return true;
+                }
+            }
             break;
         }
         default:

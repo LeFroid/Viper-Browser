@@ -1,7 +1,7 @@
 #include "BrowserApplication.h"
 #include "CookieJar.h"
 #include "CookieWidget.h"
-#include "ui_cookiewidget.h"
+#include "ui_CookieWidget.h"
 #include "CookieModifyDialog.h"
 #include "CookieTableModel.h"
 #include "DetailedCookieTableModel.h"

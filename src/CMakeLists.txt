@@ -109,13 +109,13 @@ qt5_wrap_ui(viper_ui
     AdBlock/AdBlockSubscribeDialog.ui
     AdBlock/AdBlockWidget.ui
     AdBlock/CustomFilterEditor.ui
-    Bookmarks/bookmarkwidget.ui
-    Cookies/cookiemodifydialog.ui
-    Cookies/cookiewidget.ui
-    Downloads/downloaditem.ui
-    Downloads/downloadmanager.ui
-    History/clearhistorydialog.ui
-    History/historywidget.ui
+    Bookmarks/BookmarkWidget.ui
+    Cookies/CookieModifyDialog.ui
+    Cookies/CookieWidget.ui
+    Downloads/DownloadItem.ui
+    Downloads/DownloadManager.ui
+    History/ClearHistoryDialog.ui
+    History/HistoryWidget.ui
     Network/AuthDialog.ui
     Network/CertificateGeneralTab.ui
     Network/CertificateViewer.ui

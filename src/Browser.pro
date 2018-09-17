@@ -243,13 +243,13 @@ HEADERS += \
     AutoFill/AutoFillBridge.h
 
 FORMS += \
-    Cookies/cookiewidget.ui \
-    Cookies/cookiemodifydialog.ui \
-    History/clearhistorydialog.ui \
-    History/historywidget.ui \
-    Bookmarks/bookmarkwidget.ui \
-    Downloads/downloadmanager.ui \
-    Downloads/downloaditem.ui \
+    Cookies/CookieWidget.ui \
+    Cookies/CookieModifyDialog.ui \
+    History/ClearHistoryDialog.ui \
+    History/HistoryWidget.ui \
+    Bookmarks/BookmarkWidget.ui \
+    Downloads/DownloadManager.ui \
+    Downloads/DownloadItem.ui \
     Widgets/FindTextWidget.ui \
     UserAgents/AddUserAgentDialog.ui \
     Network/SecurityInfoDialog.ui \

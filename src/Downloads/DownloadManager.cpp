@@ -1,6 +1,6 @@
 #include "BrowserApplication.h"
 #include "DownloadManager.h"
-#include "ui_downloadmanager.h"
+#include "ui_DownloadManager.h"
 #include "DownloadItem.h"
 #include "InternalDownloadItem.h"
 #include "NetworkAccessManager.h"
