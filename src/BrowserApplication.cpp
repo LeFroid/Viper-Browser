@@ -350,14 +350,30 @@ void BrowserApplication::installGlobalWebScripts()
     webChannelSetupFile.close();
     webChannel.setSourceCode(webChannelScript);
 
+    QWebEngineScript faviconBridge;
+    faviconBridge.setInjectionPoint(QWebEngineScript::DocumentReady);
+    faviconBridge.setName(QLatin1String("viper-favicon-bridge"));
+    faviconBridge.setRunsOnSubFrames(false);
+    faviconBridge.setWorldId(QWebEngineScript::ApplicationWorld);
+
+    QString faviconScript;
+    QFile faviconScriptFile(":/GetFavicon.js");
+    if (faviconScriptFile.open(QIODevice::ReadOnly))
+        faviconScript = faviconScriptFile.readAll();
+    faviconScriptFile.close();
+
+    faviconBridge.setSourceCode(faviconScript);
+
     auto scriptCollection = QWebEngineProfile::defaultProfile()->scripts();
     auto privateScriptCollection = m_privateProfile->scripts();
 
     scriptCollection->insert(printScript);
     scriptCollection->insert(webChannel);
+    scriptCollection->insert(faviconBridge);
 
     privateScriptCollection->insert(printScript);
     privateScriptCollection->insert(webChannel);
+    privateScriptCollection->insert(faviconBridge);
 }
 
 void BrowserApplication::beforeBrowserQuit()

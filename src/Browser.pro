@@ -115,6 +115,7 @@ SOURCES += \
     Highlighters/JavaScriptHighlighter.cpp \
     Widgets/CodeEditor.cpp \
     Extensions/ExtStorage.cpp \
+    Extensions/FaviconStoreBridge.cpp \
     UserScripts/UserScriptEditor.cpp \
     AdBlock/AdBlockWidget.cpp \
     Widgets/CheckableTableView.cpp \
@@ -210,6 +211,7 @@ HEADERS += \
     Highlighters/JavaScriptHighlighter.h \
     Widgets/CodeEditor.h \
     Extensions/ExtStorage.h \
+    Extensions/FaviconStoreBridge.h \
     UserScripts/UserScriptEditor.h \
     AdBlock/AdBlockWidget.h \
     Widgets/CheckableTableView.h \

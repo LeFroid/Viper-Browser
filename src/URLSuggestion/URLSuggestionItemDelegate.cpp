@@ -37,10 +37,8 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->setFont(titleFont);
 
     QPen titlePen = painter->pen();
-    if (isSelectedItem)
-        titlePen.setBrush(QBrush(QColor(255, 255, 255)));
-    else
-        titlePen.setBrush(QBrush(QColor(0, 0, 0)));
+    QBrush titleBrush = isSelectedItem ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 0));
+    titlePen.setBrush(titleBrush);
     painter->setPen(titlePen);
 
     QFontMetrics titleFontMetrics(titleFont);
@@ -56,10 +54,8 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->setFont(urlFont);
 
     QPen urlPen = painter->pen();
-    if (isSelectedItem)
-        urlPen.setBrush(QBrush(QColor(255, 255, 255)));
-    else
-        urlPen.setBrush(QBrush(QColor(0, 0, 238)));
+    QBrush urlBrush = isSelectedItem ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 238));
+    urlPen.setBrush(urlBrush);
     painter->setPen(urlPen);
 
     QFontMetrics urlFontMetrics(urlFont);

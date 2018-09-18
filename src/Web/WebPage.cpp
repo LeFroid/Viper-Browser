@@ -3,6 +3,7 @@
 #include "BrowserApplication.h"
 #include "CommonUtil.h"
 #include "ExtStorage.h"
+#include "FaviconStoreBridge.h"
 #include "SecurityManager.h"
 #include "Settings.h"
 #include "URL.h"
@@ -45,6 +46,7 @@ void WebPage::setupSlots()
     QWebChannel *channel = new QWebChannel(this);
     channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
     //channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(this));
+    channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(this));
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
     connect(this, &WebPage::authenticationRequired,      this, &WebPage::onAuthenticationRequired);

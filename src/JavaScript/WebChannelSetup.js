@@ -5,6 +5,7 @@
         new QWebChannel(qt.webChannelTransport, function(channel) {
             const viper = {};
             viper.storage = channel.objects.extStorage;
+            viper.favicons = channel.objects.favicons;
             //viper.autofill = channel.objects.autofill;
             window.viper = viper; 
             if (!window._webchannel_initialized) {

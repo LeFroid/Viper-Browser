@@ -221,15 +221,15 @@ void NavigationToolBar::onURLInputEntered()
         for (auto it : *bookmarkMgr)
         {
             if (it->getType() == BookmarkNode::Bookmark
-                    && urlTextStart.compare(it->getShortcut()) == 0)
+                    && (urlTextStart.compare(it->getShortcut()) == 0 || urlText.compare(it->getShortcut()) == 0))
             {
-                if (delimIdx > 0)
+                QString bookmarkUrl = it->getURL();
+                if (delimIdx > 0 && bookmarkUrl.contains(QLatin1String("%s")))
                 {
-                    QString temp = it->getURL();
-                    urlText = temp.replace(QLatin1String("%s"), urlText.mid(delimIdx + 1));
+                    urlText = bookmarkUrl.replace(QLatin1String("%s"), urlText.mid(delimIdx + 1));
                 }
                 else
-                    urlText = it->getURL();
+                    urlText = bookmarkUrl;
 
                 location = QUrl::fromUserInput(urlText);
                 view->load(location);

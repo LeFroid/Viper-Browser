@@ -243,9 +243,6 @@ private:
     /// Dialog that is shown when a bookmark is added or is being modified by the user
     BookmarkDialog *m_bookmarkDialog;
 
-    /// Stores javascript code that attempts to extract favicon path from a page
-    QString m_faviconScript;
-
     /// Displays the link being hovered by the user in the status bar
     QLabel *m_linkHoverLabel;
 };

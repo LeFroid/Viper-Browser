@@ -17,7 +17,7 @@ class AutoFillBridge : public QObject
     Q_OBJECT
 
 public:
-    /// Constructs the AutoFillBridge with te given parent
+    /// Constructs the AutoFillBridge with the given parent
     explicit AutoFillBridge(WebPage *parent);
 
     /// AutoFillBridge destructor

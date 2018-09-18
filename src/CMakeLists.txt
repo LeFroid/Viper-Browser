@@ -30,6 +30,7 @@ set(viper_src
     Downloads/DownloadManager.cpp
     Downloads/InternalDownloadItem.cpp
     Extensions/ExtStorage.cpp
+    Extensions/FaviconStoreBridge.cpp
     Highlighters/HTMLHighlighter.cpp
     Highlighters/JavaScriptHighlighter.cpp
     History/ClearHistoryDialog.cpp

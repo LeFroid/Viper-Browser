@@ -64,20 +64,11 @@ MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *book
     m_clearHistoryDialog(nullptr),
     m_tabWidget(nullptr),
     m_bookmarkDialog(nullptr),
-    m_faviconScript(),
     m_linkHoverLabel(nullptr)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
     setAcceptDrops(true);
-
-    // load favicon script
-    QFile f(":/GetFavicon.js");
-    if (f.open(QIODevice::ReadOnly))
-    {
-        m_faviconScript = f.readAll();
-        f.close();
-    }
 
     ui->setupUi(this);
     ui->toolBar->setMinHeights(ui->toolBar->height() + 3);
@@ -544,33 +535,13 @@ void MainWindow::onLoadFinished(bool ok)
     if (m_privateWindow || !ok)
         return;
 
-    // Get favicon and inform HistoryManager of the title and favicon associated with the page's url
-    BrowserApplication *browserApp = sBrowserApplication;
-    HistoryManager *historyMgr = browserApp->getHistoryManager();
+    // Add history entry
+    HistoryManager *historyMgr = sBrowserApplication->getHistoryManager();
 
-    QIcon favicon = ww->getIcon();
     QUrl pageUrl = ww->url();
-    QString pageUrlNoPath = ww->url().toString(QUrl::RemovePath);
-    QString pageScheme = ww->url().scheme();
-    const bool isBlankPage = ww->isOnBlankPage();
 
-    if (!isBlankPage && !pageUrl.isEmpty())
+    if (!ww->isOnBlankPage() && !pageUrl.isEmpty())
         historyMgr->addHistoryEntry(pageUrl.toString(), ww->getTitle());
-
-    // Attempt to fetch the URL of the favicon from the page
-    ww->page()->runJavaScript(m_faviconScript, [=](const QVariant &v) {
-        if (v.isNull() || !v.canConvert<QString>())
-            return;
-
-        QString iconRef = v.toString();
-        if (iconRef.startsWith(QLatin1String("//")))
-        {
-            iconRef.prepend(pageScheme + QChar(':'));
-        }
-        else if (iconRef.startsWith('/'))
-            iconRef.prepend(pageUrlNoPath);
-        m_faviconStore->updateIcon(iconRef, pageUrl, favicon);
-    });
 }
 
 void MainWindow::onShowAllHistory()
