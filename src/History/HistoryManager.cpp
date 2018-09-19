@@ -1,6 +1,7 @@
 #include "BrowserApplication.h"
 #include "HistoryManager.h"
 #include "Settings.h"
+#include "WebWidget.h"
 
 #include <QBuffer>
 #include <QDateTime>
@@ -47,58 +48,6 @@ HistoryManager::~HistoryManager()
         delete m_queryHistoryItem;
         delete m_queryVisit;
     }
-}
-
-void HistoryManager::addHistoryEntry(const QString &url, const QString &title)
-{
-    // Check if qrc:/ resource, and if so, ignore
-    if (url.startsWith(QLatin1String("qrc:")) || m_storagePolicy == HistoryStoragePolicy::Never)
-        return;
-
-    QDateTime visitTime = QDateTime::currentDateTime();
-
-    QString urlFormatted = url;
-    int hashPos = url.indexOf(QLatin1Char('#'));
-    if (hashPos > 0)
-        urlFormatted = urlFormatted.left(hashPos);
-
-    const QString urlUpper = urlFormatted.toUpper();
-
-    const bool emptyTitle = title.isEmpty();
-
-    auto it = m_historyItems.find(urlUpper);
-    if (it != m_historyItems.end())
-    {
-        it->Visits.prepend(visitTime);
-        m_recentItems.push_front(*it);
-        while (m_recentItems.size() > 15)
-            m_recentItems.pop_back();
-        if (it->Title.isEmpty() && !emptyTitle)
-            it->Title = title;
-
-        if (!it->Title.isEmpty())
-        {
-            //saveVisit(*it, visitTime);
-            QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
-            emit pageVisited(urlFormatted, it->Title);
-        }
-        return;
-    }
-
-    WebHistoryItem item;
-    item.URL = urlFormatted;
-    item.VisitID = ++m_lastVisitID;
-    if (!emptyTitle)
-        item.Title = title;
-    item.Visits.prepend(visitTime);
-
-    m_historyItems.insert(urlUpper, item);
-    m_recentItems.push_front(item);
-    while (m_recentItems.size() > 15)
-        m_recentItems.pop_back();
-
-    QtConcurrent::run(this, &HistoryManager::saveVisit, item, visitTime);
-    emit pageVisited(urlFormatted, title);
 }
 
 void HistoryManager::clearAllHistory()
@@ -249,6 +198,61 @@ void HistoryManager::setStoragePolicy(HistoryStoragePolicy policy)
     {
         QDateTime invalidDate;
         sBrowserApplication->clearHistory(HistoryType::Browsing, invalidDate);
+    }
+}
+
+void HistoryManager::onPageLoaded(bool ok)
+{
+    if (!ok || m_storagePolicy == HistoryStoragePolicy::Never)
+        return;
+
+    WebWidget *ww = qobject_cast<WebWidget*>(sender());
+    if (ww == nullptr || ww->isOnBlankPage())
+        return;
+
+    const QUrl url = ww->url();
+    if (url.isEmpty() || url.scheme().isEmpty() || url.scheme().compare(QLatin1String("qrc")) == 0)
+        return;
+
+    QDateTime visitTime = QDateTime::currentDateTime();
+
+    QString urlFormatted = url.toString(QUrl::RemoveFragment);
+    const QString urlUpper = urlFormatted.toUpper();
+
+    const QString title = ww->getTitle();
+    const bool emptyTitle = title.isEmpty();
+
+    auto it = m_historyItems.find(urlUpper);
+    if (it != m_historyItems.end())
+    {
+        it->Visits.prepend(visitTime);
+        m_recentItems.push_front(*it);
+        while (m_recentItems.size() > 15)
+            m_recentItems.pop_back();
+        if (it->Title.isEmpty() && !emptyTitle)
+            it->Title = title;
+
+        if (!it->Title.isEmpty())
+        {
+            QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
+            emit pageVisited(urlFormatted, it->Title);
+        }
+    }
+    else
+    {
+        WebHistoryItem item;
+        item.URL = urlFormatted;
+        item.VisitID = ++m_lastVisitID;
+        item.Title = title;
+        item.Visits.prepend(visitTime);
+
+        m_historyItems.insert(urlUpper, item);
+        m_recentItems.push_front(item);
+        while (m_recentItems.size() > 15)
+            m_recentItems.pop_back();
+
+        QtConcurrent::run(this, &HistoryManager::saveVisit, item, visitTime);
+        emit pageVisited(urlFormatted, title);
     }
 }
 

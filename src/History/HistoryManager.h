@@ -68,9 +68,6 @@ public:
     /// Saves browsing history at exit
     virtual ~HistoryManager();
 
-    /// Adds an entry to the browser's history
-    void addHistoryEntry(const QString &url, const QString &title);
-
     /// Clears all browsing history
     void clearAllHistory();
 
@@ -114,6 +111,10 @@ public:
 signals:
     /// Emitted when a page has been visited
     void pageVisited(const QString &url, const QString &title);
+
+public slots:
+    /// Called when a (non-private profile) page has finished loading
+    void onPageLoaded(bool ok);
 
 protected:
     /// Returns true if the history database contains the table structures needed for it to function properly,

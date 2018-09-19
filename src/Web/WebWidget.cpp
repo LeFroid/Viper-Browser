@@ -1,5 +1,7 @@
 #include "AdBlockManager.h"
+#include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
+#include "HistoryManager.h"
 #include "HttpRequest.h"
 #include "MainWindow.h"
 #include "WebWidget.h"
@@ -61,6 +63,9 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     setLayout(vLayout);
 
     setFocusProxy(m_view);
+
+    if (!privateMode)
+        connect(this, &WebWidget::loadFinished, sBrowserApplication->getHistoryManager(), &HistoryManager::onPageLoaded);
 }
 
 int WebWidget::getProgress() const

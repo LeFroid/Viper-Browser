@@ -517,7 +517,7 @@ void MainWindow::openFileInBrowser()
         loadUrl(QUrl(QString("file://%1").arg(fileName)));
 }
 
-void MainWindow::onLoadFinished(bool ok)
+void MainWindow::onLoadFinished(bool /*ok*/)
 {
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
     if (!ww)
@@ -536,17 +536,6 @@ void MainWindow::onLoadFinished(bool ok)
                 && !(urlWidget->hasFocus() || urlWidget->isModified()))
             ww->setFocus();
     }
-
-    if (m_privateWindow || !ok)
-        return;
-
-    // Add history entry
-    HistoryManager *historyMgr = sBrowserApplication->getHistoryManager();
-
-    QUrl pageUrl = ww->url();
-
-    if (!ww->isOnBlankPage() && !pageUrl.isEmpty())
-        historyMgr->addHistoryEntry(pageUrl.toString(), ww->getTitle());
 }
 
 void MainWindow::onShowAllHistory()
