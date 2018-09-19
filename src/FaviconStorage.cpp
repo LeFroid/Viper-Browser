@@ -107,7 +107,15 @@ void FaviconStorage::updateIcon(const QString &iconHRef, const QUrl &pageUrl, QI
 
     auto it = m_favicons.find(iconHRef);
     if (it != m_favicons.end())
+    {
         it->urlSet.insert(pageUrlStr);
+
+        if (!pageIcon.isNull())
+        {
+            it->icon = pageIcon;
+            saveToDB(iconHRef, *it);
+        }
+    }
     else
     {
         // Fetch icon and add info to hash map

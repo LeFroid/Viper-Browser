@@ -5,6 +5,11 @@
 
 class WebPage;
 
+/**
+ * @class FaviconStoreBridge
+ * @brief Bridge between the favicon url-searching script injected into each \ref WebPage ,
+ *        and the \ref FaviconStorage system
+ */
 class FaviconStoreBridge : public QObject
 {
     Q_OBJECT

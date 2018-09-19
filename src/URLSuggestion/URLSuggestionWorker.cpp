@@ -55,6 +55,8 @@ void URLSuggestionWorker::searchForHits()
 
     FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
 
+    //QStringList words = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
+
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
 

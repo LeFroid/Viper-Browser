@@ -525,10 +525,15 @@ void MainWindow::onLoadFinished(bool ok)
 
     if (m_tabWidget->currentWebWidget() == ww)
     {
-        ui->toolBar->getURLWidget()->setURL(ww->url());
+        auto urlWidget = ui->toolBar->getURLWidget();
+        if (!urlWidget->isModified())
+            urlWidget->setURL(ww->url());
+
         checkPageForBookmark();
 
-        if (!ww->isOnBlankPage() && !ui->widgetFindText->getLineEdit()->hasFocus())
+        if (!ww->isOnBlankPage()
+                && !ui->widgetFindText->getLineEdit()->hasFocus()
+                && !(urlWidget->hasFocus() || urlWidget->isModified()))
             ww->setFocus();
     }
 
