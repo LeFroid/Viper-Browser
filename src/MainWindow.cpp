@@ -53,7 +53,7 @@
 #include <QToolButton>
 #include <QtConcurrent>
 
-MainWindow::MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, FaviconStorage *faviconStore, bool privateWindow, QWidget *parent) :
+MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStorage *faviconStore, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_privateWindow(privateWindow),

@@ -1,9 +1,10 @@
 #ifndef AUTOFILLBRIDGE_H
 #define AUTOFILLBRIDGE_H
 
-#include <QByteArray>
+#include <QMap>
 #include <QObject>
 #include <QString>
+#include <QVariant>
 
 class WebPage;
 
@@ -29,9 +30,9 @@ public slots:
      * @param pageUrl The URL of the page containing the form
      * @param username The username field of the form
      * @param password The password entered by the user
-     * @param formData All of the information included in the form, as a urlencoded byte array
+     * @param formData All of the key-value pairs entered into the form
      */
-    void onFormSubmitted(const QString &pageUrl, const QString &username, const QString &password, const QByteArray &formData);
+    void onFormSubmitted(const QString &pageUrl, const QString &username, const QString &password, const QMap<QString, QVariant> &formData);
 
 private:
     /// Pointer to the web page that owns this bridge

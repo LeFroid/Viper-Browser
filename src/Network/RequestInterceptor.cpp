@@ -9,7 +9,7 @@ RequestInterceptor::RequestInterceptor(QObject *parent) :
 {
 }
 
-void RequestInterceptor::setSettings(std::shared_ptr<Settings> settings)
+void RequestInterceptor::setSettings(Settings *settings)
 {
     m_settings = settings;
 }

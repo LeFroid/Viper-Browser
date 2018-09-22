@@ -20,8 +20,8 @@ class Preferences : public QWidget
     Q_OBJECT
 
 public:
-    /// Constructs the preferences widget given a shared pointer to the global settings object and an optional parent
-    explicit Preferences(std::shared_ptr<Settings> settings, QWidget *parent = nullptr);
+    /// Constructs the preferences widget given a pointer to the global settings object and an optional parent
+    explicit Preferences(Settings *settings, QWidget *parent = nullptr);
 
     /// Preferences destructor
     ~Preferences();
@@ -45,8 +45,8 @@ private:
     /// User interface
     Ui::Preferences *ui;
 
-    /// Shared pointer to the global browser settings
-    std::shared_ptr<Settings> m_settings;
+    /// Pointer to the global browser settings
+    Settings *m_settings;
 };
 
 #endif // PREFERENCES_H

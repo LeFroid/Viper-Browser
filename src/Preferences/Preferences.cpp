@@ -8,7 +8,7 @@
 #include "UserScriptManager.h"
 #include <QDir>
 
-Preferences::Preferences(std::shared_ptr<Settings> settings, QWidget *parent) :
+Preferences::Preferences(Settings *settings, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Preferences),
     m_settings(settings)

@@ -27,6 +27,7 @@
 #include "WebPage.h"
 #include "WebWidget.h"
 
+//todo: to get page thumbnails, on load finish event, grab the QQuickWidget child and call grabFramebuffer() which returns QImage
 WebView::WebView(bool privateView, QWidget *parent) :
     QWebEngineView(parent),
     m_page(nullptr),

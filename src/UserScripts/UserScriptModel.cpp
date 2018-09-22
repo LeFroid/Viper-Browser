@@ -14,7 +14,7 @@
 #include <QUrl>
 #include <QNetworkRequest>
 
-UserScriptModel::UserScriptModel(std::shared_ptr<Settings> settings, QObject *parent) :
+UserScriptModel::UserScriptModel(Settings *settings, QObject *parent) :
     QAbstractTableModel(parent),
     m_scripts(),
     m_scriptTemplate(),

@@ -1,5 +1,6 @@
 #include "BrowserApplication.h"
 #include "AdBlockManager.h"
+#include "AutoFill.h"
 #include "BlockedSchemeHandler.h"
 #include "BookmarkManager.h"
 #include "CookieJar.h"
@@ -63,9 +64,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_privateProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
 
     // Load settings
-    m_settings = std::make_shared<Settings>();
+    m_settings = std::make_unique<Settings>();
 
-    m_requestInterceptor->setSettings(m_settings);
+    m_requestInterceptor->setSettings(m_settings.get());
 
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(BrowserSetting::FaviconPath));
@@ -80,6 +81,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     m_cookieUI = new CookieWidget();
     webProfile->cookieStore()->loadAllCookies();
+
+    // Initialize auto fill manager
+    m_autoFill = new AutoFill();
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
@@ -102,10 +106,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_privateNetworkAccessMgr->setCookieJar(privateJar);
 
     // Setup user agent manager before settings
-    m_userAgentMgr = new UserAgentManager(m_settings);
+    m_userAgentMgr = new UserAgentManager(m_settings.get());
 
     // Setup user script manager
-    m_userScriptMgr = new UserScriptManager(m_settings);
+    m_userScriptMgr = new UserScriptManager(m_settings.get());
 
     // Setup extension storage manager
     m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
@@ -151,11 +155,17 @@ BrowserApplication::~BrowserApplication()
     delete m_viperSchemeHandler;
     delete m_blockedSchemeHandler;
     delete m_cookieUI;
+    delete m_autoFill;
 }
 
 BrowserApplication *BrowserApplication::instance()
 {
     return static_cast<BrowserApplication*>(QCoreApplication::instance());
+}
+
+AutoFill *BrowserApplication::getAutoFill()
+{
+    return m_autoFill;
 }
 
 BookmarkManager *BrowserApplication::getBookmarkManager()
@@ -168,9 +178,9 @@ CookieJar *BrowserApplication::getCookieJar()
     return m_cookieJar;
 }
 
-std::shared_ptr<Settings> BrowserApplication::getSettings()
+Settings *BrowserApplication::getSettings()
 {
-    return m_settings;
+    return m_settings.get();
 }
 
 DownloadManager *BrowserApplication::getDownloadManager()
@@ -239,7 +249,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), m_faviconStorage.get(), false);
+    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarks.get(), m_faviconStorage.get(), false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
     connect(w, &MainWindow::destroyed, [this, w](){
@@ -275,7 +285,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings, m_bookmarks.get(), m_faviconStorage.get(), true);
+    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarks.get(), m_faviconStorage.get(), true);
     m_browserWindows.append(w);
     connect(w, &MainWindow::destroyed, [this, w](){
         if (m_browserWindows.contains(w))
@@ -357,12 +367,26 @@ void BrowserApplication::installGlobalWebScripts()
     faviconBridge.setWorldId(QWebEngineScript::ApplicationWorld);
 
     QString faviconScript;
-    QFile faviconScriptFile(":/GetFavicon.js");
+    QFile faviconScriptFile(QLatin1String(":/GetFavicon.js"));
     if (faviconScriptFile.open(QIODevice::ReadOnly))
         faviconScript = faviconScriptFile.readAll();
     faviconScriptFile.close();
 
     faviconBridge.setSourceCode(faviconScript);
+
+    QWebEngineScript autoFillObserver;
+    autoFillObserver.setInjectionPoint(QWebEngineScript::DocumentReady);
+    autoFillObserver.setName(QLatin1String("viper-autofill-observer"));
+    autoFillObserver.setRunsOnSubFrames(true);
+    autoFillObserver.setWorldId(QWebEngineScript::ApplicationWorld);
+
+    QString autoFillJS;
+    QFile autoFillObserverFile(QLatin1String(":/AutoFillObserver.js"));
+    if (autoFillObserverFile.open(QIODevice::ReadOnly))
+        autoFillJS = autoFillObserverFile.readAll();
+    autoFillObserverFile.close();
+
+    autoFillObserver.setSourceCode(autoFillJS);
 
     auto scriptCollection = QWebEngineProfile::defaultProfile()->scripts();
     auto privateScriptCollection = m_privateProfile->scripts();
@@ -370,6 +394,7 @@ void BrowserApplication::installGlobalWebScripts()
     scriptCollection->insert(printScript);
     scriptCollection->insert(webChannel);
     scriptCollection->insert(faviconBridge);
+    scriptCollection->insert(autoFillObserver);
 
     privateScriptCollection->insert(printScript);
     privateScriptCollection->insert(webChannel);

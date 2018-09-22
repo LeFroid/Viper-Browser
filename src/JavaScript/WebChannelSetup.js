@@ -6,7 +6,7 @@
             const viper = {};
             viper.storage = channel.objects.extStorage;
             viper.favicons = channel.objects.favicons;
-            //viper.autofill = channel.objects.autofill;
+            viper.autofill = channel.objects.autofill;
             window.viper = viper; 
             if (!window._webchannel_initialized) {
                 var event = document.createEvent('Event');

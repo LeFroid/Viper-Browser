@@ -1,5 +1,7 @@
 #include "AdBlockManager.h"
 #include "AuthDialog.h"
+#include "AutoFill.h"
+#include "AutoFillBridge.h"
 #include "BrowserApplication.h"
 #include "CommonUtil.h"
 #include "ExtStorage.h"
@@ -45,7 +47,7 @@ void WebPage::setupSlots()
 {
     QWebChannel *channel = new QWebChannel(this);
     channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
-    //channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(this));
+    channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(this));
     channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(this));
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
@@ -270,6 +272,8 @@ void WebPage::onLoadFinished(bool ok)
         runJavaScript(m_mainFrameAdBlockScript);
 
     m_needInjectAdBlockScript = true;
+
+    sBrowserApplication->getAutoFill()->onPageLoaded(this, url());
 }
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))

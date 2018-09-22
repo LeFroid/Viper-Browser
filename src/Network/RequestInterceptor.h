@@ -19,15 +19,15 @@ public:
     RequestInterceptor(QObject *parent = nullptr);
 
     /// Passes a shared pointer to the application settings along to the request interceptor
-    void setSettings(std::shared_ptr<Settings> settings);
+    void setSettings(Settings *settings);
 
 protected:
     /// Intercepts the given request, potentially blocking it, modifying the header values or redirecting the request
     void interceptRequest(QWebEngineUrlRequestInfo &info) override;
 
 private:
-    /// Shared pointer to application settings
-    std::shared_ptr<Settings> m_settings;
+    /// Pointer to application settings
+    Settings *m_settings;
 };
 
 #endif // REQUESTINTERCEPTOR_H 

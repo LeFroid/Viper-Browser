@@ -95,6 +95,13 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
 
                     break;
                 }
+                case Qt::Key_Backspace:
+                {
+                    if (currentIndex.isValid())
+                        m_suggestionList->setCurrentIndex(QModelIndex());
+
+                    return false;
+                }
                 case Qt::Key_Up:
                 {
                     // Shift selection up by 1

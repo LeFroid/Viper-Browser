@@ -12,7 +12,7 @@
 #include <QUrl>
 #include <QNetworkRequest>
 
-UserScriptManager::UserScriptManager(std::shared_ptr<Settings> settings, QObject *parent) :
+UserScriptManager::UserScriptManager(Settings *settings, QObject *parent) :
     QObject(parent),
     m_model(nullptr)
 {

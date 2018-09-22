@@ -78,6 +78,7 @@ void NavigationToolBar::setupUI()
         return;
 
     setFloatable(false);
+    setObjectName(QLatin1String("navigationToolBar"));
 
     // Previous Page Button
     m_prevPage = new QToolButton;

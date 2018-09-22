@@ -33,7 +33,7 @@ class UserAgentManager : public QObject
 
 public:
     /// Constructs the user agent manager, which will load custom user agents from a JSON data file
-    explicit UserAgentManager(std::shared_ptr<Settings> settings, QObject *parent = nullptr);
+    explicit UserAgentManager(Settings *settings, QObject *parent = nullptr);
 
     /// User agent manager destructor - saves user agents to data file
     ~UserAgentManager();
@@ -90,7 +90,7 @@ private:
 
 private:
     /// Application settings
-    std::shared_ptr<Settings> m_settings;
+    Settings *m_settings;
 
     /// Map of custom user agents. Key is the category name, value is a list of user agents
     QMap< QString, std::vector<UserAgent> > m_userAgents;

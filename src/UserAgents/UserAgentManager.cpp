@@ -11,7 +11,7 @@
 #include <QJsonValue>
 #include <QWebEngineProfile>
 
-UserAgentManager::UserAgentManager(std::shared_ptr<Settings> settings, QObject *parent) :
+UserAgentManager::UserAgentManager(Settings *settings, QObject *parent) :
     QObject(parent),
     m_settings(settings),
     m_userAgents(),

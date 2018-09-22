@@ -26,7 +26,7 @@ UserAgentMenu::~UserAgentMenu()
 
 void UserAgentMenu::resetItems()
 {
-    std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
+    Settings *settings = sBrowserApplication->getSettings();
 
     // First remove old items, then repopulate the menu
     clear();

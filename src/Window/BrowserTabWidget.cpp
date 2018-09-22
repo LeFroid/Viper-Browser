@@ -16,7 +16,7 @@
 #include <QWebEngineHistory>
 #include <QWebEngineHistoryItem>
 
-BrowserTabWidget::BrowserTabWidget(std::shared_ptr<Settings> settings, FaviconStorage *faviconStore, bool privateMode, QWidget *parent) :
+BrowserTabWidget::BrowserTabWidget(Settings *settings, FaviconStorage *faviconStore, bool privateMode, QWidget *parent) :
     QTabWidget(parent),
     m_settings(settings),
     m_faviconStore(faviconStore),

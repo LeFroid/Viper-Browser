@@ -20,7 +20,7 @@ class UserScriptModel : public QAbstractTableModel
 
 public:
     /// Constructs the user script model with the given parent
-    explicit UserScriptModel(std::shared_ptr<Settings> settings, QObject *parent = nullptr);
+    explicit UserScriptModel(Settings *settings, QObject *parent = nullptr);
 
     /// Saves user script information before destruction of the model
     virtual ~UserScriptModel();
@@ -92,7 +92,7 @@ protected:
 
 private:
     /// Application settings
-    std::shared_ptr<Settings> m_settings;
+    Settings *m_settings;
 };
 
 #endif // USERSCRIPTMODEL_H

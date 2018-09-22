@@ -49,7 +49,7 @@ class MainWindow : public QMainWindow
 
 public:
     /// Constructs the main window
-    explicit MainWindow(std::shared_ptr<Settings> settings, BookmarkManager *bookmarkManager, FaviconStorage *faviconStore, bool privateWindow, QWidget *parent = nullptr);
+    explicit MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStorage *faviconStore, bool privateWindow, QWidget *parent = nullptr);
 
     /// MainWindow destructor
     ~MainWindow();
@@ -219,8 +219,8 @@ private:
     /// True if window is a private browsing window, false if else
     bool m_privateWindow;
 
-    /// Shared pointer to browser settings
-    std::shared_ptr<Settings> m_settings;
+    /// Pointer to browser settings
+    Settings *m_settings;
 
     /// Bookmark manager
     BookmarkManager *m_bookmarkManager;

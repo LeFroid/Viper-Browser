@@ -16,6 +16,7 @@
         <file alias="GreaseMonkeyAPI.js">JavaScript/GreaseMonkeyAPI.js</file>
         <file alias="AdBlock.js">JavaScript/AdBlock.js</file>
         <file alias="AutoFill.js">JavaScript/AutoFill.js</file>
+        <file alias="AutoFillObserver.js">JavaScript/AutoFillObserver.js</file>
         <file alias="ContextMenuHelper.js">JavaScript/ContextMenuHelper.js</file>
         <file alias="GetFavicon.js">JavaScript/GetFavicon.js</file>
         <file alias="WebChannelSetup.js">JavaScript/WebChannelSetup.js</file>

@@ -144,7 +144,8 @@ SOURCES += \
     Network/HttpRequest.cpp \
     Credentials/CredentialStore.cpp \
     AutoFill/AutoFill.cpp \
-    AutoFill/AutoFillBridge.cpp
+    AutoFill/AutoFillBridge.cpp \
+    AutoFill/AutoFillDialog.cpp
 
 HEADERS += \
     TreeNode.h \
@@ -242,7 +243,8 @@ HEADERS += \
     Credentials/CredentialStore.h \
     Credentials/CredentialStoreImpl.h \
     AutoFill/AutoFill.h \
-    AutoFill/AutoFillBridge.h
+    AutoFill/AutoFillBridge.h \
+    AutoFill/AutoFillDialog.h
 
 FORMS += \
     Cookies/CookieWidget.ui \
@@ -273,7 +275,8 @@ FORMS += \
     Preferences/PrivacyTab.ui \
     Preferences/ExemptThirdPartyCookieDialog.ui \
     MainWindow.ui \
-    Network/AuthDialog.ui
+    Network/AuthDialog.ui \
+    AutoFill/AutoFillDialog.ui
 
 packagesExist(KWallet) {
     message("Using KWallet for secure storage")

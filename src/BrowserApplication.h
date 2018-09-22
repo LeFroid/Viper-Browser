@@ -11,6 +11,7 @@
 #include "ClearHistoryOptions.h"
 #include "SessionManager.h"
 
+class AutoFill;
 class BlockedSchemeHandler;
 class BookmarkManager;
 class CookieJar;
@@ -61,14 +62,17 @@ public:
     /// Returns the browser application singleton
     static BrowserApplication *instance();
 
+    /// Returns a pointer to the AutoFill manager
+    AutoFill *getAutoFill();
+
     /// Returns a pointer to the bookmark manager
     BookmarkManager *getBookmarkManager();
 
     /// Returns the cookie jar used for standard (non-private) browsing mode
     CookieJar *getCookieJar();
 
-    /// Returns a shared pointer to the application settings object
-    std::shared_ptr<Settings> getSettings();
+    /// Returns a pointer to the application settings object
+    Settings *getSettings();
 
     /// Returns the download manager
     DownloadManager *getDownloadManager();
@@ -137,10 +141,13 @@ private:
 
 private:
     /// Application settings
-    std::shared_ptr<Settings> m_settings;
+    std::unique_ptr<Settings> m_settings;
 
     /// Bookmark management class
     std::unique_ptr<BookmarkManager> m_bookmarks;
+
+    /// AutoFill manager
+    AutoFill *m_autoFill;
 
     /// Cookie jar
     CookieJar *m_cookieJar;

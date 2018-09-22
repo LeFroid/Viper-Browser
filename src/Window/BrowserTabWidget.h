@@ -27,7 +27,7 @@ class BrowserTabWidget : public QTabWidget
 
 public:
     /// Constructs the browser tab widget
-    explicit BrowserTabWidget(std::shared_ptr<Settings> settings, FaviconStorage *faviconStore, bool privateMode, QWidget *parent = nullptr);
+    explicit BrowserTabWidget(Settings *settings, FaviconStorage *faviconStore, bool privateMode, QWidget *parent = nullptr);
 
     /// Returns a pointer to the current web widget
     WebWidget *currentWebWidget() const;
@@ -152,7 +152,7 @@ private:
 
 private:
     /// Browser settings
-    std::shared_ptr<Settings> m_settings;
+    Settings *m_settings;
 
     /// Pointer to the favicon store
     FaviconStorage *m_faviconStore;

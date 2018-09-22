@@ -22,7 +22,7 @@ class UserScriptManager : public QObject
     Q_OBJECT
 public:
     /// Constructs the user script manager, given a shared pointer to the application settings object and an optional parent object
-    explicit UserScriptManager(std::shared_ptr<Settings>, QObject *parent = nullptr);
+    explicit UserScriptManager(Settings *settings, QObject *parent = nullptr);
 
     /// Saves user script information (i.e. which scripts are enabled) before destruction
     virtual ~UserScriptManager();

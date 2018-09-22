@@ -1,5 +1,6 @@
 #include "CredentialStoreKWallet.h"
 
+#include <algorithm>
 #include <kwallet.h>
 #include <QByteArray>
 #include <QDataStream>
@@ -28,6 +29,10 @@ void CredentialStoreKWallet::addCredentials(const WebCredentials &credentials)
     std::vector<WebCredentials> &creds = m_credentials[credentials.Host];
     creds.push_back(credentials);
 
+    std::sort(creds.begin(), creds.end(), [](const WebCredentials &a, const WebCredentials &b) {
+        return a.LastLogin < b.LastLogin;
+    });
+
     saveCredentialsFor(credentials.Host);
 }
 
@@ -54,6 +59,10 @@ void CredentialStoreKWallet::removeCredentials(const WebCredentials &credentials
             ++it;
     }
 
+    std::sort(creds.begin(), creds.end(), [](const WebCredentials &a, const WebCredentials &b) {
+        return a.LastLogin < b.LastLogin;
+    });
+
     saveCredentialsFor(credentials.Host);
 }
 
@@ -77,7 +86,12 @@ void CredentialStoreKWallet::updateCredentials(const WebCredentials &credentials
     }
 
     if (updated)
+    {
+        std::sort(creds.begin(), creds.end(), [](const WebCredentials &a, const WebCredentials &b) {
+            return a.LastLogin < b.LastLogin;
+        });
         saveCredentialsFor(credentials.Host);
+    }
     else
         addCredentials(credentials);
 }
@@ -133,6 +147,10 @@ void CredentialStoreKWallet::openWallet()
             stream >> item;
             credentials.push_back(item);
         }
+
+        std::sort(credentials.begin(), credentials.end(), [](const WebCredentials &a, const WebCredentials &b) {
+            return a.LastLogin < b.LastLogin;
+        });
 
         m_credentials[host] = credentials;
     }

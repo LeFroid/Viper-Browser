@@ -42,7 +42,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_pageAdBlockCount()
 {
     // Fetch some global settings before loading ad block data
-    std::shared_ptr<Settings> settings = sBrowserApplication->getSettings();
+    Settings *settings = sBrowserApplication->getSettings();
 
     m_enabled = settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool();
     m_configFile = settings->getPathValue(BrowserSetting::AdBlockPlusConfig);

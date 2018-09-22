@@ -5,9 +5,13 @@
 
 #include <memory>
 
-#include <QByteArray>
+#include <QMap>
 #include <QObject>
 #include <QString>
+#include <QUrl>
+#include <QVariant>
+
+class WebPage;
 
 /**
  * @class AutoFill
@@ -27,16 +31,33 @@ public:
 
     /**
      * @brief Called by \ref AutoFillBridge when a form was submitted on a \ref WebPage
+     * @param page Pointer to the web page that triggered the event
      * @param pageUrl The URL of the page containing the form
      * @param username The username field of the form
      * @param password The password entered by the user
      * @param formData All of the information included in the form, as a urlencoded byte array
      */
-    void onFormSubmitted(const QString &pageUrl, const QString &username, const QString &password, const QByteArray &formData);
+    void onFormSubmitted(WebPage *page, const QString &pageUrl, const QString &username, const QString &password, const QMap<QString, QVariant> &formData);
+
+    /// Checks for any saved login information for the given URL, completing any forms found on the page if auto fill is enabled
+    void onPageLoaded(WebPage *page, const QUrl &url);
+
+private slots:
+    /// Saves the given credentials in the \ref CredentialStore
+    void saveCredentials(const WebCredentials &credentials);
+
+    /// Updates the given credentials in the \ref CredentialStore
+    void updateCredentials(const WebCredentials &credentials);
+
+    /// Removes the given credentials from the \ref CredentialStore
+    void removeCredentials(const WebCredentials &credentials);
 
 private:
     /// Credential storage system
     std::unique_ptr<CredentialStore> m_credentialStore;
+
+    /// Form filling javascript template
+    QString m_formFillScript;
 };
 
 
