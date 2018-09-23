@@ -12,7 +12,7 @@
                 formData[elem.name] = elem.value;
                 
                 let eName = elem.name.toLowerCase();
-                if (eType == 'text' && (eName == 'username' || eName.indexOf('name') >= 0)) {
+                if (eType == 'text' && (eName == 'username' || eName.indexOf('name') >= 0 || eName.indexOf('login') >= 0)) {
                     username = elem.value;
                 } else if (eType == 'email' && username == '') {
                     username = elem.value;
@@ -22,11 +22,12 @@
             }
         }
 
-        window.viper.autofill.onFormSubmitted(document.location.href, username, password, formData);
+        if (password.length > 0) {
+            window.viper.autofill.onFormSubmitted(window.location.href, username, password, formData);
+        }
     };
 
-    var forms = document.forms;
-    for (let form of forms) {
+    for (let form of document.forms) {
         form.addEventListener('submit', onSubmitForm);
         //todo: check for a username input field, add event listener for the change event,
         //      and call autofill to see if the username that has been entered has an
@@ -34,7 +35,8 @@
     }
 
     var options = {
-        childList: true
+        childList: true,
+        subtree: true
     };
 
     var mutCallback = function(mutationList, observer) {
@@ -48,6 +50,6 @@
     };
 
     var observer = new MutationObserver(mutCallback);
-    observer.observe(document.getRootNode(), options);
+    observer.observe(document.documentElement, options);
 
 })();
