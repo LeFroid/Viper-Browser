@@ -23,6 +23,9 @@ Preferences::Preferences(Settings *settings, QWidget *parent) :
     connect(ui->tabPrivacy, &PrivacyTab::clearHistoryRequested, this, &Preferences::clearHistoryRequested);
     connect(ui->tabPrivacy, &PrivacyTab::viewHistoryRequested, this, &Preferences::viewHistoryRequested);
 
+    connect(ui->tabPrivacy, &PrivacyTab::viewSavedCredentialsRequested, this, &Preferences::viewSavedCredentialsRequested);
+    connect(ui->tabPrivacy, &PrivacyTab::viewAutoFillExceptionsRequested, this, &Preferences::viewAutoFillExceptionsRequested);
+
     loadSettings();
 }
 
@@ -56,6 +59,7 @@ void Preferences::loadSettings()
     ui->tabContent->setStandardFontSize(m_settings->getValue(BrowserSetting::StandardFontSize).toInt());
     ui->tabContent->setFixedFontSize(m_settings->getValue(BrowserSetting::FixedFontSize).toInt());
 
+    ui->tabPrivacy->setAutoFillEnabled(m_settings->getValue(BrowserSetting::EnableAutoFill).toBool());
     ui->tabPrivacy->setHistoryStoragePolicy(static_cast<HistoryStoragePolicy>(m_settings->getValue(BrowserSetting::HistoryStoragePolicy).toInt()));
     ui->tabPrivacy->setCookiesEnabled(m_settings->getValue(BrowserSetting::EnableCookies).toBool());
     ui->tabPrivacy->setCookiesDeleteWithSession(m_settings->getValue(BrowserSetting::CookiesDeleteWithSession).toBool());
@@ -107,6 +111,7 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(BrowserSetting::FixedFontSize, ui->tabContent->getFixedFontSize());
 
     // Save privacy choices
+    m_settings->setValue(BrowserSetting::EnableAutoFill, ui->tabPrivacy->isAutoFillEnabled());
     m_settings->setValue(BrowserSetting::HistoryStoragePolicy, QVariant::fromValue(static_cast<int>(ui->tabPrivacy->getHistoryStoragePolicy())));
     m_settings->setValue(BrowserSetting::EnableCookies, ui->tabPrivacy->areCookiesEnabled());
     m_settings->setValue(BrowserSetting::CookiesDeleteWithSession, ui->tabPrivacy->areCookiesDeletedWithSession());

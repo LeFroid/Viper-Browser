@@ -23,6 +23,9 @@ public:
     /// Credential store destructor, frees resources used by the wallet
     ~CredentialStoreKWallet();
 
+    /// Returns a list of the hosts which have at least one set of credentials in the store
+    std::vector<QString> getHostNames() override;
+
     /// Adds a set of credentials to the store
     void addCredentials(const WebCredentials &credentials) override;
 

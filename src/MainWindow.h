@@ -163,6 +163,14 @@ private slots:
     /// Launches the ad block manager UI
     void openAdBlockManager();
 
+    /// Launches the saved credentials window, showing the logins that are stored in the
+    /// \ref CredentialStore and used by \ref AutoFill (if enabled)
+    void openAutoFillCredentialsView();
+
+    /// Launches the exempt login window, showing a list of website-username combinations
+    /// that the \ref AutoFill system is forbidden from saving or using.
+    void openAutoFillExceptionsView();
+
     /// Launches the dialog used to clear browsing history and storage
     void openClearHistoryDialog();
 

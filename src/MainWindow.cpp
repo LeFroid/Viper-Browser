@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "AdBlockWidget.h"
+#include "AutoFillCredentialsView.h"
 #include "BookmarkDialog.h"
 #include "BookmarkBar.h"
 #include "BookmarkNode.h"
@@ -481,6 +482,19 @@ void MainWindow::openAdBlockManager()
     adBlockWidget->activateWindow();
 }
 
+void MainWindow::openAutoFillCredentialsView()
+{
+    AutoFillCredentialsView *credentialsView = new AutoFillCredentialsView;
+    credentialsView->show();
+    credentialsView->raise();
+    credentialsView->activateWindow();
+}
+
+void MainWindow::openAutoFillExceptionsView()
+{
+    //TODO: UI for this
+}
+
 void MainWindow::openClearHistoryDialog()
 {
     if (!m_clearHistoryDialog)
@@ -498,6 +512,8 @@ void MainWindow::openPreferences()
 
     connect(preferences, &Preferences::clearHistoryRequested, this, &MainWindow::openClearHistoryDialog);
     connect(preferences, &Preferences::viewHistoryRequested,  this, &MainWindow::onShowAllHistory);
+    connect(preferences, &Preferences::viewSavedCredentialsRequested, this, &MainWindow::openAutoFillCredentialsView);
+    connect(preferences, &Preferences::viewAutoFillExceptionsRequested, this, &MainWindow::openAutoFillExceptionsView);
 
     preferences->show();
 }

@@ -33,6 +33,12 @@ signals:
     /// Emitted when the user requests to view their browsing history.
     void viewHistoryRequested();
 
+    /// Emitted when the user wants to view all login information saved by the auto fill system
+    void viewSavedCredentialsRequested();
+
+    /// Emitted when the user wants to view the website logins that have been forbidden from being saved
+    void viewAutoFillExceptionsRequested();
+
 private slots:
     /// Called when
     void onCloseWithSave();

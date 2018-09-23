@@ -21,6 +21,16 @@ CredentialStoreKWallet::~CredentialStoreKWallet()
         delete m_wallet;
 }
 
+std::vector<QString> CredentialStoreKWallet::getHostNames()
+{
+    std::vector<QString> result;
+
+    for (auto it = m_credentials.cbegin(); it != m_credentials.cend(); ++it)
+        result.push_back(it.key());
+
+    return result;
+}
+
 void CredentialStoreKWallet::addCredentials(const WebCredentials &credentials)
 {
     if (credentials.Host.isEmpty())

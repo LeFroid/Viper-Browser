@@ -37,6 +37,9 @@ public:
     /// Returns true if third party cookies are allowed, false if they should be disabled or filtered
     bool areThirdPartyCookiesEnabled() const;
 
+    /// Returns true if the AutoFill system is enabled, false if disabled
+    bool isAutoFillEnabled() const;
+
     /// Returns true if the setting to pass a 'Do Not Track' header is enabled, false if disabled
     bool isDoNotTrackEnabled() const;
 
@@ -47,7 +50,16 @@ signals:
     /// Emitted when the user clicks the "view history" button.
     void viewHistoryRequested();
 
+    /// Emitted when the user wants to view all login information saved by the auto fill system
+    void viewSavedCredentialsRequested();
+
+    /// Emitted when the user wants to view the website logins that have been forbidden from being saved
+    void viewAutoFillExceptionsRequested();
+
 public slots:
+    /// Sets the checkbox state representing whether or not the AutoFill system is enabled (if value = true)
+    void setAutoFillEnabled(bool value);
+
     /// Sets the item in the history policy combo box to the one reflecting the given policy
     void setHistoryStoragePolicy(HistoryStoragePolicy policy);
 

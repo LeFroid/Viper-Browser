@@ -20,6 +20,8 @@ class WebPage;
  */
 class AutoFill : public QObject
 {
+    friend class AutoFillCredentialsView;
+
     Q_OBJECT
 
 public:
@@ -42,15 +44,20 @@ public:
     /// Checks for any saved login information for the given URL, completing any forms found on the page if auto fill is enabled
     void onPageLoaded(WebPage *page, const QUrl &url);
 
+protected:
+    /// Returns a list of all credentials that are stored in the system
+    std::vector<WebCredentials> getAllCredentials();
+
+protected slots:
+    /// Removes the given credentials from the \ref CredentialStore
+    void removeCredentials(const WebCredentials &credentials);
+
 private slots:
     /// Saves the given credentials in the \ref CredentialStore
     void saveCredentials(const WebCredentials &credentials);
 
     /// Updates the given credentials in the \ref CredentialStore
     void updateCredentials(const WebCredentials &credentials);
-
-    /// Removes the given credentials from the \ref CredentialStore
-    void removeCredentials(const WebCredentials &credentials);
 
 private:
     /// Credential storage system

@@ -11,6 +11,7 @@ set(viper_src
     AdBlock/AdBlockWidget.cpp
     AdBlock/CustomFilterEditor.cpp
     AutoFill/AutoFill.cpp
+    AutoFill/AutoFillCredentialsView.cpp
     AutoFill/AutoFillBridge.cpp
     AutoFill/AutoFillDialog.cpp
     Bookmarks/BookmarkExporter.cpp
@@ -111,6 +112,7 @@ qt5_wrap_ui(viper_ui
     AdBlock/AdBlockSubscribeDialog.ui
     AdBlock/AdBlockWidget.ui
     AdBlock/CustomFilterEditor.ui
+    AutoFill/AutoFillCredentialsView.ui
     AutoFill/AutoFillDialog.ui
     Bookmarks/BookmarkWidget.ui
     Cookies/CookieModifyDialog.ui

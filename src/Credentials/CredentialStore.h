@@ -46,6 +46,9 @@ public:
     /// Credential store destructor
     virtual ~CredentialStore() {}
 
+    /// Returns a list of the hosts which have at least one set of credentials in the store
+    virtual std::vector<QString> getHostNames() = 0;
+
     /// Adds a set of credentials to the store
     virtual void addCredentials(const WebCredentials &credentials) = 0;
 

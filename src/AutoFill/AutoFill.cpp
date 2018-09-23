@@ -46,9 +46,14 @@ void AutoFill::onFormSubmitted(WebPage *page, const QString &pageUrl, const QStr
         {
             isExisting = true;
             credentials = creds;
+            credentials.LastLogin = QDateTime::currentDateTime();
             // Update last login time in data store. If password has changed, a dialog will appear
             // to ask the user whether or not they want it to be updated.
             m_credentialStore->updateCredentials(credentials);
+
+            if (creds.Password.compare(password) == 0)
+                return;
+
             break;
         }
     }
@@ -93,6 +98,29 @@ void AutoFill::onPageLoaded(WebPage *page, const QUrl &url)
         scriptData.append(QString("autoFillVals['%1'] = '%2';\n").arg(it.key()).arg(it.value()));
 
     page->runJavaScript(m_formFillScript.arg(scriptData));
+}
+
+std::vector<WebCredentials> AutoFill::getAllCredentials()
+{
+    std::vector<WebCredentials> result;
+
+    if (!m_credentialStore)
+        return result;
+
+    std::vector<QString> savedHosts = m_credentialStore->getHostNames();
+    if (savedHosts.empty())
+        return result;
+
+    for (const QString &host : savedHosts)
+    {
+        QUrl url = QUrl::fromUserInput(host);
+        std::vector<WebCredentials> temp = m_credentialStore->getCredentialsFor(url);
+
+        result.reserve(result.size() + temp.size());
+        result.insert(result.end(), temp.begin(), temp.end());
+    }
+
+    return result;
 }
 
 void AutoFill::saveCredentials(const WebCredentials &credentials)
