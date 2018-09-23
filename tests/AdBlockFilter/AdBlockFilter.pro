@@ -26,13 +26,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 INCLUDEPATH += \
-    ../../Browser \
-    ../../Browser/AdBlock \
-    ../../Browser/Cache \
-    ../../Browser/Web
+    ../../src \
+    ../../src/AdBlock \
+    ../../src/Cache \
+    ../../src/Web
 
-top_srcdir=../../Browser/
-include(../../Browser/Browser.pri)
+top_srcdir=../../src/
+include(../../src/Browser.pri)
 
 SOURCES += \
         tst_AdBlockFilterTest.cpp \

@@ -10,6 +10,10 @@ set(CMAKE_CXX_STANDARD 14)
 set(QT_VERSION_MIN "5.9.0")
 find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Core Concurrent Gui Network PrintSupport Sql Svg QuickWidgets Widgets WebChannel WebEngineWidgets)
 
+if (ENABLE_TESTING)
+    find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Test WebEngine)
+endif()
+
 # Check for credential storage backends
 find_package(KF5Wallet)
 if (KF5Wallet_FOUND)
@@ -39,3 +43,8 @@ include_directories(
 )
 
 add_subdirectory(src)
+
+if (BUILD_TESTS)
+    enable_testing(true)
+    add_subdirectory(tests)
+endif()

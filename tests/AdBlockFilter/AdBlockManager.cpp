@@ -15,7 +15,7 @@
 class AdBlockModel
 {
 public:
-    AdBlockModel() = default;
+    AdBlockModel() {}
 };
 
 AdBlockManager::AdBlockManager(QObject *parent) :
@@ -773,3 +773,5 @@ void AdBlockManager::save()
     configFile.write(configDoc.toJson());
     configFile.close();
 }
+
+#include "moc_AdBlockManager.cpp"

@@ -20,11 +20,20 @@ Licensed under GPLv3
 * GreaseMonkey-style UserScript support
 * PDF.js embedded into the browser
 * Save and restore browsing sessions, local tab history, pinned tabs
+* Secure AutoFill manager (disabled by default)
 * Traditional browser UI design instead of WebUI and chromium-based interfaces
 
 # Building
 
-The browser software uses the qmake build system. The project can be built with QtCreator or through the command line by running 'qmake-qt5' or 'qmake', followed by 'make'
+The browser can be built using the cmake build system, by either importing the root CMakeLists file into your IDE of choice or performing the following commands from a console:
+
+```
+$ cd viper-browser && mkdir build && cd build
+$ cmake ..
+$ make
+```
+
+The binary will be located in the `build/src` folder when following the commands listed above.
 
 # Thanks
 
