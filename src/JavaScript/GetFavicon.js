@@ -1,4 +1,8 @@
 (function() {
+    if (!window._webchannel_initialized) {
+        return;
+    }
+
     function qualifyURL(url) {
         var a = document.createElement('a');
         a.href = url;

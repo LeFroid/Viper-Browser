@@ -5,7 +5,8 @@
 #include <QWebEngineUrlRequestInfo>
 
 RequestInterceptor::RequestInterceptor(QObject *parent) :
-    QWebEngineUrlRequestInterceptor(parent)
+    QWebEngineUrlRequestInterceptor(parent),
+    m_settings(nullptr)
 {
 }
 

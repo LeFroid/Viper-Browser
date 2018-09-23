@@ -5,6 +5,7 @@
 #include "URL.h"
 
 #include <array>
+#include <stdexcept>
 #include <QBuffer>
 #include <QFileInfo>
 #include <QNetworkRequest>
@@ -47,9 +48,16 @@ QIcon FaviconStorage::getFavicon(const QUrl &url, bool useCache)
 
     if (useCache)
     {
-        // Check for cache hit
-        if (m_iconCache.has(urlStdStr))
-            return m_iconCache.get(urlStdStr);
+        try
+        {
+            // Check for cache hit
+            if (m_iconCache.has(urlStdStr))
+                return m_iconCache.get(urlStdStr);
+        }
+        catch (std::out_of_range &err)
+        {
+            qDebug() << "FaviconStorage::getFavicon - caught error while fetching icon from cache. Error: " << err.what();
+        }
     }
 
     // Three step icon fetch process:
