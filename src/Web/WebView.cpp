@@ -139,6 +139,10 @@ void WebView::setupPage()
 
     QWebEngineView::setPage(m_page);
 
+    connect(m_page, &WebPage::loadStarted, [this](){
+        emit iconChanged(icon());
+    });
+
     // Handle full screen requests
     connect(m_page, &WebPage::fullScreenRequested, this, &WebView::onFullScreenRequested);
 
