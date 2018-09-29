@@ -54,6 +54,9 @@ signals:
     /// Emitted when the current view has made progress loading its page. The range of value is [0,100]
     void loadProgress(int value);
 
+    /// Emitted when the URL of the active WebWidget has changed
+    void urlChanged(const QUrl &url);
+
     /// Emitted when the active tab / web view has changed
     void viewChanged(int index);
 
@@ -135,6 +138,9 @@ private slots:
 
     /// Called when a web page's title has changed to the given value
     void onTitleChanged(const QString &title);
+
+    /// Called when the URL of a page has changed
+    void onUrlChanged(const QUrl &url);
 
     /// Emitted when a view requests that it be closed
     void onViewCloseRequested();

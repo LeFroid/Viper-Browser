@@ -164,6 +164,11 @@ void NavigationToolBar::bindWithTabWidget()
     // Page load progress handler
     connect(tabWidget, &BrowserTabWidget::loadProgress, this, &NavigationToolBar::onLoadProgress);
 
+    // URL change in current tab
+    connect(tabWidget, &BrowserTabWidget::urlChanged, [this](const QUrl &url){
+        m_urlInput->setURL(url);
+    });
+
     // Pass pointers to previous and next page menus to the tab widget
     tabWidget->setNavHistoryMenus(m_prevPage->menu(), m_nextPage->menu());
 }

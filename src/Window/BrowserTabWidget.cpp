@@ -214,6 +214,7 @@ WebWidget *BrowserTabWidget::createWebWidget()
     connect(ww, &WebWidget::openInNewBackgroundTab, this, &BrowserTabWidget::openLinkInNewBackgroundTab);
     connect(ww, &WebWidget::openInNewWindowRequest, this, &BrowserTabWidget::openLinkInNewWindow);
     connect(ww, &WebWidget::titleChanged,           this, &BrowserTabWidget::onTitleChanged);
+    connect(ww, &WebWidget::urlChanged,             this, &BrowserTabWidget::onUrlChanged);
     connect(ww, &WebWidget::closeRequest,           this, &BrowserTabWidget::onViewCloseRequested);
 
 	connect(ww, &WebWidget::aboutToHibernate, [=]() {
@@ -436,6 +437,13 @@ void BrowserTabWidget::onTitleChanged(const QString &title)
         setTabText(viewTabIndex, title);
         setTabToolTip(viewTabIndex, title);
     }
+}
+
+void BrowserTabWidget::onUrlChanged(const QUrl &url)
+{
+    WebWidget *ww = qobject_cast<WebWidget*>(sender());
+    if (ww == m_activeView && !url.isEmpty())
+        emit urlChanged(url);
 }
 
 void BrowserTabWidget::onViewCloseRequested()

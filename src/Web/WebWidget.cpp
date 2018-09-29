@@ -296,6 +296,7 @@ void WebWidget::setupWebView()
     connect(page, &WebPage::linkHovered,          this, &WebWidget::linkHovered);
     connect(page, &WebPage::titleChanged,         this, &WebWidget::titleChanged);
     connect(page, &WebPage::windowCloseRequested, this, &WebWidget::closeRequest);
+    connect(page, &WebPage::urlChanged,           this, &WebWidget::urlChanged);
 
     connect(page, &WebPage::loadStarted, [=](){
         AdBlockManager::instance().loadStarted(m_view->url());

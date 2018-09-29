@@ -183,6 +183,9 @@ signals:
     /// Emitted when the title of the current page has changed to the given string
     void titleChanged(const QString &title);
 
+    /// Emitted when the URL of the web page's main frame has changed
+    void urlChanged(const QUrl &url);
+
 protected:
     /// Handles mouse press events when the widget is in hibernate mode, otherwise forwards the event to the appropriate handler
     void mousePressEvent(QMouseEvent *event) override;

@@ -97,10 +97,21 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         }
     }
 
+    bool changedFragment = false;
+    if (isMainFrame && type == QWebEnginePage::NavigationTypeLinkClicked)
+    {
+        // If only change in URL is fragment, try to update URL bar by emitting url changed signal
+        if (this->url().toString(QUrl::RemoveFragment).compare(url.toString(QUrl::RemoveFragment)) == 0)
+        {
+            changedFragment = true;
+            emit urlChanged(url);
+        }
+    }
+
     if (!QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame))
         return false;
 
-    if (isMainFrame && type != QWebEnginePage::NavigationTypeReload)
+    if (isMainFrame && type != QWebEnginePage::NavigationTypeReload && !changedFragment)
     {
         QWebEngineScriptCollection &scriptCollection = scripts();
         scriptCollection.clear();
