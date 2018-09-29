@@ -1,7 +1,11 @@
 (function() {
-    if (!window._webchannel_initialized) {
-        return;
-    }
+    var onWebChannelSetup = function(cb) {
+        if (window._webchannel_initialized) {
+            cb();
+        } else {
+            document.addEventListener("_webchannel_setup", cb);
+        }
+    };
 
     function qualifyURL(url) {
         var a = document.createElement('a');
@@ -12,6 +16,8 @@
     var lnk = document.querySelector("link[rel*='icon']");
     if (lnk !== undefined && lnk !== null) {
         var favUrl = qualifyURL(lnk.href);
-        window.viper.favicons.updateIconUrl(favUrl);
+        onWebChannelSetup(() => {
+            window.viper.favicons.updateIconUrl(favUrl);
+        });
     }
 })();

@@ -137,6 +137,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
 BrowserApplication::~BrowserApplication()
 {
+    m_requestInterceptor->setSettings(nullptr);
+
     for (int i = 0; i < m_browserWindows.size(); ++i)
     {
         QPointer<MainWindow> m = m_browserWindows.at(i);

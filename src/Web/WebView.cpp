@@ -139,16 +139,19 @@ void WebView::setupPage()
 
     QWebEngineView::setPage(m_page);
 
+    // Load start / progress / finish handlers
     connect(m_page, &WebPage::loadStarted, [this](){
         emit iconChanged(icon());
+    });
+    connect(m_page, &WebPage::loadProgress, [this](int value){
+       m_progress = value;
+    });
+    connect(m_page, &WebPage::loadFinished, [this](){
+       m_progress = 100;
     });
 
     // Handle full screen requests
     connect(m_page, &WebPage::fullScreenRequested, this, &WebView::onFullScreenRequested);
-
-    connect(this, &WebView::loadProgress, [=](int value){
-       m_progress = value;
-    });
 }
 
 void WebView::resetZoom()
