@@ -231,13 +231,13 @@ void URLLineEdit::tabChanged(WebWidget *newView)
         m_userTextMap[m_activeWebView] = text();
 
     auto it = m_userTextMap.find(newView);
-    if (it != m_userTextMap.end())
+    if (it != m_userTextMap.end() && newView->isOnBlankPage())
     {
         setText(it->second);
         setTextFormat(std::vector<QTextLayout::FormatRange>());
     }
     else
-        setURL(QUrl());
+        setURL(newView->url());
 
     m_activeWebView = newView;
 }

@@ -79,7 +79,7 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
 
 	QDesktopWidget *desktop = sBrowserApplication->desktop();
 	const int availableWidth = desktop->availableGeometry().width(), availableHeight = desktop->availableGeometry().height();
-	setGeometry(availableWidth / 8, availableHeight / 8, availableWidth * 3 / 4, availableHeight * 3 / 4);
+    setGeometry(availableWidth / 16, availableHeight / 16, availableWidth * 7 / 8, availableHeight * 7 / 8);
 
     setupStatusBar();
     setupTabWidget();
@@ -293,14 +293,9 @@ void MainWindow::onTabChanged(int index)
     ui->widgetFindText->setWebView(ww->view());
     ui->widgetFindText->hide();
 
-    // Save text in URL line edit, set widget's contents to the current URL, or if the URL is empty or "about:blank",
-    // set to user text input
+    // Update URL bar
     URLLineEdit *urlInput = ui->toolBar->getURLWidget();
     urlInput->tabChanged(ww);
-
-    const bool isBlankPage = ww->isOnBlankPage();
-    if (urlInput->text().isEmpty() || !isBlankPage)
-        urlInput->setURL(ww->url());
 
     // Show dock widget with dev tools UI if it was opened in the last tab
     if (ui->dockWidget->isVisible())
@@ -313,13 +308,13 @@ void MainWindow::onTabChanged(int index)
 
     checkPageForBookmark();
 
-    // Change current page for web proxies
+    // Redirect web proxies to current page
     WebPage *page = ww->page();
     for (WebActionProxy *proxy : m_webActions)
         proxy->setPage(page);
 
     // Give focus to the url line edit widget when changing to a blank tab
-    if (urlInput->text().isEmpty() || isBlankPage)
+    if (urlInput->text().isEmpty() || ww->isOnBlankPage())
     {
         urlInput->setFocus();
 
@@ -328,6 +323,10 @@ void MainWindow::onTabChanged(int index)
     }
     else
         ww->setFocus();
+
+    // Add current page title to the window title if not in private mode
+    if (!m_privateWindow)
+        setWindowTitle(tr("%1 - Web Browser").arg(ww->getTitle()));
 }
 
 void MainWindow::openBookmarkWidget()
@@ -533,25 +532,29 @@ void MainWindow::openFileInBrowser()
         loadUrl(QUrl(QString("file://%1").arg(fileName)));
 }
 
-void MainWindow::onLoadFinished(bool /*ok*/)
+void MainWindow::onLoadFinished(bool ok)
 {
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
     if (!ww)
         return;
 
-    if (m_tabWidget->currentWebWidget() == ww)
-    {
-        auto urlWidget = ui->toolBar->getURLWidget();
-        if (!urlWidget->isModified())
-            urlWidget->setURL(ww->url());
+    if (m_tabWidget->currentWebWidget() != ww)
+        return;
 
-        checkPageForBookmark();
+    auto urlWidget = ui->toolBar->getURLWidget();
+    if (!urlWidget->isModified())
+        urlWidget->setURL(ww->url());
 
-        if (!ww->isOnBlankPage()
-                && !ui->widgetFindText->getLineEdit()->hasFocus()
-                && !(urlWidget->hasFocus() || urlWidget->isModified()))
-            ww->setFocus();
-    }
+    checkPageForBookmark();
+
+    if (!ww->isOnBlankPage()
+            && !ui->widgetFindText->getLineEdit()->hasFocus()
+            && !(urlWidget->hasFocus() || urlWidget->isModified()))
+        ww->setFocus();
+
+    // Add current page title to the window title if not in private mode
+    if (ok && !m_privateWindow)
+        setWindowTitle(tr("%1 - Web Browser").arg(ww->getTitle()));
 }
 
 void MainWindow::onShowAllHistory()
