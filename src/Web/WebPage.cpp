@@ -253,7 +253,7 @@ void WebPage::onLoadProgress(int percent)
         URL pageUrl(url());
         m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
         if (!m_mainFrameAdBlockScript.isEmpty())
-            runJavaScript(m_mainFrameAdBlockScript);
+            runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
     }
 
     //if (percent == 100)
@@ -276,7 +276,7 @@ void WebPage::onLoadFinished(bool ok)
         m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
 
     if (!m_mainFrameAdBlockScript.isEmpty())
-        runJavaScript(m_mainFrameAdBlockScript);
+        runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
 
     m_needInjectAdBlockScript = true;
 
