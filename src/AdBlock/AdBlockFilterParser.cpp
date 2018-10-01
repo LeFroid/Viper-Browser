@@ -342,13 +342,16 @@ bool AdBlockFilterParser::parseCustomStylesheet(AdBlockFilter *filter) const
 bool AdBlockFilterParser::parseScriptInjection(AdBlockFilter *filter) const
 {
     // Check if filter is used for script injection, and has at least 1 domain option
-    if (!filter->m_evalString.startsWith(QStringLiteral("script:inject(")) || !filter->hasDomainRules())
+    if (!filter->m_evalString.startsWith(QStringLiteral("script:inject("))
+            || !filter->m_evalString.startsWith(QStringLiteral("+js("))
+            || !filter->hasDomainRules())
         return false;
 
     filter->m_category = FilterCategory::StylesheetJS;
 
     // Extract inner arguments and separate by ',' delimiter
-    QString injectionStr = filter->m_evalString.mid(14);
+    const int splitPos = filter->m_evalString.startsWith(QStringLiteral("script:inject")) ? 14 : 4;
+    QString injectionStr = filter->m_evalString.mid(splitPos);
     injectionStr = injectionStr.left(injectionStr.lastIndexOf(QChar(')')));
 
     QStringList injectionArgs = injectionStr.split(QChar(','), QString::SkipEmptyParts);
