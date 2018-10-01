@@ -444,6 +444,9 @@ void BrowserTabWidget::onTitleChanged(const QString &title)
     {
         setTabText(viewTabIndex, title);
         setTabToolTip(viewTabIndex, title);
+
+        if (ww == m_activeView)
+            emit titleChanged(title);
     }
 }
 

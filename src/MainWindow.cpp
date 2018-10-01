@@ -251,6 +251,12 @@ void MainWindow::setupTabWidget()
             //ui->statusBar->hide();
         }
     });
+    if (!m_privateWindow)
+    {
+        connect(m_tabWidget, &BrowserTabWidget::titleChanged, [this](const QString &title){
+            setWindowTitle(tr("%1 - Web Browser").arg(title));
+        });
+    }
     ui->toolBar->bindWithTabWidget();
 
     // Add first tab
@@ -344,17 +350,6 @@ void MainWindow::openBookmarkWidget()
         });
     }
     m_bookmarkUI->show();
-}
-
-void MainWindow::updateTabIcon(QIcon icon, int tabIndex)
-{
-    m_tabWidget->setTabIcon(tabIndex, icon);
-}
-
-void MainWindow::updateTabTitle(const QString &title, int tabIndex)
-{
-     m_tabWidget->setTabText(tabIndex, title);
-     m_tabWidget->setTabToolTip(tabIndex, title);
 }
 
 void MainWindow::openCookieManager()

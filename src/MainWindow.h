@@ -113,12 +113,6 @@ public slots:
     /// Attempts to load the URL into a new window
     void openLinkNewWindow(const QUrl &url);
 
-    /// Updates the icon for the view associated with a tab
-    void updateTabIcon(QIcon icon, int tabIndex);
-
-    /// Updates the title for the view associated with a tab
-    void updateTabTitle(const QString &title, int tabIndex);
-
     /// Launches the cookie manager UI
     void openCookieManager();
 

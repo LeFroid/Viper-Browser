@@ -52,6 +52,9 @@ signals:
     /// Emitted when a tab containing the given web widget is being closed
     void tabClosing(WebWidget *view);
 
+    /// Emitted when the title of the active tab's web page has changed
+    void titleChanged(const QString &title);
+
     /// Emitted when the current view has made progress loading its page. The range of value is [0,100]
     void loadProgress(int value);
 
