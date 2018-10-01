@@ -172,6 +172,10 @@ bool AdBlockFilterParser::isStylesheetRule(const QString &rule, AdBlockFilter *f
 {
     int pos = 0;
 
+    // Ignore uBlock HTML filters
+    if (rule.indexOf(QStringLiteral("##^")) >= 0)
+        return true;
+
     // Check if CSS rule
     if ((pos = rule.indexOf(QStringLiteral("##"))) >= 0)
     {
