@@ -341,10 +341,12 @@ bool AdBlockFilterParser::parseCustomStylesheet(AdBlockFilter *filter) const
 
 bool AdBlockFilterParser::parseScriptInjection(AdBlockFilter *filter) const
 {
-    // Check if filter is used for script injection, and has at least 1 domain option
+    // Check if filter is used for script injection, and has at least 1 domain option    
+    if (!filter->hasDomainRules())
+        return false;
+
     if (!filter->m_evalString.startsWith(QStringLiteral("script:inject("))
-            || !filter->m_evalString.startsWith(QStringLiteral("+js("))
-            || !filter->hasDomainRules())
+            && !filter->m_evalString.startsWith(QStringLiteral("+js(")))
         return false;
 
     filter->m_category = FilterCategory::StylesheetJS;
