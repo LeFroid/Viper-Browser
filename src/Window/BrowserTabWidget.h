@@ -11,6 +11,7 @@
 
 class BrowserTabBar;
 class FaviconStorage;
+class HttpRequest;
 class MainWindow;
 class QMenu;
 
@@ -107,6 +108,9 @@ public slots:
 
     /// Spawns a new browser tab in the background, loading the given URL
     void openLinkInNewBackgroundTab(const QUrl &url);
+
+    /// Spawns a new browser tab in the background, loading the given HTTP request
+    void openHttpRequestInBackgroundTab(const HttpRequest &request);
 
     /// Opens the given link in a new browser window, and sets the window to private mode if requested
     void openLinkInNewWindow(const QUrl &url, bool privateWindow);

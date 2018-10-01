@@ -311,6 +311,8 @@ void WebWidget::setupWebView()
     connect(m_view, &WebView::inspectElement, this, &WebWidget::inspectElement);
 
     connect(m_view, &WebView::fullScreenRequested, m_mainWindow, &MainWindow::onToggleFullScreen);
+
+    connect(m_view, &WebView::openHttpRequestInBackgroundTab, this, &WebWidget::openHttpRequestInBackgroundTab);
 }
 
 bool WebWidget::eventFilter(QObject *watched, QEvent *event)

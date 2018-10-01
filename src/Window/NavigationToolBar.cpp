@@ -120,8 +120,7 @@ void NavigationToolBar::setupUI()
     // Quick search tool
     m_searchEngineLineEdit = new SearchEngineLineEdit(win);
     m_searchEngineLineEdit->setFont(m_urlInput->font());
-    connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoad, win, &MainWindow::loadUrl);
-    connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoadPost, win, &MainWindow::loadHttpRequest);
+    connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoad, win, &MainWindow::loadHttpRequest);
 
     // Splitter for resizing URL bar and quick search bar
     QSplitter *splitter = new QSplitter(this);

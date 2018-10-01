@@ -25,11 +25,8 @@ public:
     explicit SearchEngineLineEdit(QWidget *parent = nullptr);
 
 signals:
-    /// Emitted when the user enters a search term and the current browser tab should load the given URL
-    void requestPageLoad(const QUrl &url);
-
-    /// Emitted when the user enters a search term and the current browser tab should load the given POST request
-    void requestPageLoadPost(const HttpRequest &request);
+    /// Emitted when the user enters a search term and the current browser tab should load the given request
+    void requestPageLoad(const HttpRequest &request);
 
 private slots:
     /// Sets the current search engine to the engine that is mapped to the given name

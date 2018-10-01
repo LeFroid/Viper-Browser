@@ -1,6 +1,8 @@
 #ifndef SEARCHENGINEMANAGER_H
 #define SEARCHENGINEMANAGER_H
 
+#include "HttpRequest.h"
+
 #include <QHash>
 #include <QList>
 #include <QObject>
@@ -51,6 +53,14 @@ public:
 
     /// Returns the query string associated with the given search engine, or a null string if not found
     QString getQueryString(const QString &searchEngine) const;
+
+    /**
+     * @brief Constructs an HTTP request to search for the given term
+     * @param searchTerm The search term
+     * @param searchEngineName Name of the search engine to use. If name is empty or invalid, the default will be used.
+     * @return An \ref HttpRequest that can be loaded by a \ref WebWidget
+     */
+    HttpRequest getSearchRequest(const QString &searchTerm, const QString &searchEngineName = QString());
 
     /// Loads search engine information from the given file, including information such as the default engine
     void loadSearchEngines(const QString &fileName);

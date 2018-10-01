@@ -271,12 +271,8 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         // Search for current selection menu option
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
         menu->addAction(tr("Search %1 for selected text").arg(searchMgr->getDefaultSearchEngine()), [=](){
-            QString textArg = text;
-            textArg.replace(QLatin1Char(' '), QLatin1Char('+'));
-
-            QString searchUrl = searchMgr->getQueryString(searchMgr->getDefaultSearchEngine());
-            searchUrl.replace("=%s", QString("=%1").arg(textArg));
-            emit openInNewBackgroundTab(QUrl::fromUserInput(searchUrl));
+            HttpRequest request = searchMgr->getSearchRequest(text);
+            emit openHttpRequestInBackgroundTab(request);
         });
 
         QUrl selectionUrl = QUrl::fromUserInput(text);

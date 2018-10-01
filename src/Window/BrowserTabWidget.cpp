@@ -217,6 +217,8 @@ WebWidget *BrowserTabWidget::createWebWidget()
     connect(ww, &WebWidget::urlChanged,             this, &BrowserTabWidget::onUrlChanged);
     connect(ww, &WebWidget::closeRequest,           this, &BrowserTabWidget::onViewCloseRequested);
 
+    connect(ww, &WebWidget::openHttpRequestInBackgroundTab, this, &BrowserTabWidget::openHttpRequestInBackgroundTab);
+
 	connect(ww, &WebWidget::aboutToHibernate, [=]() {
 		if (currentWebWidget() == ww) {
 			// temporary measure until the webenginehistory items are encapsulated in a WebHistory class
@@ -332,6 +334,12 @@ void BrowserTabWidget::openLinkInNewBackgroundTab(const QUrl &url)
 {
     WebWidget *ww = newBackgroundTab();
     ww->load(url);
+}
+
+void BrowserTabWidget::openHttpRequestInBackgroundTab(const HttpRequest &request)
+{
+    WebWidget *ww = newBackgroundTab();
+    ww->load(request);
 }
 
 void BrowserTabWidget::openLinkInNewWindow(const QUrl &url, bool privateWindow)

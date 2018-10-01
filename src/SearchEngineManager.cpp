@@ -108,6 +108,38 @@ void SearchEngineManager::removeSearchEngine(const QString &name)
     emit engineRemoved(name);
 }
 
+HttpRequest SearchEngineManager::getSearchRequest(const QString &searchTerm, const QString &searchEngineName)
+{
+    if (searchTerm.isEmpty())
+        return HttpRequest();
+
+    SearchEngine engine = (searchEngineName.isEmpty() ? getSearchEngineInfo(m_defaultEngine) : getSearchEngineInfo(searchEngineName));
+    HttpRequest request;
+
+    QString searchTermEncoded = QUrl::toPercentEncoding(searchTerm);
+
+    if (!engine.PostUrl.isEmpty())
+    {
+        request.setUrl(engine.PostUrl);
+        request.setMethod(HttpRequestMethod::POST);
+        request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        QString postData = engine.PostTemplate;
+        postData.replace(QLatin1String("=%s"), QString("=%1").arg(searchTermEncoded));
+
+        request.setPostData(postData.toUtf8());
+    }
+    else
+    {
+        QString searchUrl = engine.QueryString;
+        searchUrl.replace(QLatin1String("=%s"), QString("=%1").arg(searchTermEncoded));
+
+        request.setUrl(QUrl(searchUrl, QUrl::StrictMode));
+    }
+
+    return request;
+}
+
 void SearchEngineManager::loadSearchEngines(const QString &fileName)
 {
     QFile dataFile(fileName);

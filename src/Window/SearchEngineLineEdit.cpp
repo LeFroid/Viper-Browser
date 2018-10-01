@@ -40,26 +40,8 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
         if (term.isNull() || term.isEmpty())
             return;
 
-        if (!m_currentEngine.PostUrl.isEmpty())
-        {
-            HttpRequest request(m_currentEngine.PostUrl, HttpRequestMethod::POST);
-            request.setHeader("Content-Type", "application/x-www-form-urlencoded");
-
-            QString termPercentEncoded = QUrl::toPercentEncoding(term);
-            QString postData = m_currentEngine.PostTemplate;
-            postData.replace(QLatin1String("=%s"), QString("=%1").arg(termPercentEncoded));
-
-            request.setPostData(postData.toUtf8());
-
-            emit requestPageLoadPost(request);
-        }
-        else
-        {
-            term.replace(QLatin1String("+"), QLatin1String("%2B"));
-            QString searchUrl = m_currentEngine.QueryString;
-            searchUrl.replace(QLatin1String("=%s"), QString("=%1").arg(term));
-            emit requestPageLoad(QUrl::fromUserInput(searchUrl));
-        }
+        HttpRequest request = SearchEngineManager::instance().getSearchRequest(term, m_currentEngineName);
+        emit requestPageLoad(request);
     });
 
     // Connect search engine manager's signals for search engines being added or removed to appropriate slots
@@ -104,14 +86,6 @@ void SearchEngineLineEdit::setSearchEngine(const QString &name)
         m_currentEngine = engine;
         setPlaceholderText(tr("Search %1").arg(name));
     }
-    /*
-    QString engineQueryStr = SearchEngineManager::instance().getQueryString(name);
-    if (!engineQueryStr.isNull())
-    {
-        m_currentEngineName = name;
-        m_currentEngineQuery = engineQueryStr;
-        setPlaceholderText(tr("Search %1").arg(name));
-    }*/
 }
 
 void SearchEngineLineEdit::addSearchEngine(const QString &name)

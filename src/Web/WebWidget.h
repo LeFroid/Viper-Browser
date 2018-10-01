@@ -177,6 +177,9 @@ signals:
     /// Called when the user requests to open a link in a new browser tab without switching tabs
     void openInNewBackgroundTab(const QUrl &url);
 
+    /// Emitted when the browser tab widget should create a new tab to load the given \ref HttpRequest
+    void openHttpRequestInBackgroundTab(const HttpRequest &request);
+
     /// Called when the user requests to open a link in a new browser window
     void openInNewWindowRequest(const QUrl &url, bool privateWindow);
 
