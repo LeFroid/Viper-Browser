@@ -1,6 +1,6 @@
 #include "BrowserApplication.h"
 #include "BookmarkManager.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 #include "HistoryManager.h"
 #include "URLSuggestionWorker.h"
 
@@ -53,7 +53,7 @@ void URLSuggestionWorker::searchForHits()
     const bool searchTermHasScheme = m_searchTerm.startsWith(QLatin1String("HTTP"))
             || m_searchTerm.startsWith(QLatin1String("FILE"));
 
-    FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
+    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
 
     //QStringList words = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
 

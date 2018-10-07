@@ -94,7 +94,7 @@ set(viper_src
     BrowserApplication.cpp
     CommonUtil.cpp
     DatabaseWorker.cpp
-    FaviconStorage.cpp
+    FaviconStore.cpp
     MainWindow.cpp
     SearchEngineManager.cpp
     SessionManager.cpp

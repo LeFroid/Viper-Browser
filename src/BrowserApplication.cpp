@@ -8,7 +8,7 @@
 #include "DatabaseFactory.h"
 #include "DownloadManager.h"
 #include "ExtStorage.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
 #include "MainWindow.h"
@@ -69,7 +69,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_requestInterceptor->setSettings(m_settings.get());
 
     // Initialize favicon storage module
-    m_faviconStorage = DatabaseFactory::createWorker<FaviconStorage>(m_settings->getPathValue(BrowserSetting::FaviconPath));
+    m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
 
     // Initialize bookmarks manager
     m_bookmarks = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(BrowserSetting::BookmarkPath));
@@ -190,7 +190,7 @@ DownloadManager *BrowserApplication::getDownloadManager()
     return m_downloadMgr;
 }
 
-FaviconStorage *BrowserApplication::getFaviconStorage()
+FaviconStore *BrowserApplication::getFaviconStore()
 {
     return m_faviconStorage.get();
 }

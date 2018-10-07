@@ -8,7 +8,7 @@ class WebPage;
 /**
  * @class FaviconStoreBridge
  * @brief Bridge between the favicon url-searching script injected into each \ref WebPage ,
- *        and the \ref FaviconStorage system
+ *        and the \ref FaviconStore system
  */
 class FaviconStoreBridge : public QObject
 {

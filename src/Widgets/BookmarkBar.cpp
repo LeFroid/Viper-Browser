@@ -1,7 +1,6 @@
 #include "BookmarkBar.h"
 #include "BookmarkNode.h"
 #include "BrowserApplication.h"
-#include "FaviconStorage.h"
 #include "MainWindow.h"
 
 #include <QFont>

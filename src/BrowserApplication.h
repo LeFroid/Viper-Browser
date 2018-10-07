@@ -18,7 +18,7 @@ class CookieJar;
 class CookieWidget;
 class DownloadManager;
 class ExtStorage;
-class FaviconStorage;
+class FaviconStore;
 class HistoryManager;
 class HistoryWidget;
 class MainWindow;
@@ -78,7 +78,7 @@ public:
     DownloadManager *getDownloadManager();
 
     /// Returns the favicon storage manager
-    FaviconStorage *getFaviconStorage();
+    FaviconStore *getFaviconStore();
 
     /// Returns the history manager
     HistoryManager *getHistoryManager();
@@ -156,7 +156,7 @@ private:
     DownloadManager *m_downloadMgr;
 
     /// Favicon storage manager
-    std::unique_ptr<FaviconStorage> m_faviconStorage;
+    std::unique_ptr<FaviconStore> m_faviconStorage;
 
     /// Web history manager
     std::unique_ptr<HistoryManager> m_historyMgr;

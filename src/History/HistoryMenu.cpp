@@ -1,6 +1,6 @@
 #include "HistoryMenu.h"
 #include "BrowserApplication.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 #include "HistoryManager.h"
 
 #include <QAction>
@@ -76,7 +76,7 @@ void HistoryMenu::resetItems()
 {
     clearItems();
 
-    FaviconStorage *faviconStorage = sBrowserApplication->getFaviconStorage();
+    FaviconStore *faviconStorage = sBrowserApplication->getFaviconStore();
     const std::deque<WebHistoryItem> &historyItems = sBrowserApplication->getHistoryManager()->getRecentItems();
     for (auto &it : historyItems)
     {
@@ -88,7 +88,7 @@ void HistoryMenu::resetItems()
 void HistoryMenu::onPageVisited(const QString &url, const QString &title)
 {
     QUrl itemUrl(url);
-    QIcon favicon = sBrowserApplication->getFaviconStorage()->getFavicon(itemUrl);
+    QIcon favicon = sBrowserApplication->getFaviconStore()->getFavicon(itemUrl);
     prependHistoryItem(itemUrl, title, favicon);
 }
 

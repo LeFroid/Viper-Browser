@@ -1,6 +1,6 @@
 #include "BrowserApplication.h"
 #include "CommonUtil.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 #include "NetworkAccessManager.h"
 #include "URL.h"
 
@@ -16,7 +16,7 @@
 #include <QSvgRenderer>
 #include <QDebug>
 
-FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
+FaviconStore::FaviconStore(const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("Favicons")),
     m_accessMgr(nullptr),
@@ -31,12 +31,12 @@ FaviconStorage::FaviconStorage(const QString &databaseFile, QObject *parent) :
     setupQueries();
 }
 
-FaviconStorage::~FaviconStorage()
+FaviconStore::~FaviconStore()
 {
     save();
 }
 
-QIcon FaviconStorage::getFavicon(const QUrl &url, bool useCache)
+QIcon FaviconStore::getFavicon(const QUrl &url, bool useCache)
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
@@ -56,7 +56,7 @@ QIcon FaviconStorage::getFavicon(const QUrl &url, bool useCache)
         }
         catch (std::out_of_range &err)
         {
-            qDebug() << "FaviconStorage::getFavicon - caught error while fetching icon from cache. Error: " << err.what();
+            qDebug() << "FaviconStore::getFavicon - caught error while fetching icon from cache. Error: " << err.what();
         }
     }
 
@@ -104,7 +104,7 @@ QIcon FaviconStorage::getFavicon(const QUrl &url, bool useCache)
     return QIcon(QLatin1String(":/blank_favicon.png"));
 }
 
-void FaviconStorage::updateIcon(const QString &iconHRef, const QUrl &pageUrl, QIcon pageIcon)
+void FaviconStore::updateIcon(const QString &iconHRef, const QUrl &pageUrl, QIcon pageIcon)
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
@@ -150,11 +150,11 @@ void FaviconStorage::updateIcon(const QString &iconHRef, const QUrl &pageUrl, QI
         if (m_reply->isFinished())
             onReplyFinished();
         else
-            connect(m_reply, &QNetworkReply::finished, this, &FaviconStorage::onReplyFinished);
+            connect(m_reply, &QNetworkReply::finished, this, &FaviconStore::onReplyFinished);
     }
 }
 
-void FaviconStorage::onReplyFinished()
+void FaviconStore::onReplyFinished()
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
@@ -196,7 +196,7 @@ void FaviconStorage::onReplyFinished()
 
         if (!success)
         {
-            qDebug() << "FaviconStorage::onReplyFinished - failed to load image from response. Format was " << format;
+            qDebug() << "FaviconStore::onReplyFinished - failed to load image from response. Format was " << format;
             m_favicons.erase(it);
         }
         else
@@ -212,18 +212,18 @@ void FaviconStorage::onReplyFinished()
     m_reply = nullptr;
 }
 
-QString FaviconStorage::getUrlAsString(const QUrl &url) const
+QString FaviconStore::getUrlAsString(const QUrl &url) const
 {
     return url.toString(QUrl::RemoveUserInfo | QUrl::RemoveQuery | QUrl::RemoveFragment);
 }
 
-void FaviconStorage::saveToDB(const QString &faviconUrl, const FaviconInfo &favicon)
+void FaviconStore::saveToDB(const QString &faviconUrl, const FaviconInfo &favicon)
 {
     QSqlQuery *query = m_queryMap.at(StoredQuery::InsertFavicon).get();
     query->bindValue(QLatin1String(":iconId"), favicon.iconID);
     query->bindValue(QLatin1String(":url"), faviconUrl);
     if (!query->exec())
-        qDebug() << "In FaviconStorage::saveToDB - could not add favicon metadata to Favicons table. Message: "
+        qDebug() << "In FaviconStore::saveToDB - could not add favicon metadata to Favicons table. Message: "
                  << query->lastError().text();
 
     query = m_queryMap.at(StoredQuery::InsertIconData).get();
@@ -231,11 +231,11 @@ void FaviconStorage::saveToDB(const QString &faviconUrl, const FaviconInfo &favi
     query->bindValue(QLatin1String(":iconId"), favicon.iconID);
     query->bindValue(QLatin1String(":data"), CommonUtil::iconToBase64(favicon.icon));
     if (!query->exec())
-        qDebug() << "In FaviconStorage::saveToDB - could not add favicon icon data to FaviconData table. Message: "
+        qDebug() << "In FaviconStore::saveToDB - could not add favicon icon data to FaviconData table. Message: "
                  << query->lastError().text();
 }
 
-void FaviconStorage::setupQueries()
+void FaviconStore::setupQueries()
 {
     m_queryMap.clear();
 
@@ -256,14 +256,14 @@ void FaviconStorage::setupQueries()
     m_queryMap[StoredQuery::FindIconLikeURL] = std::move(savedQuery);
 }
 
-bool FaviconStorage::hasProperStructure()
+bool FaviconStore::hasProperStructure()
 {
     return hasTable(QLatin1String("Favicons"))
             && hasTable(QLatin1String("FaviconData"))
             && hasTable(QLatin1String("FaviconMap"));
 }
 
-void FaviconStorage::setup()
+void FaviconStore::setup()
 {   
     // Setup table structures
     QSqlQuery query(m_database);
@@ -282,7 +282,7 @@ void FaviconStorage::setup()
     setupQueries();
 }
 
-void FaviconStorage::load()
+void FaviconStore::load()
 {
     QSqlQuery query(m_database);
     if (query.exec(QLatin1String("SELECT f.FaviconID, f.URL, d.DataID, d.Data FROM Favicons f INNER JOIN FaviconData d ON f.FaviconID = d.FaviconID")))
@@ -303,7 +303,7 @@ void FaviconStorage::load()
         }
     }
     else
-        qDebug() << "[Error]: In FaviconStorage::load() - Unable to fetch favicon data. Message: " << query.lastError().text();
+        qDebug() << "[Error]: In FaviconStore::load() - Unable to fetch favicon data. Message: " << query.lastError().text();
 
     // Fetch maximum favicon ID and data ID values so new entry IDs can be calculated with more ease
     if (query.exec(QLatin1String("SELECT MAX(FaviconID) FROM Favicons")) && query.first())
@@ -312,7 +312,7 @@ void FaviconStorage::load()
         m_newDataID = query.value(0).toInt() + 1;
 }
 
-void FaviconStorage::save()
+void FaviconStore::save()
 {
     // Prepare query to save icon:url mapping
     QSqlQuery queryIconMap(m_database);
@@ -331,7 +331,7 @@ void FaviconStorage::save()
             queryIconMap.bindValue(QLatin1String(":pageUrl"), page);
             queryIconMap.bindValue(QLatin1String(":iconId"), iconID);
             if (!queryIconMap.exec())
-                qDebug() << "[Error]: In FaviconStorage::save() - Could not map URL to favicon in database. Message: "
+                qDebug() << "[Error]: In FaviconStore::save() - Could not map URL to favicon in database. Message: "
                          << queryIconMap.lastError().text();
         }
     }

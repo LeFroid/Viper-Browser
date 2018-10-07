@@ -1,5 +1,5 @@
 #include "BrowserApplication.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 #include "HttpRequest.h"
 #include "SearchEngineLineEdit.h"
 
@@ -55,7 +55,7 @@ void SearchEngineLineEdit::loadSearchEngines()
 {
     m_searchEngineMenu = new QMenu(this);
 
-    FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
+    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
     SearchEngineManager &manager = SearchEngineManager::instance();
     QList<QString> searchEngines = manager.getSearchEngineNames();
 
@@ -90,7 +90,7 @@ void SearchEngineLineEdit::setSearchEngine(const QString &name)
 
 void SearchEngineLineEdit::addSearchEngine(const QString &name)
 {
-    FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
+    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
     QIcon menuIcon = faviconStore->getFavicon(QUrl(SearchEngineManager::instance().getQueryString(name)));
 
     // Add search engine to the options menu

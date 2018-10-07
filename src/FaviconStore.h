@@ -34,10 +34,10 @@ struct FaviconInfo
 };
 
 /**
- * @class FaviconStorage
+ * @class FaviconStore
  * @brief Maintains a record of favicons from websites frequented by the user
  */
-class FaviconStorage : public QObject, private DatabaseWorker
+class FaviconStore : public QObject, private DatabaseWorker
 {
     friend class DatabaseFactory;
 
@@ -45,13 +45,13 @@ class FaviconStorage : public QObject, private DatabaseWorker
 
 public:
     /**
-     * @brief FaviconStorage Constructs the Favicon storage object
+     * @brief FaviconStore Constructs the Favicon storage object
      * @param databaseFile Path of the favicon database file
      */
-    FaviconStorage(const QString &databaseFile, QObject *parent = nullptr);
+    FaviconStore(const QString &databaseFile, QObject *parent = nullptr);
 
     /// Destroys the favicon storage object, saving data to the favicon database
-    virtual ~FaviconStorage();
+    virtual ~FaviconStore();
 
     /// Returns the favicon associated with the given URL if found in the database, otherwise
     /// returns an empty icon. If useCache is set to true, the url:icon mapping is stored in a LRUCache

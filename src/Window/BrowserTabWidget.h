@@ -10,7 +10,7 @@
 #include <QUrl>
 
 class BrowserTabBar;
-class FaviconStorage;
+class FaviconStore;
 class HttpRequest;
 class MainWindow;
 class QMenu;
@@ -28,7 +28,7 @@ class BrowserTabWidget : public QTabWidget
 
 public:
     /// Constructs the browser tab widget
-    explicit BrowserTabWidget(Settings *settings, FaviconStorage *faviconStore, bool privateMode, QWidget *parent = nullptr);
+    explicit BrowserTabWidget(Settings *settings, FaviconStore *faviconStore, bool privateMode, QWidget *parent = nullptr);
 
     /// Returns a pointer to the current web widget
     WebWidget *currentWebWidget() const;
@@ -168,7 +168,7 @@ private:
     Settings *m_settings;
 
     /// Pointer to the favicon store
-    FaviconStorage *m_faviconStore;
+    FaviconStore *m_faviconStore;
 
     /// Private browsing flag
     bool m_privateBrowsing;

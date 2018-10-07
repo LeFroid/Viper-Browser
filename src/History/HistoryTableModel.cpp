@@ -1,7 +1,7 @@
 #include "BrowserApplication.h"
 #include "HistoryTableModel.h"
 #include "HistoryManager.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 
 HistoryTableModel::HistoryTableModel(HistoryManager *historyMgr, QObject *parent) :
     QAbstractTableModel(parent),
@@ -62,7 +62,7 @@ void HistoryTableModel::fetchMore(const QModelIndex &/*parent*/)
         return;
     }
 
-    FaviconStorage *favicons = sBrowserApplication->getFaviconStorage();
+    FaviconStore *favicons = sBrowserApplication->getFaviconStore();
 
     QDateTime nextLoadedDate = m_loadedDate.addDays(-1);
 

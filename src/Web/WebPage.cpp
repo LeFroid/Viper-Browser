@@ -273,11 +273,12 @@ void WebPage::onLoadFinished(bool ok)
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
 
     if (m_needInjectAdBlockScript)
+    {
         m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
 
-    if (!m_mainFrameAdBlockScript.isEmpty())
-        runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
-
+        if (!m_mainFrameAdBlockScript.isEmpty())
+            runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
+    }
     m_needInjectAdBlockScript = true;
 
     sBrowserApplication->getAutoFill()->onPageLoaded(this, url());

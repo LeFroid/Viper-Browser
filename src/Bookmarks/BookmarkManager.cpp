@@ -1,7 +1,7 @@
 #include "BrowserApplication.h"
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 
 #include <deque>
 #include <iterator>
@@ -97,7 +97,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QString &url, Bo
     // Create new bookmark
     BookmarkNode *b = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
     b->setURL(url);
-    b->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(url)));
+    b->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(QUrl(url)));
 
     // Add bookmark to the database
     if (!addBookmarkToDB(b, folder))
@@ -120,7 +120,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QString &url, Bo
     // Create new bookmark        
     BookmarkNode *b = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
     b->setURL(url);
-    b->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(url)));
+    b->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(QUrl(url)));
 
     // Update positions of items in same folder
     QSqlQuery query(m_database);
@@ -464,7 +464,7 @@ void BookmarkManager::updateBookmarkURL(const QString &url, BookmarkNode *bookma
         position = query.value(0).toInt();
 
     // Update icon
-    bookmark->setIcon(sBrowserApplication->getFaviconStorage()->getFavicon(QUrl(bookmark->m_url)));
+    bookmark->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(QUrl(bookmark->m_url)));
 
     query.prepare(QLatin1String("DELETE FROM Bookmarks WHERE URL = (:url)"));
     query.bindValue(QLatin1String(":url"), bookmark->m_url);
@@ -519,7 +519,7 @@ void BookmarkManager::loadFolder(BookmarkNode *folder)
         return;
     }
 
-    FaviconStorage *faviconStore = sBrowserApplication->getFaviconStorage();
+    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
 
     QSqlQuery query(m_database);
     query.prepare(QLatin1String("SELECT FolderID, Type, Name, URL, Shortcut FROM Bookmarks WHERE ParentID = (:id) ORDER BY Position ASC"));

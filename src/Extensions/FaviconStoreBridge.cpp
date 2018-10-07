@@ -1,5 +1,5 @@
 #include "BrowserApplication.h"
-#include "FaviconStorage.h"
+#include "FaviconStore.h"
 #include "FaviconStoreBridge.h"
 #include "WebPage.h"
 
@@ -17,5 +17,10 @@ void FaviconStoreBridge::updateIconUrl(const QString &faviconUrl)
 {
     if (faviconUrl.isEmpty())
         return;
-    sBrowserApplication->getFaviconStorage()->updateIcon(faviconUrl, m_page->url(), m_page->icon());
+
+    QIcon icon = m_page->icon();
+    if (icon.isNull())
+        return;
+
+    sBrowserApplication->getFaviconStore()->updateIcon(faviconUrl, m_page->url(), icon);
 }

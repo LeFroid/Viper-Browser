@@ -24,7 +24,7 @@ class BookmarkDialog;
 class BookmarkWidget;
 class BrowserTabWidget;
 class ClearHistoryDialog;
-class FaviconStorage;
+class FaviconStore;
 class HttpRequest;
 class SearchEngineLineEdit;
 class URLLineEdit;
@@ -49,7 +49,7 @@ class MainWindow : public QMainWindow
 
 public:
     /// Constructs the main window
-    explicit MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStorage *faviconStore, bool privateWindow, QWidget *parent = nullptr);
+    explicit MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStore *faviconStore, bool privateWindow, QWidget *parent = nullptr);
 
     /// MainWindow destructor
     ~MainWindow();
@@ -231,7 +231,7 @@ private:
     BookmarkWidget *m_bookmarkUI;
 
     /// Pointer to the favicon store
-    FaviconStorage *m_faviconStore;
+    FaviconStore *m_faviconStore;
 
     /// Dialog used to clear recent history, cookies, etc.
     ClearHistoryDialog *m_clearHistoryDialog;
