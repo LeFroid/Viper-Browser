@@ -16,10 +16,11 @@ struct URLSuggestion
     QString Title;
     QString URL;
     bool IsBookmark;
+    int VisitCount;
 
     URLSuggestion() = default;
 
-    URLSuggestion(const QIcon &icon, const QString &title, const QString &url, bool isBookmark);
+    URLSuggestion(const QIcon &icon, const QString &title, const QString &url, bool isBookmark, int visitCount);
 };
 
 /**

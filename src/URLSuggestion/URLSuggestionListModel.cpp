@@ -1,10 +1,11 @@
 #include "URLSuggestionListModel.h"
 
-URLSuggestion::URLSuggestion(const QIcon &icon, const QString &title, const QString &url, bool isBookmark) :
+URLSuggestion::URLSuggestion(const QIcon &icon, const QString &title, const QString &url, bool isBookmark, int visitCount) :
     Favicon(icon),
     Title(title),
     URL(url),
-    IsBookmark(isBookmark)
+    IsBookmark(isBookmark),
+    VisitCount(visitCount)
 {
 }
 

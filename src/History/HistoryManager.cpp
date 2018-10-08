@@ -168,11 +168,12 @@ std::vector<WebHistoryItem> HistoryManager::getHistoryBetween(const QDateTime &s
     return items;
 }
 
-int HistoryManager::getTimesVisited(const QString &host)
+int HistoryManager::getTimesVisitedHost(const QString &host) const
 {
+    int timesVisited = 0;
+
     QSqlQuery query(m_database);
     query.prepare(QLatin1String("SELECT COUNT(VisitID) FROM Visits WHERE VisitID = (:id)"));
-    int timesVisited = 0;
     for (const WebHistoryItem &item : m_historyItems)
     {
         if (host.endsWith(item.URL.host().remove(QRegExp("(http(s)?://)?(www.)"))))
@@ -183,6 +184,27 @@ int HistoryManager::getTimesVisited(const QString &host)
         }
     }
     return timesVisited;
+}
+
+int HistoryManager::getTimesVisited(const QUrl &url) const
+{
+    QSqlQuery queryVisitId(m_database);
+    queryVisitId.prepare(QLatin1String("SELECT VisitID FROM History WHERE URL = (:url)"));
+    queryVisitId.bindValue(QLatin1String(":url"), url.toString(QUrl::RemoveFragment));
+
+    if (queryVisitId.exec() && queryVisitId.first())
+    {
+        int visitId = queryVisitId.value(0).toInt();
+
+        QSqlQuery queryVisitCount(m_database);
+        queryVisitCount.prepare(QLatin1String("SELECT COUNT(VisitID) FROM Visits WHERE VisitID = (:id)"));
+        queryVisitCount.bindValue(QLatin1String(":id"), visitId);
+
+        if (queryVisitCount.exec() && queryVisitCount.first())
+            return queryVisitCount.value(0).toInt();
+    }
+
+    return 0;
 }
 
 HistoryStoragePolicy HistoryManager::getStoragePolicy() const

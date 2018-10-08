@@ -64,7 +64,7 @@ void SecurityInfoDialog::setWebsite(const QString &host, const QList<QSslCertifi
     }
 
     BrowserApplication *app = sBrowserApplication;
-    int numVisits = app->getHistoryManager()->getTimesVisited(host);
+    int numVisits = app->getHistoryManager()->getTimesVisitedHost(host);
     ui->labelTimesVisited->setText(numVisits > 0 ? QString("Yes, %1 times.").arg(numVisits) : QString("No"));
 
     // Check if website is storing cookies

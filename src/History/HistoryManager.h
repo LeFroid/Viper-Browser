@@ -100,7 +100,10 @@ public:
     std::vector<WebHistoryItem> getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate) const;
 
     /// Returns the number of times the user has visited the given website by its hostname
-    int getTimesVisited(const QString &host);
+    int getTimesVisitedHost(const QString &host) const;
+
+    /// Returns the number of times that the given URL has been visited
+    int getTimesVisited(const QUrl &url) const;
 
     /// Returns the history manager's storage policy
     HistoryStoragePolicy getStoragePolicy() const;

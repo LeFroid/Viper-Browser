@@ -57,6 +57,7 @@ void URLSuggestionWorker::searchForHits()
     int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
 
     FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
+    HistoryManager *historyMgr = sBrowserApplication->getHistoryManager();
 
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
@@ -70,9 +71,10 @@ void URLSuggestionWorker::searchForHits()
         if (it->getType() != BookmarkNode::Bookmark)
             continue;
 
-        if (isEntryMatch(it->getName().toUpper(), it->getURL().toUpper(), it->getShortcut().toUpper()))
+        const QString url = it->getURL();
+        if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
         {
-            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), it->getURL(), true);
+            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), url, true, historyMgr->getTimesVisited(url));
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
 
@@ -82,14 +84,13 @@ void URLSuggestionWorker::searchForHits()
     }
 
     std::sort(m_suggestions.begin(), m_suggestions.end(), [](const URLSuggestion &a, const URLSuggestion &b) {
-        return a.URL.size() < b.URL.size();
+        return a.VisitCount > b.VisitCount;
     });
 
     if (!m_working.load())
         return;
 
     std::vector<URLSuggestion> histSuggestions;
-    HistoryManager *historyMgr = sBrowserApplication->getHistoryManager();
     for (auto it = historyMgr->getHistIterBegin(); it != historyMgr->getHistIterEnd(); ++it)
     {
         if (!m_working.load())
@@ -101,7 +102,7 @@ void URLSuggestionWorker::searchForHits()
 
         if (isEntryMatch(it->Title.toUpper(), url.toUpper()))
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->URL), it->Title, url, false);
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->URL), it->Title, url, false, historyMgr->getTimesVisited(it->URL));
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)
@@ -111,7 +112,7 @@ void URLSuggestionWorker::searchForHits()
 
     std::sort(histSuggestions.begin(), histSuggestions.end(),
               [](const URLSuggestion &a, const URLSuggestion &b) {
-        return a.URL.size() < b.URL.size();
+        return a.VisitCount > b.VisitCount;
     });
 
     m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
@@ -126,7 +127,7 @@ bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url,
 
     if (m_searchWords.size() > 1)
     {
-        for (const QString &word : words)
+        for (const QString &word : m_searchWords)
         {
             if (title.contains(word, Qt::CaseSensitive))
                 return true;
