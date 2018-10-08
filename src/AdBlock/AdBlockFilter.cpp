@@ -347,11 +347,6 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
 
     int i, j;
     quint64 t = 0;
-    quint64 h = 1;
-
-    // The value of h would be "pow(d, M-1)%q"
-    for (i = 0; i < needleLength - 1; ++i)
-        h = (h * radixLength) % prime;
 
     // Calculate the hash value of first window of text
     for (i = 0; i < needleLength; ++i)
@@ -373,8 +368,8 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
 
         if (i < haystackLength - needleLength)
         {
-            t = (radixLength * (t - (h * (haystackPtr + i)->toLatin1()))
-                 + (haystackPtr + i + needleLength)->toLatin1()) % prime;
+            t = (t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime) % prime;
+            t = (t * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
         }
     }
 

@@ -257,7 +257,7 @@ private:
     quint64 m_differenceHash;
 
     /// Contains a hash of the evaluation string, used if filter category is StringContains
-    size_t m_evalStringHash;
+    quint64 m_evalStringHash;
 };
 
 #endif // ADBLOCKFILTER_H

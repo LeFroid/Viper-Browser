@@ -53,7 +53,7 @@ void URLSuggestionWorker::searchForHits()
     m_suggestions.clear();
 
     // Set upper bound on number of suggestions for each type of item being checked
-    const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 15;
+    const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 30;
     int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
 
     FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
@@ -115,6 +115,9 @@ void URLSuggestionWorker::searchForHits()
         return a.VisitCount > b.VisitCount;
     });
 
+    if (histSuggestions.size() > 15)
+        histSuggestions.erase(histSuggestions.begin() + 15, histSuggestions.end());
+
     m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
 
     m_working.store(false);
@@ -155,7 +158,9 @@ void URLSuggestionWorker::hashSearchTerm()
     const quint64 radixLength = 256ULL;
     const quint64 prime = 72057594037927931ULL;
 
-    m_differenceHash = quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
+    m_differenceHash = 1;
+    for (int i = 0; i < needleLength - 1; ++i)
+        m_differenceHash = (m_differenceHash * radixLength) % prime;
 
     for (int index = 0; index < needleLength; ++index)
         m_searchTermHash = (radixLength * m_searchTermHash + (needlePtr + index)->toLatin1()) % prime;
@@ -179,11 +184,6 @@ bool URLSuggestionWorker::isStringMatch(const QString &haystack)
 
     int i, j;
     quint64 t = 0;
-    quint64 h = 1;
-
-    // The value of h would be "pow(d, M-1)%q"
-    for (i = 0; i < needleLength - 1; ++i)
-        h = (h * radixLength) % prime;
 
     // Calculate the hash value of first window of text
     for (i = 0; i < needleLength; ++i)
@@ -205,8 +205,8 @@ bool URLSuggestionWorker::isStringMatch(const QString &haystack)
 
         if (i < haystackLength - needleLength)
         {
-            t = (radixLength * (t - (h * (haystackPtr + i)->toLatin1()))
-                 + (haystackPtr + i + needleLength)->toLatin1()) % prime;
+            t = (t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime) % prime;
+            t = (t * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
         }
     }
 
