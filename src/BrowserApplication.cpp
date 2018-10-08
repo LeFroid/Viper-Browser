@@ -135,13 +135,6 @@ BrowserApplication::~BrowserApplication()
 {
     m_requestInterceptor->setSettings(nullptr);
 
-    for (int i = 0; i < m_browserWindows.size(); ++i)
-    {
-        QPointer<MainWindow> m = m_browserWindows.at(i);
-        if (!m.isNull())
-            delete m.data();
-    }
-
     delete m_downloadMgr;
     delete m_networkAccessMgr;
     delete m_historyWidget;
