@@ -13,6 +13,8 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     QObject(parent),
     m_working(false),
     m_searchTerm(),
+    m_searchWords(),
+    m_searchTermHasScheme(false),
     m_suggestionFuture(),
     m_suggestionWatcher(nullptr),
     m_suggestions(),
@@ -35,6 +37,10 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
     }
 
     m_searchTerm = text.toUpper();
+    m_searchWords = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
+    m_searchTermHasScheme = (m_searchTerm.startsWith(QLatin1String("HTTP"))
+            || m_searchTerm.startsWith(QLatin1String("FILE"))
+            || m_searchTerm.startsWith(QLatin1String("VIPER")));
     hashSearchTerm();
 
     m_suggestionFuture = QtConcurrent::run(this, &URLSuggestionWorker::searchForHits);
@@ -50,12 +56,7 @@ void URLSuggestionWorker::searchForHits()
     const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 15;
     int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
 
-    const bool searchTermHasScheme = m_searchTerm.startsWith(QLatin1String("HTTP"))
-            || m_searchTerm.startsWith(QLatin1String("FILE"));
-
     FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
-
-    QStringList words = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
 
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
@@ -69,33 +70,7 @@ void URLSuggestionWorker::searchForHits()
         if (it->getType() != BookmarkNode::Bookmark)
             continue;
 
-        const QString shortcut = it->getShortcut().toUpper();
-        const QString pageTitleUpper = it->getName().toUpper();
-
-        bool isMatching = isStringMatch(pageTitleUpper) || (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut));
-        if (!isMatching)
-        {
-            for (const QString &word : words)
-            {
-                if (pageTitleUpper.contains(word, Qt::CaseSensitive))
-                {
-                    isMatching = true;
-                    break;
-                }
-            }
-        }
-
-        if (!isMatching)
-        {
-            QString bookmarkUrl = it->getURL();
-            int prefix = bookmarkUrl.indexOf(QLatin1String("://"));
-            if (!searchTermHasScheme && prefix >= 0)
-                bookmarkUrl = bookmarkUrl.mid(prefix + 3);
-
-            isMatching = isStringMatch(bookmarkUrl.toUpper());
-        }
-
-        if (isMatching)
+        if (isEntryMatch(it->getName().toUpper(), it->getURL().toUpper(), it->getShortcut().toUpper()))
         {
             auto suggestion = URLSuggestion(it->getIcon(), it->getName(), it->getURL(), true);
             hits.insert(suggestion.URL);
@@ -124,30 +99,7 @@ void URLSuggestionWorker::searchForHits()
         if (hits.contains(url))
             continue;
 
-        const QString pageTitleUpper = it->Title.toUpper();
-        bool isMatching = isStringMatch(pageTitleUpper);
-        if (!isMatching)
-        {
-            for (const QString &word : words)
-            {
-                if (pageTitleUpper.contains(word, Qt::CaseSensitive))
-                {
-                    isMatching = true;
-                    break;
-                }
-            }
-        }
-        if (!isMatching)
-        {
-            QString urlUpper = url.toUpper();
-            int prefix = urlUpper.indexOf(QLatin1String("://"));
-            if (!searchTermHasScheme && prefix >= 0)
-                urlUpper = urlUpper.mid(prefix + 3);
-
-            isMatching = isStringMatch(urlUpper);
-        }
-
-        if (isMatching)
+        if (isEntryMatch(it->Title.toUpper(), url.toUpper()))
         {
             auto suggestion = URLSuggestion(faviconStore->getFavicon(it->URL), it->Title, url, false);
             histSuggestions.push_back(suggestion);
@@ -165,6 +117,31 @@ void URLSuggestionWorker::searchForHits()
     m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
 
     m_working.store(false);
+}
+
+bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url, const QString &shortcut)
+{
+    if (isStringMatch(title) || (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut)))
+        return true;
+
+    if (m_searchWords.size() > 1)
+    {
+        for (const QString &word : words)
+        {
+            if (title.contains(word, Qt::CaseSensitive))
+                return true;
+        }
+    }
+
+    int prefix = url.indexOf(QLatin1String("://"));
+    if (!m_searchTermHasScheme && prefix >= 0)
+    {
+        QString urlMutable = url;
+        urlMutable = urlMutable.mid(prefix + 3);
+        return isStringMatch(urlMutable);
+    }
+
+    return isStringMatch(url);
 }
 
 void URLSuggestionWorker::hashSearchTerm()

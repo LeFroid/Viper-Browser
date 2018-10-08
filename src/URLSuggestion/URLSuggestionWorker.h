@@ -10,6 +10,7 @@
 #include <QFutureWatcher>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 /**
  * @class URLSuggestionWorker
@@ -34,6 +35,10 @@ signals:
 private:
     /// The suggestion search operation working in a separate thread
     void searchForHits();
+
+    /// Checks if an item with the given page title, url and optionally shortcut matches the search term, returning
+    /// true on a match and false if not matching
+    bool isEntryMatch(const QString &title, const QString &url, const QString &shortcut = QString());
 
     /// Applies the Rabin-Karp string matching algorithm to determine whether or not the haystack contains the search term
     bool isStringMatch(const QString &haystack);
@@ -61,6 +66,12 @@ private:
 
     /// The search term used to find suggestions
     QString m_searchTerm;
+
+    /// The search term, split by the ' ' character for partial string matching
+    QStringList m_searchWords;
+
+    /// True if the search term contains a scheme (used for string matching)
+    bool m_searchTermHasScheme;
 
     /// Future of the searchForHits operation
     QFuture<void> m_suggestionFuture;
