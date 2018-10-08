@@ -55,7 +55,7 @@ void URLSuggestionWorker::searchForHits()
 
     FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
 
-    //QStringList words = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
+    QStringList words = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
 
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
@@ -69,9 +69,22 @@ void URLSuggestionWorker::searchForHits()
         if (it->getType() != BookmarkNode::Bookmark)
             continue;
 
-        QString shortcut = it->getShortcut().toUpper();
+        const QString shortcut = it->getShortcut().toUpper();
+        const QString pageTitleUpper = it->getName().toUpper();
 
-        bool isMatching = isStringMatch(it->getName().toUpper()) || (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut));
+        bool isMatching = isStringMatch(pageTitleUpper) || (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut));
+        if (!isMatching)
+        {
+            for (const QString &word : words)
+            {
+                if (pageTitleUpper.contains(word, Qt::CaseSensitive))
+                {
+                    isMatching = true;
+                    break;
+                }
+            }
+        }
+
         if (!isMatching)
         {
             QString bookmarkUrl = it->getURL();
@@ -111,7 +124,19 @@ void URLSuggestionWorker::searchForHits()
         if (hits.contains(url))
             continue;
 
-        bool isMatching = isStringMatch(it->Title.toUpper());
+        const QString pageTitleUpper = it->Title.toUpper();
+        bool isMatching = isStringMatch(pageTitleUpper);
+        if (!isMatching)
+        {
+            for (const QString &word : words)
+            {
+                if (pageTitleUpper.contains(word, Qt::CaseSensitive))
+                {
+                    isMatching = true;
+                    break;
+                }
+            }
+        }
         if (!isMatching)
         {
             QString urlUpper = url.toUpper();
