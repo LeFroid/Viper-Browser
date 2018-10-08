@@ -89,9 +89,6 @@ public:
     /// Returns the network access manager
     NetworkAccessManager *getNetworkAccessManager();
 
-    /// Returns a network access manager for private browsing
-    NetworkAccessManager *getPrivateNetworkAccessManager();
-
     /// Returns a pointer to the private web browsing profile
     QWebEngineProfile *getPrivateBrowsingProfile();
 
@@ -166,9 +163,6 @@ private:
 
     /// Network access manager
     NetworkAccessManager *m_networkAccessMgr;
-
-    /// Private browsing network access manager
-    NetworkAccessManager *m_privateNetworkAccessMgr;
 
     /// User agent manager
     UserAgentManager *m_userAgentMgr;

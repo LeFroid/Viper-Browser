@@ -20,12 +20,9 @@ SecurityManager::SecurityManager(QObject *parent) :
 {
     BrowserApplication *app = sBrowserApplication;
     NetworkAccessManager *netAccessMgr = app->getNetworkAccessManager();
-    NetworkAccessManager *privateNetAccessMgr = app->getPrivateNetworkAccessManager();
 
     connect(netAccessMgr, &NetworkAccessManager::finished, this, &SecurityManager::onNetworkReply);
     connect(netAccessMgr, &NetworkAccessManager::sslErrors, this, &SecurityManager::onSSLErrors);
-    connect(privateNetAccessMgr, &NetworkAccessManager::finished, this, &SecurityManager::onNetworkReply);
-    connect(privateNetAccessMgr, &NetworkAccessManager::sslErrors, this, &SecurityManager::onSSLErrors);
 }
 
 SecurityManager::~SecurityManager()

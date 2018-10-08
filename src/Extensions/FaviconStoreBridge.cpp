@@ -18,9 +18,5 @@ void FaviconStoreBridge::updateIconUrl(const QString &faviconUrl)
     if (faviconUrl.isEmpty())
         return;
 
-    QIcon icon = m_page->icon();
-    if (icon.isNull())
-        return;
-
-    sBrowserApplication->getFaviconStore()->updateIcon(faviconUrl, m_page->url(), icon);
+    sBrowserApplication->getFaviconStore()->updateIcon(faviconUrl, m_page->url(), m_page->icon());
 }

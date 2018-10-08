@@ -95,15 +95,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
     m_historyWidget = nullptr;
 
-    // Create network access managers
+    // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
     m_networkAccessMgr->setCookieJar(m_cookieJar);
 
     m_downloadMgr->setNetworkAccessManager(m_networkAccessMgr);
-
-    m_privateNetworkAccessMgr = new NetworkAccessManager;
-    CookieJar *privateJar = new CookieJar(enableCookies, true);
-    m_privateNetworkAccessMgr->setCookieJar(privateJar);
 
     // Setup user agent manager before settings
     m_userAgentMgr = new UserAgentManager(m_settings.get());
@@ -148,7 +144,6 @@ BrowserApplication::~BrowserApplication()
 
     delete m_downloadMgr;
     delete m_networkAccessMgr;
-    delete m_privateNetworkAccessMgr;
     delete m_historyWidget;
     delete m_userAgentMgr;
     delete m_userScriptMgr;
@@ -214,11 +209,6 @@ HistoryWidget *BrowserApplication::getHistoryWidget()
 NetworkAccessManager *BrowserApplication::getNetworkAccessManager()
 {
     return m_networkAccessMgr;
-}
-
-NetworkAccessManager *BrowserApplication::getPrivateNetworkAccessManager()
-{
-    return m_privateNetworkAccessMgr;
 }
 
 QWebEngineProfile *BrowserApplication::getPrivateBrowsingProfile()
