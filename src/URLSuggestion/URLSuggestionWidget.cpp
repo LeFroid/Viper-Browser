@@ -179,16 +179,6 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
             }
             return false;
         }
-        case QEvent::MouseMove:
-        {
-            if (!underMouse())
-                return false;
-
-            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-            const QModelIndex index = m_suggestionList->indexAt(mapFromGlobal(mouseEvent->globalPos()));
-            m_suggestionList->setCurrentIndex(index);
-            return true;
-        }
         default:
             break;
     }

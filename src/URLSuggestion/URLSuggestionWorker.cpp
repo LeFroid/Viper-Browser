@@ -53,7 +53,7 @@ void URLSuggestionWorker::searchForHits()
     m_suggestions.clear();
 
     // Set upper bound on number of suggestions for each type of item being checked
-    const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 30;
+    const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 50;
     int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
 
     FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
@@ -115,8 +115,8 @@ void URLSuggestionWorker::searchForHits()
         return a.VisitCount > b.VisitCount;
     });
 
-    if (histSuggestions.size() > 15)
-        histSuggestions.erase(histSuggestions.begin() + 15, histSuggestions.end());
+    if (histSuggestions.size() > 25)
+        histSuggestions.erase(histSuggestions.begin() + 25, histSuggestions.end());
 
     m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
 
@@ -205,8 +205,8 @@ bool URLSuggestionWorker::isStringMatch(const QString &haystack)
 
         if (i < haystackLength - needleLength)
         {
-            t = (t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime) % prime;
-            t = (t * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
+            t = (((t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime) % prime)
+                    * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
         }
     }
 

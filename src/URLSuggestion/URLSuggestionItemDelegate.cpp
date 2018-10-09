@@ -26,6 +26,10 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     if (isSelectedItem)
         painter->fillRect(itemRect, QColor(61, 113, 255));
 
+    const bool isMouseOver = (itemOption.state & QStyle::State_MouseOver);
+    if (isMouseOver)
+        painter->fillRect(itemRect, QColor(111, 173, 255));
+
     // Draw favicon
     QRect faviconRect(itemRect.left() + m_padding, cy - 8, 16, 16);
     QIcon favicon = index.data(URLSuggestionListModel::Favicon).value<QIcon>();
@@ -37,7 +41,7 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->setFont(titleFont);
 
     QPen titlePen = painter->pen();
-    QBrush titleBrush = isSelectedItem ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 0));
+    QBrush titleBrush = (isSelectedItem || isMouseOver) ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 0));
     titlePen.setBrush(titleBrush);
     painter->setPen(titlePen);
 
@@ -54,7 +58,7 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->setFont(urlFont);
 
     QPen urlPen = painter->pen();
-    QBrush urlBrush = isSelectedItem ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 238));
+    QBrush urlBrush = (isSelectedItem || isMouseOver) ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 238));
     urlPen.setBrush(urlBrush);
     painter->setPen(urlPen);
 
@@ -70,7 +74,7 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     if (index.data(URLSuggestionListModel::Bookmark).toBool())
     {
         QRect bookmarkRect(urlRect.right() + m_padding, cy - 8, 16, 16);
-        QIcon bookmarkIcon = isSelectedItem ? QIcon(QLatin1String(":/not_bookmarked.png")) : QIcon(QLatin1String(":/bookmarked.png"));
+        QIcon bookmarkIcon = (isSelectedItem || isMouseOver) ? QIcon(QLatin1String(":/not_bookmarked.png")) : QIcon(QLatin1String(":/bookmarked.png"));
         painter->drawPixmap(bookmarkRect, bookmarkIcon.pixmap(16, 16));
     }
 
