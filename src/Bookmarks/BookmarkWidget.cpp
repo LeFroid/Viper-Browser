@@ -419,8 +419,8 @@ void BookmarkWidget::endResetTableModel()
 {
     // Tell the table model to load the bookmarks bar folder to avoid null pointer references
     BookmarkTableModel *tableModel = static_cast<BookmarkTableModel*>(ui->tableView->model());
-    tableModel->endResetModel();
     tableModel->setCurrentFolder(tableModel->getCurrentFolder());
+    tableModel->endResetModel();
 
     showInfoForNode(nullptr);
 

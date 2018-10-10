@@ -3,6 +3,7 @@
 #include "BookmarkNode.h"
 
 #include <deque>
+#include <set>
 
 #include <QByteArray>
 #include <QDataStream>
@@ -194,13 +195,19 @@ QMimeData *BookmarkTableModel::mimeData(const QModelIndexList &indexes) const
     QMimeData *mimeData = new QMimeData();
     QByteArray encodedData;
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
+    std::set<int> rows;
     for (const QModelIndex &index : indexes)
     {
+        if (rows.find(index.row()) != rows.end())
+            continue;
+
         if (index.isValid())
         {
-            BookmarkNode *n = getBookmark(index.row());
-            if (n != nullptr)
+            if (BookmarkNode *n = getBookmark(index.row()))
+            {
                 stream << n;
+                rows.insert(index.row());
+            }
         }
     }
     mimeData->setData(QStringLiteral("application/x-bookmark-data"), encodedData);

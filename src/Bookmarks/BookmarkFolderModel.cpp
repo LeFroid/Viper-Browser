@@ -180,8 +180,8 @@ QMimeData *BookmarkFolderModel::mimeData(const QModelIndexList &indexes) const
     {
         if (index.isValid())
         {
-            BookmarkNode *folder = static_cast<BookmarkNode*>(index.internalPointer());
-            stream << folder;
+            if (BookmarkNode *folder = static_cast<BookmarkNode*>(index.internalPointer()))
+                stream << folder;
             //stream << getItem(index);
         }
     }
