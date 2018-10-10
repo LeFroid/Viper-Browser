@@ -10,7 +10,6 @@
 #include "ExtStorage.h"
 #include "FaviconStore.h"
 #include "HistoryManager.h"
-#include "HistoryWidget.h"
 #include "MainWindow.h"
 #include "SearchEngineManager.h"
 #include "Settings.h"
@@ -93,7 +92,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Instantiate the history manager
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
-    m_historyWidget = nullptr;
 
     // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
@@ -137,7 +135,6 @@ BrowserApplication::~BrowserApplication()
 
     delete m_downloadMgr;
     delete m_networkAccessMgr;
-    delete m_historyWidget;
     delete m_userAgentMgr;
     delete m_userScriptMgr;
     delete m_privateProfile;
@@ -186,17 +183,6 @@ FaviconStore *BrowserApplication::getFaviconStore()
 HistoryManager *BrowserApplication::getHistoryManager()
 {
     return m_historyMgr.get();
-}
-
-HistoryWidget *BrowserApplication::getHistoryWidget()
-{
-    if (!m_historyWidget)
-    {
-        m_historyWidget = new HistoryWidget;
-        m_historyWidget->setHistoryManager(m_historyMgr.get());
-    }
-
-    return m_historyWidget;
 }
 
 NetworkAccessManager *BrowserApplication::getNetworkAccessManager()

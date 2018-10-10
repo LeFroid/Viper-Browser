@@ -20,7 +20,6 @@ class DownloadManager;
 class ExtStorage;
 class FaviconStore;
 class HistoryManager;
-class HistoryWidget;
 class MainWindow;
 class RequestInterceptor;
 class Settings;
@@ -82,9 +81,6 @@ public:
 
     /// Returns the history manager
     HistoryManager *getHistoryManager();
-
-    /// Returns the history widget
-    HistoryWidget *getHistoryWidget();
 
     /// Returns the network access manager
     NetworkAccessManager *getNetworkAccessManager();
@@ -157,9 +153,6 @@ private:
 
     /// Web history manager
     std::unique_ptr<HistoryManager> m_historyMgr;
-
-    /// History view UI
-    HistoryWidget *m_historyWidget;
 
     /// Network access manager
     NetworkAccessManager *m_networkAccessMgr;

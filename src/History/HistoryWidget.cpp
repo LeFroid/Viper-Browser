@@ -18,6 +18,8 @@ HistoryWidget::HistoryWidget(QWidget *parent) :
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_timeRange(HistoryRange::Day)
 {
+    setAttribute(Qt::WA_DeleteOnClose, true);
+
     ui->setupUi(this);
 
     // Set properties of proxy model used for bookmark searches

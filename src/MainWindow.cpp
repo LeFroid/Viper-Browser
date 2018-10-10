@@ -554,13 +554,9 @@ void MainWindow::onLoadFinished(bool ok)
 
 void MainWindow::onShowAllHistory()
 {
-    HistoryWidget *histWidget = sBrowserApplication->getHistoryWidget();
+    HistoryWidget *histWidget = new HistoryWidget;
+    histWidget->setHistoryManager(sBrowserApplication->getHistoryManager());
     histWidget->loadHistory();
-
-    // Attach signals to current browser window
-    disconnect(histWidget, &HistoryWidget::openLink, m_tabWidget, &BrowserTabWidget::loadUrl);
-    disconnect(histWidget, &HistoryWidget::openLinkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewBackgroundTab);
-    disconnect(histWidget, &HistoryWidget::openLinkNewWindow, this, &MainWindow::openLinkNewWindow);
 
     connect(histWidget, &HistoryWidget::openLink, m_tabWidget, &BrowserTabWidget::loadUrl);
     connect(histWidget, &HistoryWidget::openLinkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewBackgroundTab);
