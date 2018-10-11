@@ -9,6 +9,6 @@ set(RegExpTest_src
 
 add_executable(RegExpTest ${RegExpTest_src})
 
-target_link_libraries(RegExpTest Qt5::Test)
+target_link_libraries(RegExpTest viper-core Qt5::Test)
 
 add_test(NAME RegExp-Test COMMAND RegExpTest)

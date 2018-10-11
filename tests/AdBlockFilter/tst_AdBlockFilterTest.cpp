@@ -29,6 +29,8 @@ private:
     std::unique_ptr<AdBlockFilter> allowDomainRule;
 
     std::unique_ptr<AdBlockFilter> redirectScriptRule;
+
+    std::unique_ptr<AdBlockFilter> blockScriptDomainRule;
 };
 
 AdBlockFilterTest::AdBlockFilterTest()
@@ -40,6 +42,8 @@ AdBlockFilterTest::AdBlockFilterTest()
     allowDomainRule = parser.makeFilter(QLatin1String("@@||mycdn.com^$image,media,object,stylesheet,domain=watchvid.com"));
 
     redirectScriptRule = parser.makeFilter(QLatin1String("||google-analytics.com/ga.js$script,redirect=google-analytics.com/ga.js"));
+
+    blockScriptDomainRule = parser.makeFilter(QLatin1String("||mssl.fwmrm.net$script,domain=zerohedge.com"));
 }
 
 QString AdBlockFilterTest::getSecondLevelDomain(const QUrl &url) const
@@ -117,6 +121,12 @@ void AdBlockFilterTest::testCase3()
         domain = getSecondLevelDomain(requestUrl);
 
     QVERIFY2(redirectScriptRule->isMatch(baseUrl, requestUrlStr, domain, elemType), "Block rule should match the request");
+
+    baseUrl = QLatin1String("zerohedge.com");
+    QUrl requestUrl2 = QUrl::fromUserInput(QLatin1String("https://mssl.fwmrm.net/p/nbcu_live/AdManager.js"));
+    requestUrlStr = requestUrl2.toString(QUrl::FullyEncoded).toLower();
+    domain = requestUrl.host().toLower();
+    QVERIFY2(blockScriptDomainRule->isMatch(baseUrl, requestUrlStr, domain, elemType), "Block rule should match the request"); 
 }
 
 QTEST_APPLESS_MAIN(AdBlockFilterTest)

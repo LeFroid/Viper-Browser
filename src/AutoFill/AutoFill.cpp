@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <QFile>
+#include <QWebEngineScript>
 
 AutoFill::AutoFill(QObject *parent) :
     QObject(parent),
@@ -35,6 +36,8 @@ void AutoFill::onFormSubmitted(WebPage *page, const QString &pageUrl, const QStr
 
     if (!page || !page->view())
         return;
+
+    // Todo: check if URL is blocked from inclusion in auto fill system
 
     // Fetch or create a new set of credentials associated with the login
     bool isExisting = false;
@@ -97,7 +100,7 @@ void AutoFill::onPageLoaded(WebPage *page, const QUrl &url)
     for (auto it = lastUsedCreds.FormData.cbegin(); it != lastUsedCreds.FormData.cend(); ++it)
         scriptData.append(QString("autoFillVals['%1'] = '%2';\n").arg(it.key()).arg(it.value()));
 
-    page->runJavaScript(m_formFillScript.arg(scriptData));
+    page->runJavaScript(m_formFillScript.arg(scriptData), QWebEngineScript::ApplicationWorld);
 }
 
 std::vector<WebCredentials> AutoFill::getAllCredentials()

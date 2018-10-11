@@ -66,7 +66,7 @@ SOURCES += \
     History/HistoryWidget.cpp \
     BrowserApplication.cpp \
     DatabaseWorker.cpp \
-    FaviconStorage.cpp \
+    FaviconStore.cpp \
     MainWindow.cpp \
     Bookmarks/BookmarkFolderModel.cpp \
     Bookmarks/BookmarkManager.cpp \
@@ -164,7 +164,7 @@ HEADERS += \
     History/HistoryWidget.h \
     BrowserApplication.h \
     DatabaseWorker.h \
-    FaviconStorage.h \
+    FaviconStore.h \
     MainWindow.h \
     Bookmarks/BookmarkFolderModel.h \
     Bookmarks/BookmarkManager.h \

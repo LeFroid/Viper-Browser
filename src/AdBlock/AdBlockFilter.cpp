@@ -321,10 +321,7 @@ bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString 
     {
         QChar c = requestUrl[matchIdx - 1];
         const bool validChar = c == QChar('.') || c == QChar('/');
-        if (!secondLevelDomain.isEmpty())
-            return m_evalString.contains(secondLevelDomain, caseSensitivity) && validChar;
-        else
-            return validChar;
+        return validChar || m_evalString.contains(secondLevelDomain, caseSensitivity);
     }
     return false;
 }
@@ -352,7 +349,8 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
     for (i = 0; i < needleLength; ++i)
         t = (radixLength * t + ((haystackPtr + i)->toLatin1())) % prime;
 
-    for (i = 0; i <= haystackLength - needleLength; ++i)
+    const int lengthDiff = haystackLength - needleLength;
+    for (i = 0; i <= lengthDiff; ++i)
     {
         if (m_evalStringHash == t)
         {
@@ -366,10 +364,10 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
                 return true;
         }
 
-        if (i < haystackLength - needleLength)
+        if (i < lengthDiff)
         {
-            t = (t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime) % prime;
-            t = (t * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
+            t = ((t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime)
+                    * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
         }
     }
 

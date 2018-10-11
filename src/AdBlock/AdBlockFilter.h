@@ -197,7 +197,7 @@ private:
     /// Returns true if the given domain matches the base domain string, false if else
     bool isDomainMatch(QString base, const QString &domainStr) const;
 
-    /// Compares the requested URL and domain to the evaluation string, returning true if the filter matches the request, false if else
+    /// Compares the requested domain the evaluation string, returning true if the filter matches the request, false if else
     bool isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const;
 
     /// Applies the Rabin-Karp string matching algorithm to the given string, returning true if it contains the filter's eval string, false if else

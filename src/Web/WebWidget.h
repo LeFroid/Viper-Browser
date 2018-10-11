@@ -67,6 +67,9 @@ public:
      */
     explicit WebWidget(bool privateMode, QWidget *parent = nullptr);
 
+    /// WebWidget destructor
+    ~WebWidget();
+
     /// Returns the loading progress percentage value of the page as an integer in the range [0,100]
     int getProgress() const;
 

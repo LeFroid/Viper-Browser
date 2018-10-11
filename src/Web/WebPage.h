@@ -34,6 +34,9 @@ public:
     /// Constructs the web page with a specific browsing profile and a parent
     WebPage(QWebEngineProfile *profile, QObject *parent = nullptr);
 
+    /// WebPage destructor
+    ~WebPage();
+
     /// Executes the given JavaScript code (in string form), storing the result in the given reference
     void runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result);
 

@@ -569,6 +569,7 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
 {
     // Connect signals to slots for UI updates (page title, icon changes)
     connect(ww, &WebWidget::aboutToWake, [this,ww](){
+        //todo: should be a check first that the web widget is in the active tab before calling this
         ui->widgetFindText->setWebView(ww->view());
     });
     connect(ww, &WebWidget::loadFinished, this, &MainWindow::onLoadFinished);

@@ -68,6 +68,10 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
         connect(this, &WebWidget::loadFinished, sBrowserApplication->getHistoryManager(), &HistoryManager::onPageLoaded);
 }
 
+WebWidget::~WebWidget()
+{
+}
+
 int WebWidget::getProgress() const
 {
     if (m_hibernating)

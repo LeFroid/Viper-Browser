@@ -43,6 +43,10 @@ WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     setupSlots();
 }
 
+WebPage::~WebPage()
+{
+}
+
 void WebPage::setupSlots()
 {
     QWebChannel *channel = new QWebChannel(this);
@@ -87,9 +91,9 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         {
             QString data = QString::fromUtf8(resource.readAll().constData());
             int endTag = data.indexOf("</html>");
-            data.insert(endTag - 1, QString("<script>document.addEventListener(\"DOMContentLoaded\", function() {{"
-                                            "PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;"
-                                            "window.PDFViewerApplication.open(\"%1\");}});</script>").arg(urlString));
+            data.insert(endTag - 1, QString("<script>window.Response = undefined; document.addEventListener(\"DOMContentLoaded\", function() {"
+                                            " PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info; "
+                                            " window.PDFViewerApplication.open(\"%1\");});</script>").arg(urlString));
             QByteArray bytes;
             bytes.append(data);
             setHtml(bytes, url);
@@ -248,9 +252,12 @@ void WebPage::onLoadProgress(int percent)
 {
     if (percent > 0 && percent < 100 && m_needInjectAdBlockScript)
     {
+        URL pageUrl(url());
+        if (pageUrl.host().isEmpty())
+            return;
+
         m_needInjectAdBlockScript = false;
 
-        URL pageUrl(url());
         m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
         if (!m_mainFrameAdBlockScript.isEmpty())
             runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
@@ -273,12 +280,11 @@ void WebPage::onLoadFinished(bool ok)
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
 
     if (m_needInjectAdBlockScript)
-    {
         m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
 
-        if (!m_mainFrameAdBlockScript.isEmpty())
-            runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
-    }
+    if (!m_mainFrameAdBlockScript.isEmpty())
+        runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
+
     m_needInjectAdBlockScript = true;
 
     sBrowserApplication->getAutoFill()->onPageLoaded(this, url());
