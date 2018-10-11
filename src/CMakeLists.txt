@@ -99,7 +99,6 @@ set(viper_src
     SearchEngineManager.cpp
     SessionManager.cpp
     Settings.cpp
-    main.cpp
 )
 
 if (KF5Wallet_FOUND)
@@ -142,13 +141,13 @@ qt5_wrap_ui(viper_ui
     MainWindow.ui
 )
 
-add_executable(viper-browser
+set(viper_core_deps
     ${viper_src}
     ${viper_ui}
-    ${viper_qrc}
 )
 
-target_link_libraries(viper-browser
+add_library(viper-core STATIC ${viper_core_deps}) 
+target_link_libraries(viper-core
     Qt5::Core
     Qt5::Concurrent
     Qt5::Gui
@@ -163,5 +162,17 @@ target_link_libraries(viper-browser
 )
 
 if (KF5Wallet_FOUND)
-    target_link_libraries(viper-browser KF5::Wallet)
+    target_link_libraries(viper-core KF5::Wallet)
 endif()
+
+set(viper_browser_src
+    ${viper_qrc}
+    main.cpp
+)
+
+add_executable(viper-browser ${viper_browser_src})
+
+target_link_libraries(viper-browser
+    viper-core
+)
+
