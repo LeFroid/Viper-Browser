@@ -9,6 +9,8 @@
 #include <QObject>
 #include <QString>
 #include <QWebEngineUrlRequestInfo>
+
+#include <deque>
 #include <vector>
 
 class AdBlockModel;
@@ -165,10 +167,13 @@ private:
     std::vector<AdBlockSubscription> m_subscriptions;
 
     /// Container of important blocking filters that are checked before allow filters on network requests
-    std::vector<AdBlockFilter*> m_importantBlockFilters;
+    std::deque<AdBlockFilter*> m_importantBlockFilters;
 
     /// Container of filters that block content
-    std::vector<AdBlockFilter*> m_blockFilters;
+    std::deque<AdBlockFilter*> m_blockFilters;
+
+    /// Container of filters that block content based on a partial string match (needle in haystack)
+    std::deque<AdBlockFilter*> m_blockFiltersByPattern;
 
     /// Container of filters that whitelist content
     std::vector<AdBlockFilter*> m_allowFilters;

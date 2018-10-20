@@ -26,6 +26,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_subscriptions(),
     m_importantBlockFilters(),
     m_blockFilters(),
+    m_blockFiltersByPattern(),
     m_allowFilters(),
     m_domainStyleFilters(),
     m_domainJSFilters(),
@@ -328,7 +329,19 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
         if (usedCspScript)
             break;
 
-        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) &&filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
+        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
+        {
+            javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
+            usedCspScript = true;
+            break;
+        }
+    }
+    for (AdBlockFilter *filter : m_blockFiltersByPattern)
+    {
+        if (usedCspScript)
+            break;
+
+        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
             javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
             usedCspScript = true;
@@ -436,12 +449,17 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         elemType |= ElementType::ThirdParty;
     
     // Compare to filters
-    for (AdBlockFilter *filter : m_importantBlockFilters)
+    for (auto it = m_importantBlockFilters.begin(); it != m_importantBlockFilters.end(); ++it)
     {
+        AdBlockFilter *filter = *it;
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
             ++m_numRequestsBlocked;
             ++m_pageAdBlockCount[info.firstPartyUrl()];
+
+            it = m_importantBlockFilters.erase(it);
+            m_importantBlockFilters.push_front(filter);
+
             //qDebug() << "blocked " << requestUrl << " by IMPORTANT rule " << filter->getRule();
             if (filter->isRedirect())
             {
@@ -454,12 +472,30 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     // Look for a matching blocking filter before iterating through the allowed filter list, to avoid wasted resources
     AdBlockFilter *matchingBlockFilter = nullptr;
-    for (AdBlockFilter *filter : m_blockFilters)
+    for (auto it = m_blockFilters.begin(); it != m_blockFilters.end(); ++it)
     {
+        AdBlockFilter *filter = *it;
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
             matchingBlockFilter = filter;
+            it = m_blockFilters.erase(it);
+            m_blockFilters.push_front(filter);
             break;
+        }
+    }
+
+    if (matchingBlockFilter == nullptr)
+    {
+        for (auto it = m_blockFiltersByPattern.begin(); it != m_blockFiltersByPattern.end(); ++it)
+        {
+            AdBlockFilter *filter = *it;
+            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
+            {
+                matchingBlockFilter = filter;
+                it = m_blockFiltersByPattern.erase(it);
+                m_blockFiltersByPattern.push_front(filter);
+                break;
+            }
         }
     }
 
@@ -721,6 +757,7 @@ void AdBlockManager::clearFilters()
     m_importantBlockFilters.clear();
     m_allowFilters.clear();
     m_blockFilters.clear();
+    m_blockFiltersByPattern.clear();
     m_stylesheet.clear();
     m_domainStyleFilters.clear();
     m_domainJSFilters.clear();
@@ -794,13 +831,19 @@ void AdBlockManager::extractFilters()
                     else
                         m_importantBlockFilters.push_back(filter);
                 }
+                else if (filter->getCategory() == FilterCategory::StringContains)
+                {
+                    m_blockFiltersByPattern.push_back(filter);
+                }
                 else
+                {
                     m_blockFilters.push_back(filter);
+                }
             }
         }
     }
 
-    // Remove bad filters from m_allowFilters, m_blockFilters, m_genericHideFilters, m_cspFilters
+    // Remove bad filters from m_allowFilters, m_blockFilters, m_blockFiltersByPattern, m_genericHideFilters, m_cspFilters
     for (auto it = m_allowFilters.begin(); it != m_allowFilters.end();)
     {
         if (badFilters.contains((*it)->getRule()))
@@ -812,6 +855,13 @@ void AdBlockManager::extractFilters()
     {
         if (badFilters.contains((*it)->getRule()))
             it = m_blockFilters.erase(it);
+        else
+            ++it;
+    }
+    for (auto it = m_blockFiltersByPattern.begin(); it != m_blockFiltersByPattern.end();)
+    {
+        if (badFilters.contains((*it)->getRule()))
+            it = m_blockFiltersByPattern.erase(it);
         else
             ++it;
     }
