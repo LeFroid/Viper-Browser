@@ -182,6 +182,10 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
     if (m_disabled)
         return false;
 
+    // Check for domain restrictions
+    if (hasDomainRules() && !isDomainStyleMatch(baseUrl))
+        return false;
+
     // Special cases
     if (typeMask == ElementType::InlineScript && !hasElementType(m_blockedTypes, ElementType::InlineScript))
         return false;
@@ -232,10 +236,6 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
 
     if (match)
     {
-        // Check for domain restrictions
-        if (hasDomainRules() && !isDomainStyleMatch(baseUrl)) //!isDomainMatch(m_evalString, baseUrl))
-            return false;
-
         // Check for element type restrictions (in specific order)
         std::array<ElementType, 13> elemTypes = {{ ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
                                                    ElementType::Subdocument,     ElementType::Image,      ElementType::Script,
@@ -329,7 +329,7 @@ bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString 
 bool AdBlockFilter::filterContains(const QString &haystack) const
 {
     static const quint64 radixLength = 256ULL;
-    static const quint64 prime = 72057594037927931ULL;
+    static const quint64 prime = 89999027ULL;
 
     const int needleLength = m_evalString.size();
     const int haystackLength = haystack.size();
@@ -347,7 +347,7 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
 
     // Calculate the hash value of first window of text
     for (i = 0; i < needleLength; ++i)
-        t = (radixLength * t + ((haystackPtr + i)->toLatin1())) % prime;
+        t = (radixLength * t + ((haystackPtr + i)->unicode())) % prime;
 
     const int lengthDiff = haystackLength - needleLength;
     for (i = 0; i <= lengthDiff; ++i)
@@ -356,7 +356,7 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
         {
             for (j = 0; j < needleLength; j++)
             {
-                if ((haystackPtr + i + j)->toLatin1() != (needlePtr + j)->toLatin1())
+                if ((haystackPtr + i + j)->unicode() != (needlePtr + j)->unicode())
                     break;
             }
 
@@ -366,8 +366,10 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
 
         if (i < lengthDiff)
         {
-            t = ((t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime)
-                    * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
+            t = radixLength * (t + prime - m_differenceHash * ((haystackPtr + i)->unicode()) % prime) % prime;
+            t = (t + (haystackPtr + needleLength + i)->unicode()) % prime;
+            //t = (t + prime - m_differenceHash * ((haystackPtr + i)->unicode()) % prime) % prime;
+            //t = (t * radixLength + ((haystackPtr + i + needleLength)->unicode())) % prime;
         }
     }
 
@@ -380,12 +382,12 @@ void AdBlockFilter::hashEvalString()
     const QChar *needlePtr = m_evalString.constData();
 
     const quint64 radixLength = 256ULL;
-    const quint64 prime = 72057594037927931ULL;
+    const quint64 prime = 89999027ULL;
 
     m_differenceHash = quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
 
     for (int index = 0; index < needleLength; ++index)
-        m_evalStringHash = (radixLength * m_evalStringHash + (needlePtr + index)->toLatin1()) % prime;
+        m_evalStringHash = (radixLength * m_evalStringHash + (needlePtr + index)->unicode()) % prime;
 }
 
 void AdBlockFilter::setContentSecurityPolicy(const QString &csp)

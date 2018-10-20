@@ -40,12 +40,17 @@
         }
     };
 
-    /*for (let form of document.forms) {
-        form.addEventListener('submit', onSubmitForm);
-        //todo: check for a username input field, add event listener for the change event,
-        //      and call autofill to see if the username that has been entered has an
-        //      associated password stored for it
-    }*/
+    var addListenerToElemParent = function(child) {
+        var elem = child;
+        while (elem.parentElement != undefined) {
+            elem = elem.parentElement;
+            if (elem.nodeName.toLowerCase() == 'form') {
+                elem.addEventListener('submit', onSubmitForm);
+                return true;
+            }
+        }
+        return false;
+    };
 
     var isElemSubmit = function(elem) {
         var elemName = elem.nodeName.toLowerCase();
@@ -54,19 +59,16 @@
             return true;
         } else if (elemName == 'input') {
             if (elem.type.toLowerCase() == 'submit') {
-                while (elem.parentElement != undefined) {
-                    elem = elem.parentElement;
-                    if (elem.nodeName.toLowerCase() == 'form') {
-                        elem.addEventListener('submit', onSubmitForm);
-                        return true;
-                    }
+                if (!addListenerToElemParent(elem)) {
+                    elem.addEventListener('submit', onSubmitForm);
                 }
-                elem.addEventListener('submit', onSubmitForm);
                 return true;
             }
         } else if (elemName == 'button') {
             if (elem.onsubmit != null && elem.onsubmit != undefined) {
-                elem.addEventListener('submit', onSubmitForm);
+                if (!addListenerToElemParent(elem)) {
+                    elem.addEventListener('submit', onSubmitForm);
+                }
                 return true;
             } else if (elem.onclick != null && elem.onclick != undefined) {
                 elem.addEventListener('click', onSubmitForm);
@@ -76,7 +78,9 @@
             var attrs = elem.attributes;
             for (let attr of attrs) {
                 if (eventNames.indexOf(attr.name) > 0) {
-                    elem.addEventListener(attr.name.substr(2), onSubmitForm);
+                    if (!addListenerToElemParent(elem)) {
+                        elem.addEventListener(attr.name.substr(2), onSubmitForm);
+                    }
                     return true;
                 }
             }

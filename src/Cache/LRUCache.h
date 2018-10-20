@@ -64,6 +64,13 @@ public:
         }
     }
 
+    /// Clears the cache
+    void clear()
+    {
+        m_map.clear();
+        m_list.clear();
+    }
+
 private:
     /// The maximum number of key-value pairs in the cache
     size_t m_maxSize;

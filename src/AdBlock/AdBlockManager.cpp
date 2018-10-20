@@ -451,6 +451,21 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
             return true;
         }
     }
+
+    // Look for a matching blocking filter before iterating through the allowed filter list, to avoid wasted resources
+    AdBlockFilter *matchingBlockFilter = nullptr;
+    for (AdBlockFilter *filter : m_blockFilters)
+    {
+        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
+        {
+            matchingBlockFilter = filter;
+            break;
+        }
+    }
+
+    if (matchingBlockFilter == nullptr)
+        return false;
+
     for (AdBlockFilter *filter : m_allowFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
@@ -459,22 +474,18 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
             return false;
         }
     }
-    for (AdBlockFilter *filter : m_blockFilters)
+
+    // If we reach this point, then the matching block filter is applied to the request
+    ++m_numRequestsBlocked;
+    ++m_pageAdBlockCount[info.firstPartyUrl()];
+
+    if (matchingBlockFilter->isRedirect())
     {
-        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
-        {
-            ++m_numRequestsBlocked;
-            ++m_pageAdBlockCount[info.firstPartyUrl()];
-            //qDebug() << "blocked " << requestUrl << " by rule " << filter->getRule();
-            if (filter->isRedirect())
-            {
-                info.redirect(QUrl(QString("blocked:%1").arg(filter->getRedirectName())));
-                return false;
-            }
-            return true;
-        }
+        info.redirect(QUrl(QString("blocked:%1").arg(matchingBlockFilter->getRedirectName())));
+        return false;
     }
-    return false;
+
+    return true;
 }
 
 quint64 AdBlockManager::getRequestsBlockedCount() const
@@ -549,6 +560,9 @@ void AdBlockManager::removeSubscription(int index)
 
 void AdBlockManager::reloadSubscriptions()
 {
+    m_domainStylesheetCache.clear();
+    m_jsInjectionCache.clear();
+
     clearFilters();
     extractFilters();
 }
