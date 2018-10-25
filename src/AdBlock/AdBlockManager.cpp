@@ -310,6 +310,8 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
         return m_jsInjectionCache.get(requestHostStdStr);
 
     QString javascript;
+
+    std::vector<QString> cspDirectives;
     for (AdBlockFilter *filter : m_domainJSFilters)
     {
         if (filter->isDomainStyleMatch(domain))
@@ -319,7 +321,7 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     {
         if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
-            javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
+            cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
             usedCspScript = true;
             break;
         }
@@ -331,7 +333,7 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
 
         if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
-            javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
+            cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
             usedCspScript = true;
             break;
         }
@@ -343,25 +345,32 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
 
         if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
         {
-            javascript.append(cspScript.arg(QLatin1String("script-src 'unsafe-eval' * blob: data:")));
+            cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
             usedCspScript = true;
             break;
         }
     }
     for (AdBlockFilter *filter : m_cspFilters)
     {
-        if (usedCspScript)
-            break;
         if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
         {
-            //qDebug() << "Adding CSP rule from filter: " << filter->getRule();
-            javascript.append(cspScript.arg(filter->getContentSecurityPolicy()));
-            usedCspScript = true;
-            break;
+            cspDirectives.push_back(filter->getContentSecurityPolicy());
         }
     }
 
     QString result;
+    if (!cspDirectives.empty())
+    {
+        QString cspConcatenated;
+        for (size_t i = 0; i < cspDirectives.size(); ++i)
+        {
+            cspConcatenated.append(cspDirectives.at(i));
+            if (i + 1 < cspDirectives.size())
+                cspConcatenated.append(QLatin1String("; "));
+        }
+        javascript.append(cspScript.arg(cspConcatenated));
+    }
+
     if (!javascript.isEmpty())
     {
         result = m_cosmeticJSTemplate;
