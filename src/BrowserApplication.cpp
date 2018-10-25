@@ -25,9 +25,14 @@
 #include <QUrl>
 #include <QDebug>
 #include <QWebEngineCookieStore>
+#include <QtWebEngineCoreVersion>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 12, 0))
+#include <QWebEngineUrlScheme>
+#endif
 
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
@@ -41,6 +46,14 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
     setWindowIcon(QIcon(QLatin1String(":/logo.png")));
+
+    // Setup URL schemes before instantiating any web engine classes
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 12, 0))
+    QWebEngineUrlScheme scheme("blocked");
+    scheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
+    scheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::ContentSecurityPolicyIgnored);
+    QWebEngineUrlScheme::registerScheme(scheme);
+#endif
 
     // Get default profile and private profile
     auto webProfile = QWebEngineProfile::defaultProfile();

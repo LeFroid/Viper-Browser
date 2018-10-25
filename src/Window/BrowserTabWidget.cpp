@@ -392,6 +392,7 @@ void BrowserTabWidget::onCurrentChanged(int index)
     if (!ww)
         return;
 
+    ww->show();
     m_activeView = ww;
 
     resetHistoryButtonMenus();

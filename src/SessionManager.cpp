@@ -192,5 +192,9 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
         // Set current tab to the last active tab
         int currentTab = winObject.value(QLatin1String("current_tab")).toInt();
         tabWidget->setCurrentIndex(currentTab);
+
+        // Fix for web page not initially rendering on qt 5.12
+        currentWindow->hide();
+        currentWindow->show();
     }
 }
