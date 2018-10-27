@@ -10,9 +10,13 @@
 void SchemeRegistry::registerSchemes()
 {
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 12, 0))
-    QWebEngineUrlScheme scheme("blocked");
-    scheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
-    scheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::ContentSecurityPolicyIgnored);
-    QWebEngineUrlScheme::registerScheme(scheme);
+    QWebEngineUrlScheme blockedScheme("blocked");
+    blockedScheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
+    blockedScheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::ContentSecurityPolicyIgnored);
+    QWebEngineUrlScheme::registerScheme(blockedScheme);
+
+    QWebEngineUrlScheme viperScheme("viper");
+    viperScheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::LocalAccessAllowed | QWebEngineUrlScheme::ContentSecurityPolicyIgnored);
+    QWebEngineUrlScheme::registerScheme(viperScheme);
 #endif
 }

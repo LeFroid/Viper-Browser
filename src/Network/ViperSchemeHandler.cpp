@@ -32,7 +32,10 @@ QIODevice *ViperSchemeHandler::loadFile(QWebEngineUrlRequestJob *request)
 {
     // Extract file name from URL
     QString qrcPath = request->requestUrl().toString();
-    qrcPath = qrcPath.right(qrcPath.size() - 8);
+    qrcPath = qrcPath.mid(6);
+    if (qrcPath.startsWith(QLatin1String("//")))
+        qrcPath = qrcPath.mid(2);
+
     int paramPos = qrcPath.indexOf("?");
     if (paramPos >= 0)
         qrcPath = qrcPath.left(paramPos);
