@@ -219,6 +219,10 @@ QString FaviconStore::getUrlAsString(const QUrl &url) const
 
 void FaviconStore::saveToDB(const QString &faviconUrl, const FaviconInfo &favicon)
 {
+    // ignore when the location itself is a data blob
+    if (faviconUrl.startsWith(QLatin1String("data:")))
+        return;
+
     QSqlQuery *query = m_queryMap.at(StoredQuery::InsertFavicon).get();
     query->bindValue(QLatin1String(":iconId"), favicon.iconID);
     query->bindValue(QLatin1String(":url"), faviconUrl);
