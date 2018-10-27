@@ -388,11 +388,12 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         return false;
 
     // Get request URL and the originating URL
+    QUrl firstPartyUrl = info.firstPartyUrl();
     QString requestUrl = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
-    QString baseUrl = getSecondLevelDomain(info.firstPartyUrl()).toLower();//.toString(QUrl::FullyEncoded).toLower();
+    QString baseUrl = getSecondLevelDomain(firstPartyUrl).toLower();//.toString(QUrl::FullyEncoded).toLower();
 
     if (baseUrl.isEmpty())
-        baseUrl = info.firstPartyUrl().host().toLower();
+        baseUrl = firstPartyUrl.host().toLower();
 
     // Convert QWebEngine request info type to ours
     ElementType elemType = ElementType::None;
@@ -455,7 +456,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     if (domain.isEmpty())
         domain = getSecondLevelDomain(info.requestUrl());
 
-    if (getSecondLevelDomain(info.requestUrl()) != getSecondLevelDomain(info.firstPartyUrl()))
+    if (firstPartyUrl.isEmpty() || (getSecondLevelDomain(info.requestUrl()) != getSecondLevelDomain(firstPartyUrl)))
         elemType |= ElementType::ThirdParty;
     
     // Compare to filters
@@ -465,7 +466,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
             ++m_numRequestsBlocked;
-            ++m_pageAdBlockCount[info.firstPartyUrl()];
+            ++m_pageAdBlockCount[firstPartyUrl];
 
             it = m_importantBlockFilters.erase(it);
             m_importantBlockFilters.push_front(filter);
@@ -523,7 +524,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     // If we reach this point, then the matching block filter is applied to the request
     ++m_numRequestsBlocked;
-    ++m_pageAdBlockCount[info.firstPartyUrl()];
+    ++m_pageAdBlockCount[firstPartyUrl];
 
     if (matchingBlockFilter->isRedirect())
     {

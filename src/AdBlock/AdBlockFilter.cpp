@@ -262,7 +262,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
 
 bool AdBlockFilter::isDomainStyleMatch(const QString &domain)
 {
-    if (m_disabled)
+    if (m_disabled || domain.isEmpty())
         return false;
 
     if (m_domainBlacklist.empty() && m_domainWhitelist.empty())
