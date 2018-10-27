@@ -47,6 +47,7 @@ set(viper_src
     Network/HttpRequest.cpp
     Network/NetworkAccessManager.cpp
     Network/RequestInterceptor.cpp
+    Network/SchemeRegistry.cpp
     Network/SecurityInfoDialog.cpp
     Network/SecurityManager.cpp
     Network/ViperNetworkReply.cpp
@@ -92,6 +93,7 @@ set(viper_src
     Window/SearchEngineLineEdit.cpp
     Window/URLLineEdit.cpp
     BrowserApplication.cpp
+    BrowserScripts.cpp
     CommonUtil.cpp
     DatabaseWorker.cpp
     FaviconStore.cpp

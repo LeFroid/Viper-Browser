@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "BrowserScripts.h"
 #include "AdBlockManager.h"
 #include "AutoFill.h"
 #include "BlockedSchemeHandler.h"
@@ -25,14 +26,9 @@
 #include <QUrl>
 #include <QDebug>
 #include <QWebEngineCookieStore>
-#include <QtWebEngineCoreVersion>
 #include <QWebEngineProfile>
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
-
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 12, 0))
-#include <QWebEngineUrlScheme>
-#endif
 
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
@@ -46,14 +42,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
     setWindowIcon(QIcon(QLatin1String(":/logo.png")));
-
-    // Setup URL schemes before instantiating any web engine classes
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 12, 0))
-    QWebEngineUrlScheme scheme("blocked");
-    scheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
-    scheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::ContentSecurityPolicyIgnored);
-    QWebEngineUrlScheme::registerScheme(scheme);
-#endif
 
     // Get default profile and private profile
     auto webProfile = QWebEngineProfile::defaultProfile();
@@ -314,75 +302,23 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
 
 void BrowserApplication::installGlobalWebScripts()
 {
-    QWebEngineScript printScript;
-    printScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
-    printScript.setName(QLatin1String("viper-window-script"));
-    printScript.setRunsOnSubFrames(true);
-    printScript.setWorldId(QWebEngineScript::MainWorld);
-    printScript.setSourceCode(QLatin1String("(function() { window.print = function() { "
-                                            "window.location = 'viper:print'; }; })()"));
+    BrowserScripts browserScriptContainer;
 
-    QWebEngineScript webChannel;
-    webChannel.setInjectionPoint(QWebEngineScript::DocumentCreation);
-    webChannel.setName(QLatin1String("viper-web-channel"));
-    webChannel.setRunsOnSubFrames(true);
-    webChannel.setWorldId(QWebEngineScript::ApplicationWorld);
-
-    QString webChannelJS;
-    QFile webChannelFile(QLatin1String(":/qtwebchannel/qwebchannel.js"));
-    if (webChannelFile.open(QIODevice::ReadOnly))
-        webChannelJS = webChannelFile.readAll();
-    webChannelFile.close();
-
-    QString webChannelScript;
-    QFile webChannelSetupFile(QLatin1String(":/WebChannelSetup.js"));
-    if (webChannelSetupFile.open(QIODevice::ReadOnly))
-    {
-        webChannelScript = webChannelSetupFile.readAll();
-        webChannelScript = webChannelScript.arg(webChannelJS);
-    }
-    webChannelSetupFile.close();
-    webChannel.setSourceCode(webChannelScript);
-
-    QWebEngineScript faviconBridge;
-    faviconBridge.setInjectionPoint(QWebEngineScript::DocumentReady);
-    faviconBridge.setName(QLatin1String("viper-favicon-bridge"));
-    faviconBridge.setRunsOnSubFrames(false);
-    faviconBridge.setWorldId(QWebEngineScript::ApplicationWorld);
-
-    QString faviconScript;
-    QFile faviconScriptFile(QLatin1String(":/GetFavicon.js"));
-    if (faviconScriptFile.open(QIODevice::ReadOnly))
-        faviconScript = faviconScriptFile.readAll();
-    faviconScriptFile.close();
-
-    faviconBridge.setSourceCode(faviconScript);
-
-    QWebEngineScript autoFillObserver;
-    autoFillObserver.setInjectionPoint(QWebEngineScript::DocumentReady);
-    autoFillObserver.setName(QLatin1String("viper-autofill-observer"));
-    autoFillObserver.setRunsOnSubFrames(true);
-    autoFillObserver.setWorldId(QWebEngineScript::ApplicationWorld);
-
-    QString autoFillJS;
-    QFile autoFillObserverFile(QLatin1String(":/AutoFillObserver.js"));
-    if (autoFillObserverFile.open(QIODevice::ReadOnly))
-        autoFillJS = autoFillObserverFile.readAll();
-    autoFillObserverFile.close();
-
-    autoFillObserver.setSourceCode(autoFillJS);
-
-    auto scriptCollection = QWebEngineProfile::defaultProfile()->scripts();
+    auto publicScriptCollection = QWebEngineProfile::defaultProfile()->scripts();
     auto privateScriptCollection = m_privateProfile->scripts();
 
-    scriptCollection->insert(printScript);
-    scriptCollection->insert(webChannel);
-    scriptCollection->insert(faviconBridge);
-    scriptCollection->insert(autoFillObserver);
+    const std::vector<QWebEngineScript> &globalScripts = browserScriptContainer.getGlobalScripts();
+    for (const QWebEngineScript &script : globalScripts)
+    {
+        publicScriptCollection->insert(script);
+        privateScriptCollection->insert(script);
+    }
 
-    privateScriptCollection->insert(printScript);
-    privateScriptCollection->insert(webChannel);
-    privateScriptCollection->insert(faviconBridge);
+    const std::vector<QWebEngineScript> &publicScripts = browserScriptContainer.getPublicOnlyScripts();
+    for (const QWebEngineScript &script :publicScripts)
+    {
+        publicScriptCollection->insert(script);
+    }
 }
 
 void BrowserApplication::beforeBrowserQuit()

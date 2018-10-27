@@ -190,7 +190,7 @@ void BrowserTabBar::mousePressEvent(QMouseEvent *event)
             m_dragStartPos = event->pos();
             WebWidget *webWidget = tabWidget->getWebWidget(tabIdx);
             m_draggedTabState = webWidget->getState();
-            m_draggedTabState.isPinned = tabWidget->isTabPinned(tabIdx);
+            m_draggedTabState.isPinned = isTabPinned(tabIdx);
             m_isDraggedTabHibernating = webWidget->isHibernating();
 
             QRect dragTabRect = tabRect(tabIdx);

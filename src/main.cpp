@@ -1,6 +1,7 @@
 #include "BrowserApplication.h"
 #include "MainWindow.h"
 #include "SecurityManager.h"
+#include "SchemeRegistry.h"
 
 #include <memory>
 #include <QtGlobal>
@@ -113,6 +114,8 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_LINUX
     signal(SIGSEGV, _handleCrash);
 #endif
+
+    SchemeRegistry::registerSchemes();
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     BrowserApplication a(argc, argv);
