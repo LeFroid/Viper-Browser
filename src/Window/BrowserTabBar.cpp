@@ -23,7 +23,8 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
     QTabBar(parent),
     m_buttonNewTab(nullptr),
     m_dragStartPos(),
-    m_dragUrl(),
+    m_draggedTabState(),
+    m_isDraggedTabHibernating(false),
     m_dragPixmap(),
     m_externalDropInfo(),
     m_tabPinMap()
@@ -187,7 +188,10 @@ void BrowserTabBar::mousePressEvent(QMouseEvent *event)
         if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
         {
             m_dragStartPos = event->pos();
-            m_dragUrl = tabWidget->getWebWidget(tabIdx)->url();
+            WebWidget *webWidget = tabWidget->getWebWidget(tabIdx);
+            m_draggedTabState = webWidget->getState();
+            m_draggedTabState.isPinned = tabWidget->isTabPinned(tabIdx);
+            m_isDraggedTabHibernating = webWidget->isHibernating();
 
             QRect dragTabRect = tabRect(tabIdx);
             m_dragPixmap = QPixmap(dragTabRect.size());
@@ -216,7 +220,9 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
     QMimeData *mimeData = new QMimeData;
 
     int tabIdx = tabAt(m_dragStartPos);
-    mimeData->setData("application/x-browser-tab", m_dragUrl.toEncoded());
+    QByteArray encodedState = m_draggedTabState.serialize();
+    mimeData->setData("application/x-browser-tab", encodedState);
+    mimeData->setProperty("tab-hibernating", m_isDraggedTabHibernating);
     mimeData->setProperty("tab-origin-window-id", window()->winId());
     mimeData->setProperty("tab-index", tabIdx);
     drag->setMimeData(mimeData);
@@ -334,7 +340,8 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
     else if (mimeData->hasFormat("application/x-browser-tab"))
     {
         if ((qulonglong)window()->winId() == mimeData->property("tab-origin-window-id").toULongLong())
-        {/*
+        {
+            /*
             int originalTabIndex = mimeData->property("tab-index").toInt();
             int tabIndexAtPos = tabAt(event->pos());
             if (originalTabIndex >= 0 && tabIndexAtPos >= 0 && originalTabIndex != tabIndexAtPos)

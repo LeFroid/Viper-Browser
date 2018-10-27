@@ -368,6 +368,7 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
             if (i + 1 < cspDirectives.size())
                 cspConcatenated.append(QLatin1String("; "));
         }
+        cspConcatenated.replace(QLatin1String("\""), QLatin1String("\\\""));
         javascript.append(cspScript.arg(cspConcatenated));
     }
 

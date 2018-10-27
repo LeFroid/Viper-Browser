@@ -49,6 +49,10 @@ std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) con
         rule = rule.left(pos);
     }
 
+    // Check if rule is a 'Match all' type
+    if (rule.size() == 1 && rule.at(0) == QChar('*'))
+        filterPtr->m_matchAll = true;
+
     // Check if rule is a regular expression
     if (rule.startsWith('/') && rule.endsWith('/'))
     {

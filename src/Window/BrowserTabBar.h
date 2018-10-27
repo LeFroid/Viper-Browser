@@ -1,6 +1,8 @@
 #ifndef BROWSERTABBAR_H
 #define BROWSERTABBAR_H
 
+#include "WebWidget.h"
+
 #include <map>
 #include <QTabBar>
 #include <QUrl>
@@ -134,8 +136,11 @@ private:
     /// Stores the starting position of a tab drag event
     QPoint m_dragStartPos;
 
-    /// Stores the URL of the tab being dragged
-    QUrl m_dragUrl;
+    /// Stores the state of the \ref WebWidget in the tab being dragged
+    WebState m_draggedTabState;
+
+    /// Flag reflecting whether or not the tab being dragged is hibernating
+    bool m_isDraggedTabHibernating;
 
     /// Keeps the contents of the tab region in a pixmap for drag-and-drop events
     QPixmap m_dragPixmap;

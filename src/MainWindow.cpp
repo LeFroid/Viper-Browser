@@ -762,17 +762,29 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 void MainWindow::dropEvent(QDropEvent *event)
 {
     QByteArray encodedData = event->mimeData()->data("application/x-browser-tab");
-    QUrl tabUrl = QUrl::fromEncoded(encodedData);
+    WebState webState;
+    webState.deserialize(encodedData);
 
     // Check window identifier of tab. If matches this window's id, load the tab
     // in a new window. Otherwise, add the tab to this window
     if ((qulonglong)winId() == event->mimeData()->property("tab-origin-window-id").toULongLong())
     {
         MainWindow *win = sBrowserApplication->getNewWindow();
-        win->loadUrl(tabUrl);
+        WebWidget *webWidget = win->currentWebWidget();
+        win->getTabWidget()->setTabPinned(0, webState.isPinned);
+        webWidget->setHibernation(event->mimeData()->property("tab-hibernating").toBool());
+        webWidget->setWebState(webState);
+        win->onTabChanged(0);
     }
     else
-        m_tabWidget->openLinkInNewTab(tabUrl);
+    {
+        WebWidget *newTab = m_tabWidget->newTab();
+        int tabIndex = m_tabWidget->indexOf(newTab);
+        m_tabWidget->setTabPinned(tabIndex, webState.isPinned);
+        newTab->setHibernation(event->mimeData()->property("tab-hibernating").toBool());
+        newTab->setWebState(webState);
+        onTabChanged(tabIndex);
+    }
 
     event->acceptProposedAction();
 }

@@ -46,6 +46,12 @@ struct WebState
 
     /// Constructs the WebState, given a pointer to the WebWidget and its parent BrowserTabWidget
     WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget);
+
+    /// Serializes the WebState into a byte array
+    QByteArray serialize() const;
+
+    /// Deserializes the WebState from the given byte array
+    void deserialize(QByteArray &data);
 };
 
 /**

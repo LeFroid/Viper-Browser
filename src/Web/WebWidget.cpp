@@ -39,6 +39,32 @@ WebState::WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget) :
     }
 }
 
+QByteArray WebState::serialize() const
+{
+    QByteArray result;
+    QDataStream stream(&result, QIODevice::WriteOnly);
+    stream << index
+           << isPinned
+           << icon
+           << iconUrl
+           << title
+           << url
+           << pageHistory;
+    return result;
+}
+
+void WebState::deserialize(QByteArray &data)
+{
+    QDataStream stream(&data, QIODevice::ReadOnly);
+    stream  >> index
+            >> isPinned
+            >> icon
+            >> iconUrl
+            >> title
+            >> url
+            >> pageHistory;
+}
+
 WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     QWidget(parent),
     m_view(nullptr),
