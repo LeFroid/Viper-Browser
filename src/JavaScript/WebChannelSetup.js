@@ -29,17 +29,19 @@
         }
     }
 
-    if (self !== top) {
-        if (top._webchannel_initialized) {
-            window.viper = top.viper;
-            notifySetupComplete();
-        } else {
-            top.document.addEventListener('__webchannel_setup', function() {
+    try {
+        if (self !== top) {
+            if (top._webchannel_initialized) {
                 window.viper = top.viper;
                 notifySetupComplete();
-            });
+            } else {
+                top.document.addEventListener('__webchannel_setup', function() {
+                    window.viper = top.viper;
+                    notifySetupComplete();
+                });
+            }
+        } else {
+            attemptSetup();
         }
-    } else {
-        attemptSetup();
-    }
+    } catch (e){}
 })();

@@ -353,6 +353,7 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
     switch (event->type())
     {
         case QEvent::ChildAdded:
+        case QEvent::ChildRemoved:
         {
             if (watched == m_view)
             {

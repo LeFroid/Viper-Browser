@@ -1,6 +1,7 @@
 #ifndef ADBLOCKMANAGER_H
 #define ADBLOCKMANAGER_H
 
+#include "AdBlockFilter.h"
 #include "AdBlockSubscription.h"
 #include "LRUCache.h"
 #include "URL.h"
@@ -129,6 +130,12 @@ private slots:
     void loadResourceFile(const QString &path);
 
 private:
+    /// Returns true if the request should not be processed by the Ad Block system based on its scheme
+    bool isSchemeWhitelisted(const QString &scheme) const;
+
+    /// Returns the \ref ElementType of the network request, which is used to check for filter option/type matches
+    ElementType getRequestType(const QWebEngineUrlRequestInfo &info) const;
+
     /// Returns the second-level domain string of the given url
     QString getSecondLevelDomain(const QUrl &url) const;
 

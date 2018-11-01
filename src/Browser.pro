@@ -142,11 +142,13 @@ SOURCES += \
     CommonUtil.cpp \
     Network/AuthDialog.cpp \
     Network/HttpRequest.cpp \
+    Network/SchemeRegistry.cpp \
     Credentials/CredentialStore.cpp \
     AutoFill/AutoFill.cpp \
     AutoFill/AutoFillBridge.cpp \
     AutoFill/AutoFillDialog.cpp \
-    AutoFill/AutoFillCredentialsView.cpp
+    AutoFill/AutoFillCredentialsView.cpp \
+    BrowserScripts.cpp
 
 HEADERS += \
     TreeNode.h \
@@ -241,12 +243,14 @@ HEADERS += \
     CommonUtil.h \
     Network/AuthDialog.h \
     Network/HttpRequest.h \
+    Network/SchemeRegistry.h \
     Credentials/CredentialStore.h \
     Credentials/CredentialStoreImpl.h \
     AutoFill/AutoFill.h \
     AutoFill/AutoFillBridge.h \
     AutoFill/AutoFillDialog.h \
-    AutoFill/AutoFillCredentialsView.h
+    AutoFill/AutoFillCredentialsView.h \
+    BrowserScripts.h
 
 FORMS += \
     Cookies/CookieWidget.ui \
