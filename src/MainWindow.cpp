@@ -73,6 +73,7 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
 
     ui->setupUi(this);
     ui->toolBar->setMinHeights(ui->toolBar->height() + 3);
+    ui->toolBar->setFaviconStore(faviconStore);
 
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");

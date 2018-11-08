@@ -221,10 +221,7 @@ WebWidget *BrowserTabWidget::createWebWidget()
 
 	connect(ww, &WebWidget::aboutToHibernate, [=]() {
 		if (currentWebWidget() == ww) {
-			// temporary measure until the webenginehistory items are encapsulated in a WebHistory class
-			// that will wake up the tab before triggering the history item's back/forward action
-			m_backMenu->clear();
-			m_forwardMenu->clear();
+            emit aboutToHibernate();
 		}
 	});
 
@@ -361,15 +358,6 @@ void BrowserTabWidget::loadUrl(const QUrl &url)
     }
 }
 
-void BrowserTabWidget::setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu)
-{
-    if (!backMenu || !forwardMenu)
-        return;
-
-    m_backMenu = backMenu;
-    m_forwardMenu = forwardMenu;
-}
-
 void BrowserTabWidget::resetZoomCurrentView()
 {
     if (WebWidget *ww = currentWebWidget())
@@ -396,8 +384,6 @@ void BrowserTabWidget::onCurrentChanged(int index)
 
     ww->show();
     m_activeView = ww;
-
-    resetHistoryButtonMenus();
 
     m_lastTabIndex = m_currentTabIndex;
     m_currentTabIndex = index;
@@ -429,7 +415,7 @@ void BrowserTabWidget::onLoadFinished(bool ok)
     setTabToolTip(tabIndex, pageTitle);
 
     if (ok && ww == m_activeView)
-        resetHistoryButtonMenus();
+        emit loadFinished();
 }
 
 void BrowserTabWidget::onLoadProgress(int progress)
@@ -464,57 +450,4 @@ void BrowserTabWidget::onViewCloseRequested()
 {
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
     closeTab(indexOf(ww));
-}
-
-void BrowserTabWidget::resetHistoryButtonMenus()
-{
-    m_backMenu->clear();
-    m_forwardMenu->clear();
-
-    int maxMenuSize = 10;
-    QWebEngineHistory *hist = m_activeView->history();
-    if (hist == nullptr)
-        return;
-    QAction *histAction = nullptr, *prevAction = nullptr;
-
-    // Setup back button history menu
-    QList<QWebEngineHistoryItem> histItems = hist->backItems(maxMenuSize);
-    for (const QWebEngineHistoryItem &item : histItems)
-    {
-        QIcon icon = m_faviconStore->getFavicon(item.url());
-
-        if (prevAction == nullptr)
-            histAction = m_backMenu->addAction(icon, item.title());
-        else
-        {
-            histAction = new QAction(icon, item.title(), m_backMenu);
-            m_backMenu->insertAction(prevAction, histAction);
-        }
-
-        connect(histAction, &QAction::triggered, [=](){
-            hist->goToItem(item);
-        });
-        prevAction = histAction;
-    }
-
-    // Setup forward button history menu
-    histItems = hist->forwardItems(maxMenuSize);
-    histAction = nullptr, prevAction = nullptr;
-    for (const QWebEngineHistoryItem &item : histItems)
-    {
-        QIcon icon = m_faviconStore->getFavicon(item.url());
-
-        if (prevAction == nullptr)
-            histAction = m_forwardMenu->addAction(icon, item.title());
-        else
-        {
-            histAction = new QAction(icon, item.title(), m_forwardMenu);
-            m_forwardMenu->insertAction(prevAction, histAction);
-        }
-
-        connect(histAction, &QAction::triggered, [=](){
-            hist->goToItem(item);
-        });
-        prevAction = histAction;
-    }
 }

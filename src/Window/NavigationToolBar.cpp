@@ -3,6 +3,7 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BrowserTabWidget.h"
+#include "FaviconStore.h"
 #include "MainWindow.h"
 #include "NavigationToolBar.h"
 #include "SearchEngineLineEdit.h"
@@ -15,6 +16,7 @@
 #include <QSplitter>
 #include <QStyle>
 #include <QToolButton>
+#include <QWebEngineHistoryItem>
 
 NavigationToolBar::NavigationToolBar(const QString &title, QWidget *parent) :
     QToolBar(title, parent),
@@ -24,7 +26,8 @@ NavigationToolBar::NavigationToolBar(const QString &title, QWidget *parent) :
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
     m_splitter(nullptr),
-    m_adBlockButton(nullptr)
+    m_adBlockButton(nullptr),
+    m_faviconStore(nullptr)
 {
     setupUI();
 }
@@ -37,7 +40,8 @@ NavigationToolBar::NavigationToolBar(QWidget *parent) :
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
     m_splitter(nullptr),
-    m_adBlockButton(nullptr)
+    m_adBlockButton(nullptr),
+    m_faviconStore(nullptr)
 {
     setupUI();
 }
@@ -69,6 +73,11 @@ void NavigationToolBar::setMinHeights(int size)
     m_urlInput->setMinimumHeight(subWidgetMinHeight);
     m_searchEngineLineEdit->setMinimumHeight(subWidgetMinHeight);
     m_adBlockButton->setMinimumHeight(subWidgetMinHeight);
+}
+
+void NavigationToolBar::setFaviconStore(FaviconStore *faviconStore)
+{
+    m_faviconStore = faviconStore;
 }
 
 void NavigationToolBar::setupUI()
@@ -168,8 +177,13 @@ void NavigationToolBar::bindWithTabWidget()
         m_urlInput->setURL(url);
     });
 
-    // Pass pointers to previous and next page menus to the tab widget
-    tabWidget->setNavHistoryMenus(m_prevPage->menu(), m_nextPage->menu());
+    connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::resetHistoryButtonMenus);
+    connect(tabWidget, &BrowserTabWidget::loadFinished,   this, &NavigationToolBar::resetHistoryButtonMenus);
+
+    connect(tabWidget, &BrowserTabWidget::aboutToHibernate, [this](){
+        m_nextPage->menu()->clear();
+        m_prevPage->menu()->clear();
+    });
 }
 
 MainWindow *NavigationToolBar::getParentWindow()
@@ -263,5 +277,70 @@ void NavigationToolBar::onStopRefreshActionTriggered()
             ww->stop();
         else
             ww->reload();
+    }
+}
+
+void NavigationToolBar::resetHistoryButtonMenus()
+{
+    QMenu *backMenu = m_prevPage->menu();
+    QMenu *forwardMenu = m_nextPage->menu();
+
+    backMenu->clear();
+    forwardMenu->clear();
+
+    MainWindow *win = getParentWindow();
+    if (!win)
+        return;
+
+    WebWidget *webWidget = win->currentWebWidget();
+    if (!webWidget)
+        return;
+
+    QWebEngineHistory *hist = webWidget->history();
+    if (hist == nullptr)
+        return;
+
+    const int maxMenuSize = 10;
+    QAction *histAction = nullptr, *prevAction = nullptr;
+
+    // Setup back button history menu
+    QList<QWebEngineHistoryItem> histItems = hist->backItems(maxMenuSize);
+    for (const QWebEngineHistoryItem &item : histItems)
+    {
+        QIcon icon = m_faviconStore->getFavicon(item.url());
+
+        if (prevAction == nullptr)
+            histAction = backMenu->addAction(icon, item.title());
+        else
+        {
+            histAction = new QAction(icon, item.title(), backMenu);
+            backMenu->insertAction(prevAction, histAction);
+        }
+
+        connect(histAction, &QAction::triggered, [=](){
+            hist->goToItem(item);
+        });
+        prevAction = histAction;
+    }
+
+    // Setup forward button history menu
+    histItems = hist->forwardItems(maxMenuSize);
+    histAction = nullptr, prevAction = nullptr;
+    for (const QWebEngineHistoryItem &item : histItems)
+    {
+        QIcon icon = m_faviconStore->getFavicon(item.url());
+
+        if (prevAction == nullptr)
+            histAction = forwardMenu->addAction(icon, item.title());
+        else
+        {
+            histAction = new QAction(icon, item.title(), forwardMenu);
+            forwardMenu->insertAction(prevAction, histAction);
+        }
+
+        connect(histAction, &QAction::triggered, [=](){
+            hist->goToItem(item);
+        });
+        prevAction = histAction;
     }
 }

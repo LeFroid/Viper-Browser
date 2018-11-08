@@ -4,6 +4,7 @@
 #include <QToolBar>
 
 class AdBlockButton;
+class FaviconStore;
 class MainWindow;
 class SearchEngineLineEdit;
 class URLLineEdit;
@@ -16,6 +17,8 @@ class QToolButton;
  */
 class NavigationToolBar : public QToolBar
 {
+    friend class MainWindow;
+
     Q_OBJECT
 
 public:
@@ -44,6 +47,10 @@ signals:
     /// Emitted when the ad block button is clicked
     void clickedAdBlockButton();
 
+protected:
+    /// Sets the pointer to the favicon store
+    void setFaviconStore(FaviconStore *faviconStore);
+
 private:
     /// Initializes the toolbar's properties and sub-widgets
     void setupUI();
@@ -60,6 +67,9 @@ private slots:
 
     /// Called when the stop/reload page action is triggered
     void onStopRefreshActionTriggered();
+
+    /// Resets the items in the back and forward button menus, populating them with the current tab's history
+    void resetHistoryButtonMenus();
 
 private:
     /// Button to go to the previously visited page
@@ -82,6 +92,9 @@ private:
 
     /// Button that is used to show information about advertisements being blocked on the current page
     AdBlockButton *m_adBlockButton;
+
+    /// Favicon store - needed to assign icons to the history button menus
+    FaviconStore *m_faviconStore;
 };
 
 #endif // NAVIGATIONTOOLBAR_H

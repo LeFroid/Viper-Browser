@@ -46,6 +46,9 @@ public:
     bool isTabPinned(int tabIndex) const;
 
 signals:
+    /// Emitted when the current tab's web page is about to hibernate
+    void aboutToHibernate();
+
     /// Emitted when a new tab is created, passing along a pointer to the associated web widget
     void newTabCreated(WebWidget *view);
 
@@ -57,6 +60,9 @@ signals:
 
     /// Emitted when the current view has made progress loading its page. The range of value is [0,100]
     void loadProgress(int value);
+
+    /// Emitted when the current tab's web page has successfully finished loading.
+    void loadFinished();
 
     /// Emitted when the URL of the active WebWidget has changed
     void urlChanged(const QUrl &url);
@@ -121,9 +127,6 @@ public slots:
     /// Loads the given URL in the active tab
     void loadUrl(const QUrl &url);
 
-    /// Sets the back button and forward button history menus when a tab is changed
-    void setNavHistoryMenus(QMenu *backMenu, QMenu *forwardMenu);
-
     /// Resets the zoom factor of the active tab's \ref WebView to its base value
     void resetZoomCurrentView();
 
@@ -151,9 +154,6 @@ private slots:
 
     /// Emitted when a view requests that it be closed
     void onViewCloseRequested();
-
-    /// Resets the items in the back and forward button menus, populating them with the current tab's history
-    void resetHistoryButtonMenus();
 
 private:
     /// Creates a new \ref WebWidget, binding its signals to the appropriate handlers, setting up properties of the widget, etc.
