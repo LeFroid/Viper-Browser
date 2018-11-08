@@ -3,14 +3,18 @@
 #include "AutoFill.h"
 #include "AutoFillBridge.h"
 #include "BrowserApplication.h"
+#include "BrowserTabWidget.h"
 #include "CommonUtil.h"
 #include "ExtStorage.h"
 #include "FaviconStoreBridge.h"
+#include "MainWindow.h"
 #include "SecurityManager.h"
 #include "Settings.h"
 #include "URL.h"
 #include "UserScriptManager.h"
+#include "WebDialog.h"
 #include "WebPage.h"
+#include "WebView.h"
 
 #include <QAuthenticator>
 #include <QFile>
@@ -155,6 +159,52 @@ void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel le
 bool WebPage::certificateError(const QWebEngineCertificateError &certificateError)
 {
     return SecurityManager::instance().onCertificateError(certificateError, view()->window());
+}
+
+QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type)
+{
+    WebView *webView = qobject_cast<WebView*>(view());
+    const bool isPrivate = profile() != QWebEngineProfile::defaultProfile();
+
+    switch (type)
+    {
+        case QWebEnginePage::WebBrowserWindow:    // Open a new window
+        {
+            MainWindow *win = isPrivate ? sBrowserApplication->getNewPrivateWindow() : sBrowserApplication->getNewWindow();
+            return win->getTabWidget()->currentWebWidget()->page();
+        }
+        case QWebEnginePage::WebBrowserBackgroundTab:
+        case QWebEnginePage::WebBrowserTab:
+        {
+            // Get main window
+            MainWindow *win = qobject_cast<MainWindow*>(webView->window());
+            if (!win)
+            {
+                QObject *obj = webView->parent();
+                while (obj->parent() != nullptr)
+                    obj = obj->parent();
+
+                win = qobject_cast<MainWindow*>(obj);
+
+                if (!win)
+                    return nullptr;
+            }
+
+            const bool switchToNewTab = (type == QWebEnginePage::WebBrowserTab
+                                         && !sBrowserApplication->getSettings()->getValue(BrowserSetting::OpenAllTabsInBackground).toBool());
+
+            WebWidget *webWidget = switchToNewTab ? win->getTabWidget()->newTab() : win->getTabWidget()->newBackgroundTab();
+            return webWidget->page();
+        }
+        case QWebEnginePage::WebDialog:     // Open a web dialog
+        {
+            class WebDialog *dialog = new class WebDialog(isPrivate);
+            dialog->show();
+            return dialog->getView()->page();
+        }
+        default: break;
+    }
+    return nullptr;
 }
 
 void WebPage::onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)

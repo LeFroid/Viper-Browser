@@ -150,7 +150,7 @@ std::vector<WebHistoryItem> HistoryManager::getHistoryBetween(const QDateTime &s
             continue;
 
         WebHistoryItem item;
-        item.URL = queryHistoryItem.value(0).toString();
+        item.URL = queryHistoryItem.value(0).toUrl();
         item.Title = queryHistoryItem.value(1).toString();
         item.VisitID = visitId;
 
@@ -190,7 +190,7 @@ int HistoryManager::getTimesVisited(const QUrl &url) const
 {
     QSqlQuery queryVisitId(m_database);
     queryVisitId.prepare(QLatin1String("SELECT VisitID FROM History WHERE URL = (:url)"));
-    queryVisitId.bindValue(QLatin1String(":url"), url.toString(QUrl::RemoveFragment));
+    queryVisitId.bindValue(QLatin1String(":url"), url);
 
     if (queryVisitId.exec() && queryVisitId.first())
     {
@@ -238,7 +238,7 @@ void HistoryManager::onPageLoaded(bool ok)
 
     QDateTime visitTime = QDateTime::currentDateTime();
 
-    QString urlFormatted = url.toString(QUrl::RemoveFragment);
+    QString urlFormatted = url.toString();
     const QString urlUpper = urlFormatted.toUpper();
 
     const QString title = ww->getTitle();
@@ -263,7 +263,7 @@ void HistoryManager::onPageLoaded(bool ok)
     else
     {
         WebHistoryItem item;
-        item.URL = urlFormatted;
+        item.URL = url;
         item.VisitID = ++m_lastVisitID;
         item.Title = title;
         item.Visits.prepend(visitTime);
@@ -318,7 +318,7 @@ void HistoryManager::load()
         while (query.next())
         {
             WebHistoryItem item;
-            item.URL = query.value(idUrl).toString();
+            item.URL = query.value(idUrl).toUrl();
             item.Title = query.value(idTitle).toString();
             item.VisitID = query.value(idVisit).toInt();
 
@@ -369,7 +369,7 @@ void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visi
     }
 
     m_queryHistoryItem->bindValue(QLatin1String(":visitId"), item.VisitID);
-    m_queryHistoryItem->bindValue(QLatin1String(":url"), item.URL.toString());
+    m_queryHistoryItem->bindValue(QLatin1String(":url"), item.URL);
     m_queryHistoryItem->bindValue(QLatin1String(":title"), item.Title);
     if (!m_queryHistoryItem->exec())
         qDebug() << "[Error]: In HistoryManager::saveVisit - unable to save history item to database. Message: " << m_queryHistoryItem->lastError().text();

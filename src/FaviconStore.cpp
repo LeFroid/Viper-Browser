@@ -237,6 +237,8 @@ void FaviconStore::saveToDB(const QString &faviconUrl, const FaviconInfo &favico
     if (!query->exec())
         qDebug() << "In FaviconStore::saveToDB - could not add favicon icon data to FaviconData table. Message: "
                  << query->lastError().text();
+
+    //emit faviconAdded(favicon);
 }
 
 void FaviconStore::setupQueries()

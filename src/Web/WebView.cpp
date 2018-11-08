@@ -345,46 +345,6 @@ void WebView::_wheelEvent(QWheelEvent *event)
     //QWebEngineView::wheelEvent(event);
 }
 
-QWebEngineView *WebView::createWindow(QWebEnginePage::WebWindowType type)
-{
-    switch (type)
-    {
-        case QWebEnginePage::WebBrowserWindow:    // Open a new window
-        {
-            MainWindow *win = m_privateView ? sBrowserApplication->getNewPrivateWindow() : sBrowserApplication->getNewWindow();
-            return win->getTabWidget()->currentWebWidget()->view();
-        }	
-        case QWebEnginePage::WebBrowserBackgroundTab:
-        case QWebEnginePage::WebBrowserTab:
-        {
-            // Get main window
-            QObject *obj = parent();
-            while (obj->parent() != nullptr)
-                obj = obj->parent();
-
-            const bool switchToNewTab = (type == QWebEnginePage::WebBrowserTab
-                                         && !sBrowserApplication->getSettings()->getValue(BrowserSetting::OpenAllTabsInBackground).toBool());
-
-            if (MainWindow *mw = qobject_cast<MainWindow*>(obj))
-            {
-                if (switchToNewTab)
-                    return mw->getTabWidget()->newTab()->view();
-
-                return mw->getTabWidget()->newBackgroundTab()->view();
-            }
-            break;
-        }
-        case QWebEnginePage::WebDialog:     // Open a web dialog
-        {
-            WebDialog *dialog = new WebDialog(m_privateView);
-            dialog->show();
-            return dialog->getView();
-        }
-        default: break;
-    }
-    return QWebEngineView::createWindow(type);
-}
-
 void WebView::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasFormat("application/x-browser-tab"))

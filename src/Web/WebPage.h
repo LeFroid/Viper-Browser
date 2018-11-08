@@ -57,6 +57,9 @@ protected:
     /// Called when an invalid certificate error is raised while loading a given request. Returns true when ignoring the error, or false when the page will not be loaded.
     bool certificateError(const QWebEngineCertificateError &certificateError) override;
 
+    /// Creates a new web page in a new window, new tab or as a dialog, depending on the given type, and returns a pointer to the page
+    QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
+
 private slots:
     /// Opens an authentication dialog when requested by the given URL
     void onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator);

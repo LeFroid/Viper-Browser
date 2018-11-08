@@ -89,9 +89,6 @@ protected:
     /// Called to hide the link ref label when the wheel is moved
     void _wheelEvent(QWheelEvent *event);
 
-    /// Creates a new popup window on request
-    QWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override;
-
     /// Handles drag events
     void dragEnterEvent(QDragEnterEvent *event) override;
 

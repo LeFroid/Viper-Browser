@@ -319,6 +319,8 @@ void BrowserTabWidget::onIconChanged()
     QIcon icon = ww->getIcon();
     if (icon.isNull())
         icon = m_faviconStore->getFavicon(ww->url(), true);
+    else
+        m_faviconStore->updateIcon(ww->getIconUrl().toString(QUrl::FullyEncoded), ww->url(), icon);
 
     setTabIcon(tabIndex, icon);
 }
