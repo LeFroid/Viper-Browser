@@ -86,7 +86,7 @@ QVariant BookmarkTableModel::data(const QModelIndex &index, int role) const
         }
         case 1:
             if (role == Qt::DisplayRole || role == Qt::EditRole)
-                return b->getURL();
+                return b->getURL().toString(QUrl::FullyEncoded);
             break;
     }
 
@@ -114,7 +114,7 @@ bool BookmarkTableModel::setData(const QModelIndex &index, const QVariant &value
             // URL
             case 1:
             {
-                m_bookmarkMgr->updateBookmarkURL(newValue, b);
+                m_bookmarkMgr->updateBookmarkURL(QUrl::fromUserInput(newValue), b);
                 break;
             }
             default:
@@ -150,7 +150,7 @@ bool BookmarkTableModel::insertRows(int row, int count, const QModelIndex &paren
 
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
-        m_bookmarkMgr->insertBookmark(name, QString("Location %1").arg(i), m_folder, row + i);
+        m_bookmarkMgr->insertBookmark(name, QUrl::fromUserInput(QString("file://location %1").arg(i)), m_folder, row + i);
     endInsertRows();
 
     return true;
@@ -300,7 +300,7 @@ void BookmarkTableModel::searchFor(const QString &text)
     {
         BookmarkNode *node = *it;
         if (node->getName().toLower().contains(query)
-                || node->getURL().toLower().contains(query))
+                || node->getURL().toString().toLower().contains(query))
         {
             m_searchResults.push_back(node);
         }

@@ -71,7 +71,7 @@ void URLSuggestionWorker::searchForHits()
         if (it->getType() != BookmarkNode::Bookmark)
             continue;
 
-        const QString url = it->getURL();
+        const QString url = it->getURL().toString();
         if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
         {
             auto suggestion = URLSuggestion(it->getIcon(), it->getName(), url, true, historyMgr->getTimesVisited(url));

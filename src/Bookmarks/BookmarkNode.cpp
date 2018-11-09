@@ -93,12 +93,12 @@ void BookmarkNode::setShortcut(const QString &shortcut)
     m_shortcut = shortcut;
 }
 
-const QString &BookmarkNode::getURL() const
+const QUrl &BookmarkNode::getURL() const
 {
     return m_url;
 }
 
-void BookmarkNode::setURL(const QString &url)
+void BookmarkNode::setURL(const QUrl &url)
 {
     m_url = url;
 }

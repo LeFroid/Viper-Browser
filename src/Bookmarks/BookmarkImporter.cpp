@@ -5,6 +5,7 @@
 #include <utility>
 #include <QDebug>
 #include <QFile>
+#include <QUrl>
 
 BookmarkImporter::BookmarkImporter(BookmarkManager *bookmarkMgr) :
     m_bookmarkManager(bookmarkMgr),
@@ -132,7 +133,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
 
             QString name = pageHtml.mid(pos, nameEndPos - pos);
 
-            m_bookmarkManager->appendBookmark(name, url, currentNode);
+            m_bookmarkManager->appendBookmark(name, QUrl::fromUserInput(url), currentNode);
 
             pos = nameEndPos + m_bookmarkEndTag.size();
             continue;

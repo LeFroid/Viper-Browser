@@ -113,7 +113,7 @@ void BookmarkBar::refresh()
         else
         {
             button->setIcon(child->getIcon());
-            connect(button, &QPushButton::clicked, [=](){ emit loadBookmark(QUrl::fromUserInput(child->getURL())); });
+            connect(button, &QPushButton::clicked, [=](){ emit loadBookmark(child->getURL()); });
         }
 
         m_layout->addWidget(button, 0, Qt::AlignLeft);

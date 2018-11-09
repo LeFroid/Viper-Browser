@@ -59,7 +59,7 @@ void BookmarkDialog::setDialogHeader(const QString &text)
     ui->labelDialogHeader->setText(text);
 }
 
-void BookmarkDialog::setBookmarkInfo(const QString &bookmarkName, const QString &bookmarkUrl, BookmarkNode *parentFolder)
+void BookmarkDialog::setBookmarkInfo(const QString &bookmarkName, const QUrl &bookmarkUrl, BookmarkNode *parentFolder)
 {
     m_currentUrl = bookmarkUrl;
 

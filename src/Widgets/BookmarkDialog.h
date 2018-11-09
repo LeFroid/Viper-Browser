@@ -4,6 +4,7 @@
 #include "BookmarkManager.h"
 #include <QDialog>
 #include <QString>
+#include <QUrl>
 
 namespace Ui {
     class BookmarkDialog;
@@ -33,7 +34,7 @@ public:
     void setDialogHeader(const QString &text);
 
     /// Sets the information fields of the newly added bookmark that will be displayed in the dialog
-    void setBookmarkInfo(const QString &bookmarkName, const QString &bookmarkUrl, BookmarkNode *parentFolder = nullptr);
+    void setBookmarkInfo(const QString &bookmarkName, const QUrl &bookmarkUrl, BookmarkNode *parentFolder = nullptr);
 
 private slots:
     /// Called when the user asks to remove the bookmark. Will close the dialog after removal
@@ -50,7 +51,7 @@ private:
     BookmarkManager *m_bookmarkManager;
 
     /// URL of current bookmark shown in the UI (bookmarks are referenced by their unique URL values in bookmark manager)
-    QString m_currentUrl;
+    QUrl m_currentUrl;
 };
 
 #endif // BOOKMARKDIALOG_H

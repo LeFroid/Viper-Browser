@@ -662,7 +662,7 @@ void BookmarkWidget::showInfoForNode(BookmarkNode *node)
     if (node->getType() == BookmarkNode::Bookmark)
     {
         ui->labelSelectedLocation->show();
-        ui->lineEditLocation->setText(node->getURL());
+        ui->lineEditLocation->setText(node->getURL().toString(QUrl::FullyEncoded));
         ui->lineEditLocation->show();
 
         ui->labelSelectedShortcut->show();

@@ -4,6 +4,8 @@
 #include <deque>
 #include <stack>
 
+#include <QUrl>
+
 const QString BookmarkExporter::NetscapeHeader = QString("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n"
                                        "<!-- This is an automatically generated file.\n"
                                        "     It will be read and overwritten.\n"
@@ -71,7 +73,7 @@ void BookmarkExporter::exportFolders(QTextStream &stream)
             if (n->getType() == BookmarkNode::Folder)
                 subFolders.push_back(n);
             else
-                stream << spacing << "    <DT><A HREF=\"" << n->getURL() << "\">" << n->getName() << "</A>\n";
+                stream << spacing << "    <DT><A HREF=\"" << n->getURL().toString(QUrl::FullyEncoded) << "\">" << n->getName() << "</A>\n";
         }
 
         // At max depth, form closing tags

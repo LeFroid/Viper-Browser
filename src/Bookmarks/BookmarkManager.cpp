@@ -88,7 +88,7 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
     return f;
 }
 
-void BookmarkManager::appendBookmark(const QString &name, const QString &url, BookmarkNode *folder)
+void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, BookmarkNode *folder)
 {
     // If parent folder not specified, set to root folder
     if (!folder)
@@ -97,7 +97,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QString &url, Bo
     // Create new bookmark
     BookmarkNode *b = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
     b->setURL(url);
-    b->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(QUrl(url)));
+    b->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(url));
 
     // Add bookmark to the database
     if (!addBookmarkToDB(b, folder))
@@ -106,7 +106,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QString &url, Bo
     onBookmarksChanged();
 }
 
-void BookmarkManager::insertBookmark(const QString &name, const QString &url, BookmarkNode *folder, int position)
+void BookmarkManager::insertBookmark(const QString &name, const QUrl &url, BookmarkNode *folder, int position)
 {
     if (!folder)
         folder = getBookmarksBar();
@@ -120,7 +120,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QString &url, Bo
     // Create new bookmark        
     BookmarkNode *b = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
     b->setURL(url);
-    b->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(QUrl(url)));
+    b->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(url));
 
     // Update positions of items in same folder
     QSqlQuery query(m_database);
@@ -137,18 +137,18 @@ void BookmarkManager::insertBookmark(const QString &name, const QString &url, Bo
     onBookmarksChanged();
 }
 
-bool BookmarkManager::isBookmarked(const QString &url)
+bool BookmarkManager::isBookmarked(const QUrl &url)
 {
     if (url.isEmpty())
         return false;
 
-    const std::string urlStdStr = url.toStdString();
+    const std::string urlStdStr = url.toString().toStdString();
     if (m_lookupCache.has(urlStdStr) && m_lookupCache.get(urlStdStr) != nullptr)
         return true;
 
     for (BookmarkNode *node : m_nodeList)
     {
-        if (node->m_url.compare(url) == 0)
+        if (node->m_url == url)
         {
             m_lookupCache.put(urlStdStr, node);
             return true;
@@ -158,18 +158,18 @@ bool BookmarkManager::isBookmarked(const QString &url)
     return false;
 }
 
-void BookmarkManager::removeBookmark(const QString &url)
+void BookmarkManager::removeBookmark(const QUrl &url)
 {
     if (url.isEmpty())
         return;
 
     for (BookmarkNode *node : m_nodeList)
     {
-        if (node->m_type != BookmarkNode::Bookmark || node->m_url.size() != url.size())
+        if (node->m_type != BookmarkNode::Bookmark)
             continue;
 
         // Bookmark URLs are unique, once match is found, remove bookmark and return
-        if (node->m_url.compare(url) == 0)
+        if (node->m_url == url)
         {
             if (!removeBookmarkFromDB(node))
                 qDebug() << "Could not remove bookmark from DB";
@@ -177,7 +177,7 @@ void BookmarkManager::removeBookmark(const QString &url)
             if (BookmarkNode *parent = node->getParent())
                 parent->removeNode(node);
 
-            const std::string urlStdStr = url.toStdString();
+            const std::string urlStdStr = url.toString().toStdString();
             if (m_lookupCache.has(urlStdStr))
                 m_lookupCache.put(urlStdStr, nullptr);
 
@@ -192,8 +192,8 @@ void BookmarkManager::removeBookmark(BookmarkNode *item)
     if (!item)
         return;
 
-    if (item->m_type == BookmarkNode::Bookmark && m_lookupCache.has(item->m_url.toStdString()))
-        m_lookupCache.put(item->m_url.toStdString(), nullptr);
+    if (item->m_type == BookmarkNode::Bookmark && m_lookupCache.has(item->m_url.toString().toStdString()))
+        m_lookupCache.put(item->m_url.toString().toStdString(), nullptr);
 
     // Remove node from DB, then from its parent
     if (!removeBookmarkFromDB(item))
@@ -385,12 +385,12 @@ BookmarkNode *BookmarkManager::setFolderParent(BookmarkNode *folder, BookmarkNod
     return folder;
 }
 
-BookmarkNode *BookmarkManager::getBookmark(const QString &url)
+BookmarkNode *BookmarkManager::getBookmark(const QUrl &url)
 {
     if (url.isEmpty())
         return nullptr;
 
-    const std::string urlStdStr = url.toStdString();
+    const std::string urlStdStr = url.toString().toStdString();
     if (m_lookupCache.has(urlStdStr))
     {
         BookmarkNode *node = m_lookupCache.get(urlStdStr);
@@ -401,7 +401,7 @@ BookmarkNode *BookmarkManager::getBookmark(const QString &url)
     for (BookmarkNode *node : m_nodeList)
     {
         if (node->getType() == BookmarkNode::Bookmark
-                && node->getURL().compare(url) == 0)
+                && node->getURL() == url)
             return node;
     }
 
@@ -443,13 +443,13 @@ void BookmarkManager::updateBookmarkShortcut(const QString &shortcut, BookmarkNo
                  << query.lastError().text();
 }
 
-void BookmarkManager::updateBookmarkURL(const QString &url, BookmarkNode *bookmark)
+void BookmarkManager::updateBookmarkURL(const QUrl &url, BookmarkNode *bookmark)
 {
     if (!bookmark)
         return;
 
     // Update cache if applicable
-    const std::string oldUrlStr = bookmark->m_url.toStdString();
+    const std::string oldUrlStr = bookmark->m_url.toString().toStdString();
     if (m_lookupCache.has(oldUrlStr))
         m_lookupCache.put(oldUrlStr, nullptr);
 
@@ -464,7 +464,7 @@ void BookmarkManager::updateBookmarkURL(const QString &url, BookmarkNode *bookma
         position = query.value(0).toInt();
 
     // Update icon
-    bookmark->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(QUrl(bookmark->m_url)));
+    bookmark->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(bookmark->m_url));
 
     query.prepare(QLatin1String("DELETE FROM Bookmarks WHERE URL = (:url)"));
     query.bindValue(QLatin1String(":url"), bookmark->m_url);
@@ -553,7 +553,7 @@ void BookmarkManager::loadFolder(BookmarkNode *folder)
                 case BookmarkNode::Bookmark:
                     subNode->setURL(query.value(3).toString());
                     subNode->setShortcut(query.value(4).toString());
-                    subNode->setIcon(faviconStore->getFavicon(QUrl(subNode->m_url)));
+                    subNode->setIcon(faviconStore->getFavicon(subNode->m_url));
                     break;
             }
         }
@@ -669,7 +669,7 @@ void BookmarkManager::setup()
     BookmarkNode *bookmarkBar = addFolder(QLatin1String("Bookmarks Bar"), m_rootNode.get());
 
     // Insert bookmark for search engine
-    appendBookmark(QLatin1String("Search Engine"), QLatin1String("https://www.startpage.com"), bookmarkBar);
+    appendBookmark(QLatin1String("Search Engine"), QUrl(QLatin1String("https://www.startpage.com")), bookmarkBar);
 }
 
 void BookmarkManager::load()

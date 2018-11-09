@@ -59,7 +59,7 @@ public:
      * @param url Location of the bookmark (ex: http://xyz.co/page123)
      * @param folder Optional pointer to the parent folder. Defaults to root folder if not given.
      */
-    void appendBookmark(const QString &name, const QString &url, BookmarkNode *folder = nullptr);
+    void appendBookmark(const QString &name, const QUrl &url, BookmarkNode *folder = nullptr);
 
     /**
      * @brief insertBookmark Adds a bookmark to the collection at a specific position
@@ -68,13 +68,13 @@ public:
      * @param folder Pointer to the parent folder that the bookmark will belong to
      * @param position Relative position of the new bookmark
      */
-    void insertBookmark(const QString &name, const QString &url, BookmarkNode *folder, int position);
+    void insertBookmark(const QString &name, const QUrl &url, BookmarkNode *folder, int position);
 
     /// Checks if the given url is bookmarked, returning true if it is
-    bool isBookmarked(const QString &url);
+    bool isBookmarked(const QUrl &url);
 
     /// Removes the bookmark with the given URL (if it is a bookmark) from storage
-    void removeBookmark(const QString &url);
+    void removeBookmark(const QUrl &url);
 
     /// Removes the given bookmark from storage
     void removeBookmark(BookmarkNode *item);
@@ -98,7 +98,7 @@ public:
      * @param url URL of the bookmark node
      * @return A pointer to the bookmark node if found, otherwise returns a nullptr
      */
-    BookmarkNode *getBookmark(const QString &url);
+    BookmarkNode *getBookmark(const QUrl &url);
 
     /// Updates the name of a bookmark in the database
     void updateBookmarkName(const QString &name, BookmarkNode *bookmark);
@@ -107,7 +107,7 @@ public:
     void updateBookmarkShortcut(const QString &shortcut, BookmarkNode *bookmark);
 
     /// Updates the URL of a bookmark in the database
-    void updateBookmarkURL(const QString &url, BookmarkNode *bookmark);
+    void updateBookmarkURL(const QUrl &url, BookmarkNode *bookmark);
 
     /// Called by the BookmarkFolderModel when the name of a folder has been changed
     void updatedFolderName(BookmarkNode *folder);

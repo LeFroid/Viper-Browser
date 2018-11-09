@@ -7,6 +7,7 @@
 #include <QIcon>
 #include <QMetaType>
 #include <QString>
+#include <QUrl>
 
 /**
  * @class BookmarkNode
@@ -63,10 +64,10 @@ public:
     void setShortcut(const QString &shortcut);
 
     /// Returns the URL of the node if its type is bookmark, returns an empty QString otherwise
-    const QString &getURL() const;
+    const QUrl &getURL() const;
 
     /// Sets the URL of the node
-    void setURL(const QString &url);
+    void setURL(const QUrl &url);
 
     /// Returns the icon associated with the node
     const QIcon &getIcon() const;
@@ -79,7 +80,7 @@ protected:
     QString m_name;
 
     /// URL associated with the node. Will be empty if the node type is Folder
-    QString m_url;
+    QUrl m_url;
 
     /// Icon associated with the node. For folders, will be standard folder icon. For bookmarks, will be favicon
     QIcon m_icon;

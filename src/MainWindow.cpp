@@ -277,7 +277,7 @@ void MainWindow::checkPageForBookmark()
     if (!ww)
         return;
 
-    const QString pageUrl = ww->url().toString();
+    const QUrl pageUrl = ww->url();
     QFutureWatcher<bool> *watcher = new QFutureWatcher<bool>(this);
     connect(watcher, &QFutureWatcher<bool>::finished, [=](){
         const bool isBookmarked = watcher->future().result();
@@ -426,7 +426,7 @@ void MainWindow::addPageToBookmarks()
         return;
 
     const QString bookmarkName = ww->getTitle();
-    const QString bookmarkUrl = ww->url().toString();
+    const QUrl bookmarkUrl = ww->url();
 
     m_bookmarkManager->appendBookmark(bookmarkName, bookmarkUrl);
 
@@ -446,7 +446,7 @@ void MainWindow::removePageFromBookmarks(bool showDialog)
     if (!ww)
         return;
 
-    m_bookmarkManager->removeBookmark(ww->url().toString());
+    m_bookmarkManager->removeBookmark(ww->url());
     if (showDialog)
         QMessageBox::information(this, tr("Bookmark"), tr("Page removed from bookmarks."));
 }
