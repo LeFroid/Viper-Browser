@@ -95,20 +95,6 @@ class AdBlockFilter
     friend class AdBlockFilterParser;
     friend class AdBlockManager;
 
-    /// Computes and returns base^exp
-    inline quint64 quPow(quint64 base, quint64 exp) const
-    {
-        quint64 result = 1;
-        while (exp)
-        {
-            if (exp & 1)
-                result *= base;
-            exp >>= 1;
-            base *= base;
-        }
-        return result;
-    }
-
 public:
     /// Constructs the filter given the corresponding rule (a line in an adblock plus-formatted file)
     explicit AdBlockFilter(const QString &rule);

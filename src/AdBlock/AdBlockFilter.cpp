@@ -2,6 +2,7 @@
 #include <array>
 #include "AdBlockFilter.h"
 #include "Bitfield.h"
+#include "CommonUtil.h"
 #include "URL.h"
 
 AdBlockFilter::AdBlockFilter(const QString &rule) :
@@ -368,8 +369,6 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
         {
             t = radixLength * (t + prime - m_differenceHash * ((haystackPtr + i)->unicode()) % prime) % prime;
             t = (t + (haystackPtr + needleLength + i)->unicode()) % prime;
-            //t = (t + prime - m_differenceHash * ((haystackPtr + i)->unicode()) % prime) % prime;
-            //t = (t * radixLength + ((haystackPtr + i + needleLength)->unicode())) % prime;
         }
     }
 
@@ -384,7 +383,7 @@ void AdBlockFilter::hashEvalString()
     const quint64 radixLength = 256ULL;
     const quint64 prime = 89999027ULL;
 
-    m_differenceHash = quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
+    m_differenceHash = CommonUtil::quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
 
     for (int index = 0; index < needleLength; ++index)
         m_evalStringHash = (radixLength * m_evalStringHash + (needlePtr + index)->unicode()) % prime;

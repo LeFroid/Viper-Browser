@@ -64,4 +64,17 @@ namespace CommonUtil
 
         return data.toBase64();
     }
+
+    quint64 quPow(quint64 base, quint64 exp)
+    {
+        quint64 result = 1;
+        while (exp)
+        {
+            if (exp & 1)
+                result *= base;
+            exp >>= 1;
+            base *= base;
+        }
+        return result;
+    }
 }
