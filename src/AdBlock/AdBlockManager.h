@@ -182,6 +182,9 @@ private:
     /// Container of filters that block content based on a partial string match (needle in haystack)
     std::deque<AdBlockFilter*> m_blockFiltersByPattern;
 
+    /// Hashmap of filters that are of the Domain category (||some.domain.com^ style filter rules)
+    QHash<QString, std::deque<AdBlockFilter*>> m_blockFiltersByDomain;
+
     /// Container of filters that whitelist content
     std::vector<AdBlockFilter*> m_allowFilters;
 

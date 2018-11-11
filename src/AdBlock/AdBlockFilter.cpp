@@ -254,7 +254,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
                 return true;
         }
 
-        if (m_blockedTypes != ElementType::None)
+        if (m_blockedTypes != ElementType::None && !hasElementType(m_blockedTypes, ElementType::ThirdParty))
             return false;
     }
 

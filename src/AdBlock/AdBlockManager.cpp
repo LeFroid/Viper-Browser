@@ -27,6 +27,7 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_importantBlockFilters(),
     m_blockFilters(),
     m_blockFiltersByPattern(),
+    m_blockFiltersByDomain(),
     m_allowFilters(),
     m_domainStyleFilters(),
     m_domainJSFilters(),
@@ -326,6 +327,22 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
             break;
         }
     }
+    auto it = m_blockFiltersByDomain.find(domain);
+    if (it != m_blockFiltersByDomain.end())
+    {
+        for (AdBlockFilter *filter : *it)
+        {
+            if (usedCspScript)
+                break;
+
+            if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
+            {
+                cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
+                usedCspScript = true;
+                break;
+            }
+        }
+    }
     for (AdBlockFilter *filter : m_blockFilters)
     {
         if (usedCspScript)
@@ -433,15 +450,35 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     // Look for a matching blocking filter before iterating through the allowed filter list, to avoid wasted resources
     AdBlockFilter *matchingBlockFilter = nullptr;
-    for (auto it = m_blockFilters.begin(); it != m_blockFilters.end(); ++it)
+    auto itr = m_blockFiltersByDomain.find(getSecondLevelDomain(info.requestUrl()));
+    if (itr != m_blockFiltersByDomain.end())
     {
-        AdBlockFilter *filter = *it;
-        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
+        std::deque<AdBlockFilter*> &queue = *itr;
+        for (auto it = queue.begin(); it != queue.end(); ++it)
         {
-            matchingBlockFilter = filter;
-            it = m_blockFilters.erase(it);
-            m_blockFilters.push_front(filter);
-            break;
+            AdBlockFilter *filter = *it;
+            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
+            {
+                matchingBlockFilter = filter;
+                it = queue.erase(it);
+                queue.push_front(filter);
+                break;
+            }
+        }
+    }
+
+    if (matchingBlockFilter == nullptr)
+    {
+        for (auto it = m_blockFilters.begin(); it != m_blockFilters.end(); ++it)
+        {
+            AdBlockFilter *filter = *it;
+            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
+            {
+                matchingBlockFilter = filter;
+                it = m_blockFilters.erase(it);
+                m_blockFilters.push_front(filter);
+                break;
+            }
         }
     }
 
@@ -809,6 +846,7 @@ void AdBlockManager::clearFilters()
     m_allowFilters.clear();
     m_blockFilters.clear();
     m_blockFiltersByPattern.clear();
+    m_blockFiltersByDomain.clear();
     m_stylesheet.clear();
     m_domainStyleFilters.clear();
     m_domainJSFilters.clear();
@@ -886,6 +924,22 @@ void AdBlockManager::extractFilters()
                 {
                     m_blockFiltersByPattern.push_back(filter);
                 }
+                else if (filter->getCategory() == FilterCategory::Domain)
+                {
+                    //const QString &filterDomain = filter->getEvalString();
+                    const QString filterDomain = getSecondLevelDomain(QUrl::fromUserInput(filter->getEvalString()));
+                    auto it = m_blockFiltersByDomain.find(filterDomain);
+                    if (it != m_blockFiltersByDomain.end())
+                    {
+                        it->push_back(filter);
+                    }
+                    else
+                    {
+                        std::deque<AdBlockFilter*> queue;
+                        queue.push_back(filter);
+                        m_blockFiltersByDomain.insert(filterDomain, queue);
+                    }
+                }
                 else
                 {
                     m_blockFilters.push_back(filter);
@@ -915,6 +969,16 @@ void AdBlockManager::extractFilters()
             it = m_blockFiltersByPattern.erase(it);
         else
             ++it;
+    }
+    for (std::deque<AdBlockFilter*> &queue : m_blockFiltersByDomain)
+    {
+        for (auto it = queue.begin(); it != queue.end();)
+        {
+            if (badFilters.contains((*it)->getRule()))
+                it = queue.erase(it);
+            else
+                ++it;
+        }
     }
     for (auto it = m_cspFilters.begin(); it != m_cspFilters.end();)
     {
