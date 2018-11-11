@@ -6,6 +6,8 @@
 #include "WebActionProxy.h"
 
 #include <memory>
+#include <unordered_map>
+
 #include <QIcon>
 #include <QList>
 #include <QMainWindow>
@@ -154,7 +156,14 @@ protected slots:
     /// Handles the mouse move event when in fullscreen mode
     void onMouseMoveFullscreen(int y);
 
+    /// Opens and/or creates the web inspector, set to the current page
+    void openInspector();
+
 private slots:
+    /// Called when a web widget is about to hibernate - makes sure that nothing depends on the
+    /// soon-to-be hibernated widget
+    void onWebWidgetAboutToHibernate();
+
     /// Launches the ad block manager UI
     void openAdBlockManager();
 
@@ -248,6 +257,10 @@ private:
 
     /// Displays the link being hovered by the user in the status bar
     QLabel *m_linkHoverLabel;
+
+    /// Map of web widgets to a boolean indicating whether or not the inspector should be
+    /// visible when that web widget is active
+    std::unordered_map<WebWidget*, bool> m_tabInspectorMap;
 };
 
 #endif // MAINWINDOW_H

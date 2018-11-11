@@ -27,7 +27,6 @@
 #include "WebPage.h"
 #include "WebWidget.h"
 
-//todo: to get page thumbnails, on load finish event, grab the QQuickWidget child and call grabFramebuffer() which returns QImage
 WebView::WebView(bool privateView, QWidget *parent) :
     QWebEngineView(parent),
     m_page(nullptr),
@@ -35,7 +34,8 @@ WebView::WebView(bool privateView, QWidget *parent) :
     m_privateView(privateView),
     m_contextMenuHelper(),
     m_jsCallbackResult(),
-    m_viewFocusProxy(nullptr)
+    m_viewFocusProxy(nullptr),
+    m_thumbnail()
 {
     setAcceptDrops(true);
     setObjectName(QLatin1String("webView"));
@@ -86,6 +86,11 @@ QString WebView::getTitle() const
 
     // Default to host
     return pageUrl.host();
+}
+
+const QPixmap &WebView::getThumbnail() const
+{
+    return m_thumbnail;
 }
 
 void WebView::load(const QUrl &url)
@@ -146,9 +151,7 @@ void WebView::setupPage()
     connect(m_page, &WebPage::loadProgress, [this](int value){
        m_progress = value;
     });
-    connect(m_page, &WebPage::loadFinished, [this](){
-       m_progress = 100;
-    });
+    connect(m_page, &WebPage::loadFinished, this, &WebView::onLoadFinished);
 
     // Handle full screen requests
     connect(m_page, &WebPage::fullScreenRequested, this, &WebView::onFullScreenRequested);
@@ -313,6 +316,41 @@ void WebView::onFullScreenRequested(QWebEngineFullScreenRequest request)
 {
     emit fullScreenRequested(request.toggleOn());
     request.accept();
+}
+
+void WebView::onLoadFinished(bool ok)
+{
+    m_progress = 100;
+
+    emit iconChanged(icon());
+
+    if (ok && !isOnBlankPage())
+        makeThumbnailOfPage();
+    else
+        m_thumbnail = QPixmap();
+}
+
+void WebView::makeThumbnailOfPage()
+{
+    QQuickWidget *qQuickChild = nullptr;
+    QList<QQuickWidget*> children = findChildren<QQuickWidget*>();
+    for (int i = children.size() - 1; i >= 0; --i)
+    {
+        QQuickWidget *w = children.at(i);
+        if (w && w->isVisible())
+        {
+            qQuickChild = w;
+            break;
+        }
+    }
+
+    if (!qQuickChild)
+    {
+        m_thumbnail = QPixmap();
+        return;
+    }
+
+    m_thumbnail = qQuickChild->grab().scaled(QSize(400, 300));
 }
 
 void WebView::setViewFocusProxy(QWidget *w)

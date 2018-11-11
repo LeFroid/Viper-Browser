@@ -5,6 +5,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <QDateTime>
 #include <QNetworkCookieJar>
 #include <QSet>
@@ -62,6 +63,9 @@ private slots:
     /// Called when a cookie has been added to the cookie store
     void onCookieAdded(const QNetworkCookie &cookie);
 
+    /// Called when a cookie has been removed from the cookie store
+    void onCookieRemoved(const QNetworkCookie &cookie);
+
 private:
     /// Loads a data file containing all third parties that are exempt to the cookie filter; used if the third party cookie filter is enabled
     void loadExemptThirdParties();
@@ -84,6 +88,9 @@ private:
 
     /// Set of exempt third party cookie setters
     QSet<URL> m_exemptParties;
+
+    /// Mutex used within the handlers for a cookie being added or removed
+    mutable std::mutex m_mutex;
 };
 
 #endif // COOKIEJAR_H

@@ -65,7 +65,8 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
     m_clearHistoryDialog(nullptr),
     m_tabWidget(nullptr),
     m_bookmarkDialog(nullptr),
-    m_linkHoverLabel(nullptr)
+    m_linkHoverLabel(nullptr),
+    m_tabInspectorMap()
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
@@ -304,14 +305,12 @@ void MainWindow::onTabChanged(int index)
     URLLineEdit *urlInput = ui->toolBar->getURLWidget();
     urlInput->tabChanged(ww);
 
-    // Show dock widget with dev tools UI if it was opened in the last tab
-    if (ui->dockWidget->isVisible())
-    {
-        if (ww->isHibernating())
-            ui->dockWidget->hide();
-        else
-            ww->inspectElement();
-    }
+    // Handle web inspector state
+    const bool showInspector = m_tabInspectorMap[ww];
+    if (showInspector && !ww->isHibernating())
+        ww->inspectElement();
+    else
+        ui->dockWidget->hide();
 
     checkPageForBookmark();
 
@@ -570,50 +569,86 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
 {
     // Connect signals to slots for UI updates (page title, icon changes)
     connect(ww, &WebWidget::aboutToWake, [this,ww](){
-        //todo: should be a check first that the web widget is in the active tab before calling this
-        ui->widgetFindText->setWebView(ww->view());
+        if (m_tabWidget->currentWebWidget() == ww)
+            ui->widgetFindText->setWebView(ww->view());
     });
-    connect(ww, &WebWidget::loadFinished, this, &MainWindow::onLoadFinished);
-    connect(ww, &WebWidget::inspectElement, [=]() {
-        WebView *inspectorView = qobject_cast<WebView*>(ui->dockWidget->widget());
-        if (!inspectorView)
-        {
-            inspectorView = new WebView(ui->dockWidget);
-            inspectorView->setupPage();
-            inspectorView->setObjectName(QLatin1String("inspectorView"));
-            inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-            inspectorView->setContextMenuPolicy(Qt::NoContextMenu);
-            ui->dockWidget->setWidget(inspectorView);
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-            //inspectorView->setContextMenuPolicy(Qt::CustomContextMenu);
-            connect(inspectorView, &WebView::openRequest, this, &MainWindow::openLinkNewTab);
-            connect(inspectorView, &WebView::openInNewTab, this, &MainWindow::openLinkNewTab);
-#endif
-        }
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-        WebPage *inspectorPage = inspectorView->getPage();
-        inspectorPage->setInspectedPage(ww->page());
-
-        connect(ww, &WebWidget::aboutToHibernate, [=](){
-            if (inspectorPage->inspectedPage() == ww->page())
-                inspectorPage->setInspectedPage(nullptr);
-        });
-#else
-        QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue(BrowserSetting::InspectorPort).toString());
-        inspectorView->load(QUrl(inspectorUrl));
-        connect(ww, &WebWidget::aboutToHibernate, [=](){
-            if (m_tabWidget->currentWebWidget() == ww && ui->dockWidget->isVisible())
-                inspectorView->load(QUrl(inspectorUrl));
-        });
-#endif
-        ui->dockWidget->show();
-    });
-    connect(ww, &WebWidget::linkHovered, this, &MainWindow::onLinkHovered);
+    connect(ww, &WebWidget::loadFinished,   this, &MainWindow::onLoadFinished);
+    connect(ww, &WebWidget::inspectElement, this, &MainWindow::openInspector);
+    connect(ww, &WebWidget::linkHovered,    this, &MainWindow::onLinkHovered);
 
     if (WebPage *page = ww->page())
     {
         connect(page, &WebPage::printPageRequest, this, &MainWindow::printTabContents);
     }
+
+    // Handle dev tools / inspector visibility mapping
+    m_tabInspectorMap[ww] = false;
+
+    connect(ww, &WebWidget::destroyed, [this, ww](QObject*){
+        auto it = m_tabInspectorMap.find(ww);
+        if (it != m_tabInspectorMap.end())
+            m_tabInspectorMap.erase(it);
+    });
+}
+
+void MainWindow::openInspector()
+{
+    WebWidget *webWidget = qobject_cast<WebWidget*>(sender());
+    if (!webWidget)
+        return;
+
+    WebView *inspectorView = qobject_cast<WebView*>(ui->dockWidget->widget());
+    if (!inspectorView)
+    {
+        inspectorView = new WebView(ui->dockWidget);
+        inspectorView->setupPage();
+        inspectorView->setObjectName(QLatin1String("inspectorView"));
+        inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        inspectorView->setContextMenuPolicy(Qt::NoContextMenu);
+
+        ui->dockWidget->setWidget(inspectorView);
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+        connect(inspectorView, &WebView::openRequest,  this, &MainWindow::openLinkNewTab);
+        connect(inspectorView, &WebView::openInNewTab, this, &MainWindow::openLinkNewTab);
+#endif
+
+        connect(ui->dockWidget, &QDockWidget::visibilityChanged, [this](bool visible){
+            if (!visible)
+                m_tabInspectorMap[m_tabWidget->currentWebWidget()] = false;
+        });
+    }
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    WebPage *inspectorPage = inspectorView->getPage();
+    inspectorPage->setInspectedPage(webWidget->page());
+
+    disconnect(webWidget, &WebWidget::aboutToHibernate, this, &MainWindow::onWebWidgetAboutToHibernate);
+    connect(webWidget, &WebWidget::aboutToHibernate,    this, &MainWindow::onWebWidgetAboutToHibernate);
+#else
+    QString inspectorUrl = QString("http://127.0.0.1:%1").arg(m_settings->getValue(BrowserSetting::InspectorPort).toString());
+    inspectorView->load(QUrl(inspectorUrl));
+    connect(ww, &WebWidget::aboutToHibernate, [=](){
+        if (m_tabWidget->currentWebWidget() == ww && ui->dockWidget->isVisible())
+            inspectorView->load(QUrl(inspectorUrl));
+    });
+#endif
+    ui->dockWidget->show();
+
+    m_tabInspectorMap[webWidget] = true;
+}
+
+void MainWindow::onWebWidgetAboutToHibernate()
+{
+    WebWidget *webWidget = qobject_cast<WebWidget*>(sender());
+    WebView *inspectorView = qobject_cast<WebView*>(ui->dockWidget->widget());
+
+    if (!webWidget || !inspectorView)
+        return;
+
+    WebPage *inspectorPage = inspectorView->getPage();
+    if (inspectorPage && inspectorPage->inspectedPage() == webWidget->page())
+        inspectorPage->setInspectedPage(nullptr);
 }
 
 void MainWindow::onClickSecurityInfo()

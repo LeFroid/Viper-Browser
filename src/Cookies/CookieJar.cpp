@@ -18,7 +18,8 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
     m_enableCookies(enableCookies),
     m_privateJar(privateJar),
     m_store(nullptr),
-    m_exemptParties()
+    m_exemptParties(),
+    m_mutex()
 {
     if (!m_privateJar)
         m_store = QWebEngineProfile::defaultProfile()->cookieStore();
@@ -26,9 +27,7 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
         m_store = sBrowserApplication->getPrivateBrowsingProfile()->cookieStore();
 
     connect(m_store, &QWebEngineCookieStore::cookieAdded, this, &CookieJar::onCookieAdded);
-    connect(m_store, &QWebEngineCookieStore::cookieRemoved, [=](const QNetworkCookie &cookie){
-        static_cast<void>(deleteCookie(cookie));
-    });
+    connect(m_store, &QWebEngineCookieStore::cookieRemoved, this, &CookieJar::onCookieRemoved);
 
     if (!m_privateJar)
         loadExemptThirdParties();
@@ -171,10 +170,22 @@ void CookieJar::saveExemptThirdParties()
 
 void CookieJar::onCookieAdded(const QNetworkCookie &cookie)
 {
-    if (m_enableCookies)
-        static_cast<void>(insertCookie(cookie));
-    else
-        m_store->deleteCookie(cookie);
+    try {
+        std::lock_guard<std::mutex> _(m_mutex);
+
+        if (m_enableCookies)
+            static_cast<void>(insertCookie(cookie));
+        else
+            m_store->deleteCookie(cookie);
+    } catch (std::exception ex) {
+        qDebug() << "CookieJar::onCookieAdded - caught exception" << ex.what();
+    }
+}
+
+void CookieJar::onCookieRemoved(const QNetworkCookie &cookie)
+{
+    std::lock_guard<std::mutex> _(m_mutex);
+    static_cast<void>(deleteCookie(cookie));
 }
 
 void CookieJar::removeExpired()

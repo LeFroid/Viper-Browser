@@ -58,6 +58,9 @@ public:
     /// Returns a pointer to the \ref WebPage
     WebPage *getPage() const;
 
+    /// Returns a thumbnail of the current page, or a null QPixmap if the thumbnail could not be obtained
+    const QPixmap &getThumbnail() const;
+
 public slots:
     /// Resets the zoom factor to its base value
     void resetZoom();
@@ -71,6 +74,9 @@ public slots:
 private slots:
     /// Called when the page has requested fullscreen mode
     void onFullScreenRequested(QWebEngineFullScreenRequest request);
+
+    /// Called after a page is loaded successfully or not (status determined by 'ok')
+    void onLoadFinished(bool ok);
 
 protected:
     /// Initializes the view's \ref WebPage
@@ -126,6 +132,10 @@ signals:
     void fullScreenRequested(bool on);
 
 private:
+    /// Generates a thumbnail of the current web page
+    void makeThumbnailOfPage();
+
+private:
     /// Web page
     WebPage *m_page;
 
@@ -143,6 +153,9 @@ private:
 
     /// Pointer to the WebView's focus proxy
     QPointer<QWidget> m_viewFocusProxy;
+
+    /// Thumbnail of the current page
+    QPixmap m_thumbnail;
 };
 
 #endif // WEBVIEW_H
