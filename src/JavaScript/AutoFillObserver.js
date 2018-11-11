@@ -65,12 +65,11 @@
                 return true;
             }
         } else if (elemName == 'button') {
-            if (elem.onsubmit != null && elem.onsubmit != undefined) {
-                if (!addListenerToElemParent(elem)) {
-                    elem.addEventListener('submit', onSubmitForm);
-                }
+            if (addListenerToElemParent(elem)) {
                 return true;
-            } else if (elem.onclick != null && elem.onclick != undefined) {
+            } else if ((elem.onsubmit != null && elem.onsubmit != undefined)
+                    || (elem.onclick != null && elem.onclick != undefined)) {
+                elem.addEventListener('submit', onSubmitForm);
                 elem.addEventListener('click', onSubmitForm);
                 return true;
             }
