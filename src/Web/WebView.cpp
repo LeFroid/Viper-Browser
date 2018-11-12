@@ -350,7 +350,7 @@ void WebView::makeThumbnailOfPage()
         return;
     }
 
-    m_thumbnail = qQuickChild->grab().scaled(QSize(400, 300));
+    m_thumbnail = qQuickChild->grab().scaled(QSize(200, 180));
 }
 
 void WebView::setViewFocusProxy(QWidget *w)

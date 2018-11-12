@@ -43,5 +43,7 @@
         } else {
             attemptSetup();
         }
-    } catch (e){}
+    } catch (e){
+        attemptSetup();
+    }
 })();

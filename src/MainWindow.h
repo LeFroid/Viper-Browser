@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "WebActionProxy.h"
 
+#include <atomic>
 #include <memory>
 #include <unordered_map>
 
@@ -261,6 +262,9 @@ private:
     /// Map of web widgets to a boolean indicating whether or not the inspector should be
     /// visible when that web widget is active
     std::unordered_map<WebWidget*, bool> m_tabInspectorMap;
+
+    /// Flag indicating whether or not the window is being closed
+    std::atomic_bool m_closing;
 };
 
 #endif // MAINWINDOW_H

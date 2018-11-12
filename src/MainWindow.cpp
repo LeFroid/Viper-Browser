@@ -66,7 +66,8 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
     m_tabWidget(nullptr),
     m_bookmarkDialog(nullptr),
     m_linkHoverLabel(nullptr),
-    m_tabInspectorMap()
+    m_tabInspectorMap(),
+    m_closing(false)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
@@ -584,7 +585,9 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
     // Handle dev tools / inspector visibility mapping
     m_tabInspectorMap[ww] = false;
 
-    connect(ww, &WebWidget::destroyed, [this, ww](QObject*){
+    connect(ww, &WebWidget::destroyed, [this,ww](QObject*) {
+        if (m_closing.load())
+            return;
         auto it = m_tabInspectorMap.find(ww);
         if (it != m_tabInspectorMap.end())
             m_tabInspectorMap.erase(it);
@@ -772,6 +775,8 @@ BrowserTabWidget *MainWindow::getTabWidget() const
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    m_closing.store(true);
+
     if (!m_privateWindow)
     {
         StartupMode mode = static_cast<StartupMode>(m_settings->getValue(BrowserSetting::StartupMode).toInt());
