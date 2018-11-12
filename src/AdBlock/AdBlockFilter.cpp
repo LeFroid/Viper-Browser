@@ -244,6 +244,15 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
                                                    ElementType::InlineScript,    ElementType::Ping,       ElementType::CSP,
                                                    ElementType::Other }};
 
+        //ex:
+        //   fedcba9876543210
+        //00200000
+
+        //all flags in block mask   = 0x00 3f ff ff
+        //all flags in request mask = 0x00 00 80 40
+
+        // block & request = 0x00 00 80 40
+        //if (m_blockedTypes & typeMask == typeMask)
         for (std::size_t i = 0; i < elemTypes.size(); ++i)
         {
             ElementType currentType = elemTypes[i];

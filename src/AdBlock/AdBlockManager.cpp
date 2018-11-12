@@ -318,55 +318,33 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
         if (filter->isDomainStyleMatch(domain))
             javascript.append(filter->getEvalString());
     }
-    for (AdBlockFilter *filter : m_importantBlockFilters)
-    {
-        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
-        {
-            cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
-            usedCspScript = true;
-            break;
-        }
-    }
-    auto it = m_blockFiltersByDomain.find(domain);
-    if (it != m_blockFiltersByDomain.end())
-    {
-        for (AdBlockFilter *filter : *it)
+
+    auto filterCSPCheck = [&](std::deque<AdBlockFilter*> &filterContainer) {
+        for (AdBlockFilter *filter : filterContainer)
         {
             if (usedCspScript)
-                break;
+                return;
 
             if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
             {
                 cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
                 usedCspScript = true;
-                break;
+                return;
             }
         }
-    }
-    for (AdBlockFilter *filter : m_blockFilters)
-    {
-        if (usedCspScript)
-            break;
+    };
 
-        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
-        {
-            cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
-            usedCspScript = true;
-            break;
-        }
-    }
-    for (AdBlockFilter *filter : m_blockFiltersByPattern)
-    {
-        if (usedCspScript)
-            break;
+    filterCSPCheck(m_importantBlockFilters);
 
-        if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
-        {
-            cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
-            usedCspScript = true;
-            break;
-        }
+    auto it = m_blockFiltersByDomain.find(domain);
+    if (it != m_blockFiltersByDomain.end())
+    {
+        filterCSPCheck(*it);
     }
+
+    filterCSPCheck(m_blockFilters);
+    filterCSPCheck(m_blockFiltersByPattern);
+
     for (AdBlockFilter *filter : m_cspFilters)
     {
         if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
@@ -438,7 +416,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
             it = m_importantBlockFilters.erase(it);
             m_importantBlockFilters.push_front(filter);
 
-            //qDebug() << "blocked " << requestUrl << " by IMPORTANT rule " << filter->getRule();
+            //qDebug() << "Blocked " << requestUrl << " by IMPORTANT rule " << filter->getRule();
             if (filter->isRedirect())
             {
                 info.redirect(QUrl(QString("blocked:%1").arg(filter->getRedirectName())));
@@ -450,52 +428,30 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     // Look for a matching blocking filter before iterating through the allowed filter list, to avoid wasted resources
     AdBlockFilter *matchingBlockFilter = nullptr;
+
+    auto checkFiltersForMatch = [&](std::deque<AdBlockFilter*> &filterContainer) {
+        for (auto it = filterContainer.begin(); it != filterContainer.end(); ++it)
+        {
+            AdBlockFilter *filter = *it;
+            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
+            {
+                matchingBlockFilter = filter;
+                it = filterContainer.erase(it);
+                filterContainer.push_front(filter);
+                return;
+            }
+        }
+    };
+
     auto itr = m_blockFiltersByDomain.find(getSecondLevelDomain(info.requestUrl()));
     if (itr != m_blockFiltersByDomain.end())
-    {
-        std::deque<AdBlockFilter*> &queue = *itr;
-        for (auto it = queue.begin(); it != queue.end(); ++it)
-        {
-            AdBlockFilter *filter = *it;
-            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
-            {
-                matchingBlockFilter = filter;
-                it = queue.erase(it);
-                queue.push_front(filter);
-                break;
-            }
-        }
-    }
+        checkFiltersForMatch(*itr);
 
     if (matchingBlockFilter == nullptr)
-    {
-        for (auto it = m_blockFilters.begin(); it != m_blockFilters.end(); ++it)
-        {
-            AdBlockFilter *filter = *it;
-            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
-            {
-                matchingBlockFilter = filter;
-                it = m_blockFilters.erase(it);
-                m_blockFilters.push_front(filter);
-                break;
-            }
-        }
-    }
+        checkFiltersForMatch(m_blockFilters);
 
     if (matchingBlockFilter == nullptr)
-    {
-        for (auto it = m_blockFiltersByPattern.begin(); it != m_blockFiltersByPattern.end(); ++it)
-        {
-            AdBlockFilter *filter = *it;
-            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
-            {
-                matchingBlockFilter = filter;
-                it = m_blockFiltersByPattern.erase(it);
-                m_blockFiltersByPattern.push_front(filter);
-                break;
-            }
-        }
-    }
+        checkFiltersForMatch(m_blockFiltersByPattern);
 
     if (matchingBlockFilter == nullptr)
         return false;
@@ -504,7 +460,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     {
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
-            //qDebug() << "allowed " << requestUrl << " by rule " << filter->getRule();
+            //qDebug() << "Allowed " << requestUrl << " by rule " << filter->getRule();
             return false;
         }
     }
@@ -515,9 +471,12 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     if (matchingBlockFilter->isRedirect())
     {
+        //qDebug() << "Redirected " << requestUrl << " by rule " << matchingBlockFilter->getRule();
         info.redirect(QUrl(QString("blocked:%1").arg(matchingBlockFilter->getRedirectName())));
         return false;
     }
+
+    //qDebug() << "Blocked " << requestUrl << " by rule " << matchingBlockFilter->getRule();
 
     return true;
 }
