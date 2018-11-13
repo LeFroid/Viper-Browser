@@ -481,7 +481,7 @@ void MainWindow::openAdBlockManager()
 void MainWindow::openAdBlockLogDisplay()
 {
     AdBlockLogDisplay *logDisplay = new AdBlockLogDisplay;
-    logDisplay->setLogTableFor(m_tabWidget->currentWebWidget()->url());
+    logDisplay->setLogTableFor(m_tabWidget->currentWebWidget()->url().adjusted(QUrl::RemoveFragment));
     logDisplay->show();
     logDisplay->raise();
     logDisplay->activateWindow();

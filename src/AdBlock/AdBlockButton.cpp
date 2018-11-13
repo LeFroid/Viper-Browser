@@ -38,7 +38,7 @@ void AdBlockButton::updateCount()
 
         if (WebWidget *ww = win->currentWebWidget())
         {
-            const int adBlockCount = AdBlockManager::instance().getNumberAdsBlocked(ww->url());
+            const int adBlockCount = AdBlockManager::instance().getNumberAdsBlocked(ww->url().adjusted(QUrl::RemoveFragment));
             if (adBlockCount == m_lastCount)
                 return;
 
