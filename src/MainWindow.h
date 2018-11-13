@@ -168,6 +168,9 @@ private slots:
     /// Launches the ad block manager UI
     void openAdBlockManager();
 
+    /// Opens the ad block log event viewer
+    void openAdBlockLogDisplay();
+
     /// Launches the saved credentials window, showing the logins that are stored in the
     /// \ref CredentialStore and used by \ref AutoFill (if enabled)
     void openAutoFillCredentialsView();

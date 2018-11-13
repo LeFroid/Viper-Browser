@@ -2,6 +2,7 @@
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include "AdBlockLogDisplay.h"
 #include "AdBlockWidget.h"
 #include "AutoFillCredentialsView.h"
 #include "BookmarkDialog.h"
@@ -89,7 +90,7 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
     setupBookmarks();
     setupMenuBar();
 
-    connect(ui->toolBar, &NavigationToolBar::clickedAdBlockButton, this, &MainWindow::openAdBlockManager);
+    connect(ui->toolBar, &NavigationToolBar::clickedAdBlockButton, this, &MainWindow::openAdBlockLogDisplay);
 
     ui->dockWidget->hide();
     ui->widgetFindText->hide();
@@ -475,6 +476,15 @@ void MainWindow::openAdBlockManager()
     adBlockWidget->show();
     adBlockWidget->raise();
     adBlockWidget->activateWindow();
+}
+
+void MainWindow::openAdBlockLogDisplay()
+{
+    AdBlockLogDisplay *logDisplay = new AdBlockLogDisplay;
+    logDisplay->setLogTableFor(m_tabWidget->currentWebWidget()->url());
+    logDisplay->show();
+    logDisplay->raise();
+    logDisplay->activateWindow();
 }
 
 void MainWindow::openAutoFillCredentialsView()

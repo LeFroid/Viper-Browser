@@ -14,6 +14,7 @@
 #include <deque>
 #include <vector>
 
+class AdBlockLog;
 class AdBlockModel;
 
 /**
@@ -50,6 +51,9 @@ public:
 
     /// Sets the state of the ad block manager. If true, it will filter network requests as per filter rules. Otherwise, no blocking will be done
     void setEnabled(bool value);
+
+    /// Returns the logging instance
+    AdBlockLog *getLog() const;
 
     /// Returns the model that is used to view and modify ad block subscriptions
     AdBlockModel *getModel();
@@ -226,6 +230,9 @@ private:
 
     /// Hash map of URLs to the number of requests that were blocked on that given URL
     QHash<QUrl, int> m_pageAdBlockCount;
+
+    /// Stores logs associated with actions taken by the ad block system
+    AdBlockLog *m_log;
 };
 
 #endif // ADBLOCKMANAGER_H

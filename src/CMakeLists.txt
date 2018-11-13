@@ -4,6 +4,9 @@ set(viper_src
     AdBlock/AdBlockButton.cpp
     AdBlock/AdBlockFilter.cpp
     AdBlock/AdBlockFilterParser.cpp
+    AdBlock/AdBlockLog.cpp
+    AdBlock/AdBlockLogDisplay.cpp
+    AdBlock/AdBlockLogTableModel.cpp
     AdBlock/AdBlockManager.cpp
     AdBlock/AdBlockModel.cpp
     AdBlock/AdBlockSubscribeDialog.cpp
@@ -110,6 +113,7 @@ endif()
 qt5_add_resources(viper_qrc application.qrc)
 
 qt5_wrap_ui(viper_ui
+    AdBlock/AdBlockLogDisplay.ui
     AdBlock/AdBlockSubscribeDialog.ui
     AdBlock/AdBlockWidget.ui
     AdBlock/CustomFilterEditor.ui

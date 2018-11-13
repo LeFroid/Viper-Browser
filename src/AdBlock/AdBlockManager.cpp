@@ -1,4 +1,5 @@
 #include "AdBlockManager.h"
+#include "AdBlockLog.h"
 #include "AdBlockModel.h"
 #include "Bitfield.h"
 #include "BrowserApplication.h"
@@ -41,7 +42,8 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_emptyStr(),
     m_adBlockModel(nullptr),
     m_numRequestsBlocked(0),
-    m_pageAdBlockCount()
+    m_pageAdBlockCount(),
+    m_log(nullptr)
 {
     // Fetch some global settings before loading ad block data
     Settings *settings = sBrowserApplication->getSettings();
@@ -57,6 +59,9 @@ AdBlockManager::AdBlockManager(QObject *parent) :
 
     loadDynamicTemplate();
     loadUBOResources();
+
+    // Instantiate the logger
+    m_log = new AdBlockLog(this);
 }
 
 AdBlockManager::~AdBlockManager()
@@ -193,6 +198,11 @@ void AdBlockManager::createUserSubscription()
 void AdBlockManager::loadStarted(const QUrl &url)
 {
     m_pageAdBlockCount[url] = 0;
+}
+
+AdBlockLog *AdBlockManager::getLog() const
+{
+    return m_log;
 }
 
 AdBlockModel *AdBlockManager::getModel()
@@ -416,12 +426,14 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
             it = m_importantBlockFilters.erase(it);
             m_importantBlockFilters.push_front(filter);
 
-            //qDebug() << "Blocked " << requestUrl << " by IMPORTANT rule " << filter->getRule();
             if (filter->isRedirect())
             {
                 info.redirect(QUrl(QString("blocked:%1").arg(filter->getRedirectName())));
+                m_log->addEntry(AdBlockFilterAction::Redirect, info.firstPartyUrl(), info.requestUrl(), elemType, filter->getRule(), QDateTime::currentDateTime());
                 return false;
             }
+
+            m_log->addEntry(AdBlockFilterAction::Block, info.firstPartyUrl(), info.requestUrl(), elemType, filter->getRule(), QDateTime::currentDateTime());
             return true;
         }
     }
@@ -460,7 +472,7 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     {
         if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
         {
-            //qDebug() << "Allowed " << requestUrl << " by rule " << filter->getRule();
+            m_log->addEntry(AdBlockFilterAction::Allow, info.firstPartyUrl(), info.requestUrl(), elemType, filter->getRule(), QDateTime::currentDateTime());
             return false;
         }
     }
@@ -471,13 +483,12 @@ bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 
     if (matchingBlockFilter->isRedirect())
     {
-        //qDebug() << "Redirected " << requestUrl << " by rule " << matchingBlockFilter->getRule();
         info.redirect(QUrl(QString("blocked:%1").arg(matchingBlockFilter->getRedirectName())));
+        m_log->addEntry(AdBlockFilterAction::Redirect, info.firstPartyUrl(), info.requestUrl(), elemType, matchingBlockFilter->getRule(), QDateTime::currentDateTime());
         return false;
     }
 
-    //qDebug() << "Blocked " << requestUrl << " by rule " << matchingBlockFilter->getRule();
-
+    m_log->addEntry(AdBlockFilterAction::Block, info.firstPartyUrl(), info.requestUrl(), elemType, matchingBlockFilter->getRule(), QDateTime::currentDateTime());
     return true;
 }
 
