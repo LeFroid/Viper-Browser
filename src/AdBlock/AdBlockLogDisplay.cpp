@@ -11,7 +11,9 @@ AdBlockLogDisplay::AdBlockLogDisplay(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::AdBlockLogDisplay),
     m_proxyModel(new QSortFilterProxyModel(this)),
-    m_sourceModel(new AdBlockLogTableModel(this))
+    m_sourceModel(new AdBlockLogTableModel(this)),
+    m_logSource(LogSourcePageUrl),
+    m_sourceUrl()
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -27,7 +29,14 @@ AdBlockLogDisplay::AdBlockLogDisplay(QWidget *parent) :
     // Setup search event handler
     connect(ui->lineEditSearch, &QLineEdit::editingFinished, this, &AdBlockLogDisplay::onSearchTermEntered);
 
-    //todo: implement reload feature and handle combobox (options for: 1) logs for origin = current url, 2) logs for all urls)
+    // Setup push button binding
+    connect(ui->pushButtonReload, &QPushButton::clicked, this, &AdBlockLogDisplay::onReloadClicked);
+
+    // Setup combo box for log source type
+    ui->comboBoxLogSource->addItem(tr("URL"), QVariant(static_cast<int>(LogSourcePageUrl)));
+    ui->comboBoxLogSource->addItem(tr("All URLs"), QVariant(static_cast<int>(LogSourceAll)));
+    connect(ui->comboBoxLogSource, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &AdBlockLogDisplay::onComboBoxIndexChanged);
 }
 
 AdBlockLogDisplay::~AdBlockLogDisplay()
@@ -37,12 +46,53 @@ AdBlockLogDisplay::~AdBlockLogDisplay()
 
 void AdBlockLogDisplay::setLogTableFor(const QUrl &url)
 {
-    ui->comboBoxLogSource->setCurrentText(url.toString());
+    m_sourceUrl = url;
+    ui->comboBoxLogSource->setCurrentIndex(0);
+    ui->comboBoxLogSource->setItemText(0, url.toString());
     m_sourceModel->setLogEntries(AdBlockManager::instance().getLog()->getEntriesFor(url));
+    ui->tableView->resizeColumnsToContents();
+}
+
+void AdBlockLogDisplay::showAllLogs()
+{
+    ui->comboBoxLogSource->setCurrentIndex(1);
+    m_sourceModel->setLogEntries(AdBlockManager::instance().getLog()->getAllEntries());
     ui->tableView->resizeColumnsToContents();
 }
 
 void AdBlockLogDisplay::onSearchTermEntered()
 {
     m_proxyModel->setFilterRegExp(ui->lineEditSearch->text());
+}
+
+void AdBlockLogDisplay::onReloadClicked()
+{
+    switch (m_logSource)
+    {
+        case LogSourceAll:
+            showAllLogs();
+            break;
+        case LogSourcePageUrl:
+            setLogTableFor(m_sourceUrl);
+            break;
+    }
+}
+
+void AdBlockLogDisplay::onComboBoxIndexChanged(int index)
+{
+    LogSource sourceType = static_cast<LogSource>(ui->comboBoxLogSource->itemData(index).toInt());
+    if (sourceType == m_logSource)
+        return;
+
+    switch (sourceType)
+    {
+        case LogSourceAll:
+            showAllLogs();
+            break;
+        case LogSourcePageUrl:
+            setLogTableFor(m_sourceUrl);
+            break;
+    }
+
+    m_logSource = sourceType;
 }

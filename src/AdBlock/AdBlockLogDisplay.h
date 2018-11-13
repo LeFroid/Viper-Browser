@@ -19,6 +19,8 @@ class AdBlockLogDisplay : public QWidget
 {
     Q_OBJECT
 
+    enum LogSource { LogSourcePageUrl = 0, LogSourceAll = 1 };
+
 public:
     /// Constructs the log display with a given parent
     explicit AdBlockLogDisplay(QWidget *parent = nullptr);
@@ -29,9 +31,18 @@ public:
     /// Sets the table data to contain the logs that are associated with the given URL
     void setLogTableFor(const QUrl &url);
 
+    /// Shows all log entries in the ad block system
+    void showAllLogs();
+
 private slots:
     /// Searches and filters the log table for the string contained in the line edit
     void onSearchTermEntered();
+
+    /// Reloads the log data
+    void onReloadClicked();
+
+    /// Maps the selection in the combo box to the appropriate log source filter
+    void onComboBoxIndexChanged(int index);
 
 private:
     /// Pointer to the UI elements
@@ -42,6 +53,12 @@ private:
 
     /// Source model behind the proxy
     AdBlockLogTableModel *m_sourceModel;
+
+    /// Source of the log data - currently this is either for a specific URL or for the entire ad block system
+    LogSource m_logSource;
+
+    /// First party URL from which the logs are taken. Only used when the log source type is LogSourcePageUrl
+    QUrl m_sourceUrl;
 };
 
 #endif // ADBLOCKLOGDISPLAY_H
