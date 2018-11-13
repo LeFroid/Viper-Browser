@@ -53,6 +53,8 @@ INCLUDEPATH += \
 
 SOURCES += \
     main.cpp \
+    AdBlock/AdBlockLog.cpp \
+    AdBlock/AdBlockLogTableModel.cpp \
     AdBlock/AdBlockManager.cpp \
     AdBlock/AdBlockModel.cpp \
     History/HistoryTableModel.cpp \
@@ -148,10 +150,13 @@ SOURCES += \
     AutoFill/AutoFillBridge.cpp \
     AutoFill/AutoFillDialog.cpp \
     AutoFill/AutoFillCredentialsView.cpp \
-    BrowserScripts.cpp
+    BrowserScripts.cpp \
+    AdBlock/AdBlockLogDisplay.cpp
 
 HEADERS += \
     TreeNode.h \
+    AdBlock/AdBlockLog.h \
+    AdBlock/AdBlockLogTableModel.h \
     AdBlock/AdBlockModel.h \
     Cache/LRUCache.h \
     History/HistoryTableModel.h \
@@ -250,7 +255,8 @@ HEADERS += \
     AutoFill/AutoFillBridge.h \
     AutoFill/AutoFillDialog.h \
     AutoFill/AutoFillCredentialsView.h \
-    BrowserScripts.h
+    BrowserScripts.h \
+    AdBlock/AdBlockLogDisplay.h
 
 FORMS += \
     Cookies/CookieWidget.ui \
@@ -283,7 +289,8 @@ FORMS += \
     MainWindow.ui \
     Network/AuthDialog.ui \
     AutoFill/AutoFillDialog.ui \
-    AutoFill/AutoFillCredentialsView.ui
+    AutoFill/AutoFillCredentialsView.ui \
+    AdBlock/AdBlockLogDisplay.ui
 
 packagesExist(KWallet) {
     message("Using KWallet for secure storage")

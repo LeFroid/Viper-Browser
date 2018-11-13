@@ -93,7 +93,7 @@ void NavigationToolBar::setupUI()
     m_prevPage = new QToolButton;
     QAction *prevPageAction = addWidget(m_prevPage);
 
-    m_prevPage->setIcon(style()->standardIcon(QStyle::SP_ArrowBack, 0, this));
+    m_prevPage->setIcon(QIcon(QLatin1String(":/arrow-back.png")));
     m_prevPage->setToolTip(tr("Go back one page"));
 
     QMenu *buttonHistMenu = new QMenu(this);
@@ -106,7 +106,7 @@ void NavigationToolBar::setupUI()
     m_nextPage = new QToolButton;
     QAction *nextPageAction = addWidget(m_nextPage);
 
-    m_nextPage->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
+    m_nextPage->setIcon(QIcon(QLatin1String(":/arrow-forward.png")));
     m_nextPage->setToolTip(tr("Go forward one page"));
 
     buttonHistMenu = new QMenu(this);
@@ -117,7 +117,7 @@ void NavigationToolBar::setupUI()
 
     // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
-    m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+    m_stopRefresh->setIcon(QIcon(QLatin1String(":/reload.png")));
     connect(m_stopRefresh, &QAction::triggered, this, &NavigationToolBar::onStopRefreshActionTriggered);
 
     // URL Bar
@@ -196,16 +196,14 @@ void NavigationToolBar::onLoadProgress(int value)
     // Update stop/refresh icon and tooltip depending on state
     if (value > 0 && value < 100)
     {
-        m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserStop));
+        m_stopRefresh->setIcon(QIcon(QLatin1String(":/stop.png")));
         m_stopRefresh->setToolTip(tr("Stop loading the page"));
     }
     else
     {
-        m_stopRefresh->setIcon(style()->standardIcon(QStyle::SP_BrowserReload));
+        m_stopRefresh->setIcon(QIcon(QLatin1String(":/reload.png")));
         m_stopRefresh->setToolTip(tr("Reload the page"));
     }
-
-    //m_adBlockButton->updateCount();
 }
 
 void NavigationToolBar::onURLInputEntered()

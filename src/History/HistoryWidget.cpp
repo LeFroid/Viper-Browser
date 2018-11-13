@@ -22,7 +22,7 @@ HistoryWidget::HistoryWidget(QWidget *parent) :
 
     ui->setupUi(this);
 
-    // Set properties of proxy model used for bookmark searches
+    // Set properties of proxy model used for searches
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     m_proxyModel->setFilterKeyColumn(-1); // -1 applies search terms to all columns
 
