@@ -35,7 +35,7 @@
                 window.viper = top.viper;
                 notifySetupComplete();
             } else {
-                top.document.addEventListener('__webchannel_setup', function() {
+                top.document.addEventListener('_webchannel_setup', function() {
                     window.viper = top.viper;
                     notifySetupComplete();
                 });
@@ -44,6 +44,5 @@
             attemptSetup();
         }
     } catch (e){
-        attemptSetup();
     }
 })();
