@@ -60,7 +60,7 @@ QVariant AdBlockLogTableModel::data(const QModelIndex &index, int role) const
         // Timestamp column
         case 0:
         {
-            return entry.Timestamp.toString(QLatin1String("h:m:s ap"));
+            return entry.Timestamp.toString(QLatin1String("h:mm:ss ap"));
         }
         // Action column
         case 1:

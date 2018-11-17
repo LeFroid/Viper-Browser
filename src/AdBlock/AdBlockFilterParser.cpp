@@ -225,8 +225,9 @@ bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
     filter->m_evalString.replace(QStringLiteral(":-abp-contains"), QStringLiteral(":has-text"));
     filter->m_evalString.replace(QStringLiteral(":-abp-has"), QStringLiteral(":if"));
 
+    // **commented out**  - with uBlock 1.15.0, :has is same as :if which can be chained
     // Check for :has(..)
-    int hasIdx = filter->m_evalString.indexOf(QStringLiteral(":has("));
+    /*int hasIdx = filter->m_evalString.indexOf(QStringLiteral(":has("));
     if (hasIdx >= 0)
     {
         QString hasArg = filter->m_evalString.mid(hasIdx + 5);
@@ -241,7 +242,7 @@ bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
 
         // :has cannot be chained, so exit the method at this point
         return true;
-    }
+    }*/
 
     // Search for each chainable type and handle the first one to appear, as any other
     // chainable filter options will appear as an argument of the first
@@ -279,6 +280,7 @@ bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
             filter->m_evalString = QString("hideNodes(hasText, '%1', %2); ").arg(evalStr).arg(evalArg);
             break;
         }
+        case CosmeticFilter::Has:
         case CosmeticFilter::If:
         case CosmeticFilter::IfNot:
         {
@@ -437,6 +439,7 @@ std::vector< std::tuple<int, CosmeticFilter, int> > AdBlockFilterParser::getChai
 {
     // Only search for chainable types
     std::vector< std::tuple<int, CosmeticFilter, int> > filters;
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":has(")), CosmeticFilter::Has, 5));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":has-text(")), CosmeticFilter::HasText, 10));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if(")), CosmeticFilter::If, 4));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if-not(")), CosmeticFilter::IfNot, 8));
