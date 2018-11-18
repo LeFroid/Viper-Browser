@@ -36,7 +36,16 @@
         }
 
         if (password.length > 0) {
-            window.viper.autofill.onFormSubmitted(window.location.href, username, password, formData);
+            try {
+                viper.autofill.onFormSubmitted(window.location.href, username, password, formData);
+            } catch (ex) {
+                window.parent.postMessage({
+                    '_viper_webchannel_msg':  true,
+                    '_viper_webchannel_obj':  'autofill',
+                    '_viper_webchannel_fn':   'onFormSubmitted',
+                    '_viper_webchannel_args': [ window.location.href, username, password, formData ]
+                }, '*');
+            }
         }
     };
 
