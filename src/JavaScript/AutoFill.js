@@ -6,7 +6,9 @@
         var inputElems = doc.getElementsByTagName('input');
         for (let e of inputElems) {
             let eType = e.type.toLowerCase();
-            if (eType == 'email' || eType == 'password' || eType == 'text') {
+            let eMode = ('inputmode' in e) ? e.inputmode.toLowerCase() : eType;
+            if (eType == 'email' || eMode == 'email' 
+                    || eType == 'password' || eType == 'text' || eMode == 'text') {
                 if (e.name in autoFillVals) {
                     e.value = autoFillVals[e.name];
                 }

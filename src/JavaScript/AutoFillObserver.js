@@ -18,13 +18,15 @@
                 for (var i = 0; i < results.length; ++i) {
                     var elem = results[i];
                     let eType = elem.type.toLowerCase();
+                    let eMode = ('inputmode' in elem) ? elem.inputmode.toLowerCase() : eType;
                     if (eType == 'email' || eType == 'password' || eType == 'text') {
                         formData[elem.name] = elem.value;
                 
                         let eName = elem.name.toLowerCase();
-                        if (eType == 'text' && (eName.indexOf('user') >= 0 || eName.indexOf('name') >= 0 || eName.indexOf('login') >= 0)) {
+                        if ((eType == 'text' || eMode == 'text') 
+                                && (eName.indexOf('user') >= 0 || eName.indexOf('name') >= 0 || eName.indexOf('login') >= 0)) {
                             username = elem.value;
-                        } else if (eType == 'email' && username == '') {
+                        } else if ((eType == 'email' || eMode == 'email') && username == '') {
                             username = elem.value;
                         } else if (eType == 'password') {
                             password = elem.value;
