@@ -20,7 +20,8 @@
                     let eType = elem.type.toLowerCase();
                     let eMode = ('inputmode' in elem) ? elem.inputmode.toLowerCase() : eType;
                     if (eType == 'email' || eType == 'password' || eType == 'text') {
-                        formData[elem.name] = elem.value;
+                        let eName = (elem.name !== undefined) ? elem.name : eMode;
+                        formData[eName] = elem.value;
                 
                         let eName = elem.name.toLowerCase();
                         if ((eType == 'text' || eMode == 'text') 
