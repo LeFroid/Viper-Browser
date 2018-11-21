@@ -70,6 +70,9 @@ public:
     void tabChanged(WebWidget *newView);
 
 signals:
+    /// Emitted when the user has requested to load the given url into the active WebWidget
+    void loadRequested(const QUrl &url);
+
     /// Called when the user requests to view the security information regarding the current page
     void viewSecurityInfo();
 
@@ -81,6 +84,9 @@ public slots:
     void removeMappedView(WebWidget *view);
 
 private slots:
+    /// Handles the returnPressed event - checks for a valid URL or shortcut to a URL, and emits the loadRequested(const QUrl &) signal
+    void onInputEntered();
+
     /// Called when a URL from the \ref URLSuggestionWidget is chosen by the user
     void onSuggestedURLChosen(const QUrl &url);
 

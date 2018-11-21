@@ -1,3 +1,4 @@
+#include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BrowserApplication.h"
 #include "MainWindow.h"
@@ -60,6 +61,9 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
 
     // Setup text editing handler
     connect(this, &URLLineEdit::textEdited, this, &URLLineEdit::onTextEdited);
+
+    // Setup Enter action handler
+    connect(this, &URLLineEdit::returnPressed, this, &URLLineEdit::onInputEntered);
 }
 
 URLLineEdit::~URLLineEdit()
@@ -206,7 +210,51 @@ void URLLineEdit::removeMappedView(WebWidget *view)
 void URLLineEdit::onSuggestedURLChosen(const QUrl &url)
 {
     setURL(url);
-    emit returnPressed();
+    emit loadRequested(url);
+}
+
+void URLLineEdit::onInputEntered()
+{
+    QString urlText = text();
+    if (urlText.isEmpty())
+        return;
+
+    QUrl location = QUrl::fromUserInput(urlText);
+    if (location.isValid() && !location.topLevelDomain().isNull())
+    {
+        setURL(location);
+        emit loadRequested(location);
+        return;
+    }
+
+    QString urlTextStart = urlText;
+    int delimIdx = urlTextStart.indexOf(QLatin1Char(' '));
+    if (delimIdx > 0)
+        urlTextStart = urlTextStart.left(delimIdx);
+
+    BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
+    for (auto it : *bookmarkMgr)
+    {
+        if (it->getType() == BookmarkNode::Bookmark
+                && (urlTextStart.compare(it->getShortcut()) == 0 || urlText.compare(it->getShortcut()) == 0))
+        {
+            QString bookmarkUrl = it->getURL().toString(QUrl::FullyEncoded);
+            if (delimIdx > 0 && bookmarkUrl.contains(QLatin1String("%25s")))
+            {
+                urlText = bookmarkUrl.replace(QLatin1String("%25s"), urlText.mid(delimIdx + 1));
+            }
+            else
+                urlText = bookmarkUrl;
+
+            location = QUrl::fromUserInput(urlText);
+            setURL(location);
+            emit loadRequested(location);
+            return;
+        }
+    }
+
+    setURL(location);
+    emit loadRequested(location);
 }
 
 void URLLineEdit::onTextEdited(const QString &text)

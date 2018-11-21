@@ -62,9 +62,6 @@ private slots:
     /// Called when the tab widget signals a page has progressed in loading its content
     void onLoadProgress(int value);
 
-    /// Called when a URL has been entered into the url widget, attempts to load the resource into the window's current web view
-    void onURLInputEntered();
-
     /// Called when the stop/reload page action is triggered
     void onStopRefreshActionTriggered();
 

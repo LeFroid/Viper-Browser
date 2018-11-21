@@ -202,6 +202,7 @@ void WebWidget::setHibernation(bool on)
         saveState();
 
         layout()->removeWidget(m_view);
+        setFocusProxy(nullptr);
         delete m_view;
         m_view = nullptr;
 

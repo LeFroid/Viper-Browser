@@ -122,7 +122,7 @@ void NavigationToolBar::setupUI()
 
     // URL Bar
     m_urlInput = new URLLineEdit(win);
-    connect(m_urlInput, &URLLineEdit::returnPressed, this, &NavigationToolBar::onURLInputEntered);
+    //connect(m_urlInput, &URLLineEdit::returnPressed, this, &NavigationToolBar::onURLInputEntered);
     connect(m_urlInput, &URLLineEdit::viewSecurityInfo, win, &MainWindow::onClickSecurityInfo);
     connect(m_urlInput, &URLLineEdit::toggleBookmarkStatus, win, &MainWindow::onClickBookmarkIcon);
 
@@ -203,62 +203,6 @@ void NavigationToolBar::onLoadProgress(int value)
     {
         m_stopRefresh->setIcon(QIcon(QLatin1String(":/reload.png")));
         m_stopRefresh->setToolTip(tr("Reload the page"));
-    }
-}
-
-void NavigationToolBar::onURLInputEntered()
-{
-    MainWindow *win = getParentWindow();
-    if (!win)
-        return;
-
-    WebWidget *view = win->currentWebWidget();
-    if (!view)
-        return;
-
-    QString urlText = m_urlInput->text();
-    if (urlText.isEmpty())
-        return;
-
-    QUrl location = QUrl::fromUserInput(urlText);
-    if (location.isValid() && !location.topLevelDomain().isNull())
-    {
-        view->load(location);
-        view->setFocus();
-        m_urlInput->setText(location.toString(QUrl::FullyEncoded));
-    }
-    else
-    {
-        QString urlTextStart = urlText;
-        int delimIdx = urlTextStart.indexOf(QLatin1Char(' '));
-        if (delimIdx > 0)
-            urlTextStart = urlTextStart.left(delimIdx);
-
-        BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
-        for (auto it : *bookmarkMgr)
-        {
-            if (it->getType() == BookmarkNode::Bookmark
-                    && (urlTextStart.compare(it->getShortcut()) == 0 || urlText.compare(it->getShortcut()) == 0))
-            {
-                QString bookmarkUrl = it->getURL().toString(QUrl::FullyEncoded);
-                if (delimIdx > 0 && bookmarkUrl.contains(QLatin1String("%25s")))
-                {
-                    urlText = bookmarkUrl.replace(QLatin1String("%25s"), urlText.mid(delimIdx + 1));
-                }
-                else
-                    urlText = bookmarkUrl;
-
-                location = QUrl::fromUserInput(urlText);
-                view->load(location);
-                view->setFocus();
-                m_urlInput->setText(location.toString(QUrl::FullyEncoded));
-                return;
-            }
-        }
-
-        view->load(location);
-        view->setFocus();
-        m_urlInput->setText(location.toString(QUrl::FullyEncoded));
     }
 }
 

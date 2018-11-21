@@ -91,6 +91,7 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
     setupMenuBar();
 
     connect(ui->toolBar, &NavigationToolBar::clickedAdBlockButton, this, &MainWindow::openAdBlockLogDisplay);
+    connect(ui->toolBar->getURLWidget(), &URLLineEdit::loadRequested, this, &MainWindow::loadUrl);
 
     ui->dockWidget->hide();
     ui->widgetFindText->hide();
