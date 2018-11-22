@@ -23,7 +23,6 @@
                         let eName = (elem.name !== undefined) ? elem.name : eMode;
                         formData[eName] = elem.value;
                 
-                        let eName = elem.name.toLowerCase();
                         if ((eType == 'text' || eMode == 'text') 
                                 && (eName.indexOf('user') >= 0 || eName.indexOf('name') >= 0 || eName.indexOf('login') >= 0)) {
                             username = elem.value;
