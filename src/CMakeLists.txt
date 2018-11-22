@@ -80,6 +80,7 @@ set(viper_src
     Web/URL.cpp
     Web/WebActionProxy.cpp
     Web/WebDialog.cpp
+    Web/WebHistory.cpp
     Web/WebHitTestResult.cpp
     Web/WebPage.cpp
     Web/WebView.cpp
