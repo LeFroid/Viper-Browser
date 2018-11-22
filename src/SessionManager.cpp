@@ -152,7 +152,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
         BrowserTabWidget *tabWidget = currentWindow->getTabWidget();
 
         QJsonArray tabArray = winObject.value(QLatin1String("tabs")).toArray();
-        int i = 1;
+        int i = 0;
         for (auto tabIt = tabArray.constBegin(); tabIt != tabArray.constEnd(); ++tabIt)
         {
             if (tabIt->isString())
@@ -173,7 +173,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
                 const QByteArray encodedHistory = tabInfoObj.value(QLatin1String("history")).toString().toLatin1();
                 webState.pageHistory = QByteArray::fromBase64(encodedHistory);
 
-                WebWidget *ww = tabWidget->newBackgroundTabAtIndex(i);
+                WebWidget *ww = (i == 0) ? qobject_cast<WebWidget*>(tabWidget->widget(0)) : tabWidget->newBackgroundTabAtIndex(i);
 
                 tabWidget->setTabPinned(i,
                                         tabInfoObj.value(QLatin1String("is_pinned")).toBool());
@@ -185,9 +185,6 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
                 ++i;
             }
         }
-
-        // Close unused first tab
-        tabWidget->closeTab(0);
 
         // Set current tab to the last active tab
         int currentTab = winObject.value(QLatin1String("current_tab")).toInt();
