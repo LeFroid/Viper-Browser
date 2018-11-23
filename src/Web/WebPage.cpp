@@ -13,6 +13,7 @@
 #include "URL.h"
 #include "UserScriptManager.h"
 #include "WebDialog.h"
+#include "WebHistory.h"
 #include "WebPage.h"
 #include "WebView.h"
 
@@ -30,6 +31,7 @@
 
 WebPage::WebPage(QObject *parent) :
     QWebEnginePage(parent),
+    m_history(new WebHistory(this)),
     m_mainFrameHost(),
     m_domainFilterStyle(),
     m_mainFrameAdBlockScript(),
@@ -40,6 +42,7 @@ WebPage::WebPage(QObject *parent) :
 
 WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
+    m_history(new WebHistory(this)),
     m_mainFrameHost(),
     m_domainFilterStyle(),
     m_needInjectAdBlockScript(true)
@@ -71,6 +74,11 @@ void WebPage::setupSlots()
     connect(this, &WebPage::quotaRequested, this, &WebPage::onQuotaRequested);
     connect(this, &WebPage::registerProtocolHandlerRequested, this, &WebPage::onRegisterProtocolHandlerRequested);
 #endif
+}
+
+WebHistory *WebPage::getHistory() const
+{
+    return m_history;
 }
 
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)

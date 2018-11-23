@@ -13,8 +13,6 @@
 #include <QMouseEvent>
 #include <QMenu>
 #include <QTimer>
-#include <QWebEngineHistory>
-#include <QWebEngineHistoryItem>
 
 BrowserTabWidget::BrowserTabWidget(Settings *settings, FaviconStore *faviconStore, bool privateMode, QWidget *parent) :
     QTabWidget(parent),

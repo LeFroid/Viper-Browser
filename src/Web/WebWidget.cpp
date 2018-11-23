@@ -5,6 +5,7 @@
 #include "HttpRequest.h"
 #include "MainWindow.h"
 #include "WebWidget.h"
+#include "WebHistory.h"
 #include "WebPage.h"
 #include "WebView.h"
 
@@ -31,12 +32,8 @@ WebState::WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget) :
             icon = tabWidget->tabIcon(index);
     }
 
-    if (QWebEngineHistory *history = webWidget->history())
-    {
-        QDataStream stream(&pageHistory, QIODevice::ReadWrite);
-        stream << *history;
-        stream.device()->seek(0);
-    }
+    if (WebHistory *history = webWidget->getHistory())
+        pageHistory = history->save();
 }
 
 QByteArray WebState::serialize() const
@@ -182,7 +179,7 @@ void WebWidget::reload()
         return;
     }
 
-    m_view->reload();
+    m_view->getPage()->getHistory()->reload();//reload();
 }
 
 void WebWidget::stop()
@@ -218,8 +215,7 @@ void WebWidget::setHibernation(bool on)
 
         emit aboutToWake();
         m_view->load(m_savedState.url);
-        QDataStream historyStream(&m_savedState.pageHistory, QIODevice::ReadWrite);
-        historyStream >> *(m_view->history());
+        getHistory()->load(m_savedState.pageHistory);
 
         unsetCursor();
 
@@ -231,18 +227,25 @@ void WebWidget::setHibernation(bool on)
     m_hibernating = on;
 }
 
-void WebWidget::setWebState(const WebState &state)
+void WebWidget::setWebState(WebState &state)
 {
     m_savedState = state;
 
     if (!m_hibernating)
     {
         load(state.url);
-        QDataStream historyStream(&m_savedState.pageHistory, QIODevice::ReadWrite);
-        historyStream >> *(m_view->history());
+        getHistory()->load(state.pageHistory);
     }
     else
         emit loadFinished(false);
+}
+
+WebHistory *WebWidget::getHistory() const
+{
+    if (m_hibernating)
+        return nullptr;
+
+    return m_view->getPage()->getHistory();
 }
 
 QWebEngineHistory *WebWidget::history() const
@@ -258,11 +261,7 @@ QByteArray WebWidget::getEncodedHistory() const
     if (m_hibernating)
         return m_savedState.pageHistory;
 
-    QByteArray pageHistory;
-    QDataStream historyStream(&pageHistory, QIODevice::ReadWrite);
-    historyStream << *(m_view->history());
-    historyStream.device()->seek(0);
-    return pageHistory;
+    return getHistory()->save();
 }
 
 QUrl WebWidget::url() const

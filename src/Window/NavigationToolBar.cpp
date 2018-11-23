@@ -8,6 +8,7 @@
 #include "NavigationToolBar.h"
 #include "SearchEngineLineEdit.h"
 #include "URLLineEdit.h"
+#include "WebHistory.h"
 #include "WebPage.h"
 #include "WebView.h"
 #include "WebWidget.h"
@@ -16,7 +17,7 @@
 #include <QSplitter>
 #include <QStyle>
 #include <QToolButton>
-#include <QWebEngineHistoryItem>
+//#include <QWebEngineHistoryItem>
 
 NavigationToolBar::NavigationToolBar(const QString &title, QWidget *parent) :
     QToolBar(title, parent),
@@ -91,7 +92,7 @@ void NavigationToolBar::setupUI()
 
     // Previous Page Button
     m_prevPage = new QToolButton;
-    QAction *prevPageAction = addWidget(m_prevPage);
+    addWidget(m_prevPage);
 
     m_prevPage->setIcon(QIcon(QLatin1String(":/arrow-back.png")));
     m_prevPage->setToolTip(tr("Go back one page"));
@@ -99,21 +100,26 @@ void NavigationToolBar::setupUI()
     QMenu *buttonHistMenu = new QMenu(this);
     m_prevPage->setMenu(buttonHistMenu);
 
-    connect(m_prevPage, &QToolButton::clicked, prevPageAction, &QAction::trigger);
-    win->addWebProxyAction(QWebEnginePage::Back, prevPageAction);
+    connect(m_prevPage, &QToolButton::clicked, [this, win](){
+        WebHistory *history = win->currentWebWidget()->getHistory();
+        if (history)
+            history->goBack();
+    });
 
     // Next Page Button
     m_nextPage = new QToolButton;
-    QAction *nextPageAction = addWidget(m_nextPage);
-
+    addWidget(m_nextPage);
     m_nextPage->setIcon(QIcon(QLatin1String(":/arrow-forward.png")));
     m_nextPage->setToolTip(tr("Go forward one page"));
 
     buttonHistMenu = new QMenu(this);
     m_nextPage->setMenu(buttonHistMenu);
 
-    connect(m_nextPage, &QToolButton::clicked, nextPageAction, &QAction::trigger);
-    win->addWebProxyAction(QWebEnginePage::Forward, nextPageAction);
+    connect(m_nextPage, &QToolButton::clicked, [this, win](){
+        WebHistory *history = win->currentWebWidget()->getHistory();
+        if (history)
+            history->goForward();
+    });
 
     // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
@@ -122,7 +128,6 @@ void NavigationToolBar::setupUI()
 
     // URL Bar
     m_urlInput = new URLLineEdit(win);
-    //connect(m_urlInput, &URLLineEdit::returnPressed, this, &NavigationToolBar::onURLInputEntered);
     connect(m_urlInput, &URLLineEdit::viewSecurityInfo, win, &MainWindow::onClickSecurityInfo);
     connect(m_urlInput, &URLLineEdit::toggleBookmarkStatus, win, &MainWindow::onClickBookmarkIcon);
 
@@ -238,51 +243,47 @@ void NavigationToolBar::resetHistoryButtonMenus()
     if (!webWidget)
         return;
 
-    QWebEngineHistory *hist = webWidget->history();
+    WebHistory *hist = webWidget->getHistory();
     if (hist == nullptr)
+    {
+        m_prevPage->setEnabled(false);
+        m_nextPage->setEnabled(false);
         return;
+    }
+
+    m_prevPage->setEnabled(hist->canGoBack());
+    m_nextPage->setEnabled(hist->canGoForward());
 
     const int maxMenuSize = 10;
     QAction *histAction = nullptr, *prevAction = nullptr;
 
     // Setup back button history menu
-    QList<QWebEngineHistoryItem> histItems = hist->backItems(maxMenuSize);
-    for (const QWebEngineHistoryItem &item : histItems)
+    auto histItems = hist->getBackEntries(maxMenuSize);
+    for (const auto &entry : histItems)
     {
-        QIcon icon = m_faviconStore->getFavicon(item.url());
-
         if (prevAction == nullptr)
-            histAction = backMenu->addAction(icon, item.title());
+            histAction = backMenu->addAction(entry.icon, entry.title);
         else
         {
-            histAction = new QAction(icon, item.title(), backMenu);
+            histAction = new QAction(entry.icon, entry.title, backMenu);
             backMenu->insertAction(prevAction, histAction);
         }
 
         connect(histAction, &QAction::triggered, [=](){
-            hist->goToItem(item);
+            hist->goToEntry(entry);
         });
         prevAction = histAction;
     }
 
     // Setup forward button history menu
-    histItems = hist->forwardItems(maxMenuSize);
+    histItems = hist->getForwardEntries(maxMenuSize);
     histAction = nullptr, prevAction = nullptr;
-    for (const QWebEngineHistoryItem &item : histItems)
+    for (const auto &entry : histItems)
     {
-        QIcon icon = m_faviconStore->getFavicon(item.url());
-
-        if (prevAction == nullptr)
-            histAction = forwardMenu->addAction(icon, item.title());
-        else
-        {
-            histAction = new QAction(icon, item.title(), forwardMenu);
-            forwardMenu->insertAction(prevAction, histAction);
-        }
+        histAction = forwardMenu->addAction(entry.icon, entry.title);
 
         connect(histAction, &QAction::triggered, [=](){
-            hist->goToItem(item);
+            hist->goToEntry(entry);
         });
-        prevAction = histAction;
     }
 }

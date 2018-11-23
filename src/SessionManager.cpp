@@ -3,6 +3,7 @@
 #include "BrowserTabWidget.h"
 #include "CommonUtil.h"
 #include "MainWindow.h"
+#include "WebHistory.h"
 #include "WebWidget.h"
 
 #include <QByteArray>
@@ -13,7 +14,7 @@
 #include <QJsonValue>
 #include <QString>
 #include <QUrl>
-#include <QWebEngineHistory>
+//#include <QWebEngineHistory>
 
 SessionManager::SessionManager() :
     m_dataFile(),

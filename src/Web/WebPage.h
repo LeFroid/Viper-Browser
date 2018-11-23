@@ -14,6 +14,8 @@
 #include <QWebEngineRegisterProtocolHandlerRequest>
 #endif
 
+class WebHistory;
+
 class QWebEngineProfile;
 
 /**
@@ -36,6 +38,9 @@ public:
 
     /// WebPage destructor
     ~WebPage();
+
+    /// Returns a pointer to the web page's history
+    WebHistory *getHistory() const;
 
     /// Executes the given JavaScript code (in string form), storing the result in the given reference
     void runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result);
@@ -101,6 +106,9 @@ private:
     void setupSlots();
 
 private:
+    /// Stores the history of the web page
+    WebHistory *m_history;
+
     /// Stores the host of the main frame's URL. Used to prevent excessive requests to fetch the AdBlockManager's domain-specific cosmetic filters
     QString m_mainFrameHost;
 

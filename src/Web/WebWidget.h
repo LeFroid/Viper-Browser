@@ -10,6 +10,7 @@
 class BrowserTabWidget;
 class HttpRequest;
 class MainWindow;
+class WebHistory;
 class WebPage;
 class WebView;
 class WebWidget;
@@ -114,6 +115,9 @@ public:
     /// Loads the given HTTP request onto the page
     void load(const HttpRequest &request);
 
+    /// Returns a pointer to the page's history
+    WebHistory *getHistory() const;
+
     /// Returns a pointer to the view's history
     QWebEngineHistory *history() const;
 
@@ -147,7 +151,7 @@ public slots:
     void setHibernation(bool on);
 
     /// Sets the state of the web widget as it was during a hibernation event
-    void setWebState(const WebState &state);
+    void setWebState(WebState &state);
 
 signals:
     /// Emitted when the widget is about to go into hibernation state
