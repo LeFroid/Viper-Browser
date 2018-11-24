@@ -77,4 +77,72 @@ namespace CommonUtil
         }
         return result;
     }
+
+    QRegularExpression getRegExpForMatchPattern(const QString &str)
+    {
+        QChar kleeneStar = QLatin1Char('*');
+        int pos = str.indexOf("://");
+
+        // If string is empty or does not specify scheme, return regex accepting anything with http or https scheme
+        if (str.isEmpty() || pos <= 0)
+            return QRegularExpression(QLatin1String("http(s?)://"));
+        else if (str.compare(QLatin1String("<all_urls>")) == 0)
+            return QRegularExpression(QLatin1String("(http(s?)|ftp|file)://.*"));
+
+        // Get scheme in the form of a regular expression
+        QString converted = str.left(pos);
+        if (converted.compare(kleeneStar) == 0)
+            converted = QLatin1String("http(s?)");
+
+        if (!converted.startsWith(QLatin1String("http"))
+                && !converted.startsWith(QLatin1String("ftp"))
+                && !converted.startsWith(QLatin1String("file")))
+            return QRegularExpression(QLatin1String("http(s?)://"));
+
+        converted.append(QLatin1String("://"));
+
+        // Get host in the form of a regular expression
+        int pathPos = str.indexOf(QLatin1Char('/'), pos + 3);
+        if (pathPos < 0)
+        {
+            // Path character is mandatory
+            return QRegularExpression(QLatin1String("http(s?)://"));
+        }
+        else if (pathPos > 0)
+        {
+            QString host = str.left(pathPos);
+            host = host.mid(pos + 3);
+
+            int lastStarPos = host.lastIndexOf(kleeneStar);
+            if (lastStarPos > 0)
+                return QRegularExpression(QLatin1String("http(s?)://"));
+
+            if (lastStarPos == 0)
+            {
+                if (host.size() == 1)
+                    converted.append(QLatin1String(".*/"));
+                else if (host.at(1) == QLatin1Char('.'))
+                {
+                    converted.append(QLatin1String(".*"));
+                    host = host.mid(1);
+                }
+                else
+                    return QRegularExpression(QLatin1String("http(s?)://"));
+
+            }
+
+            converted.append(host);
+        }
+
+        converted.append(QLatin1Char('/'));
+
+        // Get path in the form of a regular expression
+        if (pathPos + 1 == str.size())
+            return QRegularExpression(converted);
+
+        QString path = str.mid(pathPos + 1);
+        path.replace(QLatin1String("*"), QLatin1String(".*"));
+        converted.append(path);
+        return QRegularExpression(converted);
+    }
 }

@@ -189,10 +189,10 @@ void WebHistory::reload()
     m_page->triggerAction(WebPage::Reload);
 }
 
-void WebHistory::onPageLoaded(bool ok)
+void WebHistory::onPageLoaded(bool /*ok*/)
 {
-    if (!ok)
-        return;
+    //if (!ok)
+    //    return;
 
     const QUrl url = m_page->url();
 

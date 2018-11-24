@@ -15,8 +15,6 @@ class WebPage;
 class WebView;
 class WebWidget;
 
-class QWebEngineHistory;
-
 /// Contains the information about a \ref WebWidget that is needed to hibernate/wake a tab,
 /// or save and restore a tab across browsing sessions
 struct WebState
@@ -117,9 +115,6 @@ public:
 
     /// Returns a pointer to the page's history
     WebHistory *getHistory() const;
-
-    /// Returns a pointer to the view's history
-    QWebEngineHistory *history() const;
 
     /// Returns the widget's web history as a serialized byte array
     QByteArray getEncodedHistory() const;

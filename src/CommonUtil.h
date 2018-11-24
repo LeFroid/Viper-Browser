@@ -2,6 +2,7 @@
 #define COMMONUTIL_H
 
 #include <QIcon>
+#include <QRegularExpression>
 #include <QString>
 #include <QtGlobal>
 
@@ -19,6 +20,10 @@ namespace CommonUtil
 
     /// Computes and returns base^exp
     quint64 quPow(quint64 base, quint64 exp);
+
+    /// Converts the match pattern into a QRegularExpression that can be applied to URLs
+    /// See https://developer.chrome.com/extensions/match_patterns for match pattern specification
+    QRegularExpression getRegExpForMatchPattern(const QString &str);
 }
 
 #endif // COMMONUTIL_H

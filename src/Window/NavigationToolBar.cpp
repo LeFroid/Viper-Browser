@@ -17,7 +17,6 @@
 #include <QSplitter>
 #include <QStyle>
 #include <QToolButton>
-//#include <QWebEngineHistoryItem>
 
 NavigationToolBar::NavigationToolBar(const QString &title, QWidget *parent) :
     QToolBar(title, parent),

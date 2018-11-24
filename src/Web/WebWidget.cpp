@@ -12,7 +12,6 @@
 #include <QMouseEvent>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <QWebEngineHistory>
 
 WebState::WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget) :
     index(0),
@@ -246,14 +245,6 @@ WebHistory *WebWidget::getHistory() const
         return nullptr;
 
     return m_view->getPage()->getHistory();
-}
-
-QWebEngineHistory *WebWidget::history() const
-{
-    if (m_hibernating)
-        return nullptr;
-
-    return m_view->history();
 }
 
 QByteArray WebWidget::getEncodedHistory() const

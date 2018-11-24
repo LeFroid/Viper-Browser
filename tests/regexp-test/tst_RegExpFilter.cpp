@@ -1,4 +1,5 @@
 #include "timestamp.h"
+#include "CommonUtil.h"
 
 #include <QString>
 #include <QStringList>
@@ -14,70 +15,6 @@ class RegExpFilter : public QObject
 
 public:
     RegExpFilter();
-
-    QRegularExpression getMatchRegExp(const QString &str)
-    {
-        QChar kleeneStar = QLatin1Char('*');
-        int pos = str.indexOf("://");
-
-        // If string is empty or does not specify scheme, return regex accepting anything with http or https scheme
-        if (str.isEmpty() || pos <= 0)
-            return QRegularExpression(QStringLiteral("http(s?)://"));
-        else if (str.compare("<all_urls>") == 0)
-            return QRegularExpression(QStringLiteral("(http(s?)|ftp|file)://.*"));
-
-        // Get scheme in the form of a regular expression
-        QString converted = str.left(pos);
-        if (converted.compare(kleeneStar) == 0)
-            converted = QStringLiteral("http(s?)");
-        if (!converted.startsWith("http") && !converted.startsWith("ftp") && !converted.startsWith("file"))
-            return QRegularExpression(QStringLiteral("http(s?)://"));
-        converted.append(QStringLiteral("://"));
-
-        // Get host in the form of a regular expression
-        int pathPos = str.indexOf('/', pos + 3);
-        if (pathPos < 0)
-        {
-            // Path character is mandatory
-            return QRegularExpression(QStringLiteral("http(s?)://"));
-        }
-        else if (pathPos > 0)
-        {
-            QString host = str.left(pathPos);
-            host = host.mid(pos + 3);
-
-            int lastStarPos = host.lastIndexOf(kleeneStar);
-            if (lastStarPos > 0)
-                return QRegularExpression(QStringLiteral("http(s?)://"));
-
-            if (lastStarPos == 0)
-            {
-                if (host.size() == 1)
-                    converted.append(QStringLiteral(".*/"));
-                else if (host.at(1) == QLatin1Char('.'))
-                {
-                    converted.append(".*");
-                    host = host.mid(1);
-                }
-                else
-                    return QRegularExpression(QStringLiteral("http(s?)://"));
-
-            }
-
-            converted.append(host);
-        }
-
-        converted.append(QChar('/'));
-
-        // Get path in the form of a regular expression
-        if (pathPos + 1 == str.size())
-            return QRegularExpression(converted);
-
-        QString path = str.mid(pathPos + 1);
-        path.replace("*", ".*");
-        converted.append(path);
-        return QRegularExpression(converted);
-    }
 
 private Q_SLOTS:
     /// Tests the validity of the regular expressions being used for testing. Test passes if all reg exps are valid
@@ -96,11 +33,11 @@ private Q_SLOTS:
     void testElementHideShouldNotMatchRegExp();
 
     /**
-     * Tests the getMatchRegExp method with strings that should yield a positive match.
+     * Tests the getRegExpForMatchPattern function with strings that should yield a positive match.
      */
     void testMatchPatternMatches();
 
-    /// Tests the getMatchRegExp method with invalid match patterns and strings that shouldnt match valid patterns
+    /// Tests the getRegExpForMatchPattern function with invalid match patterns and strings that shouldnt match valid patterns
     void testMatchPatternBad();
 
 private:
@@ -120,7 +57,7 @@ void RegExpFilter::testValidityOfRegExp()
 
 void RegExpFilter::testMatchPatternMatches()
 {
-    QRegularExpression googlExpr = getMatchRegExp(QStringLiteral("https://*.google.com/foo*bar"));
+    QRegularExpression googlExpr = CommonUtil::getRegExpForMatchPattern(QStringLiteral("https://*.google.com/foo*bar"));
     QString googleExprErrorMsg
             = QString("Regular expression calculated is invalid. Original string: https://*.google.com/foo*bar , Regular Expression: %1").arg(googlExpr.pattern());
     QVERIFY2(googlExpr.isValid(), googleExprErrorMsg.toStdString().c_str());
@@ -128,13 +65,13 @@ void RegExpFilter::testMatchPatternMatches()
     QVERIFY2(googlExpr.match(QStringLiteral("https://docs.google.com/foobar")).hasMatch(), "Pattern should match https://docs.google.com/foobar");
     QVERIFY2(googlExpr.match(QStringLiteral("https://www.google.com/foo/baz/bar")).hasMatch(), "Pattern should match https://www.google.com/foo/baz/bar");
 
-    QRegularExpression googleMailExpr = getMatchRegExp(QStringLiteral("*://mail.google.com/*"));
+    QRegularExpression googleMailExpr = CommonUtil::getRegExpForMatchPattern(QStringLiteral("*://mail.google.com/*"));
     QString googleMailExprErrorMsg
             = QString("Regular expression calculated is invalid. Original string: *://mail.google.com/* , Regular Expression: %1").arg(googleMailExpr.pattern());
     QVERIFY2(googleMailExpr.isValid(), googleMailExprErrorMsg.toStdString().c_str());
     qDebug() << "Match pattern: *://mail.google.com/* translated to " << googleMailExpr.pattern();
 
-    QRegularExpression localFileExpr = getMatchRegExp(QStringLiteral("file:///foo*"));
+    QRegularExpression localFileExpr = CommonUtil::getRegExpForMatchPattern(QStringLiteral("file:///foo*"));
     QString localFileExprErrorMsg =
             QString("Regular expression calculated is invalid. Original string: file:///foo* , Regular Expression: %1").arg(localFileExpr.pattern());
     QVERIFY2(localFileExpr.isValid(), localFileExprErrorMsg.toStdString().c_str());
@@ -145,11 +82,15 @@ void RegExpFilter::testMatchPatternMatches()
 
 void RegExpFilter::testMatchPatternBad()
 {
-    QRegularExpression googlExprBad = getMatchRegExp(QStringLiteral("http://www.google.com"));
+    QRegularExpression googlExprBad = CommonUtil::getRegExpForMatchPattern(QStringLiteral("http://www.google.com"));
     QVERIFY2(googlExprBad.pattern().compare(QStringLiteral("http(s?)://")) == 0, "Match pattern http://www.google.com should be invalid (missing path character)");
 
-    QRegularExpression googleMailExpr = getMatchRegExp(QStringLiteral("*://mail.google.com/*"));
+    QRegularExpression googleMailExpr = CommonUtil::getRegExpForMatchPattern(QStringLiteral("*://mail.google.com/*"));
     QVERIFY2(!googleMailExpr.match(QStringLiteral("ftp://mail.google.com/")).hasMatch(), "Wildcard scheme should not match FTP schemes");
+
+    QRegularExpression localFileExpr = CommonUtil::getRegExpForMatchPattern(QStringLiteral("file:///foo*"));
+    QVERIFY2(!localFileExpr.match(QStringLiteral("file:///home/user/foo/list.txt")).hasMatch(), "Match pattern file:///foo* should only match file URLs when the path starts with the string foo");
+    QVERIFY2(!localFileExpr.match(QStringLiteral("https://foo.website.com/test/")).hasMatch(), "Match pattern file:///foo* should only match file schemes");
 }
 
 void RegExpFilter::testElementHideShouldMatchRegExp()

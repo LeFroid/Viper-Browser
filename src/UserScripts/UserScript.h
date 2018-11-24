@@ -63,9 +63,6 @@ private:
     /// Converts the include or exclude rule into a QRegularExpression
     QRegularExpression getRegExp(const QString &str);
 
-    /// Converts the match rule into a QRegularExpression
-    QRegularExpression getMatchRegExp(const QString &str);
-
     /// Converts the extracted script metadata into a JSON object
     QString getScriptJSON() const;
 

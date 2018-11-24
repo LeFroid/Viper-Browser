@@ -1,3 +1,4 @@
+#include "CommonUtil.h"
 #include "UserScript.h"
 
 #include <QFile>
@@ -108,7 +109,7 @@ bool UserScript::load(const QString &file, const QString &templateData)
                 else if (key.compare("exclude") == 0)
                     m_excludes.push_back(getRegExp(value));
                 else if (key.compare("match") == 0)
-                    m_includes.push_back(getMatchRegExp(value));
+                    m_includes.push_back(CommonUtil::getRegExpForMatchPattern(value));
                 else if (key.compare("require") == 0)
                     m_dependencies.push_back(value);
                 else if (key.compare("run-at") == 0)
@@ -168,70 +169,6 @@ QRegularExpression UserScript::getRegExp(const QString &str)
     // If the method has not returned at this point, replace each occurrence of a "*" with a ".*"
     converted = str;
     converted.replace(QStringLiteral("*"), QStringLiteral(".*"));
-    return QRegularExpression(converted);
-}
-
-QRegularExpression UserScript::getMatchRegExp(const QString &str)
-{
-    QChar kleeneStar = QLatin1Char('*');
-    int pos = str.indexOf("://");
-
-    // If string is empty or does not specify scheme, return regex accepting anything with http or https scheme
-    if (str.isEmpty() || pos <= 0)
-        return QRegularExpression(QStringLiteral("http(s?)://"));
-    else if (str.compare("<all_urls>") == 0)
-        return QRegularExpression(QStringLiteral("(http(s?)|ftp|file)://.*"));
-
-    // Get scheme in the form of a regular expression
-    QString converted = str.left(pos);
-    if (converted.compare(kleeneStar) == 0)
-        converted = QStringLiteral("http(s?)");
-    if (!converted.startsWith("http") && !converted.startsWith("ftp") && !converted.startsWith("file"))
-        return QRegularExpression(QStringLiteral("http(s?)://"));
-    converted.append(QStringLiteral("://"));
-
-    // Get host in the form of a regular expression
-    int pathPos = str.indexOf('/', pos + 3);
-    if (pathPos < 0)
-    {
-        // Path character is mandatory
-        return QRegularExpression(QStringLiteral("http(s?)://"));
-    }
-    else if (pathPos > 0)
-    {
-        QString host = str.left(pathPos);
-        host = host.mid(pos + 3);
-
-        int lastStarPos = host.lastIndexOf(kleeneStar);
-        if (lastStarPos > 0)
-            return QRegularExpression(QStringLiteral("http(s?)://"));
-
-        if (lastStarPos == 0)
-        {
-            if (host.size() == 1)
-                converted.append(QStringLiteral(".*/"));
-            else if (host.at(1) == QLatin1Char('.'))
-            {
-                converted.append(".*");
-                host = host.mid(1);
-            }
-            else
-                return QRegularExpression(QStringLiteral("http(s?)://"));
-
-        }
-
-        converted.append(host);
-    }
-
-    converted.append(QChar('/'));
-
-    // Get path in the form of a regular expression
-    if (pathPos + 1 == str.size())
-        return QRegularExpression(converted);
-
-    QString path = str.mid(pathPos + 1);
-    path.replace("*", ".*");
-    converted.append(path);
     return QRegularExpression(converted);
 }
 

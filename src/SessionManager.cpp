@@ -14,7 +14,6 @@
 #include <QJsonValue>
 #include <QString>
 #include <QUrl>
-//#include <QWebEngineHistory>
 
 SessionManager::SessionManager() :
     m_dataFile(),
