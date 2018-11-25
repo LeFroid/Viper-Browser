@@ -2,6 +2,7 @@
 #include "FaviconStore.h"
 #include "WebHistory.h"
 #include "WebPage.h"
+#include "WebView.h"
 
 #include <QAction>
 #include <QDataStream>
@@ -11,22 +12,22 @@ const QString WebHistory::SerializationVersion = QStringLiteral("WebHistory_1.0"
 WebHistory::WebHistory(WebPage *parent) :
     QObject(parent),
     m_page(parent),
+    m_backAction(nullptr),
+    m_forwardAction(nullptr),
     m_entries(),
     m_currentPos(-1),
     m_targetPos(-1)
 {
     if (m_page != nullptr)
     {
+        connect(m_page, &WebPage::urlChanged, this, &WebHistory::onUrlChanged);
         connect(m_page, &WebPage::loadFinished, this, &WebHistory::onPageLoaded);
 
-        QAction *pageAction = m_page->action(WebPage::Back);
-        connect(pageAction, &QAction::triggered, [this](){
-            m_targetPos = m_currentPos - 1;
-        });
-        pageAction = m_page->action(WebPage::Forward);
-        connect(pageAction, &QAction::triggered, [this](){
-            m_targetPos = m_currentPos + 1;
-        });
+        m_backAction = m_page->action(WebPage::Back);
+        m_forwardAction = m_page->action(WebPage::Forward);
+
+        connect(m_backAction,    &QAction::changed, this, &WebHistory::historyChanged);
+        connect(m_forwardAction, &QAction::changed, this, &WebHistory::historyChanged);
     }
 }
 
@@ -134,34 +135,48 @@ std::vector<WebHistoryEntry> WebHistory::getForwardEntries(int maxEntries) const
 
 bool WebHistory::canGoBack() const
 {
-    return m_currentPos > 0;
+    return m_currentPos > 0 || m_backAction->isEnabled();
 }
 
 bool WebHistory::canGoForward() const
 {
-    return m_currentPos + 1 < m_entries.size();
+    return m_currentPos + 1 < m_entries.size() || m_forwardAction->isEnabled();
 }
 
 void WebHistory::goBack()
 {
-    if (m_currentPos <= 0)
+    if (m_currentPos <= 0 && !m_backAction->isEnabled())
         return;
 
-    const WebHistoryEntry &entry = m_entries.at(m_currentPos - 1);
     m_targetPos = m_currentPos - 1;
-    m_page->load(entry.url);
-    //m_currentPos -= 1;
+
+    if (m_backAction->isEnabled())
+        m_backAction->trigger();
+    else if (m_currentPos > 0)
+    {
+        const WebHistoryEntry &lastEntry = m_entries.at(m_currentPos - 1);
+        m_page->load(lastEntry.url);
+    }
+
+    emit historyChanged();
 }
 
 void WebHistory::goForward()
 {
-    if (m_currentPos + 1 == m_entries.size())
+    if (m_currentPos + 1 == m_entries.size() && !m_forwardAction->isEnabled())
         return;
 
-    const WebHistoryEntry &entry = m_entries.at(m_currentPos + 1);
     m_targetPos = m_currentPos + 1;
-    m_page->load(entry.url);
-    //m_currentPos += 1;
+
+    if (m_forwardAction->isEnabled())
+        m_forwardAction->trigger();
+    else if (m_currentPos + 1 < m_entries.size())
+    {
+        const WebHistoryEntry &nextEntry = m_entries.at(m_currentPos + 1);
+        m_page->load(nextEntry.url);
+    }
+
+    emit historyChanged();
 }
 
 void WebHistory::goToEntry(const WebHistoryEntry &entry)
@@ -178,6 +193,7 @@ void WebHistory::goToEntry(const WebHistoryEntry &entry)
         {
             m_targetPos = i;
             m_page->load(entry.url);
+            emit historyChanged();
             return;
         }
     }
@@ -199,10 +215,11 @@ void WebHistory::onPageLoaded(bool /*ok*/)
     if (m_targetPos >= 0 && m_targetPos < static_cast<int>(m_entries.size()))
     {
         const WebHistoryEntry &entry = m_entries.at(m_targetPos);
-        if (entry.url == url)
+        if (entry.url == url || entry.url.adjusted(QUrl::RemoveFragment) == url.adjusted(QUrl::RemoveFragment))
         {
             m_currentPos = m_targetPos;
             m_targetPos = -1;
+            emit historyChanged();
             return;
         }
     }
@@ -220,4 +237,54 @@ void WebHistory::onPageLoaded(bool /*ok*/)
     m_entries.push_back(entry);
 
     ++m_currentPos;
+    emit historyChanged();
 }
+
+void WebHistory::onUrlChanged(const QUrl &url)
+{
+    WebView *view = qobject_cast<WebView*>(m_page->view());
+    if (!view)
+        return;
+
+    if (m_targetPos == -1 && !m_entries.empty() && m_currentPos >= 0)
+    {
+        const WebHistoryEntry &currentEntry = m_entries.at(m_currentPos);
+
+        if (view->getProgress() == 100)
+        {
+            if (m_currentPos > 0)
+            {
+                const WebHistoryEntry &lastEntry = m_entries.at(m_currentPos - 1);
+                if (lastEntry.url == url)
+                {
+                    --m_currentPos;
+                    emit historyChanged();
+                    return;
+                }
+            }
+
+            if (m_currentPos + 1 < m_entries.size())
+            {
+                const WebHistoryEntry &nextEntry = m_entries.at(m_currentPos + 1);
+                if (nextEntry.url == url)
+                {
+                    ++m_currentPos;
+                    emit historyChanged();
+                    return;
+                }
+            }
+
+            if (url.host() == currentEntry.url.host())
+            {
+                auto it = m_entries.begin() + m_currentPos + 1;
+                WebHistoryEntry newEntry(currentEntry.icon, view->getTitle(), url);
+                newEntry.page = m_page;
+                m_entries.insert(it, newEntry);
+                ++m_currentPos;
+            }
+        }
+    }
+
+    emit historyChanged();
+}
+

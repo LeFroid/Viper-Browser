@@ -11,6 +11,7 @@
 #include <deque>
 #include <vector>
 
+class QAction;
 class WebPage;
 
 /**
@@ -95,6 +96,10 @@ public:
     /// Saves the web page history, returning it as a byte array
     QByteArray save() const;
 
+signals:
+    /// Emitted when any of the history associated with a page has changed
+    void historyChanged();
+
 public slots:
     /// Moves the page back to the page associated with the previous history entry
     void goBack();
@@ -112,9 +117,18 @@ private slots:
     /// Handles a page load event
     void onPageLoaded(bool ok);
 
+    /// Handles a URL change event
+    void onUrlChanged(const QUrl &url);
+
 private:
     /// Pointer to the web page
     WebPage *m_page;
+
+    /// Pointer to the web page's go back action
+    QAction *m_backAction;
+
+    /// Pointer to the web page's go forward action
+    QAction *m_forwardAction;
 
     /// Double-ended queue of history entries.
     /// At the front of queue are the oldest entries, the end of the queue contains the newest.

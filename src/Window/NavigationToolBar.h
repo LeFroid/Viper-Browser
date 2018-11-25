@@ -59,6 +59,9 @@ private:
     MainWindow *getParentWindow();
 
 private slots:
+    /// Handles the tab change event that is sent by the \ref BrowserTabWidget
+    void onTabChanged(int index);
+
     /// Called when the tab widget signals a page has progressed in loading its content
     void onLoadProgress(int value);
 
@@ -66,7 +69,7 @@ private slots:
     void onStopRefreshActionTriggered();
 
     /// Resets the items in the back and forward button menus, populating them with the current tab's history
-    void resetHistoryButtonMenus();
+    void onHistoryChanged();
 
 private:
     /// Button to go to the previously visited page

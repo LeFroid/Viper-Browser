@@ -181,8 +181,9 @@ void NavigationToolBar::bindWithTabWidget()
         m_urlInput->setURL(url);
     });
 
-    connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::resetHistoryButtonMenus);
-    connect(tabWidget, &BrowserTabWidget::loadFinished,   this, &NavigationToolBar::resetHistoryButtonMenus);
+    connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::onTabChanged);
+    //connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::resetHistoryButtonMenus);
+    //connect(tabWidget, &BrowserTabWidget::loadFinished,   this, &NavigationToolBar::resetHistoryButtonMenus);
 
     connect(tabWidget, &BrowserTabWidget::aboutToHibernate, [this](){
         m_nextPage->menu()->clear();
@@ -193,6 +194,25 @@ void NavigationToolBar::bindWithTabWidget()
 MainWindow *NavigationToolBar::getParentWindow()
 {
     return dynamic_cast<MainWindow*>(parentWidget());
+}
+
+void NavigationToolBar::onTabChanged(int index)
+{
+    onHistoryChanged();
+
+    BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(sender());
+    if (!tabWidget)
+        return;
+
+    WebWidget *webWidget = tabWidget->getWebWidget(index);
+    if (!webWidget)
+        return;
+
+    WebHistory *hist = webWidget->getHistory();
+    if (!hist)
+        return;
+
+    connect(hist, &WebHistory::historyChanged, this, &NavigationToolBar::onHistoryChanged, Qt::UniqueConnection);
 }
 
 void NavigationToolBar::onLoadProgress(int value)
@@ -226,7 +246,7 @@ void NavigationToolBar::onStopRefreshActionTriggered()
     }
 }
 
-void NavigationToolBar::resetHistoryButtonMenus()
+void NavigationToolBar::onHistoryChanged()
 {
     QMenu *backMenu = m_prevPage->menu();
     QMenu *forwardMenu = m_nextPage->menu();
@@ -243,7 +263,9 @@ void NavigationToolBar::resetHistoryButtonMenus()
         return;
 
     WebHistory *hist = webWidget->getHistory();
-    if (hist == nullptr)
+    WebHistory *caller = qobject_cast<WebHistory*>(sender());
+
+    if (hist == nullptr || (caller != nullptr && caller != hist))
     {
         m_prevPage->setEnabled(false);
         m_nextPage->setEnabled(false);
