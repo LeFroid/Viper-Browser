@@ -635,7 +635,15 @@ void MainWindow::openInspector()
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     WebPage *inspectorPage = inspectorView->getPage();
-    inspectorPage->setInspectedPage(webWidget->page());
+    if (ui->dockWidget->isVisible())
+    {
+        if (qobject_cast<WebPage*>(inspectorPage->inspectedPage()) == webWidget->page())
+            webWidget->page()->triggerAction(WebPage::InspectElement);
+        else
+            inspectorPage->setInspectedPage(webWidget->page());
+    }
+    else
+        inspectorPage->setInspectedPage(webWidget->page());
 
     disconnect(webWidget, &WebWidget::aboutToHibernate, this, &MainWindow::onWebWidgetAboutToHibernate);
     connect(webWidget, &WebWidget::aboutToHibernate,    this, &MainWindow::onWebWidgetAboutToHibernate);
