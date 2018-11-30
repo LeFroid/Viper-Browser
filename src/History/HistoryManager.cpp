@@ -303,7 +303,21 @@ void HistoryManager::load()
     // Only load data from the History table, will load specific visits if user requests full history
     QSqlQuery query(m_database);
 
-    // First clear history entries that are not referenced by any specific visits
+    // Clear visits that are 6+ months old
+    quint64 purgeDate = QDateTime::currentMSecsSinceEpoch();
+    const quint64 tmp = quint64{15552000000};
+    if (purgeDate > tmp)
+    {
+        purgeDate -= tmp;
+        query.prepare(QLatin1String("DELETE FROM Visits WHERE Date < (:purgeDate)"));
+        query.bindValue(QLatin1String(":purgeDate"), purgeDate);
+        if (!query.exec())
+        {
+            qDebug() << "[Error]: In HistoryManager::load - Could not purge old history entries. Message: " << query.lastError().text();
+        }
+    }
+
+    // Clear history entries that are not referenced by any specific visits
     if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
     {
         qDebug() << "[Error]: In HistoryManager::load - Could not remove non-referenced history entries from the database. Message: " << query.lastError().text();
