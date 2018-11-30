@@ -30,6 +30,8 @@
                             username = elem.value;
                         } else if (eType == 'password') {
                             password = elem.value;
+                        } else if (elem.value.indexOf('@') >= 0 && username == '') {
+                            username = elem.value;
                         }
                     }
                 }
