@@ -222,6 +222,11 @@ WebWidget *BrowserTabWidget::createWebWidget()
             emit aboutToHibernate();
 		}
 	});
+    connect(ww, &WebWidget::aboutToWake, [=]() {
+        if (currentWebWidget() == ww) {
+            emit aboutToWake();
+        }
+    });
 
     if (!m_privateBrowsing)
     {

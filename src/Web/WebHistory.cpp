@@ -66,6 +66,8 @@ void WebHistory::load(QByteArray &data)
 
     m_currentPos = static_cast<int>(position);
     m_targetPos = m_currentPos;
+
+    emit historyChanged();
 }
 
 QByteArray WebHistory::save() const
@@ -158,7 +160,7 @@ void WebHistory::goBack()
         m_page->load(lastEntry.url);
     }
 
-    emit historyChanged();
+    //emit historyChanged();
 }
 
 void WebHistory::goForward()
@@ -176,7 +178,7 @@ void WebHistory::goForward()
         m_page->load(nextEntry.url);
     }
 
-    emit historyChanged();
+    //emit historyChanged();
 }
 
 void WebHistory::goToEntry(const WebHistoryEntry &entry)
@@ -215,7 +217,7 @@ void WebHistory::onPageLoaded(bool /*ok*/)
     if (m_targetPos >= 0 && m_targetPos < static_cast<int>(m_entries.size()))
     {
         const WebHistoryEntry &entry = m_entries.at(m_targetPos);
-        if (entry.url == url || entry.url.adjusted(QUrl::RemoveFragment) == url.adjusted(QUrl::RemoveFragment))
+        if (entry.url == url)
         {
             m_currentPos = m_targetPos;
             m_targetPos = -1;
@@ -246,13 +248,40 @@ void WebHistory::onUrlChanged(const QUrl &url)
     if (!view)
         return;
 
-    if (m_targetPos == -1 && !m_entries.empty() && m_currentPos >= 0)
+    if (!m_entries.empty() && m_currentPos >= 0)
     {
         const WebHistoryEntry &currentEntry = m_entries.at(m_currentPos);
 
         if (view->getProgress() == 100)
         {
-            if (m_currentPos > 0)
+            if (m_targetPos >= 0 && m_targetPos < m_entries.size())
+            {
+                const WebHistoryEntry &targetEntry = m_entries.at(m_targetPos);
+                if (targetEntry.url == url)
+                {
+                    m_currentPos = m_targetPos;
+                    m_targetPos = -1;
+                    emit historyChanged();
+                    return;
+                }
+                else
+                {
+                    auto it = m_entries.begin() + m_currentPos;
+                    if (m_targetPos > m_currentPos)
+                        ++it;
+
+                    WebHistoryEntry newEntry(currentEntry.icon, view->getTitle(), url);
+                    newEntry.page = m_page;
+                    m_entries.insert(it, newEntry);
+
+                    m_currentPos = m_targetPos;
+                    m_targetPos = -1;
+                    emit historyChanged();
+                    return;
+                }
+            }
+
+            /*if (m_currentPos > 0)
             {
                 const WebHistoryEntry &lastEntry = m_entries.at(m_currentPos - 1);
                 if (lastEntry.url == url)
@@ -272,7 +301,7 @@ void WebHistory::onUrlChanged(const QUrl &url)
                     emit historyChanged();
                     return;
                 }
-            }
+            }*/
 
             if (url.host() == currentEntry.url.host())
             {

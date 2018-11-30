@@ -49,6 +49,9 @@ signals:
     /// Emitted when the current tab's web page is about to hibernate
     void aboutToHibernate();
 
+    /// Emitted when the current tab's web page is about to wake from a hibernated state
+    void aboutToWake();
+
     /// Emitted when a new tab is created, passing along a pointer to the associated web widget
     void newTabCreated(WebWidget *view);
 

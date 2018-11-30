@@ -189,6 +189,11 @@ void NavigationToolBar::bindWithTabWidget()
         m_nextPage->menu()->clear();
         m_prevPage->menu()->clear();
     });
+    connect(tabWidget, &BrowserTabWidget::aboutToWake, [this, tabWidget](){
+        WebHistory *hist = tabWidget->currentWebWidget()->getHistory();
+        if (hist)
+            connect(hist, &WebHistory::historyChanged, this, &NavigationToolBar::onHistoryChanged, Qt::UniqueConnection);
+    });
 }
 
 MainWindow *NavigationToolBar::getParentWindow()
