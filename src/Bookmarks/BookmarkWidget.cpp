@@ -120,19 +120,6 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
     connect(treeViewModel, &BookmarkFolderModel::movedFolder,          this, &BookmarkWidget::onFolderMoved);
 }
 
-void BookmarkWidget::reloadBookmarks()
-{
-    if (!isHidden())
-        return;
-
-    BookmarkTableModel *model = static_cast<BookmarkTableModel*>(ui->tableView->model());
-    model->setCurrentFolder(m_bookmarkManager->getRoot());
-
-    BookmarkFolderModel *folderModel =  static_cast<BookmarkFolderModel*>(ui->treeView->model());
-    folderModel->dataChanged(folderModel->index(0, 0),
-                             folderModel->index(folderModel->rowCount() - 1, 0));
-}
-
 void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
 {
     QModelIndex index = ui->tableView->indexAt(pos);

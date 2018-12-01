@@ -91,10 +91,6 @@ private:
     /// Initializes the widgets belonging to the status bar
     void setupStatusBar();
 
-    /// Checks if the page on the active tab is bookmarked, setting the appropriate action in
-    /// the bookmark menu after checking the database
-    void checkPageForBookmark();
-
 public slots:
     /// Called when the active tab has changed
     void onTabChanged(int index);
@@ -125,9 +121,6 @@ public slots:
 
     /// Called when the clear history dialog is finished, returning a result (to cancel or clear history)
     void onClearHistoryDialogFinished(int result);
-
-    /// Refreshes the bookmarks menu
-    void refreshBookmarkMenu();
 
     /// Attempts to add the current page to the user's bookmark collection
     void addPageToBookmarks();
@@ -161,6 +154,10 @@ protected slots:
     void openInspector();
 
 private slots:
+    /// Checks if the page on the active tab is bookmarked, setting the appropriate action in
+    /// the bookmark menu after checking the database
+    void checkPageForBookmark();
+
     /// Called when a web widget is about to hibernate - makes sure that nothing depends on the
     /// soon-to-be hibernated widget
     void onWebWidgetAboutToHibernate();
@@ -240,9 +237,6 @@ private:
 
     /// Bookmark manager
     BookmarkManager *m_bookmarkManager;
-
-    /// Bookmark manager interface
-    BookmarkWidget *m_bookmarkUI;
 
     /// Pointer to the favicon store
     FaviconStore *m_faviconStore;

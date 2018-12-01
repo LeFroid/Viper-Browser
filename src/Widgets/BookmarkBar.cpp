@@ -25,6 +25,7 @@ BookmarkBar::BookmarkBar(QWidget *parent) :
 void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
 {
     m_bookmarkManager = manager;
+    connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged, this, &BookmarkBar::refresh);
     refresh();
 }
 

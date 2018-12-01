@@ -38,10 +38,6 @@ public:
     /// Sets the pointer to the user's bookmark manager
     void setBookmarkManager(BookmarkManager *bookmarkManager);
 
-public slots:
-    /// Reloads bookmark data into tree and table models
-    void reloadBookmarks();
-
 protected:
     /// Called to adjust the proportions of the columns belonging to the table view
     virtual void resizeEvent(QResizeEvent *event) override;

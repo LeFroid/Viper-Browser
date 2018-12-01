@@ -10,8 +10,6 @@
  */
 class BookmarkMenu : public QMenu
 {
-    friend class MainWindow;
-
     Q_OBJECT
 
 public:
@@ -44,7 +42,7 @@ signals:
     /// Emitted when the user wants to remove the current tab's page to their bookmark collection
     void removePageFromBookmarks(bool showDialog);
 
-protected:
+private slots:
     /// Clears the menu, creates the actions belonging to the bookmark menu, and sets the behavior of each action
     void resetMenu();
 

@@ -43,29 +43,13 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     setWindowIcon(QIcon(QLatin1String(":/logo.png")));
 
-    // Get default profile and private profile
-    auto webProfile = QWebEngineProfile::defaultProfile();
-    m_privateProfile = new QWebEngineProfile(this);
-
-    // Instantiate request interceptor
-    m_requestInterceptor = new RequestInterceptor(this);
-
-    // Instantiate scheme handlers
-    m_viperSchemeHandler = new ViperSchemeHandler(this);
-    m_blockedSchemeHandler = new BlockedSchemeHandler(this);
-
-    // Attach request interceptor and scheme handlers to web profiles
-    webProfile->setRequestInterceptor(m_requestInterceptor);
-    webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
-    webProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
-
-    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
-    m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
-    m_privateProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
+    // Web profiles must be set up immediately upon browser initialization
+    setupWebProfiles();
 
     // Load settings
     m_settings = std::make_unique<Settings>();
 
+    // Request interceptor needs the settings to determine if we should send a DNT header
     m_requestInterceptor->setSettings(m_settings.get());
 
     // Initialize favicon storage module
@@ -80,6 +64,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_cookieJar->setThirdPartyCookiesEnabled(m_settings->getValue(BrowserSetting::EnableThirdPartyCookies).toBool());
 
     m_cookieUI = new CookieWidget();
+
+    // Get default profile and load cookies now that the cookie jar is instantiated
+    auto webProfile = QWebEngineProfile::defaultProfile();
     webProfile->cookieStore()->loadAllCookies();
 
     // Initialize auto fill manager
@@ -319,6 +306,29 @@ void BrowserApplication::installGlobalWebScripts()
     {
         publicScriptCollection->insert(script);
     }
+}
+
+void BrowserApplication::setupWebProfiles()
+{
+    // Only two profiles for now, standard and private
+    auto webProfile = QWebEngineProfile::defaultProfile();
+    m_privateProfile = new QWebEngineProfile(this);
+
+    // Instantiate request interceptor
+    m_requestInterceptor = new RequestInterceptor(this);
+
+    // Instantiate scheme handlers
+    m_viperSchemeHandler = new ViperSchemeHandler(this);
+    m_blockedSchemeHandler = new BlockedSchemeHandler(this);
+
+    // Attach request interceptor and scheme handlers to web profiles
+    webProfile->setRequestInterceptor(m_requestInterceptor);
+    webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+    webProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
+
+    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
+    m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+    m_privateProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
 }
 
 void BrowserApplication::beforeBrowserQuit()

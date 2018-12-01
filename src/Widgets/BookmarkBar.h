@@ -23,9 +23,6 @@ public:
     /// Sets the pointer to the bookmark manager
     void setBookmarkManager(BookmarkManager *manager);
 
-    /// Refreshes the items belonging to the bookmark bar
-    void refresh();
-
 signals:
     /// Emitted when the user requests to load a bookmark onto the active webview
     void loadBookmark(const QUrl &url);
@@ -37,6 +34,9 @@ signals:
     void loadBookmarkNewWindow(const QUrl &url);
 
 private slots:
+    /// Refreshes the items belonging to the bookmark bar
+    void refresh();
+
     /// Displays a context menu for a bookmark node at the given position
     void showBookmarkContextMenu(const QPoint &pos);
 

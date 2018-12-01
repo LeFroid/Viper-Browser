@@ -61,7 +61,6 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
     m_privateWindow(privateWindow),
     m_settings(settings),
     m_bookmarkManager(bookmarkManager),
-    m_bookmarkUI(nullptr),
     m_faviconStore(faviconStore),
     m_clearHistoryDialog(nullptr),
     m_tabWidget(nullptr),
@@ -105,9 +104,6 @@ MainWindow::~MainWindow()
     for (WebActionProxy *proxy : m_webActions)
         delete proxy;
 
-    if (m_bookmarkUI)
-        delete m_bookmarkUI;
-
     if (m_bookmarkDialog)
         delete m_bookmarkDialog;
 }
@@ -149,7 +145,7 @@ void MainWindow::openLinkNewWindow(const QUrl &url)
 
 void MainWindow::setupBookmarks()
 {
-    connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged,     this, &MainWindow::refreshBookmarkMenu);
+    connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged,     this, &MainWindow::checkPageForBookmark);
 
     connect(ui->menuBookmarks, &BookmarkMenu::manageBookmarkRequest,   this, &MainWindow::openBookmarkWidget);
     connect(ui->menuBookmarks, &BookmarkMenu::loadUrlRequest,          this, &MainWindow::loadUrl);
@@ -340,19 +336,15 @@ void MainWindow::onTabChanged(int index)
 
 void MainWindow::openBookmarkWidget()
 {
-    if (!m_bookmarkUI)
-    {
-        // Setup bookmark manager UI
-        m_bookmarkUI = new BookmarkWidget;
-        m_bookmarkUI->setBookmarkManager(m_bookmarkManager);
-        connect(m_bookmarkUI, &BookmarkWidget::openBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
-        connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
-        connect(m_bookmarkUI, &BookmarkWidget::openBookmarkNewWindow, this, &MainWindow::openLinkNewWindow);
-        connect(m_bookmarkUI, &BookmarkWidget::destroyed, [=](){
-            m_bookmarkUI = nullptr;
-        });
-    }
-    m_bookmarkUI->show();
+    BookmarkWidget *bookmarkWidget = new BookmarkWidget;
+    bookmarkWidget->setBookmarkManager(m_bookmarkManager);
+    connect(bookmarkWidget, &BookmarkWidget::openBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
+    connect(bookmarkWidget, &BookmarkWidget::openBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
+    connect(bookmarkWidget, &BookmarkWidget::openBookmarkNewWindow, this, &MainWindow::openLinkNewWindow);
+
+    bookmarkWidget->show();
+    bookmarkWidget->raise();
+    bookmarkWidget->activateWindow();
 }
 
 void MainWindow::openCookieManager()
@@ -406,19 +398,6 @@ void MainWindow::onClearHistoryDialogFinished(int result)
     {
         sBrowserApplication->clearHistoryRange(m_clearHistoryDialog->getHistoryTypes(), m_clearHistoryDialog->getCustomTimeRange());
     }
-}
-
-void MainWindow::refreshBookmarkMenu()
-{
-    ui->menuBookmarks->resetMenu();
-    checkPageForBookmark();
-
-    // Bookmark bar
-    ui->bookmarkBar->refresh();
-
-    // Bookmark widget
-    if (m_bookmarkUI)
-        m_bookmarkUI->reloadBookmarks();
 }
 
 void MainWindow::addPageToBookmarks()

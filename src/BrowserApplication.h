@@ -132,6 +132,10 @@ private:
     /// Installs core browser scripts into the script collection
     void installGlobalWebScripts();
 
+    /// Initializes the standard and private web profiles used by the browser.
+    /// This includes instantiation of request interceptors and custom scheme handlers.
+    void setupWebProfiles();
+
 private:
     /// Application settings
     std::unique_ptr<Settings> m_settings;
