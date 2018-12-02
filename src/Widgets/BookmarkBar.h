@@ -23,6 +23,12 @@ public:
     /// Sets the pointer to the bookmark manager
     void setBookmarkManager(BookmarkManager *manager);
 
+    /// Filters events if this object has been installed as an event filter for the watched object.
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
+    /// Returns the recommended minimum size of this widget
+    QSize minimumSizeHint() const override;
+
 signals:
     /// Emitted when the user requests to load a bookmark onto the active webview
     void loadBookmark(const QUrl &url);

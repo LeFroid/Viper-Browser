@@ -7,6 +7,7 @@
 #include <QHBoxLayout>
 #include <QMenu>
 #include <QPushButton>
+#include <QResizeEvent>
 #include <QSpacerItem>
 #include <QStyle>
 #include <QUrl>
@@ -19,7 +20,11 @@ BookmarkBar::BookmarkBar(QWidget *parent) :
     setMinimumHeight(32);
     setMaximumHeight(32);
     m_layout->setContentsMargins(2, 0, 0, 2);
+    m_layout->setSpacing(2);
     setLayout(m_layout);
+
+    installEventFilter(this);
+    m_layout->installEventFilter(this);
 }
 
 void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
@@ -27,6 +32,34 @@ void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
     m_bookmarkManager = manager;
     connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged, this, &BookmarkBar::refresh);
     refresh();
+}
+
+bool BookmarkBar::eventFilter(QObject *watched, QEvent *event)
+{
+    if (!isVisible() || (watched != this && watched != m_layout))
+        return QObject::eventFilter(watched, event);
+
+    switch(event->type())
+    {
+        case QEvent::Resize:
+        {
+            // If available size is shrinking significantly, recreate the bookmark bar items
+            QResizeEvent *ev = static_cast<QResizeEvent*>(event);
+            int deltaW = std::abs(ev->oldSize().width() - ev->size().width());
+            if (deltaW >= 100)
+                refresh();
+            break;
+        }
+        default:
+            break;
+    }
+
+    return QObject::eventFilter(watched, event);
+}
+
+QSize BookmarkBar::minimumSizeHint() const
+{
+    return QSize(128, 32);
 }
 
 void BookmarkBar::showBookmarkContextMenu(const QPoint &pos)
@@ -84,7 +117,7 @@ void BookmarkBar::refresh()
     int numChildren = folder->getNumChildren();
 
     QFontMetrics fMetrics = fontMetrics();
-    const int maxTextWidth = fMetrics.width(QLatin1Char('R')) * 16;
+    const int maxTextWidth = fMetrics.width(QLatin1Char('R')) * 12;
 
     int spaceLeft = window()->width();
 
@@ -97,6 +130,7 @@ void BookmarkBar::refresh()
         // Set common properties of button before folder or bookmark specific properties
         QPushButton *button = new QPushButton(this);
         button->setFlat(true);
+        button->setIcon(child->getIcon());
         button->setText(childText);
         button->setProperty("BookmarkNode", QVariant::fromValue<BookmarkNode*>(child));
         button->setSizePolicy(QSizePolicy::Minimum, button->sizePolicy().verticalPolicy());
@@ -105,23 +139,20 @@ void BookmarkBar::refresh()
 
         if (child->getType() == BookmarkNode::Folder)
         {
-            button->setIcon(child->getIcon());
-
             QMenu *menu = new QMenu(this);
             addFolderItems(menu, child);
             button->setMenu(menu);
         }
         else
         {
-            button->setIcon(child->getIcon());
             connect(button, &QPushButton::clicked, [=](){ emit loadBookmark(child->getURL()); });
         }
 
         m_layout->addWidget(button, 0, Qt::AlignLeft);
 
         // Check if there is enough space for the rest of the bookmarks in the bar
-        spaceLeft -= button->width();
-        if (spaceLeft <= button->width())
+        spaceLeft -= (button->width() + 4);
+        if (i > 12 || spaceLeft <= button->width() * 3 / 2)
         {
             QPushButton *extraBookmarksButton = new QPushButton(this);
             extraBookmarksButton->setFlat(true);
@@ -141,13 +172,14 @@ void BookmarkBar::refresh()
                 }
                 else
                 {
-                    QUrl nodeUrl(child->getURL());
-                    extraBookmarksMenu->addAction(child->getIcon(), child->getName(), this, [=](){
+                    QUrl nodeUrl = child->getURL();
+                    extraBookmarksMenu->addAction(child->getIcon(), child->getName(), this, [this, nodeUrl](){
                         emit loadBookmark(nodeUrl);
                     });
                 }
             }
 
+            m_layout->addSpacing(button->width() / 6);
             m_layout->addWidget(extraBookmarksButton, 0, Qt::AlignRight);
             break;
         }
@@ -170,8 +202,8 @@ void BookmarkBar::addFolderItems(QMenu *menu, BookmarkNode *folder)
         }
         else
         {
-            QUrl nodeUrl(child->getURL());
-            menu->addAction(child->getIcon(), child->getName(), this, [=](){
+            QUrl nodeUrl = child->getURL();
+            menu->addAction(child->getIcon(), child->getName(), this, [this, nodeUrl](){
                 emit loadBookmark(nodeUrl);
             });
         }
@@ -184,7 +216,6 @@ void BookmarkBar::openFolderItemsNewTabs(BookmarkNode *folder)
         return;
 
     BookmarkNode *child = nullptr;
-    QUrl url;
     int numChildren = folder->getNumChildren();
     for (int i = 0; i < numChildren; ++i)
     {
@@ -192,8 +223,7 @@ void BookmarkBar::openFolderItemsNewTabs(BookmarkNode *folder)
         if (child->getType() != BookmarkNode::Bookmark)
             continue;
 
-        url = QUrl(child->getURL());
-        emit loadBookmarkNewTab(url);
+        emit loadBookmarkNewTab(child->getURL());
     }
 }
 
@@ -210,7 +240,6 @@ void BookmarkBar::openFolderItemsNewWindow(BookmarkNode *folder, bool privateWin
 
     bool firstTab = true;
     BookmarkNode *child = nullptr;
-    QUrl url;
     int numChildren = folder->getNumChildren();
     for (int i = 0; i < numChildren; ++i)
     {
@@ -218,13 +247,12 @@ void BookmarkBar::openFolderItemsNewWindow(BookmarkNode *folder, bool privateWin
         if (child->getType() != BookmarkNode::Bookmark)
             continue;
 
-        url = QUrl(child->getURL());
         if (firstTab)
         {
-            win->loadUrl(url);
+            win->loadUrl(child->getURL());
             firstTab = false;
         }
         else
-            win->openLinkNewTab(url);
+            win->openLinkNewTab(child->getURL());
     }
 }
