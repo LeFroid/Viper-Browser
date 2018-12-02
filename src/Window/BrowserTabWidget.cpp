@@ -309,20 +309,17 @@ WebWidget *BrowserTabWidget::newBackgroundTabAtIndex(int index)
     return ww;
 }
 
-void BrowserTabWidget::onIconChanged()
+void BrowserTabWidget::onIconChanged(const QIcon &icon)
 {
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
     int tabIndex = indexOf(ww);
     if (tabIndex < 0 || !ww)
         return;
 
-    QIcon icon = ww->getIcon();
-    if (icon.isNull())
-        icon = m_faviconStore->getFavicon(ww->url(), true);
+    if (!icon.isNull())
+        setTabIcon(tabIndex, icon);
     else
-        m_faviconStore->updateIcon(ww->getIconUrl().toString(QUrl::FullyEncoded), ww->url(), icon);
-
-    setTabIcon(tabIndex, icon);
+        setTabIcon(tabIndex, m_faviconStore->getFavicon(ww->url(), true));
 }
 
 

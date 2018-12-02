@@ -108,7 +108,7 @@ void FaviconStore::updateIcon(const QString &iconHRef, const QUrl &pageUrl, QIco
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
-    if (iconHRef.isEmpty())
+    if (iconHRef.isEmpty() || iconHRef.startsWith(QLatin1String("data")))
         return;
 
     QString pageUrlStr = getUrlAsString(pageUrl);
@@ -167,6 +167,11 @@ void FaviconStore::onReplyFinished()
     {
         QString format = QFileInfo(getUrlAsString(m_reply->url())).suffix();
         QByteArray data = m_reply->readAll();
+        if (data.isNull())
+        {
+            m_favicons.erase(it);
+            return;
+        }
 
         QImage img;
         bool success = false;

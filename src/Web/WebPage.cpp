@@ -132,6 +132,8 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             scriptCollection.insert(script);
     }
 
+    //TODO: if !isMainFrame, check the url and inject the AutoFill script if enabled & applicable
+
     return true;
 }
 

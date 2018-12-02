@@ -113,7 +113,7 @@ public slots:
     WebWidget *newBackgroundTabAtIndex(int index);
 
     /// Called when the icon for a web view has changed
-    void onIconChanged();
+    void onIconChanged(const QIcon &icon);
 
     /// Spawns a new browser tab, loading the given URL
     void openLinkInNewTab(const QUrl &url);
