@@ -56,7 +56,7 @@ void AdBlockLog::pruneLogs()
 {
     const quint64 pruneThreshold = 1000 * 60 * 30;
     const QDateTime now = QDateTime::currentDateTime();
-    auto removeCheck = [&now, &pruneThreshold](const AdBlockLogEntry &logEntry) {
+    auto removeCheck = [&](const AdBlockLogEntry &logEntry) {
         return logEntry.Timestamp.msecsTo(now) >= pruneThreshold;
     };
 

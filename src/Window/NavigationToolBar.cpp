@@ -99,7 +99,7 @@ void NavigationToolBar::setupUI()
     QMenu *buttonHistMenu = new QMenu(this);
     m_prevPage->setMenu(buttonHistMenu);
 
-    connect(m_prevPage, &QToolButton::clicked, [this, win](){
+    connect(m_prevPage, &QToolButton::clicked, [win](){
         WebHistory *history = win->currentWebWidget()->getHistory();
         if (history)
             history->goBack();
@@ -114,7 +114,7 @@ void NavigationToolBar::setupUI()
     buttonHistMenu = new QMenu(this);
     m_nextPage->setMenu(buttonHistMenu);
 
-    connect(m_nextPage, &QToolButton::clicked, [this, win](){
+    connect(m_nextPage, &QToolButton::clicked, [win](){
         WebHistory *history = win->currentWebWidget()->getHistory();
         if (history)
             history->goForward();
