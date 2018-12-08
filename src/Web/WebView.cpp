@@ -7,7 +7,9 @@
 #include <QLabel>
 #include <QMenu>
 #include <QMimeData>
+#include <QMouseEvent>
 #include <QUrl>
+#include <QTimer>
 #include <QWebEngineContextMenuData>
 #include <QWebEngineHttpRequest>
 #include <QWebEngineProfile>
@@ -356,6 +358,45 @@ void WebView::makeThumbnailOfPage()
 void WebView::setViewFocusProxy(QWidget *w)
 {
     m_viewFocusProxy = w;
+}
+
+void WebView::_mouseReleaseEvent(QMouseEvent *event)
+{
+    switch (event->button())
+    {
+        case Qt::LeftButton:
+        case Qt::MiddleButton:
+        {
+            QString contextMenuScript = getContextMenuScript(event->pos());
+            QVariant scriptResult = m_page->runJavaScriptBlocking(contextMenuScript);
+            QMap<QString, QVariant> resultMap = scriptResult.toMap();
+            WebHitTestResult hitTest(resultMap);
+
+            const QUrl linkUrl = hitTest.linkUrl();
+            if (!linkUrl.isEmpty() && linkUrl.isValid())
+            {
+                if (event->button() == Qt::MiddleButton)
+                {
+                    emit openInNewBackgroundTab(linkUrl);
+                    event->accept();
+                }
+                else if (event->modifiers() & Qt::ControlModifier)
+                {
+                     emit openInNewBackgroundTab(linkUrl);
+                    event->accept();
+                }
+                else if (event->modifiers() & Qt::ShiftModifier)
+                {
+                    emit openInNewWindowRequest(linkUrl, m_privateView);
+                    event->accept();
+                }
+            }
+
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 void WebView::_wheelEvent(QWheelEvent *event)

@@ -26,8 +26,6 @@ BrowserTabWidget::BrowserTabWidget(Settings *settings, FaviconStore *faviconStor
     m_lastTabIndex(0),
     m_currentTabIndex(0),
     m_nextTabIndex(1),
-    m_contextMenuPosGlobal(),
-    m_contextMenuPosRelative(),
     m_mainWindow(qobject_cast<MainWindow*>(parent)),
     m_closedTabs()
 {

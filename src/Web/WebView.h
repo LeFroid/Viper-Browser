@@ -92,6 +92,9 @@ protected:
     /// Does nothing
     void contextMenuEvent(QContextMenuEvent *event) override;
 
+    /// Handles the mouse button release event, needed for the middle mouse button release event
+    void _mouseReleaseEvent(QMouseEvent *event);
+
     /// Called to hide the link ref label when the wheel is moved
     void _wheelEvent(QWheelEvent *event);
 

@@ -195,9 +195,6 @@ private:
     /// each new tab created. Resets on change of active tab
     int m_nextTabIndex;
 
-    /// Global and relative positions of the requested context menu from the active web view
-    QPoint m_contextMenuPosGlobal, m_contextMenuPosRelative;
-
     /// Pointer to the window containing this widget
     MainWindow *m_mainWindow;
 

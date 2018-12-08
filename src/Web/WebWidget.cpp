@@ -320,7 +320,7 @@ void WebWidget::setupWebView()
     connect(page, &WebPage::urlChanged,           this, &WebWidget::urlChanged);
 
     connect(page, &WebPage::loadStarted, [=](){
-        AdBlockManager::instance().loadStarted(m_view->url());
+        AdBlockManager::instance().loadStarted(m_view->url().adjusted(QUrl::RemoveFragment));
     });
 
     connect(m_view, &WebView::loadFinished, this, &WebWidget::loadFinished);
@@ -403,6 +403,27 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
             {
                 return true;
             }
+            break;
+        }
+        case QEvent::MouseButtonRelease:
+        {
+            if (watched == m_viewFocusProxy || watched == m_view->getViewFocusProxy())
+            {
+                QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+
+                const bool wasAccepted =  event->isAccepted();
+                event->setAccepted(false);
+
+                m_view->_mouseReleaseEvent(mouseEvent);
+
+                const bool isAccepted = mouseEvent->isAccepted();
+                event->setAccepted(wasAccepted);
+                return isAccepted;
+            }
+            else if (watched == this && m_hibernating)
+                return false;
+            else if (watched == this || watched == m_view)
+                return true;
             break;
         }
         default:
