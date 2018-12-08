@@ -2,8 +2,10 @@
 #include "MainWindow.h"
 #include "SecurityManager.h"
 #include "SchemeRegistry.h"
+#include "WebWidget.h"
 
 #include <memory>
+#include <QUrl>
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
 
@@ -23,10 +25,11 @@
 #include <iostream>
 #include <execinfo.h>
 #include <signal.h>
+#include <string.h>
 
 #define BT_BUF_SIZE 100
 
-void _handleCrash(int s)
+void _handleCrash(int s, siginfo_t * /*siginfo*/, void * /*context*/)
 {
     std::cout << "handleCrash (1)\n";
     if (s != SIGSEGV)
@@ -112,7 +115,12 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef Q_OS_LINUX
-    signal(SIGSEGV, _handleCrash);
+    struct sigaction act;
+    memset (&act, '\0', sizeof(act));
+    act.sa_sigaction = &_handleCrash;
+    act.sa_flags = SA_SIGINFO;
+    if (sigaction(SIGSEGV, &act, NULL) < 0)
+        qWarning() << "Could not install handler for signal SIGSEGV";
 #endif
 
     SchemeRegistry::registerSchemes();
@@ -125,7 +133,22 @@ int main(int argc, char *argv[])
     BrowserApplication a(argc2, argv2);
 #endif
 
-    static_cast<void>(a.getNewWindow());
+    MainWindow *window = a.getNewWindow();
+    if (argc > 1)
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            QString arg(argv[i]);
+            QUrl url = QUrl::fromUserInput(arg);
+            if (!url.isEmpty() && !url.scheme().isEmpty() && url.isValid())
+            {
+                if (window->currentWebWidget()->isOnBlankPage())
+                    window->loadUrl(url);
+                else
+                    window->openLinkNewTab(url);
+            }
+        }
+    }
 
     return a.exec();
 }

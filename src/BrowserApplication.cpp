@@ -113,8 +113,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Connect aboutToQuit signal to browser's session management slot
     connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
-
-    // TODO: check if argument has been given (argc > 1) and load the resource into a new window
 }
 
 BrowserApplication::~BrowserApplication()
