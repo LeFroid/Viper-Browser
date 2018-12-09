@@ -56,7 +56,7 @@ void DownloadItem::setupItem()
     ui->labelDownloadName->setText(QFileInfo(m_download->path()).fileName());
     ui->labelDownloadSize->setText(QString());
     ui->progressBarDownload->show();
-    ui->labelDownloadSource->setText(m_download->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash));
+    ui->labelDownloadSource->setText(m_download->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash).mid(2));
     ui->pushButtonOpenFolder->hide();
 
     // Setup network slots

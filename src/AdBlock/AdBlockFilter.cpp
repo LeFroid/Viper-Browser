@@ -256,7 +256,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
 
 
         //ElementType::ThirdParty | ElementType::MatchCase | ElementType::Collapse
-        constexpr static ElementType ignoreTypeMask = static_cast<ElementType>(~0x00038000ULL);
+        ElementType ignoreTypeMask = static_cast<ElementType>(~0x00038000ULL);
         if ((m_blockedTypes & ignoreTypeMask) != ElementType::None)
             return false;
         //if (m_blockedTypes != ElementType::None && !hasElementType(m_blockedTypes, ElementType::ThirdParty))
