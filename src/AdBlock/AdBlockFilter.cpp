@@ -238,21 +238,12 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
     if (match)
     {
         // Check for element type restrictions (in specific order)
-        std::array<ElementType, 13> elemTypes = {{ ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
+        std::array<ElementType, 13> elemTypes = {  ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
                                                    ElementType::Subdocument,     ElementType::Image,      ElementType::Script,
                                                    ElementType::Stylesheet,      ElementType::WebSocket,  ElementType::ObjectSubrequest,
                                                    ElementType::InlineScript,    ElementType::Ping,       ElementType::CSP,
-                                                   ElementType::Other }};
+                                                   ElementType::Other };
 
-        //ex:
-        //   fedcba9876543210
-        //00200000
-
-        //all flags in block mask   = 0x00 3f ff ff
-        //all flags in request mask = 0x00 00 80 40
-
-        // block & request = 0x00 00 80 40
-        //if (m_blockedTypes & typeMask == typeMask)
         for (std::size_t i = 0; i < elemTypes.size(); ++i)
         {
             ElementType currentType = elemTypes[i];
@@ -263,8 +254,13 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
                 return true;
         }
 
-        if (m_blockedTypes != ElementType::None && !hasElementType(m_blockedTypes, ElementType::ThirdParty))
+
+        //ElementType::ThirdParty | ElementType::MatchCase | ElementType::Collapse
+        constexpr static ElementType ignoreTypeMask = static_cast<ElementType>(~0x00038000ULL);
+        if ((m_blockedTypes & ignoreTypeMask) != ElementType::None)
             return false;
+        //if (m_blockedTypes != ElementType::None && !hasElementType(m_blockedTypes, ElementType::ThirdParty))
+        //    return false;
     }
 
     return match;

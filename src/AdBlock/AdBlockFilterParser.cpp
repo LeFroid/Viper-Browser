@@ -3,6 +3,7 @@
 #include "Bitfield.h"
 
 #include <algorithm>
+#include <array>
 #include <QRegularExpression>
 #include <QDebug>
 
@@ -355,15 +356,24 @@ bool AdBlockFilterParser::parseScriptInjection(AdBlockFilter *filter) const
     if (!filter->hasDomainRules())
         return false;
 
-    if (!filter->m_evalString.startsWith(QStringLiteral("script:inject("))
-            && !filter->m_evalString.startsWith(QStringLiteral("+js(")))
+    int keywordLength = 0;
+    const std::array<QString, 2> scriptKeywords = { QStringLiteral("script:inject("), QStringLiteral("+js(") };
+    for (const QString &keyword : scriptKeywords)
+    {
+        if (filter->m_evalString.startsWith(keyword))
+        {
+            keywordLength = keyword.size();
+            break;
+        }
+    }
+
+    if (keywordLength == 0)
         return false;
 
     filter->m_category = FilterCategory::StylesheetJS;
 
     // Extract inner arguments and separate by ',' delimiter
-    const int splitPos = filter->m_evalString.startsWith(QStringLiteral("script:inject")) ? 14 : 4;
-    QString injectionStr = filter->m_evalString.mid(splitPos);
+    QString injectionStr = filter->m_evalString.mid(keywordLength);
     injectionStr = injectionStr.left(injectionStr.lastIndexOf(QChar(')')));
 
     QStringList injectionArgs = injectionStr.split(QChar(','), QString::SkipEmptyParts);

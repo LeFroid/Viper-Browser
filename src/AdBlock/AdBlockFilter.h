@@ -14,7 +14,7 @@
  * @ingroup AdBlock
  * @brief Specific types of elements that can be filtered or whitelisted
  */
-enum class ElementType : uint32_t
+enum class ElementType : uint64_t
 {
     None             = 0x00000000,
     Script           = 0x00000001,

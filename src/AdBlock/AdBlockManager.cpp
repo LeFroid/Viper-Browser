@@ -284,7 +284,7 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     if (!m_enabled)
         return m_emptyStr;
 
-    const static QString cspScript = QString("(function() {\n"
+    const static QString cspScript = QStringLiteral("(function() {\n"
                                        "var doc = document;\n"
                                        "if (!doc.head) { \n"
                                        " document.onreadystatechange = function(){ \n"
