@@ -42,6 +42,9 @@ public:
     /// Returns a pointer to the web page's history
     WebHistory *getHistory() const;
 
+    /// Returns the URL associated with the page after a navigation request was accepted, but before it was fully loaded.
+    const QUrl &getOriginalUrl() const;
+
     /// Executes the given JavaScript code (in string form), storing the result in the given reference
     void runJavaScriptNonBlocking(const QString &scriptSource, QVariant &result);
 
@@ -108,6 +111,9 @@ private:
 private:
     /// Stores the history of the web page
     WebHistory *m_history;
+
+    /// Contains the original URL of the current page, as passed to the WebPage in the acceptNavigationRequest method
+    QUrl m_originalUrl;
 
     /// Stores the host of the main frame's URL. Used to prevent excessive requests to fetch the AdBlockManager's domain-specific cosmetic filters
     QString m_mainFrameHost;

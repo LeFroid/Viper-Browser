@@ -263,6 +263,14 @@ QUrl WebWidget::url() const
     return m_view->url();
 }
 
+QUrl WebWidget::getOriginalUrl() const
+{
+    if (m_hibernating)
+        return m_savedState.url;
+
+    return m_view->getPage()->getOriginalUrl();
+}
+
 WebPage *WebWidget::page() const
 {
     if (m_hibernating)

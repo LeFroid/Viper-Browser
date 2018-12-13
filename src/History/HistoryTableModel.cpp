@@ -79,7 +79,11 @@ void HistoryTableModel::fetchMore(const QModelIndex &/*parent*/)
 
         int itemIndex = static_cast<int>(m_commonData.size()) - 1;
         for (auto visit : it.Visits)
-            tmpVisitInfo.insert(visit.toMSecsSinceEpoch(), itemIndex);
+        {
+            auto time = visit.toMSecsSinceEpoch();
+            if (!tmpVisitInfo.contains(time))
+                tmpVisitInfo.insert(time, itemIndex);
+        }
     }
 
     int currentRowCount = rowCount();

@@ -122,6 +122,9 @@ public:
     /// Returns the current url
     QUrl url() const;
 
+    /// Returns the URL associated with the page after a navigation request was accepted, but before it was fully loaded.
+    QUrl getOriginalUrl() const;
+
     /// Returns a pointer to the web page
     WebPage *page() const;
 

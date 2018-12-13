@@ -3,6 +3,7 @@
 #include "Settings.h"
 #include "WebWidget.h"
 
+#include <array>
 #include <QBuffer>
 #include <QDateTime>
 #include <QFuture>
@@ -233,49 +234,64 @@ void HistoryManager::onPageLoaded(bool ok)
         return;
 
     const QUrl url = ww->url();
-    if (url.isEmpty() || url.scheme().isEmpty() || url.scheme().compare(QLatin1String("qrc")) == 0)
+    const QUrl originalUrl = ww->getOriginalUrl();
+    const QString scheme = url.scheme().toLower();
+
+    const std::array<QString, 2> ignoreSchemes { QLatin1String("qrc"), QLatin1String("viper") };
+    if (url.isEmpty() || originalUrl.isEmpty() || scheme.isEmpty())
         return;
 
-    QDateTime visitTime = QDateTime::currentDateTime();
+    for (const QString &ignoreScheme : ignoreSchemes)
+    {
+        if (scheme == ignoreScheme)
+            return;
+    }
 
-    QString urlFormatted = url.toString();
-    const QString urlUpper = urlFormatted.toUpper();
-
+    const QDateTime visitTime = QDateTime::currentDateTime();
     const QString title = ww->getTitle();
     const bool emptyTitle = title.isEmpty();
 
-    auto it = m_historyItems.find(urlUpper);
-    if (it != m_historyItems.end())
-    {
-        it->Visits.prepend(visitTime);
-        m_recentItems.push_front(*it);
-        while (m_recentItems.size() > 15)
-            m_recentItems.pop_back();
-        if (it->Title.isEmpty() && !emptyTitle)
-            it->Title = title;
+    std::vector<QUrl> urls { originalUrl };
+    if (originalUrl.adjusted(QUrl::RemoveScheme) != url.adjusted(QUrl::RemoveScheme))
+        urls.push_back(url);
 
-        if (!it->Title.isEmpty())
+    for (const QUrl &currentUrl : urls)
+    {
+        QString urlFormatted = currentUrl.toString();
+        const QString urlUpper = urlFormatted.toUpper();
+
+        auto it = m_historyItems.find(urlUpper);
+        if (it != m_historyItems.end())
         {
-            QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
-            emit pageVisited(urlFormatted, it->Title);
+            it->Visits.prepend(visitTime);
+            if (it->Title.isEmpty() && !emptyTitle)
+                it->Title = title;
+
+            m_recentItems.push_front(*it);
+            while (m_recentItems.size() > 15)
+                m_recentItems.pop_back();
+
+            if (!it->Title.isEmpty())
+                QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
+        }
+        else
+        {
+            WebHistoryItem item;
+            item.URL = currentUrl;
+            item.VisitID = ++m_lastVisitID;
+            item.Title = title;
+            item.Visits.prepend(visitTime);
+
+            m_historyItems.insert(urlUpper, item);
+            m_recentItems.push_front(item);
+            while (m_recentItems.size() > 15)
+                m_recentItems.pop_back();
+
+            QtConcurrent::run(this, &HistoryManager::saveVisit, item, visitTime);
         }
     }
-    else
-    {
-        WebHistoryItem item;
-        item.URL = url;
-        item.VisitID = ++m_lastVisitID;
-        item.Title = title;
-        item.Visits.prepend(visitTime);
 
-        m_historyItems.insert(urlUpper, item);
-        m_recentItems.push_front(item);
-        while (m_recentItems.size() > 15)
-            m_recentItems.pop_back();
-
-        QtConcurrent::run(this, &HistoryManager::saveVisit, item, visitTime);
-        emit pageVisited(urlFormatted, title);
-    }
+    emit pageVisited(url.toString(), title);
 }
 
 bool HistoryManager::hasProperStructure()

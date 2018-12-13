@@ -7,6 +7,7 @@
 #include "CommonUtil.h"
 #include "ExtStorage.h"
 #include "FaviconStoreBridge.h"
+#include "HistoryManager.h"
 #include "MainWindow.h"
 #include "SecurityManager.h"
 #include "Settings.h"
@@ -32,6 +33,7 @@
 WebPage::WebPage(QObject *parent) :
     QWebEnginePage(parent),
     m_history(new WebHistory(this)),
+    m_originalUrl(),
     m_mainFrameHost(),
     m_domainFilterStyle(),
     m_mainFrameAdBlockScript(),
@@ -43,6 +45,7 @@ WebPage::WebPage(QObject *parent) :
 WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
     m_history(new WebHistory(this)),
+    m_originalUrl(),
     m_mainFrameHost(),
     m_domainFilterStyle(),
     m_needInjectAdBlockScript(true)
@@ -81,6 +84,11 @@ WebHistory *WebPage::getHistory() const
     return m_history;
 }
 
+const QUrl &WebPage::getOriginalUrl() const
+{
+    return m_originalUrl;
+}
+
 bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame)
 {
     // Check if special url such as "viper:print"
@@ -92,6 +100,11 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             return false;
         }
     }
+
+    if (!isMainFrame)
+        return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
+
+    m_originalUrl = QUrl();
 
     // Check if the request is for a PDF and try to render with PDF.js
     const QString urlString = url.toString(QUrl::FullyEncoded);
@@ -113,26 +126,24 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         }
     }
 
-    if (isMainFrame && type == QWebEnginePage::NavigationTypeLinkClicked)
+    if (type == QWebEnginePage::NavigationTypeLinkClicked)
     {
         // If only change in URL is fragment, try to update URL bar by emitting url changed signal
         if (this->url().toString(QUrl::RemoveFragment).compare(url.toString(QUrl::RemoveFragment)) == 0)
             emit urlChanged(url);
     }
 
-    if (!QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame))
-        return false;
-
-    if (isMainFrame && type != QWebEnginePage::NavigationTypeReload)
+    if (type != QWebEnginePage::NavigationTypeReload)
     {
         QWebEngineScriptCollection &scriptCollection = scripts();
         scriptCollection.clear();
         auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
         for (auto &script : pageScripts)
             scriptCollection.insert(script);
-    }
 
-    //TODO: if !isMainFrame, check the url and inject the AutoFill script if enabled & applicable
+        if (type != QWebEnginePage::NavigationTypeBackForward)
+            m_originalUrl = url;
+    }
 
     return true;
 }
@@ -331,6 +342,9 @@ void WebPage::onLoadFinished(bool ok)
 {
     if (!ok)
         return;
+
+    if (!m_originalUrl.isEmpty())
+        m_originalUrl = requestedUrl();
 
     URL pageUrl(url());
 
