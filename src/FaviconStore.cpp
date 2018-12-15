@@ -263,7 +263,7 @@ void FaviconStore::setupQueries()
     m_queryMap[StoredQuery::FindIconExactURL] = std::move(savedQuery);
 
     savedQuery = std::make_unique<QSqlQuery>(m_database);
-    savedQuery->prepare(QLatin1String("SELECT URL FROM Favicons WHERE FaviconID = (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))"));
+    savedQuery->prepare(QLatin1String("SELECT URL FROM Favicons WHERE FaviconID IN (SELECT m.FaviconID FROM FaviconMap m WHERE m.PageURL LIKE (:url))"));
     m_queryMap[StoredQuery::FindIconLikeURL] = std::move(savedQuery);
 }
 
