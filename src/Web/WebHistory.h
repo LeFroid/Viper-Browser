@@ -7,12 +7,16 @@
 #include <QObject>
 #include <QString>
 #include <QUrl>
+#include <QWebEngineHistory>
+#include <QWebEngineHistoryItem>
 
-#include <deque>
 #include <vector>
 
 class QAction;
 class WebPage;
+
+using WebHistoryEntryImpl = QWebEngineHistoryItem;
+using WebHistoryImpl = QWebEngineHistory;
 
 /**
  * @struct WebHistoryEntry
@@ -20,8 +24,6 @@ class WebPage;
  */
 struct WebHistoryEntry
 {
-    friend class WebHistory;
-
     /// Favicon associated with the history item's URL
     QIcon icon;
 
@@ -34,22 +36,14 @@ struct WebHistoryEntry
     /// Time of visit
     QDateTime visitTime;
 
+    /// Implementation of the web history entry
+    WebHistoryEntryImpl impl;
+
     /// Default constructor
     WebHistoryEntry() = default;
 
-    /// Constructs the WebHistoryEntry with a given icon, page title and url
-    WebHistoryEntry(const QIcon &icon, const QString &title, const QUrl &url) :
-        icon(icon),
-        title(title),
-        url(url),
-        visitTime(QDateTime::currentDateTime()),
-        page(nullptr)
-    {
-    }
-
-protected:
-    /// Page associated with the history entry
-    WebPage *page;
+    /// Constructs the history entry given a reference to the history entry implementation class
+    WebHistoryEntry(const WebHistoryEntryImpl &impl);
 };
 
 /**
@@ -72,17 +66,17 @@ public:
 
     /**
      * @brief Returns a list of the web page's previously visited history entries
-     * @param maxEntries The maximum number of entries to be included in the list, if maxEntries is >= 0
+     * @param maxEntries The maximum number of entries to be included in the list
      * @return List of history entries visited before the current page's entry
      */
-    std::vector<WebHistoryEntry> getBackEntries(int maxEntries = -1) const;
+    std::vector<WebHistoryEntry> getBackEntries(int maxEntries = 10) const;
 
     /**
      * @brief Returns a list of the web page's forward-facing history entries
-     * @param maxEntries The maximum number of entries to be included in the list, if maxEntries is >= 0
+     * @param maxEntries The maximum number of entries to be included in the list
      * @return List of history entries visited after the current page's entry
      */
-    std::vector<WebHistoryEntry> getForwardEntries(int maxEntries = -1) const;
+    std::vector<WebHistoryEntry> getForwardEntries(int maxEntries = 10) const;
 
     /// Returns true if the page can go back by one entry in its history, false if else
     bool canGoBack() const;
@@ -110,35 +104,12 @@ public slots:
     /// Goes to and loads the specified history entry, so long as the entry is valid
     void goToEntry(const WebHistoryEntry &entry);
 
-private slots:
-    /// Handles a page load event
-    void onPageLoaded(bool ok);
-
-    /// Handles a URL change event
-    void onUrlChanged(const QUrl &url);
-
 private:
     /// Pointer to the web page
     WebPage *m_page;
 
-    /// Pointer to the web page's go back action
-    QAction *m_backAction;
-
-    /// Pointer to the web page's go forward action
-    QAction *m_forwardAction;
-
-    /// Double-ended queue of history entries.
-    /// At the front of queue are the oldest entries, the end of the queue contains the newest.
-    std::deque<WebHistoryEntry> m_entries;
-
-    /// Position of the entry associated with the page's current URL
-    int m_currentPos;
-
-    /// Position of an entry being loaded (eg going back to the item at this index, going forward to this index)
-    int m_targetPos;
-
-    /// True if the current page is being reloaded, false if else
-    bool m_reloading;
+    /// Implementation of the WebHistory functionality
+    WebHistoryImpl *m_impl;
 };
 
 #endif // WEBHISTORY_H
