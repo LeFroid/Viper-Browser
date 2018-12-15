@@ -182,7 +182,7 @@ void MainWindow::setupMenuBar()
     addWebProxyAction(WebPage::Paste, ui->action_Paste);
 
     // Add proxy for reload action in menu bar
-    addWebProxyAction(QWebEnginePage::Reload, ui->actionReload);
+    addWebProxyAction(WebPage::Reload, ui->actionReload);
 
     // Zoom in / out / reset slots
     connect(ui->actionZoom_In,    &QAction::triggered, m_tabWidget, &BrowserTabWidget::zoomInCurrentView);

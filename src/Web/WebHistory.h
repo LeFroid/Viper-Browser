@@ -110,9 +110,6 @@ public slots:
     /// Goes to and loads the specified history entry, so long as the entry is valid
     void goToEntry(const WebHistoryEntry &entry);
 
-    /// Reloads the current page
-    void reload();
-
 private slots:
     /// Handles a page load event
     void onPageLoaded(bool ok);
@@ -139,6 +136,9 @@ private:
 
     /// Position of an entry being loaded (eg going back to the item at this index, going forward to this index)
     int m_targetPos;
+
+    /// True if the current page is being reloaded, false if else
+    bool m_reloading;
 };
 
 #endif // WEBHISTORY_H

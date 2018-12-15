@@ -9,6 +9,7 @@
 #include "WebPage.h"
 #include "WebView.h"
 
+#include <QAction>
 #include <QMouseEvent>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -179,7 +180,7 @@ void WebWidget::reload()
         return;
     }
 
-    m_page->getHistory()->reload();//reload();
+    m_page->action(WebPage::Reload)->trigger();
 }
 
 void WebWidget::stop()

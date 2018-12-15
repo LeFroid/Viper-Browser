@@ -16,10 +16,17 @@ WebHistory::WebHistory(WebPage *parent) :
     m_forwardAction(nullptr),
     m_entries(),
     m_currentPos(-1),
-    m_targetPos(-1)
+    m_targetPos(-1),
+    m_reloading(false)
 {
     if (m_page != nullptr)
     {
+        auto reloadAction = m_page->action(WebPage::Reload);
+        connect(reloadAction, &QAction::triggered, this, [this](){
+            m_targetPos = m_currentPos;
+            m_reloading = true;
+        });
+
         connect(m_page, &WebPage::urlChanged, this, &WebHistory::onUrlChanged);
         connect(m_page, &WebPage::loadFinished, this, &WebHistory::onPageLoaded);
 
@@ -201,16 +208,16 @@ void WebHistory::goToEntry(const WebHistoryEntry &entry)
     }
 }
 
-void WebHistory::reload()
-{
-    m_targetPos = m_currentPos;
-    m_page->triggerAction(WebPage::Reload);
-}
-
 void WebHistory::onPageLoaded(bool /*ok*/)
 {
     //if (!ok)
     //    return;
+
+    if (m_reloading)
+    {
+        m_targetPos = -1;
+        return;
+    }
 
     const QUrl url = m_page->url();
 
@@ -245,7 +252,7 @@ void WebHistory::onPageLoaded(bool /*ok*/)
 void WebHistory::onUrlChanged(const QUrl &url)
 {
     WebView *view = qobject_cast<WebView*>(m_page->view());
-    if (!view)
+    if (!view || m_reloading)
         return;
 
     if (!m_entries.empty() && m_currentPos >= 0)
@@ -281,27 +288,6 @@ void WebHistory::onUrlChanged(const QUrl &url)
                 }
             }
 
-            /*if (m_currentPos > 0)
-            {
-                const WebHistoryEntry &lastEntry = m_entries.at(m_currentPos - 1);
-                if (lastEntry.url == url)
-                {
-                    --m_currentPos;
-                    emit historyChanged();
-                    return;
-                }
-            }
-
-            if (m_currentPos + 1 < m_entries.size())
-            {
-                const WebHistoryEntry &nextEntry = m_entries.at(m_currentPos + 1);
-                if (nextEntry.url == url)
-                {
-                    ++m_currentPos;
-                    emit historyChanged();
-                    return;
-                }
-            }*/
 
             if (url.host() == currentEntry.url.host())
             {
