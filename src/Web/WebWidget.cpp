@@ -63,6 +63,7 @@ void WebState::deserialize(QByteArray &data)
 
 WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     QWidget(parent),
+    m_page(nullptr),
     m_view(nullptr),
     m_mainWindow(nullptr),
     m_privateMode(privateMode),
@@ -126,7 +127,7 @@ QIcon WebWidget::getIcon() const
     if (m_hibernating)
         return m_savedState.icon;
 
-    return m_view->icon();
+    return m_page->icon();
 }
 
 QUrl WebWidget::getIconUrl() const
@@ -134,7 +135,7 @@ QUrl WebWidget::getIconUrl() const
     if (m_hibernating)
         return m_savedState.iconUrl;
 
-    return m_view->iconUrl();
+    return m_page->iconUrl();
 }
 
 QString WebWidget::getTitle() const
@@ -178,7 +179,7 @@ void WebWidget::reload()
         return;
     }
 
-    m_view->getPage()->getHistory()->reload();//reload();
+    m_page->getHistory()->reload();//reload();
 }
 
 void WebWidget::stop()
@@ -201,6 +202,7 @@ void WebWidget::setHibernation(bool on)
         setFocusProxy(nullptr);
         delete m_view;
         m_view = nullptr;
+        m_page = nullptr;
 
         setCursor(Qt::PointingHandCursor);
     }
@@ -244,7 +246,7 @@ WebHistory *WebWidget::getHistory() const
     if (m_hibernating)
         return nullptr;
 
-    return m_view->getPage()->getHistory();
+    return m_page->getHistory();
 }
 
 QByteArray WebWidget::getEncodedHistory() const
@@ -252,7 +254,7 @@ QByteArray WebWidget::getEncodedHistory() const
     if (m_hibernating)
         return m_savedState.pageHistory;
 
-    return getHistory()->save();
+    return m_page->getHistory()->save();
 }
 
 QUrl WebWidget::url() const
@@ -260,7 +262,7 @@ QUrl WebWidget::url() const
     if (m_hibernating)
         return m_savedState.url;
 
-    return m_view->url();
+    return m_page->url();
 }
 
 QUrl WebWidget::getOriginalUrl() const
@@ -268,7 +270,7 @@ QUrl WebWidget::getOriginalUrl() const
     if (m_hibernating)
         return m_savedState.url;
 
-    return m_view->getPage()->getOriginalUrl();
+    return m_page->getOriginalUrl();
 }
 
 WebPage *WebWidget::page() const
@@ -276,7 +278,7 @@ WebPage *WebWidget::page() const
     if (m_hibernating)
         return nullptr;
 
-    return m_view->getPage();
+    return m_page;
 }
 
 WebView *WebWidget::view() const
@@ -318,17 +320,17 @@ void WebWidget::setupWebView()
     m_view->setupPage();
     m_view->installEventFilter(this);
 
-    WebPage *page = m_view->getPage();
+    m_page = m_view->getPage();
 
-    connect(page, &WebPage::iconChanged,          this, &WebWidget::iconChanged);
-    connect(page, &WebPage::iconUrlChanged,       this, &WebWidget::iconUrlChanged);
-    connect(page, &WebPage::linkHovered,          this, &WebWidget::linkHovered);
-    connect(page, &WebPage::titleChanged,         this, &WebWidget::titleChanged);
-    connect(page, &WebPage::windowCloseRequested, this, &WebWidget::closeRequest);
-    connect(page, &WebPage::urlChanged,           this, &WebWidget::urlChanged);
+    connect(m_page, &WebPage::iconChanged,          this, &WebWidget::iconChanged);
+    connect(m_page, &WebPage::iconUrlChanged,       this, &WebWidget::iconUrlChanged);
+    connect(m_page, &WebPage::linkHovered,          this, &WebWidget::linkHovered);
+    connect(m_page, &WebPage::titleChanged,         this, &WebWidget::titleChanged);
+    connect(m_page, &WebPage::windowCloseRequested, this, &WebWidget::closeRequest);
+    connect(m_page, &WebPage::urlChanged,           this, &WebWidget::urlChanged);
 
-    connect(page, &WebPage::loadStarted, [=](){
-        AdBlockManager::instance().loadStarted(m_view->url().adjusted(QUrl::RemoveFragment));
+    connect(m_page, &WebPage::loadStarted, [=](){
+        AdBlockManager::instance().loadStarted(m_page->url().adjusted(QUrl::RemoveFragment));
     });
 
     connect(m_view, &WebView::loadFinished, this, &WebWidget::loadFinished);

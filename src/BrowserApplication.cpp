@@ -266,6 +266,9 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
         emit resetHistoryMenu();
     }
 
+    if ((histType & HistoryType::Cache) == HistoryType::Cache)
+        QWebEngineProfile::defaultProfile()->clearHttpCache();
+
     //todo: support clearing form and search data
 }
 
@@ -281,6 +284,9 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
         m_historyMgr->clearHistoryInRange(range);
         emit resetHistoryMenu();
     }
+
+    if ((histType & HistoryType::Cache) == HistoryType::Cache)
+        QWebEngineProfile::defaultProfile()->clearHttpCache();
 
     //todo: support clearing form and search data
 }

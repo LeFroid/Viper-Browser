@@ -216,7 +216,10 @@ private:
     void setupWebView();
 
 private:
-    /// The actual web view widget being used to render and access web content
+    /// The web page being shown by the web widget, unless the page is hibernating
+    WebPage *m_page;
+
+    /// The actual web view being used to render and access web content
     WebView *m_view;
 
     /// Pointer to the widget's parent window
