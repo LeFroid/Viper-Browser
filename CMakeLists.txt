@@ -15,7 +15,7 @@ if (ENABLE_TESTING)
 endif()
 
 # Check for credential storage backends
-find_package(KF5Wallet)
+find_package(KF5Wallet CONFIG)
 if (KF5Wallet_FOUND)
     add_definitions(-DUSE_KWALLET)
 endif()
