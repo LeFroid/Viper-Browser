@@ -244,6 +244,9 @@ private:
 
     /// Contains a hash of the evaluation string, used if filter category is StringContains
     quint64 m_evalStringHash;
+
+    /// Wide-string used in rabin-karp string matching algorithm
+    std::wstring m_needleWStr;
 };
 
 #endif // ADBLOCKFILTER_H

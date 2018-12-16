@@ -23,7 +23,8 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_domainWhitelist(),
     m_regExp(nullptr),
     m_differenceHash(0),
-    m_evalStringHash(0)
+    m_evalStringHash(0),
+    m_needleWStr()
 {
 }
 
@@ -45,7 +46,8 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
     m_domainWhitelist(other.m_domainWhitelist),
     m_regExp(other.m_regExp ? std::make_unique<QRegularExpression>(*other.m_regExp) : nullptr),
     m_differenceHash(other.m_differenceHash),
-    m_evalStringHash(other.m_evalStringHash)
+    m_evalStringHash(other.m_evalStringHash),
+    m_needleWStr(other.m_needleWStr)
 {
 }
 
@@ -67,7 +69,8 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
     m_domainWhitelist(std::move(other.m_domainWhitelist)),
     m_regExp(std::move(other.m_regExp)),
     m_differenceHash(other.m_differenceHash),
-    m_evalStringHash(other.m_evalStringHash)
+    m_evalStringHash(other.m_evalStringHash),
+    m_needleWStr(other.m_needleWStr)
 {
 }
 
@@ -93,6 +96,7 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
         m_regExp = (other.m_regExp ? std::make_unique<QRegularExpression>(*other.m_regExp) : nullptr);
         m_differenceHash = other.m_differenceHash;
         m_evalStringHash = other.m_evalStringHash;
+        m_needleWStr = other.m_needleWStr;
     }
 
     return *this;
@@ -120,6 +124,7 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
         m_regExp = std::move(other.m_regExp);
         m_differenceHash = other.m_differenceHash;
         m_evalStringHash = other.m_evalStringHash;
+        m_needleWStr = other.m_needleWStr;
     }
     return *this;
 }
@@ -345,15 +350,17 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
     if (needleLength == 0)
         return true;
 
-    const QChar *needlePtr = m_evalString.constData();
-    const QChar *haystackPtr = haystack.constData();
+    const wchar_t *needlePtr = m_needleWStr.c_str();
+
+    std::wstring haystackWStr = haystack.toStdWString();
+    const wchar_t *haystackPtr = haystackWStr.c_str();
 
     int i, j;
     quint64 t = 0;
 
     // Calculate the hash value of first window of text
     for (i = 0; i < needleLength; ++i)
-        t = (radixLength * t + ((haystackPtr + i)->unicode())) % prime;
+        t = (radixLength * t + (*(haystackPtr + i))) % prime;
 
     const int lengthDiff = haystackLength - needleLength;
     for (i = 0; i <= lengthDiff; ++i)
@@ -362,7 +369,7 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
         {
             for (j = 0; j < needleLength; j++)
             {
-                if ((haystackPtr + i + j)->unicode() != (needlePtr + j)->unicode())
+                if (*(haystackPtr + i + j) != *(needlePtr + j))
                     break;
             }
 
@@ -372,8 +379,8 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
 
         if (i < lengthDiff)
         {
-            t = radixLength * (t + prime - m_differenceHash * ((haystackPtr + i)->unicode()) % prime) % prime;
-            t = (t + (haystackPtr + needleLength + i)->unicode()) % prime;
+            t = radixLength * (t + prime - m_differenceHash * (*(haystackPtr + i)) % prime) % prime;
+            t = (t + (*(haystackPtr + needleLength + i))) % prime;
         }
     }
 
@@ -383,7 +390,9 @@ bool AdBlockFilter::filterContains(const QString &haystack) const
 void AdBlockFilter::hashEvalString()
 {
     const int needleLength = m_evalString.size();
-    const QChar *needlePtr = m_evalString.constData();
+
+    m_needleWStr = m_evalString.toStdWString();
+    const wchar_t *needlePtr = m_needleWStr.c_str();
 
     const quint64 radixLength = 256ULL;
     const quint64 prime = 89999027ULL;
@@ -391,7 +400,7 @@ void AdBlockFilter::hashEvalString()
     m_differenceHash = CommonUtil::quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
 
     for (int index = 0; index < needleLength; ++index)
-        m_evalStringHash = (radixLength * m_evalStringHash + (needlePtr + index)->unicode()) % prime;
+        m_evalStringHash = (radixLength * m_evalStringHash + (*(needlePtr + index))) % prime;
 }
 
 void AdBlockFilter::setContentSecurityPolicy(const QString &csp)
