@@ -70,7 +70,7 @@ signals:
 
 protected:
     /// Binds the given WebAction of any active web page with a local user interface action
-    inline void addWebProxyAction(QWebEnginePage::WebAction webAction, QAction *windowAction)
+    inline void addWebProxyAction(WebPage::WebAction webAction, QAction *windowAction)
     {
         m_webActions.append(new WebActionProxy(webAction, windowAction, this));
     }

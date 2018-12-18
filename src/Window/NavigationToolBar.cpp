@@ -91,7 +91,7 @@ void NavigationToolBar::setupUI()
 
     // Previous Page Button
     m_prevPage = new QToolButton;
-    addWidget(m_prevPage);
+    QAction *pageAction = addWidget(m_prevPage);
 
     m_prevPage->setIcon(QIcon(QLatin1String(":/arrow-back.png")));
     m_prevPage->setToolTip(tr("Go back one page"));
@@ -104,21 +104,22 @@ void NavigationToolBar::setupUI()
         if (history)
             history->goBack();
     });
+    win->addWebProxyAction(WebPage::Back, pageAction);
 
     // Next Page Button
     m_nextPage = new QToolButton;
-    addWidget(m_nextPage);
+    pageAction = addWidget(m_nextPage);
     m_nextPage->setIcon(QIcon(QLatin1String(":/arrow-forward.png")));
     m_nextPage->setToolTip(tr("Go forward one page"));
 
     buttonHistMenu = new QMenu(this);
     m_nextPage->setMenu(buttonHistMenu);
-
     connect(m_nextPage, &QToolButton::clicked, [win](){
         WebHistory *history = win->currentWebWidget()->getHistory();
         if (history)
             history->goForward();
     });
+    win->addWebProxyAction(WebPage::Forward, pageAction);
 
     // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
@@ -181,7 +182,7 @@ void NavigationToolBar::bindWithTabWidget()
         m_urlInput->setURL(url);
     });
 
-    connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::onTabChanged);
+    connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::onHistoryChanged);
     //connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::resetHistoryButtonMenus);
     //connect(tabWidget, &BrowserTabWidget::loadFinished,   this, &NavigationToolBar::resetHistoryButtonMenus);
 
@@ -189,7 +190,7 @@ void NavigationToolBar::bindWithTabWidget()
         m_nextPage->menu()->clear();
         m_prevPage->menu()->clear();
     });
-    connect(tabWidget, &BrowserTabWidget::aboutToWake, [this, tabWidget](){
+    connect(tabWidget, &BrowserTabWidget::aboutToWake, [this, tabWidget]() {
         WebHistory *hist = tabWidget->currentWebWidget()->getHistory();
         if (hist)
             connect(hist, &WebHistory::historyChanged, this, &NavigationToolBar::onHistoryChanged, Qt::UniqueConnection);
@@ -270,7 +271,7 @@ void NavigationToolBar::onHistoryChanged()
     WebHistory *hist = webWidget->getHistory();
     WebHistory *caller = qobject_cast<WebHistory*>(sender());
 
-    if (hist == nullptr || (caller != nullptr && caller != hist))
+    if (webWidget->isHibernating() || hist == nullptr || (caller != nullptr && caller != hist))
     {
         m_prevPage->setEnabled(false);
         m_nextPage->setEnabled(false);
