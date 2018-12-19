@@ -46,20 +46,21 @@ public:
         auto it = m_map.find(key);
         if (it != m_map.end())
         {
-            m_list.erase(it->second);
-            m_map.erase(it);
+            it->second->second = value;
+            m_list.splice(m_list.begin(), m_list, it->second);
+        }
+        else
+        {
+            m_list.push_front({key, value});
+            m_map[key] = m_list.begin();
         }
 
-        m_list.push_front({key, value});
-        m_map[key] = m_list.begin();
-
         // Check if size is above capacity after insertion
-        if (m_map.size() > m_maxSize)
+        while (m_list.size() > m_maxSize)
         {
             // Remove LRU item
-            auto lruIt = m_list.end();
-            --lruIt;
-            m_map.erase(lruIt->first);
+            auto lruIt = m_list.back();
+            m_map.erase(lruIt.first);
             m_list.pop_back();
         }
     }
