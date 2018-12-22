@@ -4,6 +4,7 @@
 #include "URLSuggestionListModel.h"
 
 #include <atomic>
+#include <string>
 #include <vector>
 
 #include <QFuture>
@@ -67,6 +68,9 @@ private:
 
     /// Stores the suggested URLs based on the current input
     std::vector<URLSuggestion> m_suggestions;
+
+    /// Wide-string equivalent to m_searchTerm
+    std::wstring m_searchTermWideStr;
 
     /// Used for string hash comparisons in implementation of Rabin-Karp algorithm
     quint64 m_differenceHash;

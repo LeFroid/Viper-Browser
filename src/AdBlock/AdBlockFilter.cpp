@@ -2,7 +2,7 @@
 #include <array>
 #include "AdBlockFilter.h"
 #include "Bitfield.h"
-#include "CommonUtil.h"
+#include "FastHash.h"
 #include "URL.h"
 
 AdBlockFilter::AdBlockFilter(const QString &rule) :
@@ -229,7 +229,8 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
             case FilterCategory::StringContains:
             {
                 QString haystack = (m_matchCase ? requestUrl : requestUrl.toLower());
-                match = filterContains(haystack);
+                std::wstring haystackWStr = haystack.toStdWString();
+                match = FastHash::isMatch(m_needleWStr, haystackWStr, m_evalStringHash, m_differenceHash);
                 break;
             }
             case FilterCategory::RegExp:
@@ -337,70 +338,11 @@ bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString 
     return false;
 }
 
-bool AdBlockFilter::filterContains(const QString &haystack) const
-{
-    static const quint64 radixLength = 256ULL;
-    static const quint64 prime = 89999027ULL;
-
-    const int needleLength = m_evalString.size();
-    const int haystackLength = haystack.size();
-
-    if (needleLength > haystackLength)
-        return false;
-    if (needleLength == 0)
-        return true;
-
-    const wchar_t *needlePtr = m_needleWStr.c_str();
-
-    std::wstring haystackWStr = haystack.toStdWString();
-    const wchar_t *haystackPtr = haystackWStr.c_str();
-
-    int i, j;
-    quint64 t = 0;
-
-    // Calculate the hash value of first window of text
-    for (i = 0; i < needleLength; ++i)
-        t = (radixLength * t + (*(haystackPtr + i))) % prime;
-
-    const int lengthDiff = haystackLength - needleLength;
-    for (i = 0; i <= lengthDiff; ++i)
-    {
-        if (m_evalStringHash == t)
-        {
-            for (j = 0; j < needleLength; j++)
-            {
-                if (*(haystackPtr + i + j) != *(needlePtr + j))
-                    break;
-            }
-
-            if (j == needleLength)
-                return true;
-        }
-
-        if (i < lengthDiff)
-        {
-            t = radixLength * (t + prime - m_differenceHash * (*(haystackPtr + i)) % prime) % prime;
-            t = (t + (*(haystackPtr + needleLength + i))) % prime;
-        }
-    }
-
-    return false;
-}
-
 void AdBlockFilter::hashEvalString()
 {
-    const int needleLength = m_evalString.size();
-
     m_needleWStr = m_evalString.toStdWString();
-    const wchar_t *needlePtr = m_needleWStr.c_str();
-
-    const quint64 radixLength = 256ULL;
-    const quint64 prime = 89999027ULL;
-
-    m_differenceHash = CommonUtil::quPow(radixLength, static_cast<quint64>(needleLength - 1)) % prime;
-
-    for (int index = 0; index < needleLength; ++index)
-        m_evalStringHash = (radixLength * m_evalStringHash + (*(needlePtr + index))) % prime;
+    m_differenceHash = FastHash::getDifferenceHash(static_cast<quint64>(m_evalString.size()));
+    m_evalStringHash = FastHash::getNeedleHash(m_needleWStr);
 }
 
 void AdBlockFilter::setContentSecurityPolicy(const QString &csp)

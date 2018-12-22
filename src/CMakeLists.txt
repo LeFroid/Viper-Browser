@@ -100,6 +100,7 @@ set(viper_src
     BrowserScripts.cpp
     CommonUtil.cpp
     DatabaseWorker.cpp
+    FastHash.cpp
     FaviconStore.cpp
     MainWindow.cpp
     SearchEngineManager.cpp

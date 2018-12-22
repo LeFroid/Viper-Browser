@@ -1,6 +1,8 @@
 #ifndef COMMONUTIL_H
 #define COMMONUTIL_H
 
+#include <string>
+
 #include <QIcon>
 #include <QRegularExpression>
 #include <QString>

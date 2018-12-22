@@ -1,5 +1,6 @@
 #include "BrowserApplication.h"
 #include "BookmarkManager.h"
+#include "FastHash.h"
 #include "FaviconStore.h"
 #include "HistoryManager.h"
 #include "URLSuggestionWorker.h"
@@ -18,6 +19,7 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     m_suggestionFuture(),
     m_suggestionWatcher(nullptr),
     m_suggestions(),
+    m_searchTermWideStr(),
     m_differenceHash(0),
     m_searchTermHash(0)
 {
@@ -150,66 +152,14 @@ bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url,
 
 void URLSuggestionWorker::hashSearchTerm()
 {
-    m_searchTermHash = 0;
-
-    const int needleLength = m_searchTerm.size();
-    const QChar *needlePtr = m_searchTerm.constData();
-
-    const quint64 radixLength = 256ULL;
-    const quint64 prime = 72057594037927931ULL;
-
-    m_differenceHash = 1;
-    for (int i = 0; i < needleLength - 1; ++i)
-        m_differenceHash = (m_differenceHash * radixLength) % prime;
-
-    for (int index = 0; index < needleLength; ++index)
-        m_searchTermHash = (radixLength * m_searchTermHash + (needlePtr + index)->toLatin1()) % prime;
+    m_searchTermWideStr = m_searchTerm.toStdWString();
+    m_differenceHash = FastHash::getDifferenceHash(static_cast<quint64>(m_searchTerm.size()));
+    m_searchTermHash = FastHash::getNeedleHash(m_searchTermWideStr);
 }
 
 bool URLSuggestionWorker::isStringMatch(const QString &haystack)
 {
-    static const quint64 radixLength = 256ULL;
-    static const quint64 prime = 72057594037927931ULL;
-
-    const int needleLength = m_searchTerm.size();
-    const int haystackLength = haystack.size();
-
-    if (needleLength > haystackLength)
-        return false;
-    if (needleLength == 0)
-        return true;
-
-    const QChar *needlePtr = m_searchTerm.constData();
-    const QChar *haystackPtr = haystack.constData();
-
-    int i, j;
-    quint64 t = 0;
-
-    // Calculate the hash value of first window of text
-    for (i = 0; i < needleLength; ++i)
-        t = (radixLength * t + ((haystackPtr + i)->toLatin1())) % prime;
-
-    for (i = 0; i <= haystackLength - needleLength; ++i)
-    {
-        if (m_searchTermHash == t)
-        {
-            for (j = 0; j < needleLength; j++)
-            {
-                if ((haystackPtr + i + j)->toLatin1() != (needlePtr + j)->toLatin1())
-                    break;
-            }
-
-            if (j == needleLength)
-                return true;
-        }
-
-        if (i < haystackLength - needleLength)
-        {
-            t = (((t + prime - m_differenceHash * ((haystackPtr + i)->toLatin1()) % prime) % prime)
-                    * radixLength + ((haystackPtr + i + needleLength)->toLatin1())) % prime;
-        }
-    }
-
-    return false;
+    std::wstring haystackWideStr = haystack.toStdWString();
+    return FastHash::isMatch(m_searchTermWideStr, haystackWideStr, m_searchTermHash, m_differenceHash);
 }
 
