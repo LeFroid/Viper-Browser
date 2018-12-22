@@ -6,6 +6,9 @@ const quint64 FastHash::Prime = 89999027ULL;
 
 quint64 FastHash::getDifferenceHash(quint64 needleLength)
 {
+    if (needleLength <= 1)
+        return 1;
+
     quint64 result = 1;
     quint64 exp = static_cast<quint64>(needleLength - 1ULL);
     for (quint64 i = 0; i < exp; ++i)
