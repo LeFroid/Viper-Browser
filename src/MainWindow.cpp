@@ -533,6 +533,13 @@ void MainWindow::onLoadFinished(bool ok)
 
     checkPageForBookmark();
 
+    if (ui->widgetFindText->isVisible()
+            && !ui->widgetFindText->getLineEdit()->text().isEmpty())
+    {
+        if (WebView *view = ww->view())
+            view->findText(QString());
+    }
+
     if (!ww->isOnBlankPage()
             && !ui->widgetFindText->getLineEdit()->hasFocus()
             && !(urlWidget->hasFocus() || urlWidget->isModified()))
@@ -737,10 +744,19 @@ void MainWindow::printTabContents()
     printer.setFullPage(true);
     QPrintPreviewDialog dialog(&printer, this);
     dialog.setWindowTitle(tr("Print Document"));
-    connect(&dialog, &QPrintPreviewDialog::paintRequested, [=](QPrinter *p){
-        page->print(p, [](bool){});
+    connect(&dialog, &QPrintPreviewDialog::paintRequested, [=](QPrinter *p) {
+        onPrintPreviewRequested(p, page);
     });
     static_cast<void>(dialog.exec());
+}
+
+void MainWindow::onPrintPreviewRequested(QPrinter *printer, WebPage *page)
+{
+    QEventLoop eventLoop;
+    page->print(printer, [&eventLoop](bool){
+        eventLoop.quit();
+    });
+    eventLoop.exec();
 }
 
 void MainWindow::onClickBookmarkIcon()

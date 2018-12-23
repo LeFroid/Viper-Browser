@@ -23,6 +23,8 @@ class QLabel;
 class QNetworkReply;
 class QToolButton;
 class QWebInspector;
+class QPrinter;
+
 class BookmarkDialog;
 class BookmarkWidget;
 class BrowserTabWidget;
@@ -202,6 +204,9 @@ private slots:
 
     /// Called when the user requests that the contents of the current browser tab be printed
     void printTabContents();
+
+    /// Called when a print preview dialog needs to generate a set of preview pages
+    void onPrintPreviewRequested(QPrinter *printer, WebPage *page);
 
     /// Called when a link is hovered by the user
     void onLinkHovered(const QString &url);
