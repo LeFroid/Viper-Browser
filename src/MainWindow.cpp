@@ -339,7 +339,7 @@ void MainWindow::openBookmarkWidget()
     BookmarkWidget *bookmarkWidget = new BookmarkWidget;
     bookmarkWidget->setBookmarkManager(m_bookmarkManager);
     connect(bookmarkWidget, &BookmarkWidget::openBookmark, m_tabWidget, &BrowserTabWidget::loadUrl);
-    connect(bookmarkWidget, &BookmarkWidget::openBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewTab);
+    connect(bookmarkWidget, &BookmarkWidget::openBookmarkNewTab, m_tabWidget, &BrowserTabWidget::openLinkInNewBackgroundTab);
     connect(bookmarkWidget, &BookmarkWidget::openBookmarkNewWindow, this, &MainWindow::openLinkNewWindow);
 
     bookmarkWidget->show();
