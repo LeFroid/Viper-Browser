@@ -5,7 +5,6 @@
 
 #include <QDateTime>
 #include <QHash>
-#include <QTimer>
 #include <QUrl>
 
 #include <vector>
@@ -58,6 +57,9 @@ public:
     /// Constructs the log with a given parent
     AdBlockLog(QObject *parent = nullptr);
 
+    /// Logging destructor
+    ~AdBlockLog();
+
     /**
      * @brief addEntry Adds a network action performed by the ad block system to the logs
      * @param action The action that was done to the request
@@ -77,6 +79,10 @@ public:
     /// an empty container if no entries are found
     const std::vector<AdBlockLogEntry> &getEntriesFor(const QUrl &firstPartyUrl);
 
+protected:
+    /// Called on a regular interval to prune older log entries
+    void timerEvent(QTimerEvent *event) override;
+
 private slots:
     /// Removes any entries from the logs that are more than 30 minutes old
     void pruneLogs();
@@ -85,8 +91,8 @@ private:
     /// Hashmap of first party URLs associated with requests, to containers of their associated log entries
     QHash<QUrl, std::vector<AdBlockLogEntry>> m_entries;
 
-    /// The timer that calls the pruneLogs method
-    QTimer m_timer;
+    /// Unique identifier of the log pruning timer
+    int m_timerId;
 };
 
 #endif // ADBLOCKLOG_H

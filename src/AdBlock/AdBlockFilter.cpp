@@ -340,6 +340,9 @@ bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString 
 
 void AdBlockFilter::hashEvalString()
 {
+    if (m_matchAll || m_evalString.isEmpty())
+        return;
+
     m_needleWStr = m_evalString.toStdWString();
     m_differenceHash = FastHash::getDifferenceHash(static_cast<quint64>(m_evalString.size()));
     m_evalStringHash = FastHash::getNeedleHash(m_needleWStr);

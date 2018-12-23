@@ -5,12 +5,15 @@
 AdBlockLog::AdBlockLog(QObject *parent) :
     QObject(parent),
     m_entries(),
-    m_timer()
+    m_timerId(0)
 {
-    connect(&m_timer, &QTimer::timeout, this, &AdBlockLog::pruneLogs);
-
     // Prune logs every 30 minutes
-    m_timer.start(1000 * 60 * 30);
+    m_timerId = startTimer(1000 * 60 * 30);
+}
+
+AdBlockLog::~AdBlockLog()
+{
+    killTimer(m_timerId);
 }
 
 void AdBlockLog::addEntry(AdBlockFilterAction action, const QUrl &firstPartyUrl, const QUrl &requestUrl,
@@ -50,6 +53,11 @@ const std::vector<AdBlockLogEntry> &AdBlockLog::getEntriesFor(const QUrl &firstP
     std::vector<AdBlockLogEntry> entriesForUrl;
     it = m_entries.insert(firstPartyUrl, entriesForUrl);
     return *it;
+}
+
+void AdBlockLog::timerEvent(QTimerEvent */*event*/)
+{
+    pruneLogs();
 }
 
 void AdBlockLog::pruneLogs()
