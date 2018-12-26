@@ -739,7 +739,7 @@ void MainWindow::printTabContents()
     if (!page)
         return;
 
-    QPrinter printer(QPrinter::HighResolution);
+    QPrinter printer(QPrinter::ScreenResolution);
     printer.setPaperSize(QPrinter::Letter);
     printer.setFullPage(true);
     QPrintPreviewDialog dialog(&printer, this);

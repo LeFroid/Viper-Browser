@@ -94,12 +94,20 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
 {
     QMenu menu(this);
 
+    BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+
     // Add "New Tab" menu item, shown on every context menu request
     menu.addAction(tr("New tab"), this, &BrowserTabBar::newTabRequest, QKeySequence(tr("Ctrl+T")));
     // Check if the user right-clicked on a tab, or just some position on the tab bar
     int tabIndex = tabAt(pos);
     if (tabIndex < 0)
     {
+        if (tabWidget)
+        {
+            menu.addSeparator();
+            QAction *reopenTabAction = menu.addAction(tr("Reopen closed tab"), tabWidget, &BrowserTabWidget::reopenLastTab);
+            reopenTabAction->setEnabled(tabWidget->canReopenClosedTab());
+        }
         menu.exec(mapToGlobal(pos));
         return;
     }
@@ -120,7 +128,6 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
         emit duplicateTabRequest(tabIndex);
     });
 
-    BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
     if (tabWidget)
     {
         if (WebWidget *ww = tabWidget->getWebWidget(tabIndex))

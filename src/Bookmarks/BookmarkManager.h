@@ -164,11 +164,10 @@ protected:
     /// Loads bookmarks from the database
     void load() override;
 
-protected:
+private:
     /// Root bookmark folder
     std::unique_ptr<BookmarkNode> m_rootNode;
 
-private:
     /// Container of bookmark node pointers, flattened version of tree structure used for bookmark iteration
     std::vector<BookmarkNode*> m_nodeList;
 
@@ -177,27 +176,6 @@ private:
 
     /// Cache of bookmark nodes that were recently searched for within the application
     LRUCache<std::string, BookmarkNode*> m_lookupCache;
-
-/*
-private:
-    Used to access prepared database queries
-    enum class StoredQuery
-    {
-        CreateFolder,
-        CreateBookmark,
-        UpdateNodePositions,
-        IsBookmarked,
-        RemoveFolder,
-        ChangeParentFolder,
-        FindParentFolderID,
-        UpdateBookmarkName,
-        UpdateFolderName,
-        ValidateFolderID,
-    };
-
-    Map of query types to their corresponding prepared statements
-    std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
-*/
 };
 
 #endif // BOOKMARKMANAGER_H

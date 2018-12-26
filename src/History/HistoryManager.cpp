@@ -47,7 +47,10 @@ HistoryManager::~HistoryManager()
     if (m_queryHistoryItem != nullptr)
     {
         delete m_queryHistoryItem;
+        m_queryHistoryItem = nullptr;
+
         delete m_queryVisit;
+        m_queryVisit = nullptr;
     }
 }
 
