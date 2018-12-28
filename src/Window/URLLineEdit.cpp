@@ -2,12 +2,13 @@
 #include "BookmarkNode.h"
 #include "BrowserApplication.h"
 #include "MainWindow.h"
+#include "SchemeRegistry.h"
 #include "SecurityManager.h"
 #include "URLLineEdit.h"
 #include "URLSuggestionWidget.h"
 #include "WebWidget.h"
 
-#include <QCompleter>
+#include <array>
 #include <QIcon>
 #include <QResizeEvent>
 #include <QSize>
@@ -32,7 +33,8 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     setFont(lineEditFont);
 
     // Style common to both tool buttons in line edit
-    const QString toolButtonStyle = QLatin1String("QToolButton { border: none; padding: 0px; } QToolButton:hover { background-color: #E6E6E6; }");
+    const QString toolButtonStyle = QLatin1String("QToolButton { border: none; padding: 0px; } "
+                                                  "QToolButton:hover { background-color: #E6E6E6; }");
 
     // Setup tool button
     m_securityButton = new QToolButton(this);
@@ -47,10 +49,9 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     connect(m_bookmarkButton, &QToolButton::clicked, this, &URLLineEdit::toggleBookmarkStatus);
 
     // Set appearance
-    QString urlStyle = QString("QLineEdit { border: 1px solid #666666; padding-left: %1px; padding-right: %2px; }"
+    QString urlStyle = QString("QLineEdit { border: 1px solid #919191; padding-left: %1px; padding-right: %2px; } "
                                "QLineEdit:focus { border: 1px solid #6c91ff; }");
-    urlStyle = urlStyle.arg(m_securityButton->sizeHint().width()).arg(m_bookmarkButton->sizeHint().width());
-    setStyleSheet(urlStyle);
+    setStyleSheet(urlStyle.arg(m_securityButton->sizeHint().width()).arg(m_bookmarkButton->sizeHint().width()));
     setPlaceholderText(tr("Search or enter address"));
 
     // Setup suggestion widget
@@ -127,7 +128,7 @@ void URLLineEdit::setURL(const QUrl &url)
     const QString scheme = url.scheme();
     SecurityIcon secureIcon = SecurityIcon::Standard;
 
-    if (scheme == QLatin1String("https") || scheme == QLatin1String("viper"))
+    if (SchemeRegistry::isSecure(scheme))
         secureIcon = SecurityManager::instance().isInsecure(url.host()) ? SecurityIcon::Insecure : SecurityIcon::Secure;
 
     setSecurityIcon(secureIcon);
@@ -138,6 +139,8 @@ void URLLineEdit::setURL(const QUrl &url)
 
 void URLLineEdit::setURLFormatted(const QUrl &url)
 {
+    const QString urlText = text();
+
     // Color in the line edit based on url and security information
     std::vector<QTextLayout::FormatRange> urlTextFormat;
     QTextCharFormat schemeFormat, hostFormat, pathFormat;
@@ -148,8 +151,7 @@ void URLLineEdit::setURLFormatted(const QUrl &url)
     hostFormat.setForeground(QBrush(Qt::black));
     pathFormat.setForeground(QBrush(QColor(110, 110, 110)));
 
-    const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
-    if (isHttps)
+    if (SchemeRegistry::isSecure(url.scheme()))
     {
         if (SecurityManager::instance().isInsecure(url.host()))
             schemeFormat.setForeground(QBrush(QColor(157, 28, 28)));
@@ -159,17 +161,22 @@ void URLLineEdit::setURLFormatted(const QUrl &url)
 
     schemeFormatRange.length = url.scheme().size();
     schemeFormatRange.format = schemeFormat;
-    urlTextFormat.push_back(schemeFormatRange);
 
-    QTextLayout::FormatRange greyFormatRange;
-    greyFormatRange.start = schemeFormatRange.length;
-    greyFormatRange.length = 3;
-    greyFormatRange.format = pathFormat;
-    urlTextFormat.push_back(greyFormatRange);
+    hostFormatRange.start = 0;
 
-    const QString urlText = text();
+    if (schemeFormatRange.length > 0 && urlText.startsWith(url.scheme()))
+    {
+        urlTextFormat.push_back(schemeFormatRange);
 
-    hostFormatRange.start = greyFormatRange.start + 3;
+        QTextLayout::FormatRange greyFormatRange;
+        greyFormatRange.start = schemeFormatRange.length;
+        greyFormatRange.length = 3;
+        greyFormatRange.format = pathFormat;
+        urlTextFormat.push_back(greyFormatRange);
+
+        hostFormatRange.start = greyFormatRange.start + 3;
+    }
+
     hostFormatRange.length = url.host(QUrl::FullyEncoded).size();
     if (hostFormatRange.length == 0)
         hostFormatRange.length = std::max(urlText.indexOf(QLatin1Char('/'), hostFormatRange.start), urlText.size() - hostFormatRange.start);
@@ -267,10 +274,15 @@ void URLLineEdit::onTextEdited(const QString &text)
             setURLFormatted(currentViewUrl);
             return;
         }
-
-        m_suggestionWidget->suggestForInput(text);
     }
-    setTextFormat(std::vector<QTextLayout::FormatRange>());
+    m_suggestionWidget->suggestForInput(text);
+
+    QUrl maybeUrl = QUrl::fromUserInput(text);
+    if (maybeUrl.isValid()
+            && !maybeUrl.scheme().isEmpty())
+        setURLFormatted(maybeUrl);
+    else
+        setTextFormat(std::vector<QTextLayout::FormatRange>());
 }
 
 void URLLineEdit::tabChanged(WebWidget *newView)

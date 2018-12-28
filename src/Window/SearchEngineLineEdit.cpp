@@ -27,7 +27,7 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
     m_searchButton->setFixedWidth(28);
 
     // Set appearance
-    setStyleSheet(QString("QLineEdit { border: 1px solid #666666; padding-left: %1px; margin-right: 3px; }"
+    setStyleSheet(QString("QLineEdit { border: 1px solid #919191; padding-left: %1px; margin-right: 3px; }"
                           "QLineEdit:focus { border: 1px solid #6c91ff; }").arg(m_searchButton->sizeHint().width() + 6));
     setPlaceholderText(tr("Search"));
 
