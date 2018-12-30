@@ -49,7 +49,7 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     connect(m_bookmarkButton, &QToolButton::clicked, this, &URLLineEdit::toggleBookmarkStatus);
 
     // Set appearance
-    QString urlStyle = QString("QLineEdit { border: 1px solid #919191; padding-left: %1px; padding-right: %2px; } "
+    QString urlStyle = QString("QLineEdit { border: 1px solid #919191; border-radius: 2px; padding-left: %1px; padding-right: %2px; } "
                                "QLineEdit:focus { border: 1px solid #6c91ff; }");
     setStyleSheet(urlStyle.arg(m_securityButton->sizeHint().width()).arg(m_bookmarkButton->sizeHint().width()));
     setPlaceholderText(tr("Search or enter address"));
