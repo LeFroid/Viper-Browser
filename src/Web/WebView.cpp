@@ -90,7 +90,7 @@ QString WebView::getTitle() const
     return pageUrl.host();
 }
 
-const QPixmap &WebView::getThumbnail() const
+const QImage &WebView::getThumbnail() const
 {
     return m_thumbnail;
 }
@@ -329,12 +329,18 @@ void WebView::onLoadFinished(bool ok)
     if (ok && !isOnBlankPage())
         makeThumbnailOfPage();
     else
-        m_thumbnail = QPixmap();
+        m_thumbnail = QImage();
 }
 
 void WebView::makeThumbnailOfPage()
 {
-    QQuickWidget *qQuickChild = nullptr;
+    QQuickWidget *qQuickChild = qobject_cast<QQuickWidget*>(focusProxy());
+    if (qQuickChild)
+    {
+        m_thumbnail = qQuickChild->grabFramebuffer();
+        return;
+    }
+
     QList<QQuickWidget*> children = findChildren<QQuickWidget*>();
     for (int i = children.size() - 1; i >= 0; --i)
     {
@@ -346,13 +352,7 @@ void WebView::makeThumbnailOfPage()
         }
     }
 
-    if (!qQuickChild)
-    {
-        m_thumbnail = QPixmap();
-        return;
-    }
-
-    m_thumbnail = qQuickChild->grab().scaled(QSize(200, 180));
+    m_thumbnail = (qQuickChild != nullptr) ? qQuickChild->grabFramebuffer() : QImage();
 }
 
 void WebView::setViewFocusProxy(QWidget *w)
