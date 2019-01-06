@@ -487,12 +487,12 @@ void HistoryManager::getPageThumbnailIfNeeded(WebWidget *webWidget, const QUrl &
 
     if (WebView *view = webWidget->view())
     {
-        const QImage &image = view->getThumbnail();
-        if (image.isNull())
+        const QPixmap &pixmap = view->getThumbnail();
+        if (pixmap.isNull())
             return;
         QString fileName = sBrowserApplication->getSettings()->getValue(BrowserSetting::CachePath).toString() + QDir::separator();
         QString urlHash = QString(QCryptographicHash::hash(url.toString().toLocal8Bit(), QCryptographicHash::Sha256).toHex());
         fileName.append(urlHash).append(QLatin1String(".png"));
-        image.save(fileName);
+        pixmap.save(fileName);
     }
 }

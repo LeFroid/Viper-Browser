@@ -58,8 +58,8 @@ public:
     /// Returns a pointer to the \ref WebPage
     WebPage *getPage() const;
 
-    /// Returns a thumbnail of the current page, or a null QImage if the thumbnail could not be obtained
-    const QImage &getThumbnail() const;
+    /// Returns a thumbnail of the current page, or a null QPixmap if the thumbnail could not be obtained
+    const QPixmap &getThumbnail() const;
 
 public slots:
     /// Resets the zoom factor to its base value
@@ -158,7 +158,7 @@ private:
     QPointer<QWidget> m_viewFocusProxy;
 
     /// Thumbnail of the current page
-    QImage m_thumbnail;
+    QPixmap m_thumbnail;
 };
 
 #endif // WEBVIEW_H
