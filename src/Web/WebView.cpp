@@ -90,8 +90,10 @@ QString WebView::getTitle() const
     return pageUrl.host();
 }
 
-const QPixmap &WebView::getThumbnail() const
+const QPixmap &WebView::getThumbnail()
 {
+    if (m_thumbnail.isNull())
+        makeThumbnailOfPage();
     return m_thumbnail;
 }
 

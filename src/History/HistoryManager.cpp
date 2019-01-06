@@ -276,7 +276,9 @@ void HistoryManager::onPageLoaded(bool ok)
 
     for (const QUrl &currentUrl : urls)
     {
-        getPageThumbnailIfNeeded(ww, currentUrl);
+        QTimer::singleShot(1000, this, [this, ww, currentUrl](){
+            getPageThumbnailIfNeeded(ww, currentUrl);
+        });
 
         QString urlFormatted = currentUrl.toString();
         const QString urlUpper = urlFormatted.toUpper();

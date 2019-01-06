@@ -59,7 +59,7 @@ public:
     WebPage *getPage() const;
 
     /// Returns a thumbnail of the current page, or a null QPixmap if the thumbnail could not be obtained
-    const QPixmap &getThumbnail() const;
+    const QPixmap &getThumbnail();
 
 public slots:
     /// Resets the zoom factor to its base value
