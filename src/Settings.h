@@ -10,6 +10,9 @@ enum class BrowserSetting
     /// Base path of configuration files and data stores
     StoragePath,
 
+    /// Path to the browser's cache
+    CachePath,
+
     /// Path to the bookmarks database file, relative to the storage path
     BookmarkPath,
 
@@ -137,7 +140,10 @@ enum class BrowserSetting
     StandardFontSize,
 
     /// Fixed font size
-    FixedFontSize
+    FixedFontSize,
+
+    /// Settings file version
+    Version
 };
 
 /**
@@ -146,6 +152,9 @@ enum class BrowserSetting
  */
 class Settings
 {
+    /// Settings version
+    const static QString Version;
+
 public:
     /// Settings constructor - loads browser settings and sets to defaults if applicable
     Settings();
@@ -168,6 +177,9 @@ public:
 private:
     /// Sets the default browser settings
     void setDefaults();
+
+    /// Updates the settings after a version change
+    void updateSettings();
 
 private:
     /// True if the settings have been created in this session, false if otherwise

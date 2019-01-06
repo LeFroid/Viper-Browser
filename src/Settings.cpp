@@ -12,6 +12,8 @@
 #include <QWebEngineSettings>
 #include <QtWebEngineCoreVersion>
 
+const QString Settings::Version = QStringLiteral("0.8");
+
 Settings::Settings() :
     m_firstRun(false),
     m_settings(),
@@ -38,12 +40,17 @@ Settings::Settings() :
         { BrowserSetting::SerifFont, QLatin1String("SerifFont") },                    { BrowserSetting::OpenAllTabsInBackground, QLatin1String("OpenAllTabsInBackground") },
         { BrowserSetting::SansSerifFont, QLatin1String("SansSerifFont") },            { BrowserSetting::CursiveFont, QLatin1String("CursiveFont") },
         { BrowserSetting::FantasyFont, QLatin1String("FantasyFont") },                { BrowserSetting::FixedFont, QLatin1String("FixedFont") },
-        { BrowserSetting::StandardFontSize, QLatin1String("StandardFontSize") },      { BrowserSetting::EnableAutoFill, QLatin1String("EnableAutoFill") }
+        { BrowserSetting::StandardFontSize, QLatin1String("StandardFontSize") },      { BrowserSetting::EnableAutoFill, QLatin1String("EnableAutoFill") },
+        { BrowserSetting::CachePath, QLatin1String("CachePath") },                    { BrowserSetting::Version, QLatin1String("Version") }
     }
 {
     // Check if defaults need to be set
     if (!m_settings.contains(QLatin1String("StoragePath")))
         setDefaults();
+
+    // Check if settings needs to be updated
+    if (m_settings.value(QLatin1String("Version")).toString().compare(Version) != 0)
+        updateSettings();
 
     m_storagePath = m_settings.value(QLatin1String("StoragePath")).toString();
 }
@@ -138,7 +145,11 @@ void Settings::setDefaults()
         settingsDir.mkpath(settingsPath);
     settingsPath.append(QDir::separator());
 
+    QString cachePath =
+            QString("%1%2%3%2%4").arg(QDir::homePath()).arg(QDir::separator()).arg(QLatin1String(".cache")).arg(QLatin1String("Vaccarelli"));
+
     m_settings.setValue(QLatin1String("StoragePath"), settingsPath);
+    m_settings.setValue(QLatin1String("CachePath"), cachePath);
     m_settings.setValue(QLatin1String("BookmarkPath"), QLatin1String("bookmarks.db"));
     m_settings.setValue(QLatin1String("CookiePath"), QLatin1String("cookies.db"));
     m_settings.setValue(QLatin1String("ExtStoragePath"), QLatin1String("extension_storage.db"));
@@ -188,4 +199,18 @@ void Settings::setDefaults()
 
     m_settings.setValue(QLatin1String("StandardFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFontSize));
     m_settings.setValue(QLatin1String("FixedFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFixedFontSize));
+}
+
+void Settings::updateSettings()
+{
+    const QString userVersion = m_settings.value(QLatin1String("Version")).toString();
+    if (userVersion.isEmpty())
+    {
+        QString cachePath =
+                QString("%1%2%3%2%4").arg(QDir::homePath()).arg(QDir::separator()).arg(QLatin1String(".cache")).arg(QLatin1String("Vaccarelli"));
+
+        // Set Version and CachePath
+        m_settings.setValue(QLatin1String("Version"), Version);
+        m_settings.setValue(QLatin1String("CachePath"), cachePath);
+    }
 }

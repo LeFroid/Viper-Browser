@@ -15,6 +15,8 @@
 #include <mutex>
 #include <vector>
 
+class WebWidget;
+
 /// Available policies for storage of browsing history data
 enum class HistoryStoragePolicy
 {
@@ -137,6 +139,25 @@ protected:
     void saveVisit(const WebHistoryItem &item, const QDateTime &visitTime);
 
 private:
+    /// Removes history items that are more than six months old
+    void purgeOldEntries();
+
+    /// Loads the most recently visited entries (no more than 15 entries)
+    void loadRecentVisits();
+
+    /// Fetches the set of most frequently visited web pages. This is used to determine which web pages' thumbnails to
+    /// retrieve for the "New Tab" page
+    void loadMostVisitedEntries();
+
+    /**
+     * @brief Checks if the web widget, containing a page that has loaded the given URL, should
+     *        have its thumbnail extracted so it can be shown in the "New Tab" page
+     * @param webWidget Pointer to the web widget
+     * @param url URL of the web page
+     */
+    void getPageThumbnailIfNeeded(WebWidget *webWidget, const QUrl &url);
+
+private:
     /// Stores the last visit ID that has been used to record browsing history. Auto increments for each new history item
     uint64_t m_lastVisitID;
 
@@ -154,6 +175,13 @@ private:
 
     /// History storage policy
     HistoryStoragePolicy m_storagePolicy;
+
+    /// Counts the number of successful page loads across the web browser (incremented in onPageLoaded slot).
+    /// Once this counter is past a threshold, the list of most frequently visited urls is reloaded
+    int m_pageLoadCounter;
+
+    /// List of the most frequently visited pages
+    std::vector<WebHistoryItem> m_mostVisitedList;
 
     /// Mutex
     mutable std::mutex m_mutex;

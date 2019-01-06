@@ -1,10 +1,12 @@
 #include "BrowserApplication.h"
 #include "HistoryManager.h"
 #include "Settings.h"
+#include "WebView.h"
 #include "WebWidget.h"
 
 #include <array>
 #include <QBuffer>
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QFuture>
 #include <QIcon>
@@ -17,6 +19,9 @@
 #include <QUrl>
 #include <QDebug>
 
+// Number of successful page loads that must occur before the history manager reloads the most frequently visited url list
+const static int ReloadMostVisitedThreshold = 30;
+
 HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("HistoryDB")),
@@ -26,6 +31,8 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     m_queryHistoryItem(nullptr),
     m_queryVisit(nullptr),
     m_storagePolicy(HistoryStoragePolicy::Remember),
+    m_pageLoadCounter(0),
+    m_mostVisitedList(),
     m_mutex()
 {
     m_storagePolicy = static_cast<HistoryStoragePolicy>(sBrowserApplication->getSettings()->getValue(BrowserSetting::HistoryStoragePolicy).toInt());
@@ -240,6 +247,7 @@ void HistoryManager::onPageLoaded(bool ok)
     const QUrl originalUrl = ww->getOriginalUrl();
     const QString scheme = url.scheme().toLower();
 
+    // Check if we should ignore this page
     const std::array<QString, 2> ignoreSchemes { QLatin1String("qrc"), QLatin1String("viper") };
     if (url.isEmpty() || originalUrl.isEmpty() || scheme.isEmpty())
         return;
@@ -250,6 +258,14 @@ void HistoryManager::onPageLoaded(bool ok)
             return;
     }
 
+    // Check if we should refresh the most visited url list
+    if (m_pageLoadCounter++ > ReloadMostVisitedThreshold)
+    {
+        m_pageLoadCounter = 0;
+        loadMostVisitedEntries();
+    }
+
+    // Find or create a new history entry
     const QDateTime visitTime = QDateTime::currentDateTime();
     const QString title = ww->getTitle();
     const bool emptyTitle = title.isEmpty();
@@ -260,6 +276,8 @@ void HistoryManager::onPageLoaded(bool ok)
 
     for (const QUrl &currentUrl : urls)
     {
+        getPageThumbnailIfNeeded(ww, currentUrl);
+
         QString urlFormatted = currentUrl.toString();
         const QString urlUpper = urlFormatted.toUpper();
 
@@ -319,30 +337,25 @@ void HistoryManager::setup()
 
 void HistoryManager::load()
 {
+    purgeOldEntries();
+
     // Only load data from the History table, will load specific visits if user requests full history
     QSqlQuery query(m_database);
-
-    // Clear visits that are 6+ months old
-    quint64 purgeDate = QDateTime::currentMSecsSinceEpoch();
-    const quint64 tmp = quint64{15552000000};
-    if (purgeDate > tmp)
-    {
-        purgeDate -= tmp;
-        query.prepare(QLatin1String("DELETE FROM Visits WHERE Date < (:purgeDate)"));
-        query.bindValue(QLatin1String(":purgeDate"), purgeDate);
-        if (!query.exec())
-        {
-            qDebug() << "[Error]: In HistoryManager::load - Could not purge old history entries. Message: " << query.lastError().text();
-        }
-    }
 
     // Clear history entries that are not referenced by any specific visits
     if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
     {
-        qDebug() << "[Error]: In HistoryManager::load - Could not remove non-referenced history entries from the database. Message: " << query.lastError().text();
+        qWarning() << "In HistoryManager::load - Could not remove non-referenced history entries from the database."
+                   << " Message: " << query.lastError().text();
     }
 
-    if (query.exec(QLatin1String("SELECT VisitID, URL, Title FROM History ORDER BY VisitID ASC")))
+    // Now load history entries
+    if (!query.exec(QLatin1String("SELECT VisitID, URL, Title FROM History ORDER BY VisitID ASC")))
+    {
+        qWarning() << "In HistoryManager::load - Unable to fetch history items from the database. Message: "
+                   << query.lastError().text();
+    }
+    else
     {
         QSqlRecord rec = query.record();
         int idVisit = rec.indexOf(QLatin1String("VisitID"));
@@ -359,29 +372,12 @@ void HistoryManager::load()
             m_historyItems.insert(item.URL.toString().toUpper(), item);
         }
     }
-    else
-        qDebug() << "[Error]: In HistoryManager::load - Unable to fetch history items from the database. Message: "
-                 << query.lastError().text();
 
     // Load most recent visits
-    if (query.exec(QLatin1String("SELECT Visits.Date, History.URL FROM Visits INNER JOIN History ON Visits.VisitID = History.VisitID ORDER BY Visits.Date DESC LIMIT 15")))
-    {
-        QSqlRecord rec = query.record();
-        int idDate = rec.indexOf(QLatin1String("Date"));
-        int idUrl = rec.indexOf(QLatin1String("URL"));
-        while (query.next())
-        {
-            auto it = m_historyItems.find(query.value(idUrl).toString().toUpper());
-            if (it != m_historyItems.end())
-            {
-                QDateTime date = QDateTime::fromMSecsSinceEpoch(query.value(idDate).toULongLong());
-                it->Visits.prepend(date);
-                m_recentItems.push_back(*it);
-            }
-        }
-    }
-    else
-        qDebug() << "Could not load visit date info. Message: " << query.lastError().text();
+    loadRecentVisits();
+
+    // Load information used by the New Tab page
+    loadMostVisitedEntries();
 }
 
 void HistoryManager::save()
@@ -411,5 +407,92 @@ void HistoryManager::saveVisit(const WebHistoryItem &item, const QDateTime &visi
     m_queryVisit->bindValue(QLatin1String(":date"), visitTime.toMSecsSinceEpoch());
     if (!m_queryVisit->exec())
         qDebug() << "[Error]: In HistoryManager::saveVisit - unable to save specific visit for URL " << item.URL.toString() << " at time " << visitTime.toString();
+}
 
+void HistoryManager::purgeOldEntries()
+{
+    // Clear visits that are 6+ months old
+    QSqlQuery query(m_database);
+    quint64 purgeDate = QDateTime::currentMSecsSinceEpoch();
+    const quint64 tmp = quint64{15552000000};
+    if (purgeDate > tmp)
+    {
+        purgeDate -= tmp;
+        query.prepare(QLatin1String("DELETE FROM Visits WHERE Date < (:purgeDate)"));
+        query.bindValue(QLatin1String(":purgeDate"), purgeDate);
+        if (!query.exec())
+        {
+            qWarning() << "HistoryManager - Could not purge old history entries. Message: " << query.lastError().text();
+        }
+    }
+}
+
+void HistoryManager::loadRecentVisits()
+{
+    QSqlQuery query(m_database);
+    if (!query.exec(QLatin1String("SELECT Visits.Date, History.URL FROM Visits"
+                                  " INNER JOIN History ON Visits.VisitID = History.VisitID"
+                                  " ORDER BY Visits.Date DESC LIMIT 15")))
+    {
+        qWarning() << "HistoryManager - could not load recently visited history entries";
+        return;
+    }
+
+    QSqlRecord rec = query.record();
+    int idDate = rec.indexOf(QLatin1String("Date"));
+    int idUrl = rec.indexOf(QLatin1String("URL"));
+    while (query.next())
+    {
+        auto it = m_historyItems.find(query.value(idUrl).toString().toUpper());
+        if (it != m_historyItems.end())
+        {
+            QDateTime date = QDateTime::fromMSecsSinceEpoch(query.value(idDate).toULongLong());
+            it->Visits.prepend(date);
+            m_recentItems.push_back(*it);
+        }
+    }
+}
+
+void HistoryManager::loadMostVisitedEntries()
+{
+    m_mostVisitedList.clear();
+
+    QSqlQuery query(m_database);
+    if (!query.exec(QLatin1String("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM Visits AS v JOIN History AS h"
+                                  " ON v.VisitID = h.VisitID GROUP BY v.VisitID ORDER BY NumVisits DESC LIMIT 10")))
+    {
+        qWarning() << "In HistoryManager::loadMostVisitedEntries - unable to load most frequently visited entries. Message: " << query.lastError().text();
+        return;
+    }
+
+    QSqlRecord rec = query.record();
+    int idUrl = rec.indexOf(QLatin1String("URL"));
+    int idTitle = rec.indexOf(QLatin1String("Title"));
+    while (query.next())
+    {
+        WebHistoryItem item;
+        item.URL = query.value(idUrl).toUrl();
+        item.Title = query.value(idTitle).toString();
+        m_mostVisitedList.push_back(item);
+    }
+}
+
+void HistoryManager::getPageThumbnailIfNeeded(WebWidget *webWidget, const QUrl &url)
+{
+    auto it = std::find_if(m_mostVisitedList.begin(), m_mostVisitedList.end(), [&url](const WebHistoryItem &item){
+        return item.URL == url;
+    });
+    if (it == m_mostVisitedList.end())
+        return;
+
+    if (WebView *view = webWidget->view())
+    {
+        const QPixmap &pixmap = view->getThumbnail();
+        if (pixmap.isNull())
+            return;
+        QString fileName = sBrowserApplication->getSettings()->getValue(BrowserSetting::CachePath).toString() + QDir::separator();
+        QString urlHash = QString(QCryptographicHash::hash(url.toString().toLocal8Bit(), QCryptographicHash::Sha256).toHex());
+        fileName.append(urlHash).append(QLatin1String(".png"));
+        pixmap.save(fileName);
+    }
 }
