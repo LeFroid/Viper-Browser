@@ -5,6 +5,7 @@
 
 #include <QMessageBox>
 #include <QNetworkReply>
+#include <QRegularExpression>
 #include <QSslCertificate>
 #include <QSslError>
 #include <QDebug>
@@ -81,7 +82,7 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
     const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
 
     QString hostStripped = url.host();
-    hostStripped = hostStripped.remove(QRegExp("(www.)"));
+    hostStripped = hostStripped.remove(QRegularExpression("(www\\.)"));
     auto certIt = m_certChains.find(hostStripped);
     if (isHttps && certIt != m_certChains.end())
     {
@@ -130,7 +131,7 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
     QList<QSslError> sslErrors = QSslCertificate::verify(certChain, host);
 
     // Add host and their certificate chain to our hash map if not already there
-    QString hostStripped = host.remove(QRegExp("(www.)"));
+    QString hostStripped = host.remove(QRegularExpression("(www\\.)"));
     if (m_certChains.find(hostStripped) == m_certChains.end())
         m_certChains.insert(hostStripped, certChain);
 
