@@ -39,10 +39,12 @@ set(viper_src
     Highlighters/HTMLHighlighter.cpp
     Highlighters/JavaScriptHighlighter.cpp
     History/ClearHistoryDialog.cpp
+    History/FavoritePagesManager.cpp
     History/HistoryManager.cpp
     History/HistoryMenu.cpp
     History/HistoryTableModel.cpp
     History/HistoryWidget.cpp
+    History/WebPageThumbnailStore.cpp
     Network/AuthDialog.cpp
     Network/BlockedSchemeHandler.cpp
     Network/CertificateGeneralTab.cpp

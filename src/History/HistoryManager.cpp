@@ -11,16 +11,13 @@
 #include <QFuture>
 #include <QIcon>
 #include <QImage>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QtConcurrent>
 #include <QUrl>
 #include <QDebug>
-
-// Number of successful page loads that must occur before the history manager reloads the most frequently visited url list
-const static int ReloadMostVisitedThreshold = 30;
 
 HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     QObject(parent),
@@ -31,8 +28,6 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     m_queryHistoryItem(nullptr),
     m_queryVisit(nullptr),
     m_storagePolicy(HistoryStoragePolicy::Remember),
-    m_pageLoadCounter(0),
-    m_mostVisitedList(),
     m_mutex()
 {
     m_storagePolicy = static_cast<HistoryStoragePolicy>(sBrowserApplication->getSettings()->getValue(BrowserSetting::HistoryStoragePolicy).toInt());
@@ -187,7 +182,7 @@ int HistoryManager::getTimesVisitedHost(const QString &host) const
     query.prepare(QLatin1String("SELECT COUNT(VisitID) FROM Visits WHERE VisitID = (:id)"));
     for (const WebHistoryItem &item : m_historyItems)
     {
-        if (host.endsWith(item.URL.host().remove(QRegExp("(http(s)?://)?(www.)"))))
+        if (host.endsWith(item.URL.host().remove(QRegularExpression("(http(s)?://)?(www\\.)"))))
         {
             query.bindValue(QLatin1String(":id"), item.VisitID);
             if (query.exec() && query.next())
@@ -258,13 +253,6 @@ void HistoryManager::onPageLoaded(bool ok)
             return;
     }
 
-    // Check if we should refresh the most visited url list
-    if (m_pageLoadCounter++ > ReloadMostVisitedThreshold)
-    {
-        m_pageLoadCounter = 0;
-        loadMostVisitedEntries();
-    }
-
     // Find or create a new history entry
     const QDateTime visitTime = QDateTime::currentDateTime();
     const QString title = ww->getTitle();
@@ -276,10 +264,6 @@ void HistoryManager::onPageLoaded(bool ok)
 
     for (const QUrl &currentUrl : urls)
     {
-        QTimer::singleShot(1000, this, [this, ww, currentUrl](){
-            getPageThumbnailIfNeeded(ww, currentUrl);
-        });
-
         QString urlFormatted = currentUrl.toString();
         const QString urlUpper = urlFormatted.toUpper();
 
@@ -377,9 +361,6 @@ void HistoryManager::load()
 
     // Load most recent visits
     loadRecentVisits();
-
-    // Load information used by the New Tab page
-    loadMostVisitedEntries();
 }
 
 void HistoryManager::save()
@@ -455,16 +436,17 @@ void HistoryManager::loadRecentVisits()
     }
 }
 
-void HistoryManager::loadMostVisitedEntries()
+std::vector<WebPageInformation> HistoryManager::loadMostVisitedEntries()
 {
-    m_mostVisitedList.clear();
+    //m_mostVisitedList.clear();
+    std::vector<WebPageInformation> result;
 
     QSqlQuery query(m_database);
     if (!query.exec(QLatin1String("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM Visits AS v JOIN History AS h"
                                   " ON v.VisitID = h.VisitID GROUP BY v.VisitID ORDER BY NumVisits DESC LIMIT 10")))
     {
         qWarning() << "In HistoryManager::loadMostVisitedEntries - unable to load most frequently visited entries. Message: " << query.lastError().text();
-        return;
+        return result;
     }
 
     QSqlRecord rec = query.record();
@@ -472,29 +454,12 @@ void HistoryManager::loadMostVisitedEntries()
     int idTitle = rec.indexOf(QLatin1String("Title"));
     while (query.next())
     {
-        WebHistoryItem item;
+        WebPageInformation item;
         item.URL = query.value(idUrl).toUrl();
         item.Title = query.value(idTitle).toString();
-        m_mostVisitedList.push_back(item);
+        result.push_back(item);
     }
+
+    return result;
 }
 
-void HistoryManager::getPageThumbnailIfNeeded(WebWidget *webWidget, const QUrl &url)
-{
-    auto it = std::find_if(m_mostVisitedList.begin(), m_mostVisitedList.end(), [&url](const WebHistoryItem &item){
-        return item.URL == url;
-    });
-    if (it == m_mostVisitedList.end())
-        return;
-
-    if (WebView *view = webWidget->view())
-    {
-        const QPixmap &pixmap = view->getThumbnail();
-        if (pixmap.isNull())
-            return;
-        QString fileName = sBrowserApplication->getSettings()->getValue(BrowserSetting::CachePath).toString() + QDir::separator();
-        QString urlHash = QString(QCryptographicHash::hash(url.toString().toLocal8Bit(), QCryptographicHash::Sha256).toHex());
-        fileName.append(urlHash).append(QLatin1String(".png"));
-        pixmap.save(fileName);
-    }
-}

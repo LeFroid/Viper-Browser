@@ -19,6 +19,7 @@ class CookieWidget;
 class DownloadManager;
 class ExtStorage;
 class FaviconStore;
+class FavoritePagesManager;
 class HistoryManager;
 class MainWindow;
 class RequestInterceptor;
@@ -78,6 +79,9 @@ public:
 
     /// Returns the favicon storage manager
     FaviconStore *getFaviconStore();
+
+    /// Returns a pointer to the object that maintains a list of the user's favorite web pages
+    FavoritePagesManager *getFavoritePagesManager();
 
     /// Returns the history manager
     HistoryManager *getHistoryManager();
@@ -190,6 +194,9 @@ private:
 
     /// Web extension storage - used to store user script data on a per-script basis rather than per-site
     std::unique_ptr<ExtStorage> m_extStorage;
+
+    /// Maintains a list of the user's favorite web pages
+    FavoritePagesManager *m_favoritePagesMgr;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

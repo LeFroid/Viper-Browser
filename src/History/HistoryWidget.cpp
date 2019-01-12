@@ -7,7 +7,6 @@
 #include <QDateTime>
 #include <QList>
 #include <QMenu>
-#include <QRegExp>
 #include <QResizeEvent>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>

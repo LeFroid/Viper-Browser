@@ -10,6 +10,7 @@
 #include "DownloadManager.h"
 #include "ExtStorage.h"
 #include "FaviconStore.h"
+#include "FavoritePagesManager.h"
 #include "HistoryManager.h"
 #include "MainWindow.h"
 #include "SearchEngineManager.h"
@@ -78,8 +79,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     connect(webProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
     connect(m_privateProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
 
-    // Instantiate the history manager
+    // Instantiate the history manager and related systems
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
+    m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), this);
 
     // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
@@ -164,6 +166,11 @@ DownloadManager *BrowserApplication::getDownloadManager()
 FaviconStore *BrowserApplication::getFaviconStore()
 {
     return m_faviconStorage.get();
+}
+
+FavoritePagesManager *BrowserApplication::getFavoritePagesManager()
+{
+    return m_favoritePagesMgr;
 }
 
 HistoryManager *BrowserApplication::getHistoryManager()

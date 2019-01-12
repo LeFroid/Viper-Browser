@@ -88,8 +88,11 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
 
     setFocusProxy(m_view);
 
-    if (!privateMode)
+    if (!m_privateMode)
+    {
         connect(this, &WebWidget::loadFinished, sBrowserApplication->getHistoryManager(), &HistoryManager::onPageLoaded);
+        //connect(this, &WebWidget::loadFinished, sBrowserApplication->getThumbnailStore(), &WebPageThumbnailStore::onPageLoaded);
+    }
 }
 
 WebWidget::~WebWidget()
