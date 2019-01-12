@@ -46,6 +46,8 @@ QImage WebPageThumbnailStore::getThumbnail(const QUrl &url)
         QImage image;
         image.load(&buffer, "PNG");
 
+        m_thumbnails.insert(host, image);
+
         return image;
     }
 
