@@ -68,9 +68,6 @@ void WebPageTextFinder::searchTermChanged(const QString &text)
 
 void WebPageTextFinder::setWebPage(WebPage *page)
 {
-    if (m_page)
-        stopSearching();
-
     m_page = page;
 }
 
