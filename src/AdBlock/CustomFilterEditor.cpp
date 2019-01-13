@@ -4,6 +4,7 @@
 #include "CodeEditor.h"
 #include "FindTextWidget.h"
 #include "Settings.h"
+#include "TextEditorTextFinder.h"
 
 #include <QCloseEvent>
 #include <QDir>
@@ -11,6 +12,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 #include <QDebug>
+
 CustomFilterEditor::CustomFilterEditor(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::CustomFilterEditor),
@@ -26,6 +28,9 @@ CustomFilterEditor::CustomFilterEditor(QWidget *parent) :
     m_filePath.append(QDir::separator());
     m_filePath.append(QLatin1String("custom.txt"));
 
+    TextEditorTextFinder *textFinder = new TextEditorTextFinder;
+    textFinder->setTextEdit(ui->filterEditor);
+    ui->widgetFindText->setTextFinder(textFinder);
     ui->widgetFindText->hide();
 
     connect(ui->widgetFindText, &FindTextWidget::pseudoModifiedDocument, this, &CustomFilterEditor::onTextFindPseudoModify);
@@ -45,10 +50,8 @@ CustomFilterEditor::~CustomFilterEditor()
 void CustomFilterEditor::toggleFindTextWidget()
 {
     if (ui->widgetFindText->isHidden())
-    {
-        ui->widgetFindText->setTextEdit(ui->filterEditor);
         ui->widgetFindText->show();
-    }
+
     ui->widgetFindText->getLineEdit()->setFocus();
 }
 
@@ -82,6 +85,7 @@ void CustomFilterEditor::onFiltersModified(bool changed)
 
     m_filtersModified = changed;
     QString title = windowTitle();
+
     if (changed)
     {
         if (!title.endsWith(QChar('*')))
@@ -130,7 +134,7 @@ void CustomFilterEditor::loadUserFilters()
     if (filterFile.open(QIODevice::ReadOnly))
         ui->filterEditor->setPlainText(QString(filterFile.readAll()));
 
-    ui->widgetFindText->setTextEdit(ui->filterEditor);
+    ui->widgetFindText->clearLabels();
     m_filtersModified = false;
 }
 

@@ -64,6 +64,9 @@ set(viper_src
     Preferences/Preferences.cpp
     Preferences/PrivacyTab.cpp
     Preferences/SearchTab.cpp
+    TextFinder/ITextFinder.cpp
+    TextFinder/TextEditorTextFinder.cpp
+    TextFinder/WebPageTextFinder.cpp
     URLSuggestion/URLSuggestionItemDelegate.cpp
     URLSuggestion/URLSuggestionListModel.cpp
     URLSuggestion/URLSuggestionWidget.cpp

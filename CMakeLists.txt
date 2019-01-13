@@ -42,6 +42,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/History
     ${CMAKE_SOURCE_DIR}/src/Network
     ${CMAKE_SOURCE_DIR}/src/Preferences
+    ${CMAKE_SOURCE_DIR}/src/TextFinder
     ${CMAKE_SOURCE_DIR}/src/URLSuggestion
     ${CMAKE_SOURCE_DIR}/src/UserAgents
     ${CMAKE_SOURCE_DIR}/src/UserScripts

@@ -3,6 +3,7 @@
 #include "CodeEditor.h"
 #include "FindTextWidget.h"
 #include "JavaScriptHighlighter.h"
+#include "TextEditorTextFinder.h"
 
 #include <QCloseEvent>
 #include <QFile>
@@ -23,6 +24,10 @@ UserScriptEditor::UserScriptEditor(QWidget *parent) :
     ui->setupUi(this);
 
     m_highlighter->setDocument(ui->scriptEditor->document());
+
+    TextEditorTextFinder *textFinder = new TextEditorTextFinder;
+    textFinder->setTextEdit(ui->scriptEditor);
+    ui->widgetFindText->setTextFinder(textFinder);
     ui->widgetFindText->hide();
 
     connect(ui->widgetFindText, &FindTextWidget::pseudoModifiedDocument, this, &UserScriptEditor::onTextFindPseudoModify);
@@ -41,7 +46,9 @@ void UserScriptEditor::setScriptInfo(const QString &name, const QString &code, c
 {
     setWindowTitle(QString("Editing %1").arg(name));
     ui->scriptEditor->setPlainText(code);
-    ui->widgetFindText->setTextEdit(ui->scriptEditor);
+
+    ui->widgetFindText->clearLabels();
+
     m_filePath = filePath;
     m_scriptModified = false;
     m_rowIndex = rowIndex;
@@ -50,10 +57,8 @@ void UserScriptEditor::setScriptInfo(const QString &name, const QString &code, c
 void UserScriptEditor::toggleFindTextWidget()
 {
     if (ui->widgetFindText->isHidden())
-    {
-        ui->widgetFindText->setTextEdit(ui->scriptEditor);
         ui->widgetFindText->show();
-    }
+
     ui->widgetFindText->getLineEdit()->setFocus();
 }
 
@@ -62,12 +67,15 @@ void UserScriptEditor::saveScript()
     QFile outFile(m_filePath);
     if (!outFile.open(QIODevice::WriteOnly))
         return;
+
     QByteArray scriptData;
     scriptData.append(ui->scriptEditor->toPlainText());
     outFile.write(scriptData);
     outFile.close();
+
     emit scriptModified(m_rowIndex);
     m_scriptModified = false;
+
     QString title = windowTitle();
     if (title.endsWith(QChar('*')))
         setWindowTitle(title.left(title.size() - 1));

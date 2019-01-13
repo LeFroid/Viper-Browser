@@ -26,6 +26,7 @@
 #include "UserScriptManager.h"
 #include "UserScriptWidget.h"
 #include "WebPage.h"
+#include "WebPageTextFinder.h"
 #include "WebView.h"
 #include "WebWidget.h"
 
@@ -83,6 +84,8 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
 	QDesktopWidget *desktop = sBrowserApplication->desktop();
 	const int availableWidth = desktop->availableGeometry().width(), availableHeight = desktop->availableGeometry().height();
     setGeometry(availableWidth / 16, availableHeight / 16, availableWidth * 7 / 8, availableHeight * 7 / 8);
+
+    ui->widgetFindText->setTextFinder(new WebPageTextFinder);
 
     setupStatusBar();
     setupTabWidget();
@@ -296,9 +299,12 @@ void MainWindow::onTabChanged(int index)
     if (!ww)
         return;
 
-    // Update UI elements to reflect current view
-    ui->widgetFindText->setWebView(ww->view());
+    // Update text finder
+    ui->widgetFindText->clearLabels();
     ui->widgetFindText->hide();
+
+    if (WebPageTextFinder *textFinder = dynamic_cast<WebPageTextFinder*>(ui->widgetFindText->getTextFinder()))
+        textFinder->setWebPage(ww->page());
 
     // Update URL bar
     URLLineEdit *urlInput = ui->toolBar->getURLWidget();
@@ -568,7 +574,11 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
     // Connect signals to slots for UI updates (page title, icon changes)
     connect(ww, &WebWidget::aboutToWake, [this,ww](){
         if (m_tabWidget->currentWebWidget() == ww)
-            ui->widgetFindText->setWebView(ww->view());
+        {
+            ui->widgetFindText->clearLabels();
+            if (WebPageTextFinder *textFinder = dynamic_cast<WebPageTextFinder*>(ui->widgetFindText->getTextFinder()))
+                textFinder->setWebPage(ww->page());
+        }
     });
     connect(ww, &WebWidget::loadFinished,   this, &MainWindow::onLoadFinished);
     connect(ww, &WebWidget::inspectElement, this, &MainWindow::openInspector);
