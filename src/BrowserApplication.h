@@ -22,12 +22,13 @@ class FaviconStore;
 class FavoritePagesManager;
 class HistoryManager;
 class MainWindow;
+class NetworkAccessManager;
 class RequestInterceptor;
 class Settings;
 class UserAgentManager;
 class UserScriptManager;
-class NetworkAccessManager;
 class ViperSchemeHandler;
+class WebPageThumbnailStore;
 
 class QWebEngineProfile;
 
@@ -103,6 +104,9 @@ public:
 
     /// Returns a pointer to the extension storage object
     ExtStorage *getExtStorage();
+
+    /// Returns a pointer to the web page thumbnail storage manager
+    WebPageThumbnailStore *getWebPageThumbnailStore();
 
 signals:
     /// Emitted when each browsing window's history menu should reset its contents
@@ -197,6 +201,9 @@ private:
 
     /// Maintains a list of the user's favorite web pages
     FavoritePagesManager *m_favoritePagesMgr;
+
+    /// Web page thumbnail storage manager
+    std::unique_ptr<WebPageThumbnailStore> m_thumbnailStore;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

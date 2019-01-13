@@ -1,8 +1,14 @@
+#include "BookmarkManager.h"
+#include "BookmarkNode.h"
+#include "FavoritePagesManager.h"
+#include "HistoryManager.h"
 #include "WebPageThumbnailStore.h"
 #include "WebView.h"
 #include "WebWidget.h"
 
+#include <algorithm>
 #include <array>
+#include <set>
 #include <QBuffer>
 #include <QPixmap>
 #include <QSqlError>
@@ -15,12 +21,14 @@
 WebPageThumbnailStore::WebPageThumbnailStore(const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("ThumbnailDB")),
-    m_thumbnails()
+    m_thumbnails(),
+    m_historyManager(nullptr)
 {
 }
 
 WebPageThumbnailStore::~WebPageThumbnailStore()
 {
+    save();
 }
 
 QImage WebPageThumbnailStore::getThumbnail(const QUrl &url)
@@ -60,7 +68,7 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
         return;
 
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
-    if (ww == nullptr || ww->isOnBlankPage())
+    if (ww == nullptr || ww->isOnBlankPage() || ww->isHibernating())
         return;
 
     // Check if we should ignore this page
@@ -98,6 +106,16 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     });
 }
 
+void WebPageThumbnailStore::setBookmarkManager(BookmarkManager *bookmarkMgr)
+{
+    m_bookmarkManager = bookmarkMgr;
+}
+
+void WebPageThumbnailStore::setHistoryManager(HistoryManager *historyMgr)
+{
+    m_historyManager = historyMgr;
+}
+
 bool WebPageThumbnailStore::hasProperStructure()
 {
     return hasTable(QLatin1String("Thumbnails"));
@@ -126,4 +144,55 @@ void WebPageThumbnailStore::save()
     // iterate through the in-memory collection, and if any of the hostnames of a page's thumbnail
     // is (1) in the top 100 most visited web pages (see HistoryManager), or (2) is favorited by
     // the user, or (3) is bookmarked, then save to the DB
+    if (!m_historyManager || !m_bookmarkManager)
+        return;
+
+    std::set<std::string> mostVisitedHosts;
+
+    // Load top history entries into set
+    int historyLimit = std::min(m_thumbnails.size(), 100);
+    auto mostVisitedHistoryPages = m_historyManager->loadMostVisitedEntries(historyLimit);
+
+    for (const auto &entry : mostVisitedHistoryPages)
+    {
+        const std::string host = entry.URL.host().toLower().toStdString();
+        if (!host.empty())
+            mostVisitedHosts.insert(host);
+    }
+
+    // Load all bookmarks into set
+    for (auto it : *m_bookmarkManager)
+    {
+        if (it->getType() == BookmarkNode::Bookmark)
+        {
+            const std::string host = it->getURL().host().toLower().toStdString();
+            if (!host.empty())
+                mostVisitedHosts.insert(host);
+        }
+    }
+
+    // Save applicable thumbnails
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("INSERT OR REPLACE INTO Thumbnails(Host, Thumbnail) VALUES(:host, :thumbnail)"));
+
+    for (auto it = m_thumbnails.begin(); it != m_thumbnails.end(); ++it)
+    {
+        const std::string host = it.key().toStdString();
+        if (mostVisitedHosts.find(host) == mostVisitedHosts.end())
+            continue;
+
+        const QImage &image = it.value();
+        if (image.isNull())
+            continue;
+
+        QByteArray data;
+        QBuffer buffer(&data);
+        image.save(&buffer, "PNG");
+
+        query.bindValue(QLatin1String(":host"), it.key());
+        query.bindValue(QLatin1String(":thumbnail"), data.toBase64());
+        if (!query.exec())
+            qWarning() << "WebPageThumbnailStore - could not save thumbnail to database. Message: "
+                       << query.lastError().text();
+    }
 }

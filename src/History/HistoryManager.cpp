@@ -436,14 +436,16 @@ void HistoryManager::loadRecentVisits()
     }
 }
 
-std::vector<WebPageInformation> HistoryManager::loadMostVisitedEntries()
+std::vector<WebPageInformation> HistoryManager::loadMostVisitedEntries(int limit)
 {
     //m_mostVisitedList.clear();
     std::vector<WebPageInformation> result;
+    if (limit <= 0)
+        return result;
 
     QSqlQuery query(m_database);
-    if (!query.exec(QLatin1String("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM Visits AS v JOIN History AS h"
-                                  " ON v.VisitID = h.VisitID GROUP BY v.VisitID ORDER BY NumVisits DESC LIMIT 10")))
+    if (!query.exec(QString("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM Visits AS v JOIN History AS h"
+                            " ON v.VisitID = h.VisitID GROUP BY v.VisitID ORDER BY NumVisits DESC LIMIT %1").arg(limit)))
     {
         qWarning() << "In HistoryManager::loadMostVisitedEntries - unable to load most frequently visited entries. Message: " << query.lastError().text();
         return result;

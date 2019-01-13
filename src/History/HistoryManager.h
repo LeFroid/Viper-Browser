@@ -113,9 +113,9 @@ public:
     /// Sets the policy to be followed for storing browsing history
     void setStoragePolicy(HistoryStoragePolicy policy);
 
-    /// Fetches the set of most frequently visited web pages. This is used to determine which web pages' thumbnails to
-    /// retrieve for the "New Tab" page
-    std::vector<WebPageInformation> loadMostVisitedEntries();
+    /// Fetches the set of most frequently visited web pages, up to the given limit. This is used to
+    /// determine which web pages' thumbnails to retrieve for the "New Tab" page
+    std::vector<WebPageInformation> loadMostVisitedEntries(int limit = 10);
 
 signals:
     /// Emitted when a page has been visited

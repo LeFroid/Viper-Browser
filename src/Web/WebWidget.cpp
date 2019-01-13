@@ -7,6 +7,7 @@
 #include "WebWidget.h"
 #include "WebHistory.h"
 #include "WebPage.h"
+#include "WebPageThumbnailStore.h"
 #include "WebView.h"
 
 #include <QAction>
@@ -91,7 +92,7 @@ WebWidget::WebWidget(bool privateMode, QWidget *parent) :
     if (!m_privateMode)
     {
         connect(this, &WebWidget::loadFinished, sBrowserApplication->getHistoryManager(), &HistoryManager::onPageLoaded);
-        //connect(this, &WebWidget::loadFinished, sBrowserApplication->getThumbnailStore(), &WebPageThumbnailStore::onPageLoaded);
+        connect(this, &WebWidget::loadFinished, sBrowserApplication->getWebPageThumbnailStore(), &WebPageThumbnailStore::onPageLoaded);
     }
 }
 

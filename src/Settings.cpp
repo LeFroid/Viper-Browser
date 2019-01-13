@@ -12,7 +12,7 @@
 #include <QWebEngineSettings>
 #include <QtWebEngineCoreVersion>
 
-const QString Settings::Version = QStringLiteral("0.8");
+const QString Settings::Version = QStringLiteral("0.9");
 
 Settings::Settings() :
     m_firstRun(false),
@@ -41,7 +41,8 @@ Settings::Settings() :
         { BrowserSetting::SansSerifFont, QLatin1String("SansSerifFont") },            { BrowserSetting::CursiveFont, QLatin1String("CursiveFont") },
         { BrowserSetting::FantasyFont, QLatin1String("FantasyFont") },                { BrowserSetting::FixedFont, QLatin1String("FixedFont") },
         { BrowserSetting::StandardFontSize, QLatin1String("StandardFontSize") },      { BrowserSetting::EnableAutoFill, QLatin1String("EnableAutoFill") },
-        { BrowserSetting::CachePath, QLatin1String("CachePath") },                    { BrowserSetting::Version, QLatin1String("Version") }
+        { BrowserSetting::CachePath, QLatin1String("CachePath") },                    { BrowserSetting::ThumbnailPath, QLatin1String("ThumbnailPath") },
+        { BrowserSetting::Version, QLatin1String("Version") }
     }
 {
     // Check if defaults need to be set
@@ -155,6 +156,7 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("ExtStoragePath"), QLatin1String("extension_storage.db"));
     m_settings.setValue(QLatin1String("HistoryPath"), QLatin1String("history.db"));
     m_settings.setValue(QLatin1String("FaviconPath"), QLatin1String("favicons.db"));
+    m_settings.setValue(QLatin1String("ThumbnailPath"), QLatin1String("web_thumbnails.db"));
     m_settings.setValue(QLatin1String("UserAgentsFile"),  QLatin1String("user_agents.json"));
     m_settings.setValue(QLatin1String("SearchEnginesFile"), QLatin1String("search_engines.json"));
     m_settings.setValue(QLatin1String("SessionFile"), QLatin1String("last_session.json"));
@@ -213,4 +215,9 @@ void Settings::updateSettings()
         m_settings.setValue(QLatin1String("Version"), Version);
         m_settings.setValue(QLatin1String("CachePath"), cachePath);
     }
+
+    bool ok = false;
+    float versionNumber = m_settings.value(QLatin1String("Version")).toFloat(&ok);
+    if (!ok || versionNumber < 0.9f)
+        m_settings.setValue(QLatin1String("ThumbnailPath"), QLatin1String("web_thumbnails.db"));
 }

@@ -21,6 +21,7 @@
 #include "UserScriptManager.h"
 #include "ViperSchemeHandler.h"
 #include "WebPage.h"
+#include "WebPageThumbnailStore.h"
 
 #include <vector>
 #include <QDir>
@@ -81,7 +82,12 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Instantiate the history manager and related systems
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
+
     m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), this);
+
+    m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_settings->getPathValue(BrowserSetting::ThumbnailPath));
+    m_thumbnailStore->setBookmarkManager(m_bookmarks.get());
+    m_thumbnailStore->setHistoryManager(m_historyMgr.get());
 
     // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
@@ -207,6 +213,11 @@ CookieWidget *BrowserApplication::getCookieManager()
 ExtStorage *BrowserApplication::getExtStorage()
 {
     return m_extStorage.get();
+}
+
+WebPageThumbnailStore *BrowserApplication::getWebPageThumbnailStore()
+{
+    return m_thumbnailStore.get();
 }
 
 MainWindow *BrowserApplication::getNewWindow()

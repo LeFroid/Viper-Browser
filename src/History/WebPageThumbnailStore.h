@@ -12,7 +12,8 @@
 #include <QString>
 #include <QUrl>
 
-class WebView;
+class BookmarkManager;
+class HistoryManager;
 
 /**
  * @class WebPageThumbnailStore
@@ -22,6 +23,7 @@ class WebView;
  */
 class WebPageThumbnailStore : public QObject, private DatabaseWorker
 {
+    friend class BrowserApplication;
     friend class DatabaseFactory;
 
     Q_OBJECT
@@ -42,6 +44,15 @@ public slots:
     void onPageLoaded(bool ok);
 
 protected:
+    /// Sets a pointer to the \ref BookmarkManager, which is needed to determine the thumbnails that should
+    /// be saved to the database at exit, instead of being ignored
+    void setBookmarkManager(BookmarkManager *bookmarkMgr);
+
+    /// Sets a pointer to the \ref HistoryManager, which is needed to determine the thumbnails that should
+    /// be saved to the database at exit, instead of being ignored
+    void setHistoryManager(HistoryManager *historyMgr);
+
+protected:
     /// Returns true if the thumbnail database contains the table structures needed for it to function properly,
     /// false if else.
     bool hasProperStructure() override;
@@ -59,6 +70,12 @@ protected:
 private:
     /// Hashmap of web hostnames to their corresponding thumbnails
     QHash<QString, QImage> m_thumbnails;
+
+    /// Pointer to the \ref BookmarkManager
+    BookmarkManager *m_bookmarkManager;
+
+    /// Pointer to the \ref HistoryManager
+    HistoryManager *m_historyManager;
 };
 
 #endif // WEBPAGETHUMBNAILSTORE_H

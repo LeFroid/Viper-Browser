@@ -25,6 +25,9 @@ enum class BrowserSetting
     /// Path to the favicon database file, relative to the storage path
     FaviconPath,
 
+    /// Path to the web page thumbnail database file, relative to the storage path
+    ThumbnailPath,
+
     /// Name of the search engine information file
     SearchEnginesFile,
 

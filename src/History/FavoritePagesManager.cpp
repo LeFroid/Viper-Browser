@@ -28,7 +28,7 @@ void FavoritePagesManager::loadFavorites()
     if (!m_historyManager)
         return;
 
-    m_mostVisitedPages = m_historyManager->loadMostVisitedEntries();
+    m_mostVisitedPages = m_historyManager->loadMostVisitedEntries(10);
     //todo: iterate through the vector, calling
     //        page.Thumbnail = thumbnailStore->getThumbnail(page.URL)
     //      for each item
