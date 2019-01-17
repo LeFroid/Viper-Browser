@@ -11,6 +11,7 @@
 #include <set>
 #include <QBuffer>
 #include <QPixmap>
+#include <QPointer>
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QSqlQuery>
@@ -67,8 +68,8 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     if (!ok)
         return;
 
-    WebWidget *ww = qobject_cast<WebWidget*>(sender());
-    if (ww == nullptr || ww->isOnBlankPage() || ww->isHibernating())
+    QPointer<WebWidget> ww = qobject_cast<WebWidget*>(sender());
+    if (ww.isNull() || ww->isOnBlankPage() || ww->isHibernating())
         return;
 
     // Check if we should ignore this page
@@ -89,7 +90,9 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
 
     // Wait one second before trying to get the thumbnails, otherwise
     // we might get a blank thumbnail
-    QTimer::singleShot(100, this, [this, ww, urls](){
+    QTimer::singleShot(100, this, [this, ww, urls]() {
+        if (ww.isNull())
+            return;
         if (WebView *view = ww->view())
         {
             if (view->getProgress() < 100)
