@@ -20,17 +20,20 @@ var getFavoritePages = function() {
     });
 };
         
-const cellTemplate = '<div class="cell"><a href="{{url}}"><img class="thumbnail" src="{{imgSrc}}" alt="{{title}}">'
-            + '<div class="titleContainer"><div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div>';
-const cellTemplateNoThumbnail = '<div class="cell"><a href="{{url}}"><div class="thumbnail thumbnailMock"></div>'
-            + '<div class="titleContainer"><div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div>';
+const cellTemplate = '<div class="cell"><span class="close">&times;</span><a href="{{url}}">'
+            + '<img class="thumbnail" src="{{imgSrc}}" alt="{{title}}"><div class="titleContainer">'
+            + '<div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div>';
+const cellTemplateNoThumbnail = '<div class="cell"><span class="close">&times;</span><a href="{{url}}">'
+            + '<div class="thumbnail thumbnailMock"></div><div class="titleContainer"><div class="titleTextWrapper">'
+            + '<span class="title">{{title}}</span></div></div></a></div>';
 
 getFavoritePages().then(function(result) {
     if (!result)
         return;
             
     var mainContainer = document.getElementById('mainGrid');
-    for (var i = 0; i < result.length; ++i) {
+    const maxResults = result.length < 8 ? result.length : 8;
+    for (var i = 0; i < maxResults; ++i) {
         var item = result[i];
         if (item == null || !('url' in item) || !('title' in item) || !('thumbnail' in item))
             continue;

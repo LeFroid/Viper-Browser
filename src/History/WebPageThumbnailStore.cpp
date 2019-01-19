@@ -90,7 +90,7 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
 
     // Wait one second before trying to get the thumbnails, otherwise
     // we might get a blank thumbnail
-    QTimer::singleShot(100, this, [this, ww, urls]() {
+    QTimer::singleShot(500, this, [this, ww, urls]() {
         if (ww.isNull())
             return;
         if (WebView *view = ww->view())
