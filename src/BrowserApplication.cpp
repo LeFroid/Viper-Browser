@@ -48,9 +48,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Web profiles must be set up immediately upon browser initialization
     setupWebProfiles();
 
-    // Register metatypes early in the initialization process
-    registerMetaTypes();
-
     // Load settings
     m_settings = std::make_unique<Settings>();
 
@@ -332,11 +329,6 @@ void BrowserApplication::installGlobalWebScripts()
     {
         publicScriptCollection->insert(script);
     }
-}
-
-void BrowserApplication::registerMetaTypes()
-{
-    qRegisterMetaType<WebChannelPageInformation>();
 }
 
 void BrowserApplication::setupWebProfiles()

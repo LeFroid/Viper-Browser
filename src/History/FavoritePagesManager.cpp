@@ -7,19 +7,19 @@
 #include <QBuffer>
 #include <QVariantMap>
 
-WebChannelPageInformation::WebChannelPageInformation(const WebPageInformation &pageInfo) :
-    title(pageInfo.Title),
-    url(pageInfo.URL),
-    thumbnail(QLatin1String("data:image/png;base64, "))
+QString WebPageInformation::getThumbnailInBase64() const
 {
+    QString result = QLatin1String("data:image/png;base64, ");
+
     QByteArray data;
     QBuffer buffer(&data);
-    pageInfo.Thumbnail.save(&buffer, "PNG");
+    Thumbnail.save(&buffer, "PNG");
 
-    if (!data.isEmpty())
-        thumbnail.append(data.toBase64());
-    else
-        thumbnail = QString();
+    if (data.isEmpty())
+        return QString();
+
+    result.append(data.toBase64());
+    return result;
 }
 
 FavoritePagesManager::FavoritePagesManager(HistoryManager *historyMgr, WebPageThumbnailStore *thumbnailStore, QObject *parent) :
@@ -46,12 +46,10 @@ QVariantList FavoritePagesManager::getFavorites() const
     QVariantList result;
     for (const auto &pageInfo : m_mostVisitedPages)
     {
-        WebChannelPageInformation channelItem(pageInfo);
-
         QVariantMap item;
-        item[QLatin1String("title")] = channelItem.title;
-        item[QLatin1String("url")] = channelItem.url;
-        item[QLatin1String("thumbnail")] = channelItem.thumbnail;
+        item[QLatin1String("title")] = pageInfo.Title;
+        item[QLatin1String("url")] = pageInfo.URL;
+        item[QLatin1String("thumbnail")] = pageInfo.getThumbnailInBase64();
         result.append(item);
     }
 

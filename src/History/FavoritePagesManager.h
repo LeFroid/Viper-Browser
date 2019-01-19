@@ -26,35 +26,10 @@ struct WebPageInformation
 
     /// A small image of the web page
     QImage Thumbnail;
+
+    /// Returns the thumbnail as a base-64 encoded string
+    QString getThumbnailInBase64() const;
 };
-
-/// A version of the \ref WebPageInformation struct that is able to
-/// be passed through a QWebChannel as a javascript object
-struct WebChannelPageInformation
-{
-    /// Default constructor
-    WebChannelPageInformation() = default;
-
-    /// Copy constructor
-    WebChannelPageInformation(const WebChannelPageInformation &other) = default;
-
-    /// Constructs the WebChannelPageInformation struct given a \ref WebPageInformation object to copy
-    WebChannelPageInformation(const WebPageInformation &pageInfo);
-
-    /// Destructor
-    ~WebChannelPageInformation() = default;
-
-    /// Last known title of the page
-    QString title;
-
-    /// URL of the page
-    QUrl url;
-
-    /// Base64-encoded thumbnail of the web page
-    QString thumbnail;
-};
-
-Q_DECLARE_METATYPE(WebChannelPageInformation)
 
 /**
  * @class FavoritePagesManager
