@@ -3,6 +3,16 @@
     <head>
         <title>New Tab</title>
         <style>
+            a, a:visited {
+                color: #000;
+                text-decoration: none;
+            }
+            body {
+                background-color: #f0f0f0;
+            }
+            a:hover {
+                color:blue;
+            }
             .content {
                 width: 60%;
                 padding-top: 5%;
@@ -24,8 +34,13 @@
                 margin: 0 0 3em 0;
                 padding: 0;
             }
+            .titleTextWrapper {
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                min-width: 0;
+            }
             .thumbnail { width: 200px; height: 180px; }
-            .thumbnailMock { background-color: #000; }
+            .thumbnailMock { background-color: #fff; }
             .welcomeText { font-weight: 800; font-size: 1.15em; }
         </style>
     </head>

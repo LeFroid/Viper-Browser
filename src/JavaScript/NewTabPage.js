@@ -22,6 +22,8 @@ var getFavoritePages = function() {
         
 const cellTemplate = '<div class="cell"><a href="{{url}}"><img class="thumbnail" src="{{imgSrc}}" alt="{{title}}">'
             + '<div class="titleContainer"><div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div>';
+const cellTemplateNoThumbnail = '<div class="cell"><a href="{{url}}"><div class="thumbnail thumbnailMock"></div>'
+            + '<div class="titleContainer"><div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div>';
 
 getFavoritePages().then(function(result) {
     if (!result)
@@ -32,9 +34,10 @@ getFavoritePages().then(function(result) {
         var item = result[i];
         if (item == null || !('url' in item) || !('title' in item) || !('thumbnail' in item))
             continue;
-        var itemHtml = cellTemplate.replace(/{{url}}/g, item.url)
-                                   .replace(/{{imgSrc}}/g, item.thumbnail)
-                                   .replace(/{{title}}/g, item.title);
+        var itemHtml = (item.thumbnail == '') ? cellTemplateNoThumbnail : cellTemplate;
+        itemHtml = itemHtml.replace(/{{url}}/g, item.url)
+                           .replace(/{{imgSrc}}/g, item.thumbnail)
+                           .replace(/{{title}}/g, item.title);
         mainContainer.innerHTML += itemHtml;
     }
 });
