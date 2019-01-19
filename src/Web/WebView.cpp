@@ -64,7 +64,9 @@ void WebView::loadBlankPage()
 
 bool WebView::isOnBlankPage() const
 {
-    return url() == QUrl(QLatin1String("viper://blank"));
+    const QUrl currentUrl = url();
+    return (currentUrl == QUrl(QLatin1String("viper://blank"))
+            || currentUrl == QUrl(QLatin1String("viper://newtab")));
 }
 
 QString WebView::getTitle() const

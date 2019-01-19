@@ -15,6 +15,7 @@
             const viper = {};
             viper.storage = channel.objects.extStorage;
             viper.favicons = channel.objects.favicons;
+            viper.favoritePageManager = channel.objects.favoritePageManager;
             viper.autofill = channel.objects.autofill;
             window.viper = viper; 
             notifySetupComplete();

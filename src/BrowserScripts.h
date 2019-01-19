@@ -29,6 +29,10 @@ private:
     /// Initializes the script that sends favicon data to the \ref FaviconStore
     void initFaviconScript();
 
+    /// Initializes the script that is used to populate the "New Tab" page (different from blank page, this shows a list of
+    /// favorite websites)
+    void initNewTabScript();
+
     /// Initializes the script that implements the 'window.print' function
     void initPrintScript();
 

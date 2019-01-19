@@ -9,6 +9,7 @@ BrowserScripts::BrowserScripts() :
     initPrintScript();
     initWebChannelScript();
     initFaviconScript();
+    initNewTabScript();
     initAutoFillObserverScript();
 }
 
@@ -78,6 +79,24 @@ void BrowserScripts::initFaviconScript()
     faviconBridgeScript.setSourceCode(faviconScript);
 
     m_globalScripts.push_back(faviconBridgeScript);
+}
+
+void BrowserScripts::initNewTabScript()
+{
+    QString newTabJS;
+    QFile newTabJSFile(QLatin1String(":/NewTabPage.js"));
+    if (newTabJSFile.open(QIODevice::ReadOnly))
+        newTabJS = newTabJSFile.readAll();
+    newTabJSFile.close();
+
+    QWebEngineScript newTabScript;
+    newTabScript.setInjectionPoint(QWebEngineScript::DocumentReady);
+    newTabScript.setName(QLatin1String("viper-new-tab-script"));
+    newTabScript.setRunsOnSubFrames(false);
+    newTabScript.setWorldId(QWebEngineScript::ApplicationWorld);
+    newTabScript.setSourceCode(newTabJS);
+
+    m_publicOnlyScripts.push_back(newTabScript);
 }
 
 void BrowserScripts::initAutoFillObserverScript()

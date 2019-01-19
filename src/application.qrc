@@ -16,6 +16,7 @@
         <file alias="https_insecure.png">Images/https_insecure.png</file>
         <file alias="search_icon.png">Images/search_icon.png</file>
         <file alias="blank">HTML/blank.html</file>
+        <file alias="newtab">HTML/newtab.html</file>
         <file alias="crash">HTML/crash.html</file>
         <file alias="GreaseMonkeyAPI.js">JavaScript/GreaseMonkeyAPI.js</file>
         <file alias="AdBlock.js">JavaScript/AdBlock.js</file>
@@ -23,6 +24,7 @@
         <file alias="AutoFillObserver.js">JavaScript/AutoFillObserver.js</file>
         <file alias="ContextMenuHelper.js">JavaScript/ContextMenuHelper.js</file>
         <file alias="GetFavicon.js">JavaScript/GetFavicon.js</file>
+        <file alias="NewTabPage.js">JavaScript/NewTabPage.js</file>
         <file alias="WebChannelSetup.js">JavaScript/WebChannelSetup.js</file>
         <file alias="viewer.html">PDFJS/viewer.html</file>
         <file alias="viewer.css">PDFJS/viewer.css</file>

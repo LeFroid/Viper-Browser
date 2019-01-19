@@ -140,6 +140,9 @@ private:
     /// Installs core browser scripts into the script collection
     void installGlobalWebScripts();
 
+    /// Registers all metatypes so that they may be used in the queued QT signal-slot system
+    void registerMetaTypes();
+
     /// Initializes the standard and private web profiles used by the browser.
     /// This includes instantiation of request interceptors and custom scheme handlers.
     void setupWebProfiles();

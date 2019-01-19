@@ -48,6 +48,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Web profiles must be set up immediately upon browser initialization
     setupWebProfiles();
 
+    // Register metatypes early in the initialization process
+    registerMetaTypes();
+
     // Load settings
     m_settings = std::make_unique<Settings>();
 
@@ -83,11 +86,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Instantiate the history manager and related systems
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
 
-    m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), this);
-
     m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_settings->getPathValue(BrowserSetting::ThumbnailPath));
     m_thumbnailStore->setBookmarkManager(m_bookmarks.get());
     m_thumbnailStore->setHistoryManager(m_historyMgr.get());
+
+    m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get());
 
     // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
@@ -137,6 +140,7 @@ BrowserApplication::~BrowserApplication()
     delete m_blockedSchemeHandler;
     delete m_cookieUI;
     delete m_autoFill;
+    delete m_favoritePagesMgr;
 }
 
 BrowserApplication *BrowserApplication::instance()
@@ -328,6 +332,11 @@ void BrowserApplication::installGlobalWebScripts()
     {
         publicScriptCollection->insert(script);
     }
+}
+
+void BrowserApplication::registerMetaTypes()
+{
+    qRegisterMetaType<WebChannelPageInformation>();
 }
 
 void BrowserApplication::setupWebProfiles()

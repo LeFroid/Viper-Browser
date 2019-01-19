@@ -7,6 +7,7 @@
 #include "CommonUtil.h"
 #include "ExtStorage.h"
 #include "FaviconStoreBridge.h"
+#include "FavoritePagesManager.h"
 #include "HistoryManager.h"
 #include "MainWindow.h"
 #include "SecurityManager.h"
@@ -61,6 +62,7 @@ void WebPage::setupSlots()
 {
     QWebChannel *channel = new QWebChannel(this);
     channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
+    channel->registerObject(QLatin1String("favoritePageManager"), sBrowserApplication->getFavoritePagesManager());
     channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(this));
     channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(this));
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);

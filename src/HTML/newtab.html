@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>New Tab</title>
+        <style>
+            .content {
+                width: 60%;
+                padding-top: 5%;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .cell {
+                height: 240px;
+                box-sizing: border-box;
+                flex-grow: 1;
+                width: 25%;
+                padding: 0.8em 1.2em;
+                overflow: hidden;
+                list-style: none;
+            }
+            .thumbnailGrid {
+                display: flex;
+                flex-wrap: wrap;
+                margin: 0 0 3em 0;
+                padding: 0;
+            }
+            .thumbnail { /*width: 200px;*/ height: 180px; }
+            .thumbnailMock { background-color: #000; }
+            .welcomeText { font-weight: 800; font-size: 1.15em; }
+        </style>
+    </head>
+    <body>
+        <div class="content">
+            <p class="welcomeText">Top Websites</p>
+            <div id="mainGrid" class="thumbnailGrid">
+                <!--
+                <div class="cell">
+                    <div class="thumbnail thumbnailMock"></div>
+                    <div class="titleContainer">
+                        <div class="titleTextWrapper">
+                            <span class="title">Page Title</span>
+                        </div>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </body>
+</html>
