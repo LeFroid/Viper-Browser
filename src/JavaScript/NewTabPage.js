@@ -30,8 +30,7 @@ getFavoritePages().then(function(result) {
     var mainContainer = document.getElementById('mainGrid');
     for (var i = 0; i < result.length; ++i) {
         var item = result[i];
-        console.log(JSON.stringify(item));
-        if (!('url' in item) || !('title' in item) || !('thumbnail' in item))
+        if (item == null || !('url' in item) || !('title' in item) || !('thumbnail' in item))
             continue;
         var itemHtml = cellTemplate.replace(/{{url}}/g, item.url)
                                    .replace(/{{imgSrc}}/g, item.thumbnail)
