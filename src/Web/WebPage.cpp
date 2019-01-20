@@ -119,7 +119,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             QString data = QString::fromUtf8(resource.readAll().constData());
             int endTag = data.indexOf("</html>");
             data.insert(endTag - 1, QString("<script>window.Response = undefined; document.addEventListener(\"DOMContentLoaded\", function() {"
-                                            " PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info; "
+                                            " window.PDFViewerApplicationOptions.set('verbosity', pdfjsLib.VerbosityLevel.INFOS); "
                                             " window.PDFViewerApplication.open(\"%1\");});</script>").arg(urlString));
             QByteArray bytes;
             bytes.append(data);

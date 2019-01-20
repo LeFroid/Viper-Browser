@@ -110,6 +110,21 @@ void viperQtMessageHandler(QtMsgType type, const QMessageLogContext &context, co
 
 int main(int argc, char *argv[])
 {
+    // Check for version flag - we will only print the version of the program and exit when this is specified
+    if (argc > 1)
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            if (strcmp(argv[i], "-v") == 0
+                    || strcmp(argv[i], "--version") == 0)
+            {
+                std::cout << "Viper-Browser 0.8, written by Timothy Vaccarelli." << std::endl;
+                std::cout << "For more information visit https://github.com/LeFroid/Viper-Browser" << std::endl;
+                return 0;
+            }
+        }
+    }
+
 #ifndef Q_OS_WIN
     qInstallMessageHandler(&viperQtMessageHandler);
 #endif
