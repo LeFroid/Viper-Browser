@@ -8,6 +8,7 @@ Licensed under GPLv3
 
 ## Features
 
+*   All development is done with a focus on privacy, minimalism, and customization ability
 *   Bookmark management
 *   Built-in ad blocker, compatible with AdBlock Plus and uBlock Origin filters
 *   Cookie viewer, editor, and support for cookie filters (QtWebEngine 5.11+ only)
