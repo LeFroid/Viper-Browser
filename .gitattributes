@@ -36,6 +36,6 @@
 *.app binary
 
 # JS
-*.js dependency
-*.map binary 
-*.bcmap binary
+src/PDFJS/* linguist-vendored
+*.map linguist-vendored 
+*.bcmap linguist-vendored
