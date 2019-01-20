@@ -233,14 +233,17 @@ WebWidget *BrowserTabWidget::createWebWidget()
         });
     }
 
-    auto newTabPage = m_settings->getValue(BrowserSetting::NewTabsLoadHomePage).toBool() ? HomePage : BlankPage;
+    auto newTabPage = static_cast<NewTabType>(m_settings->getValue(BrowserSetting::NewTabPage).toInt());
     switch (newTabPage)
     {
-        case HomePage:
+        case NewTabType::HomePage:
             ww->load(QUrl::fromUserInput(m_settings->getValue(BrowserSetting::HomePage).toString()));
             break;
-        case BlankPage:
+        case NewTabType::BlankPage:
             ww->loadBlankPage();
+            break;
+        case NewTabType::FavoritesPage:
+            ww->load(QUrl(QLatin1String("viper://newtab")));
             break;
     }
 

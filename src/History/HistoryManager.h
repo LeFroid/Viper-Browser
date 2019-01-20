@@ -83,6 +83,10 @@ public:
     /// false if private browsing mode is enabled
     bool historyContains(const QString &url) const;
 
+    /// Returns a history record corresponding to the given URL, or an empty record if it was not found in the
+    /// database
+    WebHistoryItem getEntry(const QUrl &url) const;
+
     /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
     const std::deque<WebHistoryItem> &getRecentItems() const { return m_recentItems; }
 

@@ -37,7 +37,8 @@ enum class StartupMode
 {
     LoadHomePage   = 0,
     LoadBlankPage  = 1,
-    RestoreSession = 2
+    LoadNewTabPage = 2,
+    RestoreSession = 3
 };
 
 Q_DECLARE_METATYPE(StartupMode)

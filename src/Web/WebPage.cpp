@@ -159,17 +159,22 @@ void WebPage::runJavaScriptNonBlocking(const QString &scriptSource, QVariant &re
 
 QVariant WebPage::runJavaScriptBlocking(const QString &scriptSource)
 {
-    QEventLoop loop;
+    QPointer<QEventLoop> loop = new QEventLoop();
     QVariant result;
 
-    runJavaScript(scriptSource, [&](const QVariant &returnValue){
-        result = returnValue;
-        loop.quit();
+    runJavaScript(scriptSource, [&result, loop](const QVariant &returnValue){
+        if (!loop.isNull() && loop->isRunning())
+        {
+            result = returnValue;
+            loop->quit();
+        }
     });
 
-    connect(this, &WebPage::destroyed, &loop, &QEventLoop::quit);
+    connect(this, &WebPage::destroyed, loop.data(), &QEventLoop::quit);
 
-    loop.exec(QEventLoop::ExcludeUserInputEvents);
+    loop->exec(QEventLoop::ExcludeUserInputEvents);
+    delete loop;
+
     return result;
 }
 

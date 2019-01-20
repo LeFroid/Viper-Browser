@@ -121,6 +121,17 @@ bool HistoryManager::historyContains(const QString &url) const
     return (m_historyItems.find(url.toUpper()) != m_historyItems.end());
 }
 
+WebHistoryItem HistoryManager::getEntry(const QUrl &url) const
+{
+    WebHistoryItem result;
+
+    auto it = m_historyItems.find(url.toString().toUpper());
+    if (it != m_historyItems.end())
+        result = *it;
+
+    return result;
+}
+
 std::vector<WebHistoryItem> HistoryManager::getHistoryFrom(const QDateTime &startDate) const
 {
     return getHistoryBetween(startDate, QDateTime::currentDateTime());
@@ -457,6 +468,7 @@ std::vector<WebPageInformation> HistoryManager::loadMostVisitedEntries(int limit
     while (query.next())
     {
         WebPageInformation item;
+        item.Position = 0;
         item.URL = query.value(idUrl).toUrl();
         item.Title = query.value(idTitle).toString();
         result.push_back(item);

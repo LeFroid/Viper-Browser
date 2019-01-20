@@ -23,9 +23,6 @@ class BrowserTabWidget : public QTabWidget
 {
     Q_OBJECT
 
-    /// Which page to load by default when a new tab is created
-    enum NewTabPage { HomePage = 0, BlankPage = 1 };
-
 public:
     /// Constructs the browser tab widget
     explicit BrowserTabWidget(Settings *settings, FaviconStore *faviconStore, bool privateMode, QWidget *parent = nullptr);

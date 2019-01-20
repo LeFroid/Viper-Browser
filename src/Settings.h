@@ -4,6 +4,19 @@
 #include <QMap>
 #include <QSettings>
 
+/// The types of pages that can be loaded by default when a new web page or tab is created
+enum class NewTabType
+{
+    /// User-specified home page URL
+    HomePage      = 0,
+
+    /// Empty page
+    BlankPage     = 1,
+
+    /// Page with card layout of most frequently visited and/or pinned web pages
+    FavoritesPage = 2
+};
+
 /// List of configurable browser settings
 enum class BrowserSetting
 {
@@ -24,6 +37,9 @@ enum class BrowserSetting
 
     /// Path to the favicon database file, relative to the storage path
     FaviconPath,
+
+    /// Path to the data file containing pinned pages to be shown in the "New Tab" web page
+    FavoritePagesFile,
 
     /// Path to the web page thumbnail database file, relative to the storage path
     ThumbnailPath,
@@ -58,8 +74,8 @@ enum class BrowserSetting
     /// Determines the behavior of the browser when it is started
     StartupMode,
 
-    /// Determines whether newly opened tabs will load the home page, or a blank page
-    NewTabsLoadHomePage,
+    /// Stores the type of page that is loaded by default for every new web page (see \ref NewTabType )
+    NewTabPage,
 
     /// User download directory
     DownloadDir,

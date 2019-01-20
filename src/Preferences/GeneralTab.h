@@ -1,6 +1,7 @@
 #ifndef GENERALTAB_H
 #define GENERALTAB_H
 
+#include "Settings.h"
 #include <QWidget>
 
 namespace Ui {
@@ -48,14 +49,14 @@ public:
     /// Returns the index of the item in the startup mode combo box. Can be cast to a \ref StartupMode value
     int getStartupIndex() const;
 
-    /// Sets the index of the startup mode combo box (0 = home page, 1 = blank page, 2 = restore session)
+    /// Sets the index of the startup mode combo box (0 = home page, 1 = blank page, 2 = welcome page, 3 = restore session)
     void setStartupIndex(int index);
 
-    /// Returns true if set to load the home page on new tabs, false if blank page should be loaded instead
-    bool doNewTabsLoadHomePage() const;
+    /// Returns the type of page that is loaded by default on new tabs
+    NewTabType getNewTabPageType() const;
 
-    /// Sets the radio button associated with new tabs loading the home page either on or off, depending on value
-    void setNewTabsLoadHomePage(bool value);
+    /// Sets the radio button associated with new tabs' default page type
+    void setNewTabPageType(NewTabType value);
 
     /// Returns true if all new tabs should be opened without changing focus from the current tab, false if sometimes new tabs
     /// can take focus

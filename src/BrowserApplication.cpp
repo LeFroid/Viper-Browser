@@ -87,7 +87,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_thumbnailStore->setBookmarkManager(m_bookmarks.get());
     m_thumbnailStore->setHistoryManager(m_historyMgr.get());
 
-    m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get());
+    m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get(), m_settings->getPathValue(BrowserSetting::FavoritePagesFile));
 
     // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
@@ -247,6 +247,9 @@ MainWindow *BrowserApplication::getNewWindow()
                 break;
             case StartupMode::LoadBlankPage:
                 w->loadBlankPage();
+                break;
+            case StartupMode::LoadNewTabPage:
+                w->loadUrl(QUrl(QLatin1String("viper://newtab")));
                 break;
             case StartupMode::RestoreSession:
                 m_sessionMgr.restoreSession(w);

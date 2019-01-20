@@ -40,7 +40,7 @@ void Preferences::loadSettings()
     ui->tabGeneral->setDownloadAskBehavior(m_settings->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool());
     ui->tabGeneral->setHomePage(m_settings->getValue(BrowserSetting::HomePage).toString());
     ui->tabGeneral->setStartupIndex(m_settings->getValue(BrowserSetting::StartupMode).toInt());
-    ui->tabGeneral->setNewTabsLoadHomePage(m_settings->getValue(BrowserSetting::NewTabsLoadHomePage).toBool());
+    ui->tabGeneral->setNewTabPageType(static_cast<NewTabType>(m_settings->getValue(BrowserSetting::NewTabPage).toInt()));
     ui->tabGeneral->setAllTabsOpenInBackground(m_settings->getValue(BrowserSetting::OpenAllTabsInBackground).toBool());
 
     ui->tabContent->toggleAdBlock(m_settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool());
@@ -85,7 +85,7 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(BrowserSetting::AskWhereToSaveDownloads, ui->tabGeneral->getDownloadAskBehavior());
 
     m_settings->setValue(BrowserSetting::StartupMode, ui->tabGeneral->getStartupIndex());
-    m_settings->setValue(BrowserSetting::NewTabsLoadHomePage, ui->tabGeneral->doNewTabsLoadHomePage());
+    m_settings->setValue(BrowserSetting::NewTabPage, static_cast<int>(ui->tabGeneral->getNewTabPageType()));
     m_settings->setValue(BrowserSetting::OpenAllTabsInBackground, ui->tabGeneral->openAllTabsInBackground());
 
     // Save preferences in Content tab

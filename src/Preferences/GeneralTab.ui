@@ -109,6 +109,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QRadioButton" name="radioButtonTabWelcomePage">
+        <property name="text">
+         <string>Load the welcome page on new tabs</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="Line" name="line">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>

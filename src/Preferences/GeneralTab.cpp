@@ -14,6 +14,7 @@ GeneralTab::GeneralTab(QWidget *parent) :
     // Populate the combobox for startup mode options
     ui->comboBoxStartup->addItem(tr("Show my home page"), QVariant::fromValue(static_cast<int>(StartupMode::LoadHomePage)));
     ui->comboBoxStartup->addItem(tr("Show a blank page"), QVariant::fromValue(static_cast<int>(StartupMode::LoadBlankPage)));
+    ui->comboBoxStartup->addItem(tr("Show the welcome page"), QVariant::fromValue(static_cast<int>(StartupMode::LoadNewTabPage)));
     ui->comboBoxStartup->addItem(tr("Show my tabs from last time"), QVariant::fromValue(static_cast<int>(StartupMode::RestoreSession)));
 
     ui->lineEditDownloadDir->setFileMode(QFileDialog::Directory);
@@ -70,22 +71,27 @@ void GeneralTab::setStartupIndex(int index)
     ui->comboBoxStartup->setCurrentIndex(index);
 }
 
-bool GeneralTab::doNewTabsLoadHomePage() const
+NewTabType GeneralTab::getNewTabPageType() const
 {
-    return ui->radioButtonTabHomePage->isChecked();
+    if (ui->radioButtonTabHomePage->isChecked())
+        return NewTabType::HomePage;
+    if (ui->radioButtonTabBlankPage->isChecked())
+        return NewTabType::BlankPage;
+
+    return NewTabType::FavoritesPage;
 }
 
-void GeneralTab::setNewTabsLoadHomePage(bool value)
+void GeneralTab::setNewTabPageType(NewTabType value)
 {
-    ui->radioButtonTabHomePage->setChecked(value);
-    ui->radioButtonTabBlankPage->setChecked(!value);
+    ui->radioButtonTabHomePage->setChecked(value == NewTabType::HomePage);
+    ui->radioButtonTabBlankPage->setChecked(value == NewTabType::BlankPage);
+    ui->radioButtonTabWelcomePage->setChecked(value == NewTabType::FavoritesPage);
 }
 
 bool GeneralTab::openAllTabsInBackground() const
 {
     return ui->checkBoxNewTabsInBackground->isChecked();
 }
-
 
 void GeneralTab::setAllTabsOpenInBackground(bool value)
 {

@@ -12,7 +12,7 @@
 #include <QWebEngineSettings>
 #include <QtWebEngineCoreVersion>
 
-const QString Settings::Version = QStringLiteral("0.9");
+const QString Settings::Version = QStringLiteral("1.0");
 
 Settings::Settings() :
     m_firstRun(false),
@@ -27,7 +27,7 @@ Settings::Settings() :
         { BrowserSetting::AdBlockPlusConfig, QLatin1String("AdBlockPlusConfig") },    { BrowserSetting::ExemptThirdPartyCookieFile, QLatin1String("ExemptThirdPartyCookieFile") },
         { BrowserSetting::AdBlockPlusDataDir, QLatin1String("AdBlockPlusDataDir") },  { BrowserSetting::FixedFontSize, QLatin1String("FixedFontSize") },
         { BrowserSetting::HomePage, QLatin1String("HomePage") },                      { BrowserSetting::StartupMode, QLatin1String("StartupMode") },
-        { BrowserSetting::NewTabsLoadHomePage, QLatin1String("NewTabsLoadHomePage") },{ BrowserSetting::DownloadDir, QLatin1String("DownloadDir") },
+        { BrowserSetting::NewTabPage, QLatin1String("NewTabPage") },                  { BrowserSetting::DownloadDir, QLatin1String("DownloadDir") },
         { BrowserSetting::SendDoNotTrack, QLatin1String("SendDoNotTrack") },          { BrowserSetting::AskWhereToSaveDownloads, QLatin1String("AskWhereToSaveDownloads") },
         { BrowserSetting::EnableJavascript, QLatin1String("EnableJavascript") },      { BrowserSetting::EnableJavascriptPopups, QLatin1String("EnableJavascriptPopups") },
         { BrowserSetting::AutoLoadImages, QLatin1String("AutoLoadImages") },          { BrowserSetting::EnablePlugins, QLatin1String("EnablePlugins") },
@@ -42,7 +42,7 @@ Settings::Settings() :
         { BrowserSetting::FantasyFont, QLatin1String("FantasyFont") },                { BrowserSetting::FixedFont, QLatin1String("FixedFont") },
         { BrowserSetting::StandardFontSize, QLatin1String("StandardFontSize") },      { BrowserSetting::EnableAutoFill, QLatin1String("EnableAutoFill") },
         { BrowserSetting::CachePath, QLatin1String("CachePath") },                    { BrowserSetting::ThumbnailPath, QLatin1String("ThumbnailPath") },
-        { BrowserSetting::Version, QLatin1String("Version") }
+        { BrowserSetting::FavoritePagesFile, QLatin1String("FavoritePagesFile") },    { BrowserSetting::Version, QLatin1String("Version") }
     }
 {
     // Check if defaults need to be set
@@ -156,6 +156,7 @@ void Settings::setDefaults()
     m_settings.setValue(QLatin1String("ExtStoragePath"), QLatin1String("extension_storage.db"));
     m_settings.setValue(QLatin1String("HistoryPath"), QLatin1String("history.db"));
     m_settings.setValue(QLatin1String("FaviconPath"), QLatin1String("favicons.db"));
+    m_settings.setValue(QLatin1String("FavoritePagesFile"), QLatin1String("favorite_pages.json"));
     m_settings.setValue(QLatin1String("ThumbnailPath"), QLatin1String("web_thumbnails.db"));
     m_settings.setValue(QLatin1String("UserAgentsFile"),  QLatin1String("user_agents.json"));
     m_settings.setValue(QLatin1String("SearchEnginesFile"), QLatin1String("search_engines.json"));
@@ -168,7 +169,7 @@ void Settings::setDefaults()
 
     m_settings.setValue(QLatin1String("HomePage"), QLatin1String("https://www.startpage.com/"));
     m_settings.setValue(QLatin1String("StartupMode"), static_cast<int>(StartupMode::LoadHomePage));
-    m_settings.setValue(QLatin1String("NewTabsLoadHomePage"), true);
+    m_settings.setValue(QLatin1String("NewTabPage"), static_cast<int>(NewTabType::HomePage));
     m_settings.setValue(QLatin1String("DownloadDir"), QDir::homePath() + QDir::separator() + "Downloads");
     m_settings.setValue(QLatin1String("AskWhereToSaveDownloads"), false);
     m_settings.setValue(QLatin1String("SendDoNotTrack"), false);
@@ -201,6 +202,8 @@ void Settings::setDefaults()
 
     m_settings.setValue(QLatin1String("StandardFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFontSize));
     m_settings.setValue(QLatin1String("FixedFontSize"), webSettings->fontSize(QWebEngineSettings::DefaultFixedFontSize));
+
+    m_settings.setValue(QLatin1String("Version"), Version);
 }
 
 void Settings::updateSettings()
@@ -208,11 +211,9 @@ void Settings::updateSettings()
     const QString userVersion = m_settings.value(QLatin1String("Version")).toString();
     if (userVersion.isEmpty())
     {
+        // Cache path is only new setting added with the first versioning of settings
         QString cachePath =
                 QString("%1%2%3%2%4").arg(QDir::homePath()).arg(QDir::separator()).arg(QLatin1String(".cache")).arg(QLatin1String("Vaccarelli"));
-
-        // Set Version and CachePath
-        m_settings.setValue(QLatin1String("Version"), Version);
         m_settings.setValue(QLatin1String("CachePath"), cachePath);
     }
 
@@ -220,4 +221,11 @@ void Settings::updateSettings()
     float versionNumber = m_settings.value(QLatin1String("Version")).toFloat(&ok);
     if (!ok || versionNumber < 0.9f)
         m_settings.setValue(QLatin1String("ThumbnailPath"), QLatin1String("web_thumbnails.db"));
+    if (!ok || versionNumber < 1.0f)
+    {
+        m_settings.setValue(QLatin1String("NewTabPage"), static_cast<int>(NewTabType::BlankPage));
+        m_settings.setValue(QLatin1String("FavoritePagesFile"), QLatin1String("favorite_pages.json"));
+    }
+
+    m_settings.setValue(QLatin1String("Version"), Version);
 }
