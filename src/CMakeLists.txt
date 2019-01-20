@@ -189,3 +189,4 @@ target_link_libraries(viper-browser
     viper-core
 )
 
+install(TARGETS viper-browser DESTINATION bin)
