@@ -34,7 +34,9 @@ $ cmake ..
 $ make
 ```
 
-The binary will be located in the `build/src` folder when following the commands listed above.
+Tests can be ran by setting the `ENABLE_TESTING` in the cmake configuration.
+
+The binary will be located in the `build/src/app` folder when following the commands listed above.
 
 ## Thanks
 

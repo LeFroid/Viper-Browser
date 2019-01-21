@@ -36,6 +36,6 @@
 *.app binary
 
 # JS
-src/PDFJS/* linguist-vendored
+src/app/assets/pdfjs/* linguist-vendored
 *.map linguist-vendored 
 *.bcmap linguist-vendored
