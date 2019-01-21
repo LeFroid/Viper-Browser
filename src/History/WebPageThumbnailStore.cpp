@@ -10,6 +10,7 @@
 #include <array>
 #include <set>
 #include <QBuffer>
+#include <QMimeType>
 #include <QPixmap>
 #include <QPointer>
 #include <QSqlError>
@@ -23,7 +24,8 @@ WebPageThumbnailStore::WebPageThumbnailStore(const QString &databaseFile, QObjec
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("ThumbnailDB")),
     m_thumbnails(),
-    m_historyManager(nullptr)
+    m_historyManager(nullptr),
+    m_mimeDatabase()
 {
 }
 
@@ -84,13 +86,21 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     if (url.isEmpty() || originalUrl.isEmpty() || scheme.isEmpty())
         return;
 
+    const QString fileName = url.fileName();
+    if (!fileName.isEmpty())
+    {
+        const QString mimeType = m_mimeDatabase.mimeTypeForFile(fileName).name();
+        if (mimeType.startsWith(QLatin1String("image")) || mimeType.startsWith(QLatin1String("video")))
+            return;
+    }
+
     std::vector<QUrl> urls { originalUrl };
     if (originalUrl.adjusted(QUrl::RemoveScheme) != url.adjusted(QUrl::RemoveScheme))
         urls.push_back(url);
 
     // Wait one second before trying to get the thumbnails, otherwise
     // we might get a blank thumbnail
-    QTimer::singleShot(500, this, [this, ww, urls]() {
+    QTimer::singleShot(1000, this, [this, ww, urls]() {
         if (ww.isNull())
             return;
         if (WebView *view = ww->view())

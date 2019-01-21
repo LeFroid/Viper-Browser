@@ -7,6 +7,7 @@
 
 #include <QHash>
 #include <QImage>
+#include <QMimeDatabase>
 #include <QObject>
 #include <QPixmap>
 #include <QString>
@@ -76,6 +77,9 @@ private:
 
     /// Pointer to the \ref HistoryManager
     HistoryManager *m_historyManager;
+
+    /// Database used to check if certain web pages should not be thumbnailed (ex: pictures, movies, etc)
+    QMimeDatabase m_mimeDatabase;
 };
 
 #endif // WEBPAGETHUMBNAILSTORE_H

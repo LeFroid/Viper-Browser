@@ -16,10 +16,15 @@
 class BookmarkNode;
 
 /**
+ * @defgroup Bookmarks Bookmark System
+ */
+
+/**
  * @class BookmarkManager
  * @brief Loads bookmark information from the database and acts as
  *        an interface for the user to view or modify their bookmark
  *        collection
+ * @ingroup Bookmarks
  */
 class BookmarkManager : public QObject, private DatabaseWorker
 {

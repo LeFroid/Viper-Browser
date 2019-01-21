@@ -15,6 +15,7 @@ namespace Ui {
  * @brief Shown when the user adds a new bookmark to their collection through a menu
  *        option in the main window. Also used for editing and/or removing an existing
  *        bookmark. Allows the user to change the bookmark name and its parent folder.
+ * @ingroup Bookmarks
  */
 class BookmarkDialog : public QDialog
 {

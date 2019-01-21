@@ -9,6 +9,7 @@
 /**
  * @class BookmarkExporter
  * @brief Converts the user's bookmark data into an exportable HTML Netscape bookmark file format
+ * @ingroup Bookmarks
  */
 class BookmarkExporter
 {

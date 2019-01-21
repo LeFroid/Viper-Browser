@@ -191,6 +191,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     QString contextMenuScript = getContextMenuScript(relativePos);
     QVariant scriptResult = m_page->runJavaScriptBlocking(contextMenuScript);
     QMap<QString, QVariant> resultMap = scriptResult.toMap();
+
     WebHitTestResult contextMenuData(resultMap);
 
     const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();

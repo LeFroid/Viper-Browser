@@ -11,6 +11,7 @@ class QMenu;
 /**
  * @class BookmarkBar
  * @brief Shown in the \ref MainWindow if the bookmark bar setting is enabled
+ * @ingroup Bookmarks
  */
 class BookmarkBar : public QWidget
 {

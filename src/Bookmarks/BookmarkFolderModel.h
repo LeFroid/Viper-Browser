@@ -8,6 +8,7 @@
  * @class BookmarkFolderModel
  * @brief Model used for the bookmark manager's tree view, for
  *        displaying, adding and removing bookmark folders
+ * @ingroup Bookmarks
  */
 class BookmarkFolderModel : public QAbstractItemModel
 {

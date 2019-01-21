@@ -15,6 +15,7 @@ class BookmarkWidget;
 /**
  * @class BookmarkWidget
  * @brief Provides a graphical interface for managing the user's bookmarks
+ * @ingroup Bookmarks
  */
 class BookmarkWidget : public QWidget
 {

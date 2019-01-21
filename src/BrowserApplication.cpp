@@ -43,6 +43,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
+    Q_INIT_RESOURCE(application);
+
     setWindowIcon(QIcon(QLatin1String(":/logo.png")));
 
     // Web profiles must be set up immediately upon browser initialization

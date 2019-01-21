@@ -13,6 +13,7 @@
  * @class BookmarkNode
  * @brief Individual node that is a part of the Bookmarks tree. Each node
  *        can be a bookmark or a folder containing bookmarks and other folders
+ * @ingroup Bookmarks
  */
 class BookmarkNode : public TreeNode<BookmarkNode>
 {

@@ -9,6 +9,7 @@
  * @class BookmarkImporter
  * @brief Parses Netscape HTML formatted bookmarks, importing them
  *        into the user's bookmark system
+ * @ingroup Bookmarks
  */
 class BookmarkImporter
 {

@@ -7,6 +7,7 @@
 /**
  * @class BookmarkMenu
  * @brief Manages the browser's bookmark menu, contained in the \ref MainWindow menu bar
+ * @ingroup Bookmarks
  */
 class BookmarkMenu : public QMenu
 {
