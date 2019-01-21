@@ -3,6 +3,9 @@
     <head>
         <title>New Tab</title>
         <style>
+            * {
+                box-sizing: border-box;
+            }
             a, a:visited {
                 color: #000;
                 text-decoration: none;
@@ -20,19 +23,22 @@
                 margin-right: auto;
             }
             .cell {
-                height: 240px;
-                box-sizing: border-box;
-                flex-grow: 1;
-                width: 25%;
-                padding: 0.4em 1.2em;
                 overflow: hidden;
-                list-style: none;
+                display: grid;
+                background-color: #ffffff;
+                box-shadow: 0px 1px 5px #555555;
+                justify-content: center;
+                align-items: center;
+                padding-bottom: 4px;
+            }
+            .cell:hover {
+                box-shadow: 0px 1px 5px #222222;
             }
             .close {
                 font-weight: bold;
-                float: right;
                 font-size: 1.2em;
-                margin-right: 0.45em;
+                text-align: right;
+                color: #4d4d4d;
             }
             .close:hover, .close:focus {
                 color: black !important;
@@ -40,15 +46,18 @@
                 cursor: pointer;
             }
             .thumbnailGrid {
-                display: flex;
-                flex-wrap: wrap;
-                margin: 0 0 3em 0;
-                padding: 0;
+                display: grid;
+                padding: 1em;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                grid-gap: 1rem;
             }
             .titleTextWrapper {
                 white-space: nowrap;
                 text-overflow: ellipsis;
+                overflow: hidden;
                 min-width: 0;
+                max-width: 200px;
+                text-align: center;
             }
             .thumbnail { width: 200px; height: 180px; }
             .thumbnailMock { background-color: #fff; }
@@ -59,15 +68,6 @@
         <div class="content">
             <p class="welcomeText">Top Websites</p>
             <div id="mainGrid" class="thumbnailGrid">
-                <!--
-                <div class="cell">
-                    <div class="thumbnail thumbnailMock"></div>
-                    <div class="titleContainer">
-                        <div class="titleTextWrapper">
-                            <span class="title">Page Title</span>
-                        </div>
-                    </div>
-                </div>-->
             </div>
         </div>
     </body>
