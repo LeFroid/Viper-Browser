@@ -1,0 +1,110 @@
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+set(viper_ui_src
+    adblock/AdBlockButton.cpp
+    adblock/AdBlockLogDisplay.cpp
+    adblock/AdBlockSubscribeDialog.cpp
+    adblock/AdBlockWidget.cpp
+    adblock/CustomFilterEditor.cpp
+    autofill/AutoFillCredentialsView.cpp
+    autofill/AutoFillDialog.cpp
+    bookmarks/BookmarkBar.cpp
+    bookmarks/BookmarkDialog.cpp
+    bookmarks/BookmarkMenu.cpp
+    bookmarks/BookmarkWidget.cpp
+    cookies/CookieModifyDialog.cpp
+    cookies/CookieWidget.cpp
+    downloads/DownloadItem.cpp
+    downloads/DownloadManager.cpp
+    history/ClearHistoryDialog.cpp
+    history/HistoryMenu.cpp
+    history/HistoryWidget.cpp
+    network/AuthDialog.cpp
+    network/CertificateGeneralTab.cpp
+    network/CertificateViewer.cpp
+    network/SecurityInfoDialog.cpp
+    preferences/AddSearchEngineDialog.cpp
+    preferences/ContentTab.cpp
+    preferences/ExemptThirdPartyCookieDialog.cpp
+    preferences/GeneralTab.cpp
+    preferences/Preferences.cpp
+    preferences/PrivacyTab.cpp
+    preferences/SearchTab.cpp
+    url_suggestion/URLSuggestionItemDelegate.cpp
+    url_suggestion/URLSuggestionWidget.cpp
+    user_agents/AddUserAgentDialog.cpp
+    user_agents/UserAgentMenu.cpp
+    user_agents/UserAgentsWindow.cpp
+    user_scripts/AddUserScriptDialog.cpp
+    user_scripts/UserScriptEditor.cpp
+    user_scripts/UserScriptWidget.cpp
+    web/WebDialog.cpp
+    web/WebView.cpp
+    web/WebWidget.cpp
+    widgets/CheckableTableView.cpp
+    widgets/CodeEditor.cpp
+    widgets/FileChooserLineEdit.cpp
+    widgets/FindTextWidget.cpp
+    window/BrowserTabBar.cpp
+    window/BrowserTabWidget.cpp
+    window/MainWindow.cpp
+    window/NavigationToolBar.cpp
+    window/SearchEngineLineEdit.cpp
+    window/URLLineEdit.cpp
+)
+
+qt5_wrap_ui(viper_ui_files
+    adblock/AdBlockLogDisplay.ui
+    adblock/AdBlockSubscribeDialog.ui
+    adblock/AdBlockWidget.ui
+    adblock/CustomFilterEditor.ui
+    autofill/AutoFillCredentialsView.ui
+    autofill/AutoFillDialog.ui
+    bookmarks/BookmarkDialog.ui
+    bookmarks/BookmarkWidget.ui
+    cookies/CookieModifyDialog.ui
+    cookies/CookieWidget.ui
+    downloads/DownloadItem.ui
+    downloads/DownloadManager.ui
+    history/ClearHistoryDialog.ui
+    history/HistoryWidget.ui
+    network/AuthDialog.ui
+    network/CertificateGeneralTab.ui
+    network/CertificateViewer.ui
+    network/SecurityInfoDialog.ui
+    preferences/AddSearchEngineDialog.ui
+    preferences/ContentTab.ui
+    preferences/ExemptThirdPartyCookieDialog.ui
+    preferences/GeneralTab.ui
+    preferences/Preferences.ui
+    preferences/PrivacyTab.ui
+    preferences/SearchTab.ui
+    user_agents/AddUserAgentDialog.ui
+    user_agents/UserAgentsWindow.ui
+    user_scripts/AddUserScriptDialog.ui
+    user_scripts/UserScriptEditor.ui
+    user_scripts/UserScriptWidget.ui
+    widgets/FindTextWidget.ui
+    window/MainWindow.ui
+)
+
+set(viper_ui_deps
+    ${viper_ui_src}
+    ${viper_ui_files}
+)
+
+add_library(viper-ui STATIC ${viper_ui_deps})
+target_link_libraries(viper-ui
+    viper-core
+    Qt5::Core
+    Qt5::Concurrent
+    Qt5::Gui
+    Qt5::Network
+    Qt5::PrintSupport
+    Qt5::Sql
+    Qt5::Svg
+    Qt5::QuickWidgets
+    Qt5::Widgets
+    Qt5::WebChannel
+    Qt5::WebEngineWidgets
+)

@@ -1,0 +1,21 @@
+#set(CMAKE_AUTORCC ON)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/assets)
+include_directories(${CMAKE_SOURCE_DIR}/src/app/assets)
+
+qt5_add_resources(viper_qrc assets/application.qrc)
+
+set(viper_browser_src
+    BrowserApplication.cpp
+    BrowserScripts.cpp
+    main.cpp
+)
+
+add_executable(viper-browser ${viper_qrc} ${viper_browser_src})
+
+target_link_libraries(viper-browser
+    viper-core
+    viper-ui
+)
+
+install(TARGETS viper-browser DESTINATION bin)

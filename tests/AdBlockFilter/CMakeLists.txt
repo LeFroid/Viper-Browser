@@ -6,10 +6,6 @@ include_directories(
 set(AdBlockFilterTest_src
     tst_AdBlockFilterTest.cpp
     AdBlockManager.cpp
-    ${CMAKE_SOURCE_DIR}/src/AdBlock/AdBlockFilter.cpp
-    ${CMAKE_SOURCE_DIR}/src/AdBlock/AdBlockFilterParser.cpp
-    ${CMAKE_SOURCE_DIR}/src/AdBlock/AdBlockSubscription.cpp
-    ${CMAKE_SOURCE_DIR}/src/Web/URL.cpp
 )
 
 add_executable(AdBlockFilterTest ${AdBlockFilterTest_src})

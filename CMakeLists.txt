@@ -4,6 +4,7 @@ project(Viper-Browser VERSION 0.8)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 14)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -30,30 +31,48 @@ endif()
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/AdBlock
-    ${CMAKE_SOURCE_DIR}/src/AutoFill
-    ${CMAKE_SOURCE_DIR}/src/Bookmarks
-    ${CMAKE_SOURCE_DIR}/src/Cache
-    ${CMAKE_SOURCE_DIR}/src/Cookies
-    ${CMAKE_SOURCE_DIR}/src/Credentials
-    ${CMAKE_SOURCE_DIR}/src/Downloads
-    ${CMAKE_SOURCE_DIR}/src/Extensions
-    ${CMAKE_SOURCE_DIR}/src/Highlighters
-    ${CMAKE_SOURCE_DIR}/src/History
-    ${CMAKE_SOURCE_DIR}/src/Network
-    ${CMAKE_SOURCE_DIR}/src/Preferences
-    ${CMAKE_SOURCE_DIR}/src/TextFinder
-    ${CMAKE_SOURCE_DIR}/src/URLSuggestion
-    ${CMAKE_SOURCE_DIR}/src/UserAgents
-    ${CMAKE_SOURCE_DIR}/src/UserScripts
-    ${CMAKE_SOURCE_DIR}/src/Web
-    ${CMAKE_SOURCE_DIR}/src/Widgets
-    ${CMAKE_SOURCE_DIR}/src/Window
+    ${CMAKE_SOURCE_DIR}/src/app
+    ${CMAKE_SOURCE_DIR}/src/core/adblock
+    ${CMAKE_SOURCE_DIR}/src/core/autofill
+    ${CMAKE_SOURCE_DIR}/src/core/bookmarks
+    ${CMAKE_SOURCE_DIR}/src/core/cache
+    ${CMAKE_SOURCE_DIR}/src/core/cookies
+    ${CMAKE_SOURCE_DIR}/src/core/credentials
+    ${CMAKE_SOURCE_DIR}/src/core/database
+    ${CMAKE_SOURCE_DIR}/src/core/downloads
+    ${CMAKE_SOURCE_DIR}/src/core/extensions
+    ${CMAKE_SOURCE_DIR}/src/core/highlighters
+    ${CMAKE_SOURCE_DIR}/src/core/history
+    ${CMAKE_SOURCE_DIR}/src/core/icons
+    ${CMAKE_SOURCE_DIR}/src/core/network
+    ${CMAKE_SOURCE_DIR}/src/core/search
+    ${CMAKE_SOURCE_DIR}/src/core/session
+    ${CMAKE_SOURCE_DIR}/src/core/settings
+    ${CMAKE_SOURCE_DIR}/src/core/text_finder
+    ${CMAKE_SOURCE_DIR}/src/core/url_suggestion
+    ${CMAKE_SOURCE_DIR}/src/core/user_agents
+    ${CMAKE_SOURCE_DIR}/src/core/user_scripts
+    ${CMAKE_SOURCE_DIR}/src/core/utility
+    ${CMAKE_SOURCE_DIR}/src/core/web
+    ${CMAKE_SOURCE_DIR}/src/ui/adblock
+    ${CMAKE_SOURCE_DIR}/src/ui/autofill
+    ${CMAKE_SOURCE_DIR}/src/ui/bookmarks
+    ${CMAKE_SOURCE_DIR}/src/ui/cookies
+    ${CMAKE_SOURCE_DIR}/src/ui/downloads
+    ${CMAKE_SOURCE_DIR}/src/ui/history
+    ${CMAKE_SOURCE_DIR}/src/ui/network
+    ${CMAKE_SOURCE_DIR}/src/ui/preferences
+    ${CMAKE_SOURCE_DIR}/src/ui/url_suggestion
+    ${CMAKE_SOURCE_DIR}/src/ui/user_agents
+    ${CMAKE_SOURCE_DIR}/src/ui/user_scripts
+    ${CMAKE_SOURCE_DIR}/src/ui/web
+    ${CMAKE_SOURCE_DIR}/src/ui/widgets
+    ${CMAKE_SOURCE_DIR}/src/ui/window
 )
 
 add_subdirectory(src)
 
-if (BUILD_TESTS)
+if (ENABLE_TESTING)
     enable_testing(true)
     add_subdirectory(tests)
 endif()
