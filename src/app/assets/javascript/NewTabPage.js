@@ -26,8 +26,8 @@ var nextItem = 0;
 
 const cellTemplate = '<div class="cell" draggable="true"><span data-elemid="{{id}}" class="close">&times;</span><a href="{{url}}">'
             + '<img class="thumbnail" src="{{imgSrc}}" alt="{{title}}"><div class="titleContainer">'
-            + '<div class="titleTextWrapper"><span data-elemid="{{id}}" class="title">{{title}}</span></div></div></a></div>';
-const cellTemplateNoThumbnail = '<div class="cell" draggable="true"><span class="close">&times;</span><a href="{{url}}">'
+            + '<div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div>';
+const cellTemplateNoThumbnail = '<div class="cell" draggable="true"><span data-elemid="{{id}}" class="close">&times;</span><a href="{{url}}">'
             + '<div class="thumbnail thumbnailMock"></div><div class="titleContainer"><div class="titleTextWrapper">'
             + '<span class="title">{{title}}</span></div></div></a></div>';
 

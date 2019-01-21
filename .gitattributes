@@ -37,6 +37,5 @@
 
 # JS
 src/app/assets/pdfjs/* linguist-vendored
-*.js linguist-vendored
 *.map linguist-vendored 
 *.bcmap linguist-vendored
