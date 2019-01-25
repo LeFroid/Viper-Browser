@@ -183,8 +183,7 @@ void NavigationToolBar::bindWithTabWidget()
     });
 
     connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::onHistoryChanged);
-    //connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::resetHistoryButtonMenus);
-    //connect(tabWidget, &BrowserTabWidget::loadFinished,   this, &NavigationToolBar::resetHistoryButtonMenus);
+    connect(tabWidget, &BrowserTabWidget::loadFinished, this, &NavigationToolBar::onHistoryChanged);
 
     connect(tabWidget, &BrowserTabWidget::aboutToHibernate, [this](){
         m_nextPage->menu()->clear();
@@ -199,7 +198,7 @@ void NavigationToolBar::bindWithTabWidget()
 
 MainWindow *NavigationToolBar::getParentWindow()
 {
-    return dynamic_cast<MainWindow*>(parentWidget());
+    return qobject_cast<MainWindow*>(window());
 }
 
 void NavigationToolBar::onTabChanged(int index)

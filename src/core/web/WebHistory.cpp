@@ -24,7 +24,7 @@ WebHistoryEntry::WebHistoryEntry(const WebHistoryEntryImpl &impl) :
 WebHistory::WebHistory(WebPage *parent) :
     QObject(parent),
     m_page(parent),
-    m_impl(m_page->history())
+    m_impl(nullptr)
 {
     if (m_page != nullptr)
     {
