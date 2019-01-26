@@ -269,9 +269,9 @@ void HistoryManager::onPageLoaded(bool ok)
     const QString title = ww->getTitle();
     const bool emptyTitle = title.isEmpty();
 
-    std::vector<QUrl> urls { originalUrl };
-    if (originalUrl.adjusted(QUrl::RemoveScheme) != url.adjusted(QUrl::RemoveScheme))
-        urls.push_back(url);
+    std::vector<QUrl> urls { url };
+    if (url.adjusted(QUrl::RemoveScheme).toString().toLower() != originalUrl.adjusted(QUrl::RemoveScheme).toString().toLower())
+        urls.push_back(originalUrl);
 
     for (const QUrl &currentUrl : urls)
     {
