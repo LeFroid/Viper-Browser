@@ -329,7 +329,7 @@ void MainWindow::onTabChanged(int index)
     {
         urlInput->setFocus();
 
-        if (urlInput->text().startsWith(QLatin1String("viper:")) == 0)
+        if (urlInput->text().startsWith(QLatin1String("viper:")))
             urlInput->selectAll();
     }
     else
