@@ -16,11 +16,9 @@ public:
     QString getSecondLevelDomain(const QUrl &url) const;
 
 private Q_SLOTS:
-    //void initTestCase();
-    //void cleanupTestCase();
-    void testCase1();
-    void testCase2();
-    void testCase3();
+    void testCosmeticFilterMatch();
+    void testFilterOptionMatches();
+    void testRedirectFilterMatch();
 
 private:
     std::unique_ptr<AdBlockFilter> domainCSSFilter;
@@ -65,7 +63,7 @@ QString AdBlockFilterTest::getSecondLevelDomain(const QUrl &url) const
     return domain + topLevelDomain;
 }
 
-void AdBlockFilterTest::testCase1()
+void AdBlockFilterTest::testCosmeticFilterMatch()
 {
     QUrl shouldMatchUrl1 = QUrl::fromUserInput(QLatin1String("https://developers.slashdot.org/story/18/07/07/0342201/is-c-a-really-terrible-language"));
     QString domain1 = shouldMatchUrl1.host().toLower();
@@ -78,14 +76,14 @@ void AdBlockFilterTest::testCase1()
     QVERIFY2(domainCSSFilter->isDomainStyleMatch(domain2) && !domainCSSFilter->isException(), "The Domain CSS filter did not match the target url");
 }
 
-void AdBlockFilterTest::testCase2()
+void AdBlockFilterTest::testFilterOptionMatches()
 {
     QUrl allowedUrl = QUrl::fromUserInput(QLatin1String("https://subdomain.mycdn.com/videos/thumbnails/5.jpg"));
 
     QString requestUrl = allowedUrl.toString(QUrl::FullyEncoded).toLower();
     QString firstPartyUrl = QLatin1String("https://www.watchvid.com/watch?id=123456");
 
-    QString baseUrl = getSecondLevelDomain(QUrl(firstPartyUrl)).toLower();//.toString(QUrl::FullyEncoded).toLower();
+    QString baseUrl = getSecondLevelDomain(QUrl(firstPartyUrl)).toLower();
 
     if (baseUrl.isEmpty())
         baseUrl = QUrl(firstPartyUrl).host().toLower();
@@ -99,12 +97,17 @@ void AdBlockFilterTest::testCase2()
     if (domain.isEmpty())
         domain = getSecondLevelDomain(allowedUrl);
 
-
     QVERIFY2(allowDomainRule->isMatch(baseUrl, requestUrl, domain, elemType), "Allow rule should match the request");
     QVERIFY2(blockDomainRule->isMatch(baseUrl, requestUrl, domain, elemType), "Block rule should match the request");
+    
+    baseUrl = QLatin1String("zerohedge.com");
+    requestUrl = QLatin1String("https://mssl.fwmrm.net/p/nbcu_live/AdManager.js");
+    domain = QLatin1String("mssl.fwmrm.net");
+    elemType = ElementType::Script | ElementType::ThirdParty;
+    QVERIFY2(blockScriptDomainRule->isMatch(baseUrl, requestUrl, domain, elemType), "Block rule should match the request"); 
 }
 
-void AdBlockFilterTest::testCase3()
+void AdBlockFilterTest::testRedirectFilterMatch()
 {
     QUrl requestUrl = QUrl::fromUserInput(QLatin1String("https://ssl.google-analytics.com/ga.js"));
     QString requestUrlStr = requestUrl.toString(QUrl::FullyEncoded).toLower();
@@ -121,14 +124,8 @@ void AdBlockFilterTest::testCase3()
         domain = getSecondLevelDomain(requestUrl);
 
     QVERIFY2(redirectScriptRule->isMatch(baseUrl, requestUrlStr, domain, elemType), "Block rule should match the request");
-
-    baseUrl = QLatin1String("zerohedge.com");
-    QUrl requestUrl2 = QUrl::fromUserInput(QLatin1String("https://mssl.fwmrm.net/p/nbcu_live/AdManager.js"));
-    requestUrlStr = requestUrl2.toString(QUrl::FullyEncoded).toLower();
-    domain = requestUrl.host().toLower();
-    QVERIFY2(blockScriptDomainRule->isMatch(baseUrl, requestUrlStr, domain, elemType), "Block rule should match the request"); 
 }
 
 QTEST_APPLESS_MAIN(AdBlockFilterTest)
 
-#include "tst_AdBlockFilterTest.moc"
+#include "AdBlockFilterTest.moc"

@@ -146,5 +146,5 @@ void FastHashTest::testStringsShouldNotMatch()
 
 QTEST_APPLESS_MAIN(FastHashTest)
 
-#include "tst_FastHash.moc"
+#include "FastHashTest.moc"
 

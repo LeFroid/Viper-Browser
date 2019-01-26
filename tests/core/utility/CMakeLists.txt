@@ -5,11 +5,18 @@ include_directories(
 )
 
 set(FastHashTest_src
-    tst_FastHash.cpp
+    FastHashTest.cpp
+)
+
+set(CommonUtil_RegExpTest_src
+    CommonUtil_RegExpTest.cpp
 )
 
 add_executable(FastHashTest ${FastHashTest_src})
+add_executable(CommonUtil-RegExpTest ${CommonUtil_RegExpTest_src})
 
 target_link_libraries(FastHashTest viper-core Qt5::Test)
+target_link_libraries(CommonUtil-RegExpTest viper-core Qt5::Test)
 
 add_test(NAME FastHash-Test COMMAND FastHashTest)
+add_test(NAME CommonUtil-RegExp-Test COMMAND CommonUtil-RegExpTest)

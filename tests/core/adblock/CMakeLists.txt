@@ -4,7 +4,7 @@ include_directories(
 )
 
 set(AdBlockFilterTest_src
-    tst_AdBlockFilterTest.cpp
+    AdBlockFilterTest.cpp
     AdBlockManager.cpp
 )
 
