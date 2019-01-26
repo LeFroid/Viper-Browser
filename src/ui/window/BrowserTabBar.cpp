@@ -312,12 +312,12 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
 {
     const QMimeData *mimeData = event->mimeData();
 
+    BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
+    if (!tabWidget)
+        return;
+
     if (mimeData->hasUrls())
     {
-        BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
-        if (!tabWidget)
-            return;
-
         int newTabIndex = m_externalDropInfo.NearestTabIndex;
 
         QList<QUrl> urls = mimeData->urls();
@@ -348,17 +348,23 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
     {
         if ((qulonglong)window()->winId() == mimeData->property("tab-origin-window-id").toULongLong())
         {
-            /*
             int originalTabIndex = mimeData->property("tab-index").toInt();
             int tabIndexAtPos = tabAt(event->pos());
+            if (tabIndexAtPos < 0)
+            {
+                auto lastTabRect = tabRect(count() - 1);
+                if (event->pos().x() >= lastTabRect.x() + lastTabRect.width())
+                    tabIndexAtPos = count() - 1;
+            }
+
             if (originalTabIndex >= 0 && tabIndexAtPos >= 0 && originalTabIndex != tabIndexAtPos)
             {
-                //the indexes are determined correctly, but moveTab does not seem to work..
-                //looking for a way to do this without closing the original tab and reloading the page
-                //just to rearrange the layout
-                moveTab(originalTabIndex, tabIndexAtPos);
+                WebWidget *ww = tabWidget->getWebWidget(originalTabIndex);
+                tabWidget->removeTab(originalTabIndex);
+                tabIndexAtPos = tabWidget->insertTab(tabIndexAtPos, ww, ww->getIcon(), ww->getTitle());
+                tabWidget->setCurrentIndex(tabIndexAtPos);
                 setCurrentIndex(tabIndexAtPos);
-            }*/
+            }
             return;
         }
         qobject_cast<MainWindow*>(window())->dropEvent(event);

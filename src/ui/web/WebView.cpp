@@ -202,10 +202,10 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     const auto linkUrl = contextMenuData.linkUrl();
     if (!linkUrl.isEmpty())
     {
-        menu->addAction(tr("Open link in new tab"), [=](){
+        menu->addAction(tr("Open link in new tab"), this, [=](){
             emit openInNewBackgroundTab(linkUrl);
         });
-        menu->addAction(tr("Open link in new window"), [=](){
+        menu->addAction(tr("Open link in new window"), this, [=](){
             emit openInNewWindowRequest(linkUrl, m_privateView);
         });
         menu->addSeparator();
@@ -216,10 +216,10 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     // Image menu options
     if (mediaType == WebHitTestResult::MediaTypeImage)
     {
-        menu->addAction(tr("Open image in new tab"), [=](){
+        menu->addAction(tr("Open image in new tab"), this, [=](){
             emit openInNewBackgroundTab(contextMenuData.mediaUrl());
         });
-        menu->addAction(tr("Open image"), [=](){
+        menu->addAction(tr("Open image"), this, [=](){
             emit openRequest(contextMenuData.mediaUrl());
         });
         menu->addSeparator();
@@ -288,7 +288,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         QUrl selectionUrl = QUrl::fromUserInput(text);
         if (selectionUrl.isValid() && !selectionUrl.topLevelDomain().isEmpty())
         {
-            menu->addAction(tr("Go to %1").arg(text), [=](){
+            menu->addAction(tr("Go to %1").arg(text), this, [=](){
                 emit openInNewTab(selectionUrl);
             });
         }
