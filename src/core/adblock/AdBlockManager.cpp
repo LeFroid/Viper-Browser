@@ -648,13 +648,7 @@ ElementType AdBlockManager::getRequestType(const QWebEngineUrlRequestInfo &info)
             break;
     }
 
-    // Perform document type and third party type checking
-    QString domain = requestUrl.host().toLower();
-    if (domain.startsWith(QLatin1String("www.")))
-        domain = domain.mid(4);
-    if (domain.isEmpty())
-        domain = getSecondLevelDomain(requestUrl);
-
+    // Check for third party request type
     if (firstPartyUrl.isEmpty() || (getSecondLevelDomain(requestUrl) != getSecondLevelDomain(firstPartyUrl)))
         elemType |= ElementType::ThirdParty;
 
@@ -918,52 +912,38 @@ void AdBlockManager::extractFilters()
         }
     }
 
-    // Remove bad filters from m_allowFilters, m_blockFilters, m_blockFiltersByPattern, m_genericHideFilters, m_cspFilters
-    for (auto it = m_allowFilters.begin(); it != m_allowFilters.end();)
-    {
-        if (badFilters.contains((*it)->getRule()))
-            it = m_allowFilters.erase(it);
-        else
-            ++it;
-    }
-    for (auto it = m_blockFilters.begin(); it != m_blockFilters.end();)
-    {
-        if (badFilters.contains((*it)->getRule()))
-            it = m_blockFilters.erase(it);
-        else
-            ++it;
-    }
-    for (auto it = m_blockFiltersByPattern.begin(); it != m_blockFiltersByPattern.end();)
-    {
-        if (badFilters.contains((*it)->getRule()))
-            it = m_blockFiltersByPattern.erase(it);
-        else
-            ++it;
-    }
-    for (std::deque<AdBlockFilter*> &queue : m_blockFiltersByDomain)
-    {
-        for (auto it = queue.begin(); it != queue.end();)
+    // Remove bad filters from all applicable filter containers
+    auto removeBadFiltersFromVector = [&badFilters](std::vector<AdBlockFilter*> &filterContainer) {
+        for (auto it = filterContainer.begin(); it != filterContainer.end();)
         {
             if (badFilters.contains((*it)->getRule()))
-                it = queue.erase(it);
+                it = filterContainer.erase(it);
             else
                 ++it;
         }
-    }
-    for (auto it = m_cspFilters.begin(); it != m_cspFilters.end();)
+    };
+    auto removeBadFiltersFromDeque = [&badFilters](std::deque<AdBlockFilter*> &filterContainer) {
+        for (auto it = filterContainer.begin(); it != filterContainer.end();)
+        {
+            if (badFilters.contains((*it)->getRule()))
+                it = filterContainer.erase(it);
+            else
+                ++it;
+        }
+    };
+
+    removeBadFiltersFromVector(m_allowFilters);
+
+    removeBadFiltersFromDeque(m_blockFilters);
+    removeBadFiltersFromDeque(m_blockFiltersByPattern);
+
+    for (std::deque<AdBlockFilter*> &queue : m_blockFiltersByDomain)
     {
-        if (badFilters.contains((*it)->getRule()))
-            it = m_cspFilters.erase(it);
-        else
-            ++it;
+        removeBadFiltersFromDeque(queue);
     }
-    for (auto it = m_genericHideFilters.begin(); it != m_genericHideFilters.end();)
-    {
-        if (badHideFilters.contains((*it)->getRule()))
-            it = m_genericHideFilters.erase(it);
-        else
-            ++it;
-    }
+
+    removeBadFiltersFromVector(m_cspFilters);
+    removeBadFiltersFromVector(m_genericHideFilters);
 
     // Parse stylesheet exceptions
     QHashIterator<QString, AdBlockFilter*> it(stylesheetExceptionMap);

@@ -178,9 +178,7 @@ void NavigationToolBar::bindWithTabWidget()
     connect(tabWidget, &BrowserTabWidget::loadProgress, this, &NavigationToolBar::onLoadProgress);
 
     // URL change in current tab
-    connect(tabWidget, &BrowserTabWidget::urlChanged, [this](const QUrl &url){
-        m_urlInput->setURL(url);
-    });
+    connect(tabWidget, &BrowserTabWidget::urlChanged, m_urlInput, &URLLineEdit::setURL);
 
     connect(tabWidget, &BrowserTabWidget::currentChanged, this, &NavigationToolBar::onHistoryChanged);
     connect(tabWidget, &BrowserTabWidget::loadFinished, this, &NavigationToolBar::onHistoryChanged);

@@ -592,7 +592,7 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
     // Handle dev tools / inspector visibility mapping
     m_tabInspectorMap[ww] = false;
 
-    connect(ww, &WebWidget::destroyed, [this,ww](QObject*) {
+    connect(ww, &WebWidget::destroyed, this, [this,ww](QObject*) {
         if (m_closing.load())
             return;
         auto it = m_tabInspectorMap.find(ww);

@@ -62,9 +62,6 @@ public:
     /// Sets the security icon at the left side of the line edit widget
     void setSecurityIcon(SecurityIcon iconType);
 
-    /// Sets the URL to be displayed with a security status icon in the line edit widget
-    void setURL(const QUrl &url);
-
     /// Called when the browser window's tab has changed - stores any user text in a hash map so the contents
     /// will not be lost if they go back to the tab
     void tabChanged(WebWidget *newView);
@@ -82,6 +79,9 @@ signals:
 public slots:
     /// Removes the given view pointer from the map of webviews to user-set text in the line edit
     void removeMappedView(WebWidget *view);
+
+    /// Sets the URL to be displayed with a security status icon in the url bar
+    void setURL(const QUrl &url);
 
 private slots:
     /// Handles the returnPressed event - checks for a valid URL or shortcut to a URL, and emits the loadRequested(const QUrl &) signal

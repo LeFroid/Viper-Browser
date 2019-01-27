@@ -17,7 +17,7 @@
    <string>Web Browser</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="application.qrc">
+   <iconset resource="../../app/assets/application.qrc">
     <normaloff>:/logo.png</normaloff>:/logo.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -592,7 +592,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="application.qrc"/>
+  <include location="../../app/assets/application.qrc"/>
  </resources>
  <connections>
   <connection>
