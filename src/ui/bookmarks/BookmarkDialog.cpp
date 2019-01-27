@@ -16,7 +16,7 @@ BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
 
     setAttribute(Qt::WA_ShowWithoutActivating, true);
     setAttribute(Qt::WA_X11NetWmWindowTypeCombo, true);
-    setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+    setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::BypassWindowManagerHint);
     setContentsMargins(0, 0, 0, 0);
 
     // Populate combo box with each folder in the bookmark collection
