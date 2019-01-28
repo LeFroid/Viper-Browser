@@ -246,7 +246,7 @@ void HistoryManager::onPageLoaded(bool ok)
         return;
 
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
-    if (ww == nullptr || ww->isOnBlankPage())
+    if (!ww)
         return;
 
     const QUrl url = ww->url();
@@ -270,7 +270,7 @@ void HistoryManager::onPageLoaded(bool ok)
     const bool emptyTitle = title.isEmpty();
 
     std::vector<QUrl> urls { url };
-    if (url.adjusted(QUrl::RemoveScheme).toString().toLower() != originalUrl.adjusted(QUrl::RemoveScheme).toString().toLower())
+    if (!url.matches(originalUrl, QUrl::RemoveScheme | QUrl::RemoveAuthority))
         urls.push_back(originalUrl);
 
     for (const QUrl &currentUrl : urls)
