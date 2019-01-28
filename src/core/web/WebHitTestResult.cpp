@@ -1,14 +1,24 @@
 #include "WebHitTestResult.h"
+#include "WebPage.h"
 
-WebHitTestResult::WebHitTestResult(const QMap<QString, QVariant> &scriptResultMap)
+WebHitTestResult::WebHitTestResult(WebPage *page, const QString &hitTestScript) :
+    m_isEditable(false),
+    m_linkUrl(),
+    m_mediaUrl(),
+    m_mediaType(MediaTypeNone),
+    m_selectedText()
 {
-    m_isEditable = scriptResultMap.value(QLatin1String("isEditable")).toBool();
-    m_linkUrl = scriptResultMap.value(QLatin1String("linkUrl")).toUrl();
-    m_mediaUrl = scriptResultMap.value(QLatin1String("mediaUrl")).toUrl();
+    if (page)
+    {
+        QMap<QString, QVariant> resultMap = page->runJavaScriptBlocking(hitTestScript).toMap();
+        m_isEditable = resultMap.value(QLatin1String("isEditable")).toBool();
+        m_linkUrl = resultMap.value(QLatin1String("linkUrl")).toUrl();
+        m_mediaUrl = resultMap.value(QLatin1String("mediaUrl")).toUrl();
 
-    m_mediaType = static_cast<MediaType>(scriptResultMap.value(QLatin1String("mediaType")).toInt());
+        m_mediaType = static_cast<MediaType>(resultMap.value(QLatin1String("mediaType")).toInt());
 
-    m_selectedText = scriptResultMap.value(QLatin1String("selectedText")).toString();
+        m_selectedText = resultMap.value(QLatin1String("selectedText")).toString();
+    }
 }
 
 bool WebHitTestResult::isContentEditable() const

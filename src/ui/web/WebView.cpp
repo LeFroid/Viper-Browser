@@ -104,7 +104,8 @@ void WebView::load(const QUrl &url)
     if (!m_page->acceptNavigationRequest(url, WebPage::NavigationTypeTyped, true))
         return;
 
-    QWebEngineView::load(url);
+    setUrl(url);
+    //QWebEngineView::load(url);
 }
 
 void WebView::load(const HttpRequest &request)
@@ -188,11 +189,7 @@ QString WebView::getContextMenuScript(const QPoint &pos)
 
 void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos)
 {
-    QString contextMenuScript = getContextMenuScript(relativePos);
-    QVariant scriptResult = m_page->runJavaScriptBlocking(contextMenuScript);
-    QMap<QString, QVariant> resultMap = scriptResult.toMap();
-
-    WebHitTestResult contextMenuData(resultMap);
+    WebHitTestResult contextMenuData(m_page, getContextMenuScript(relativePos));
 
     const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
 
@@ -372,10 +369,7 @@ void WebView::_mouseReleaseEvent(QMouseEvent *event)
         case Qt::LeftButton:
         case Qt::MiddleButton:
         {
-            QString contextMenuScript = getContextMenuScript(event->pos());
-            QVariant scriptResult = m_page->runJavaScriptBlocking(contextMenuScript);
-            QMap<QString, QVariant> resultMap = scriptResult.toMap();
-            WebHitTestResult hitTest(resultMap);
+            WebHitTestResult hitTest(m_page, getContextMenuScript(event->pos()));
 
             const QUrl linkUrl = hitTest.linkUrl();
             if (!linkUrl.isEmpty() && linkUrl.isValid())

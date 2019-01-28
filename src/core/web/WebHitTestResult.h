@@ -6,6 +6,8 @@
 #include <QUrl>
 #include <QVariant>
 
+class WebPage;
+
 /**
  * @class WebHitTestResult
  * @brief Executes a 'hit test' at a given position in a web view, collecting information about the
@@ -23,8 +25,8 @@ public:
     };
 
 public:
-    /// Constructs the hit test result from the result of executing a hit test on a web page
-    explicit WebHitTestResult(const QMap<QString, QVariant> &scriptResultMap);
+    /// Constructs the hit test result given a web page and the 'hit test' script to execute on the page
+    explicit WebHitTestResult(WebPage *page, const QString &hitTestScript);
 
     /// Returns true if the content in the context is editable, false if else
     bool isContentEditable() const;
