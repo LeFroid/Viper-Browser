@@ -18,6 +18,10 @@ WebHitTestResult::WebHitTestResult(WebPage *page, const QString &hitTestScript) 
         m_mediaType = static_cast<MediaType>(resultMap.value(QLatin1String("mediaType")).toInt());
 
         m_selectedText = resultMap.value(QLatin1String("selectedText")).toString();
+
+        bool hasSelection = resultMap.value(QLatin1String("hasSelection")).toBool();
+        if (hasSelection && m_selectedText.isEmpty())
+            m_selectedText = page->selectedText();
     }
 }
 
