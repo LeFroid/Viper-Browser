@@ -3,6 +3,8 @@
 
 #include "LRUCache.h"
 
+#include <atomic>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -147,7 +149,10 @@ private:
     bool m_canUpdateList;
 
     /// Stores the number of bookmarks in the tree. Used to assign unique IDs to new bookmarks
-    int m_numBookmarks;
+    std::atomic_int m_numBookmarks;
+
+    /// Mutex
+    mutable std::mutex m_mutex;
 };
 
 #endif // BOOKMARKNODEMANAGER_H

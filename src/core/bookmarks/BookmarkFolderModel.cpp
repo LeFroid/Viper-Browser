@@ -235,10 +235,7 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
             {
                 if (droppedInRoot)
                     break;
-                const QString name = n->getName();
-                const QUrl url = n->getURL();
-                m_bookmarkMgr->removeBookmark(n);
-                m_bookmarkMgr->appendBookmark(name, url, targetNode);
+                m_bookmarkMgr->setBookmarkParent(n, targetNode);
                 break;
             }
         }

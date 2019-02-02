@@ -15,7 +15,6 @@
 #include <QMenu>
 #include <QRegExp>
 #include <QResizeEvent>
-#include <QStyle>
 #include <QDebug>
 
 BookmarkWidget::BookmarkWidget(QWidget *parent) :
@@ -31,11 +30,11 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     ui->setupUi(this);
 
     // Setup history buttons
-    ui->buttonBack->setIcon(style()->standardIcon(QStyle::SP_ArrowBack, 0, this));
+    ui->buttonBack->setIcon(QIcon(QLatin1String(":/arrow-back.png")));
     ui->buttonBack->setEnabled(false);
     connect(ui->buttonBack, &QPushButton::clicked, this, &BookmarkWidget::onClickBackButton);
 
-    ui->buttonForward->setIcon(style()->standardIcon(QStyle::SP_ArrowForward, 0, this));
+    ui->buttonForward->setIcon(QIcon(QLatin1String(":/arrow-forward.png")));
     ui->buttonForward->setEnabled(false);
     connect(ui->buttonForward, &QPushButton::clicked, this, &BookmarkWidget::onClickForwardButton);
 
@@ -55,8 +54,9 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     ui->tableView->setDragDropOverwriteMode(false);
 
     // Enable search for bookmarks
-    connect(ui->lineEditSearch, &QLineEdit::returnPressed, this, &BookmarkWidget::searchBookmarks);
+    connect(ui->lineEditSearch,   &QLineEdit::returnPressed, this, &BookmarkWidget::searchBookmarks);
 
+    // Bookmark editing elements
     connect(ui->lineEditName,     &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeName);
     connect(ui->lineEditLocation, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeURL);
     connect(ui->lineEditShortcut, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeShortcut);
@@ -252,7 +252,7 @@ void BookmarkWidget::onImportExportBoxChanged(int index)
                 return;
 
             // Create an "Imported Bookmarks" folder
-            BookmarkNode *importFolder = m_bookmarkManager->addFolder("Imported Bookmarks", m_bookmarkManager->getRoot());
+            BookmarkNode *importFolder = m_bookmarkManager->addFolder(tr("Imported Bookmarks"), m_bookmarkManager->getRoot());
             resetFolderModel();
 
             BookmarkImporter importer(m_bookmarkManager);

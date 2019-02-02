@@ -16,7 +16,8 @@ BookmarkNodeManager::BookmarkNodeManager(QObject *parent) :
     m_lookupCache(24),
     m_nodeList(),
     m_canUpdateList(true),
-    m_numBookmarks(0)
+    m_numBookmarks(0),
+    m_mutex()
 {
 }
 
@@ -84,7 +85,7 @@ void BookmarkNodeManager::appendBookmark(const QString &name, const QUrl &url, B
     if (!folder)
         folder = getBookmarksBar();
 
-    const int bookmarkId = m_numBookmarks;
+    const int bookmarkId = m_numBookmarks.load();
 
     // Create new bookmark
     BookmarkNode *bookmark = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
@@ -111,7 +112,7 @@ void BookmarkNodeManager::insertBookmark(const QString &name, const QUrl &url, B
         return;
     }
 
-    const int bookmarkId = m_numBookmarks;
+    const int bookmarkId = m_numBookmarks.load();
 
     // Create new bookmark
     BookmarkNode *bookmark = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
@@ -133,7 +134,7 @@ BookmarkNode *BookmarkNodeManager::addFolder(const QString &name, BookmarkNode *
     if (!parent)
         parent = m_rootNode;
 
-    const int folderId = m_numBookmarks;
+    const int folderId = m_numBookmarks.load();
 
     // Append bookmark folder to parent
     BookmarkNode *folder = parent->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, name));
@@ -247,7 +248,7 @@ BookmarkNode *BookmarkNodeManager::setBookmarkParent(BookmarkNode *bookmark, Boo
     BookmarkNode *oldParent = bookmark->getParent();
     for (auto it = oldParent->m_children.begin(); it != oldParent->m_children.end(); ++it)
     {
-        if (it->get() == bookmark)
+        if (it->get()->getUniqueId() == bookmark->getUniqueId())
         {
             parent->m_children.push_back(std::move(*it));
             it = oldParent->m_children.erase(it);
@@ -256,6 +257,7 @@ BookmarkNode *BookmarkNodeManager::setBookmarkParent(BookmarkNode *bookmark, Boo
     }
 
     bookmark = parent->getNode(parent->getNumChildren() - 1);
+    bookmark->m_parent = parent;
     emit bookmarkChanged(bookmark);
 
     scheduleResetList();
@@ -354,6 +356,8 @@ void BookmarkNodeManager::setCanUpdateList(bool value)
 
 void BookmarkNodeManager::resetBookmarkList()
 {
+    std::lock_guard<std::mutex> _(m_mutex);
+
     int numBookmarks = 1;
     m_nodeList.clear();
 
@@ -376,6 +380,6 @@ void BookmarkNodeManager::resetBookmarkList()
         queue.pop_front();
     }
 
-    m_numBookmarks = numBookmarks;
+    m_numBookmarks.store(numBookmarks);
     emit bookmarksChanged();
 }

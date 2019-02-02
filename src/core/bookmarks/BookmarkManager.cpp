@@ -27,7 +27,7 @@ BookmarkManager::BookmarkManager(const QString &databaseFile, QObject *parent) :
 
 BookmarkManager::~BookmarkManager()
 {
-    save();
+    //save();
 }
 
 BookmarkNodeManager *BookmarkManager::getNodeManager() const
@@ -221,10 +221,59 @@ void BookmarkManager::setup()
     m_nodeManager->appendBookmark(QLatin1String("Search Engine"), QUrl(QLatin1String("https://www.startpage.com")), bookmarkBar);
 }
 
- void BookmarkManager::save()
- {
+void BookmarkManager::save()
+{
+    if (!m_database.transaction())
+    {
+        qWarning() << "BookmarkManager::save - could not start transaction";
+        return;
+    }
 
- }
+    if (!exec(QLatin1String("DELETE FROM Bookmarks")))
+        qWarning() << "BookmarkManager::save - Could not clear bookmarks table";
+
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("INSERT INTO Bookmarks(ID, FolderID, ParentID, Type, Name, URL, Shortcut, Position) "
+                                "VALUES(:id, :folderID, :parentID, :type, :name, :url, :shortcut, :position)"));
+
+    auto saveNode = [&query](BookmarkNode *node) {
+        int parentId = -1;
+        if (BookmarkNode *parent = node->getParent())
+            parentId = parent->getUniqueId();
+
+        query.bindValue(QLatin1String(":id"), node->getUniqueId());
+        query.bindValue(QLatin1String(":folderID"), node->getFolderId());
+        query.bindValue(QLatin1String(":parentID"), parentId);
+        query.bindValue(QLatin1String(":type"), static_cast<int>(node->getType()));
+        query.bindValue(QLatin1String(":name"), node->getName());
+        query.bindValue(QLatin1String(":url"), node->getURL());
+        query.bindValue(QLatin1String(":shortcut"), node->getShortcut());
+        query.bindValue(QLatin1String(":position"), node->getPosition());
+        if (!query.exec())
+            qWarning() << "Could not save bookmark " << node->getName() << ", id " << node->getUniqueId();
+    };
+
+    std::deque<BookmarkNode*> queue;
+    queue.push_back(m_rootNode.get());
+    while (!queue.empty())
+    {
+        BookmarkNode *node = queue.front();
+        saveNode(node);
+
+        for (auto &child : node->m_children)
+        {
+            if (child->getType() == BookmarkNode::Folder)
+                queue.push_back(child.get());
+            else
+                saveNode(child.get());
+        }
+
+        queue.pop_front();
+    }
+
+    if (!m_database.commit())
+        qWarning() << "BookmarkManager::save - could not commit transaction";
+}
 
 void BookmarkManager::load()
 {
