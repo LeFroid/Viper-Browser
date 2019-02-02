@@ -361,6 +361,8 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
             {
                 WebWidget *ww = tabWidget->getWebWidget(originalTabIndex);
                 tabWidget->removeTab(originalTabIndex);
+                if (tabIndexAtPos > originalTabIndex)
+                    --tabIndexAtPos;
                 tabIndexAtPos = tabWidget->insertTab(tabIndexAtPos, ww, ww->getIcon(), ww->getTitle());
                 tabWidget->setCurrentIndex(tabIndexAtPos);
                 setCurrentIndex(tabIndexAtPos);
