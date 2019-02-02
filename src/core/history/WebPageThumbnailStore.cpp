@@ -1,5 +1,5 @@
-#include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "BookmarkNodeManager.h"
 #include "FavoritePagesManager.h"
 #include "HistoryManager.h"
 #include "WebPageThumbnailStore.h"
@@ -122,7 +122,7 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     });
 }
 
-void WebPageThumbnailStore::setBookmarkManager(BookmarkManager *bookmarkMgr)
+void WebPageThumbnailStore::setBookmarkManager(BookmarkNodeManager *bookmarkMgr)
 {
     m_bookmarkManager = bookmarkMgr;
 }

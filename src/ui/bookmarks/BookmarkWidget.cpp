@@ -57,7 +57,7 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     // Enable search for bookmarks
     connect(ui->lineEditSearch, &QLineEdit::returnPressed, this, &BookmarkWidget::searchBookmarks);
 
-    connect(ui->lineEditName, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeName);
+    connect(ui->lineEditName,     &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeName);
     connect(ui->lineEditLocation, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeURL);
     connect(ui->lineEditShortcut, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeShortcut);
 }
@@ -76,7 +76,7 @@ void BookmarkWidget::resizeEvent(QResizeEvent *event)
     ui->tableView->setColumnWidth(1, std::max(tableWidth * 2 / 3 - 3, 0));
 }
 
-void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
+void BookmarkWidget::setBookmarkManager(BookmarkNodeManager *bookmarkManager)
 {
     m_bookmarkManager = bookmarkManager;
 
@@ -621,7 +621,7 @@ void BookmarkWidget::onEditNodeShortcut()
     if (!m_currentNode)
         return;
 
-    m_bookmarkManager->updateBookmarkShortcut(ui->lineEditShortcut->text(), m_currentNode);
+    m_bookmarkManager->setBookmarkShortcut(m_currentNode, ui->lineEditShortcut->text());
 }
 
 QUrl BookmarkWidget::getUrlForSelection()

@@ -13,7 +13,7 @@
 #include <QString>
 #include <QUrl>
 
-class BookmarkManager;
+class BookmarkNodeManager;
 class HistoryManager;
 
 /**
@@ -45,9 +45,9 @@ public slots:
     void onPageLoaded(bool ok);
 
 protected:
-    /// Sets a pointer to the \ref BookmarkManager, which is needed to determine the thumbnails that should
+    /// Sets a pointer to the \ref BookmarkNodeManager, which is needed to determine the thumbnails that should
     /// be saved to the database at exit, instead of being ignored
-    void setBookmarkManager(BookmarkManager *bookmarkMgr);
+    void setBookmarkManager(BookmarkNodeManager *bookmarkMgr);
 
     /// Sets a pointer to the \ref HistoryManager, which is needed to determine the thumbnails that should
     /// be saved to the database at exit, instead of being ignored
@@ -72,8 +72,8 @@ private:
     /// Hashmap of web hostnames to their corresponding thumbnails
     QHash<QString, QImage> m_thumbnails;
 
-    /// Pointer to the \ref BookmarkManager
-    BookmarkManager *m_bookmarkManager;
+    /// Pointer to the \ref BookmarkNodeManager
+    BookmarkNodeManager *m_bookmarkManager;
 
     /// Pointer to the \ref HistoryManager
     HistoryManager *m_historyManager;

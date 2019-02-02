@@ -4,6 +4,8 @@
 #include "BookmarkManager.h"
 #include <QAbstractItemModel>
 
+class BookmarkNodeManager;
+
 /**
  * @class BookmarkFolderModel
  * @brief Model used for the bookmark manager's tree view, for
@@ -18,7 +20,7 @@ class BookmarkFolderModel : public QAbstractItemModel
 
 public:
     /// Constructs the bookmark folder model
-    explicit BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent = nullptr);
+    explicit BookmarkFolderModel(BookmarkNodeManager *bookmarkMgr, QObject *parent = nullptr);
     ~BookmarkFolderModel();
 
     // Basic functionality:
@@ -72,7 +74,7 @@ private:
     BookmarkNode *m_bookmarksBar;
 
     /// Bookmark manager
-    BookmarkManager *m_bookmarkMgr;
+    BookmarkNodeManager *m_bookmarkMgr;
 };
 
 #endif // BOOKMARKFOLDERMODEL_H

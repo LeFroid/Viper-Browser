@@ -18,6 +18,7 @@
 class BookmarkNode : public TreeNode<BookmarkNode>
 {
     friend class BookmarkManager;
+    friend class BookmarkNodeManager;
 
 public:
     /// List of the specific types of bookmark nodes. At the moment, there are only bookmarks and folders.
@@ -43,32 +44,20 @@ public:
     /// Returns the identifier of the node, if it is of type folder
     int getFolderId() const;
 
-    /// Sets the identifier of the node
-    void setFolderId(int id);
+    /// Returns the position of the bookmark node in relation to its siblings
+    int getPosition() const;
 
     /// Returns this node's type
     NodeType getType() const;
 
-    /// Sets this node's type to the given value
-    void setType(NodeType type);
-
     /// Returns the name of the bookmark node
     const QString &getName() const;
-
-    /// Sets the name of the bookmark node to the given value
-    void setName(const QString &name);
 
     /// Returns the shortcut used to load the bookmark
     const QString &getShortcut() const;
 
-    /// Sets the shortcut that can be used to load the bookmark
-    void setShortcut(const QString &shortcut);
-
     /// Returns the URL of the node if its type is bookmark, returns an empty QString otherwise
     const QUrl &getURL() const;
-
-    /// Sets the URL of the node
-    void setURL(const QUrl &url);
 
     /// Returns the icon associated with the node
     const QIcon &getIcon() const;
@@ -77,6 +66,31 @@ public:
     void setIcon(const QIcon &icon);
 
 protected:
+    /// Returns the unique identifier of the node
+    int getUniqueId() const;
+
+    /// Sets the unique identifier of the node
+    void setUniqueId(int id);
+
+    /// Sets the identifier of the node
+    void setFolderId(int id);
+
+    /// Sets the name of the bookmark node to the given value
+    void setName(const QString &name);
+
+    /// Sets the shortcut that can be used to load the bookmark
+    void setShortcut(const QString &shortcut);
+
+    /// Sets this node's type to the given value
+    void setType(NodeType type);
+
+    /// Sets the URL of the node
+    void setURL(const QUrl &url);
+
+protected:
+    /// Unique identifier of the node as stored in the database
+    int m_id;
+
     /// Name of the bookmark node
     QString m_name;
 

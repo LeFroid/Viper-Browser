@@ -1,12 +1,13 @@
 #include "BookmarkDialog.h"
 #include "ui_BookmarkDialog.h"
 #include "BookmarkNode.h"
+#include "BookmarkNodeManager.h"
 
 #include <QtConcurrent>
 #include <QFuture>
 #include <QQueue>
 
-BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
+BookmarkDialog::BookmarkDialog(BookmarkNodeManager *bookmarkMgr, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BookmarkDialog),
     m_bookmarkManager(bookmarkMgr),
@@ -21,7 +22,7 @@ BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
 
     // Populate combo box with each folder in the bookmark collection
     const BookmarkNode *rootNode = m_bookmarkManager->getRoot();
-    for (auto it : *m_bookmarkManager)
+    for (const auto it : *m_bookmarkManager)
     {
         if (it != rootNode && it->getType() == BookmarkNode::Folder)
             ui->comboBoxFolder->addItem(it->getName(), qVariantFromValue((void *)it));
@@ -104,14 +105,17 @@ void BookmarkDialog::saveAndClose()
         BookmarkNode *parentNode = (BookmarkNode*)ui->comboBoxFolder->currentData().value<void*>();
         if (m_bookmarkManager->isBookmarked(m_currentUrl))
         {
-            BookmarkNode *n = m_bookmarkManager->getBookmark(m_currentUrl);
-            if (n && n->getName() == ui->lineEditName->text() && n->getParent() == parentNode)
-                return;
+            if (BookmarkNode *n = m_bookmarkManager->getBookmark(m_currentUrl))
+            {
+                if (n->getName() != ui->lineEditName->text())
+                    m_bookmarkManager->setBookmarkName(n, ui->lineEditName->text());
 
-            m_bookmarkManager->removeBookmark(m_currentUrl);
+                if (n->getParent() != parentNode)
+                    m_bookmarkManager->setBookmarkParent(n, parentNode);
+            }
         }
-
-		m_bookmarkManager->appendBookmark(ui->lineEditName->text(), m_currentUrl, parentNode);
+        else
+            m_bookmarkManager->appendBookmark(ui->lineEditName->text(), m_currentUrl, parentNode);
 	});
     close();
 }

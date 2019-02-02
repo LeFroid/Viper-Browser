@@ -1,7 +1,7 @@
 #ifndef BOOKMARKEXPORTER_H
 #define BOOKMARKEXPORTER_H
 
-#include "BookmarkManager.h"
+#include "BookmarkNodeManager.h"
 #include <QFile>
 #include <QString>
 #include <QTextStream>
@@ -14,8 +14,8 @@
 class BookmarkExporter
 {
 public:
-    /// Constructs the bookmark exporter given a pointer to the BookmarkManager
-    explicit BookmarkExporter(BookmarkManager *bookmarkMgr);
+    /// Constructs the bookmark exporter given a pointer to the BookmarkNodeManager
+    explicit BookmarkExporter(BookmarkNodeManager *bookmarkMgr);
 
     /**
      * @brief saveTo Attempts to save the user's bookmarks to a file
@@ -35,8 +35,8 @@ private:
     /// Netscape bookmark file header
     static const QString NetscapeHeader;
 
-    /// Bookmark manager
-    BookmarkManager *m_bookmarkManager;
+    /// Bookmark node manager
+    BookmarkNodeManager *m_bookmarkManager;
 
     /// Output file handle
     QFile m_outputFile;

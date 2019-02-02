@@ -1,6 +1,6 @@
 #include "BookmarkTableModel.h"
-#include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "BookmarkNodeManager.h"
 
 #include <deque>
 #include <set>
@@ -13,7 +13,7 @@
 #include <QUrl>
 #include <QDebug>
 
-BookmarkTableModel::BookmarkTableModel(BookmarkManager *bookmarkMgr, QObject *parent) :
+BookmarkTableModel::BookmarkTableModel(BookmarkNodeManager *bookmarkMgr, QObject *parent) :
     QAbstractTableModel(parent),
     m_bookmarkMgr(bookmarkMgr),
     m_folder(bookmarkMgr->getBookmarksBar()),
@@ -108,13 +108,13 @@ bool BookmarkTableModel::setData(const QModelIndex &index, const QVariant &value
             // Name
             case 0:
             {
-                m_bookmarkMgr->updateBookmarkName(newValue, b);
+                m_bookmarkMgr->setBookmarkName(b, newValue);
                 break;
             }
             // URL
             case 1:
             {
-                m_bookmarkMgr->updateBookmarkURL(QUrl::fromUserInput(newValue), b);
+                m_bookmarkMgr->setBookmarkURL(b, QUrl::fromUserInput(newValue));
                 break;
             }
             default:
@@ -246,7 +246,7 @@ bool BookmarkTableModel::dropMimeData(const QMimeData *data, Qt::DropAction acti
     {
         if (n->getType() == BookmarkNode::Folder)
             needUpdateModel = true;
-        m_bookmarkMgr->setNodePosition(n, newRow);
+        m_bookmarkMgr->setBookmarkPosition(n, newRow);
         ++newRow;
     }
     endResetModel();

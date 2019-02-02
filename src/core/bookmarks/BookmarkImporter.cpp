@@ -7,7 +7,7 @@
 #include <QFile>
 #include <QUrl>
 
-BookmarkImporter::BookmarkImporter(BookmarkManager *bookmarkMgr) :
+BookmarkImporter::BookmarkImporter(BookmarkNodeManager *bookmarkMgr) :
     m_bookmarkManager(bookmarkMgr),
     m_folderStartTag("<DL><p>"),
     m_folderEndTag("</DL><p>"),
@@ -47,7 +47,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
     BookmarkNode *currentNode = importFolder;
     std::stack<BookmarkNode*> s;
 
-    m_bookmarkManager->setImportState(true);
+    m_bookmarkManager->setCanUpdateList(false);
     while (pos > 0 && pos < pageHtmlSize && currentNode != nullptr)
     {
         pos = pageHtml.indexOf(m_startTag, pos);
@@ -64,7 +64,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
             if (nameEndPos < 0)
             {
                 qDebug() << "Error: invalid bookmark html. Halting import";
-                m_bookmarkManager->setImportState(false);
+                m_bookmarkManager->setCanUpdateList(true);
                 return false;
             }
 
@@ -103,7 +103,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
             if (attrEndPos < 0)
             {
                 qDebug() << "Error: invalid bookmark html. Halting import";
-                m_bookmarkManager->setImportState(false);
+                m_bookmarkManager->setCanUpdateList(true);
                 return false;
             }
 
@@ -113,7 +113,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
             if (urlStartPos < 0)
             {
                 qDebug() << "Error: invalid bookmark html. Halting import";
-                m_bookmarkManager->setImportState(false);
+                m_bookmarkManager->setCanUpdateList(true);
                 return false;
             }
             urlStartPos += 6;
@@ -121,7 +121,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
             if (urlEndPos < 0)
             {
                 qDebug() << "Error: invalid bookmark html. Halting import";
-                m_bookmarkManager->setImportState(false);
+                m_bookmarkManager->setCanUpdateList(true);
                 return false;
             }
 
@@ -140,7 +140,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
         }
         ++pos;
     }
-    m_bookmarkManager->setImportState(false);
+    m_bookmarkManager->setCanUpdateList(true);
 
     return true;
 }

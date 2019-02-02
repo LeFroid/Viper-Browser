@@ -4,6 +4,7 @@
 #include "AutoFill.h"
 #include "BlockedSchemeHandler.h"
 #include "BookmarkManager.h"
+#include "BookmarkNodeManager.h"
 #include "CookieJar.h"
 #include "CookieWidget.h"
 #include "DatabaseFactory.h"
@@ -84,7 +85,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
 
     m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_settings->getPathValue(BrowserSetting::ThumbnailPath));
-    m_thumbnailStore->setBookmarkManager(m_bookmarks.get());
+    m_thumbnailStore->setBookmarkManager(m_bookmarks->getNodeManager());
     m_thumbnailStore->setHistoryManager(m_historyMgr.get());
 
     m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get(), m_settings->getPathValue(BrowserSetting::FavoritePagesFile));
@@ -150,9 +151,9 @@ AutoFill *BrowserApplication::getAutoFill()
     return m_autoFill;
 }
 
-BookmarkManager *BrowserApplication::getBookmarkManager()
+BookmarkNodeManager *BrowserApplication::getBookmarkNodeManager()
 {
-    return m_bookmarks.get();
+    return m_bookmarks->getNodeManager();
 }
 
 CookieJar *BrowserApplication::getCookieJar()
@@ -225,7 +226,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarks.get(), m_faviconStorage.get(), false);
+    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarks->getNodeManager(), m_faviconStorage.get(), false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
     connect(w, &MainWindow::destroyed, [this, w](){
@@ -264,7 +265,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarks.get(), m_faviconStorage.get(), true);
+    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarks->getNodeManager(), m_faviconStorage.get(), true);
     m_browserWindows.append(w);
     connect(w, &MainWindow::destroyed, [this, w](){
         if (m_browserWindows.contains(w))

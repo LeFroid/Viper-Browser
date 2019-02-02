@@ -80,7 +80,7 @@ public:
     }
 
     /// Returns a pointer to the node's parent, or a nullptr if this is the root node
-    T *getParent()
+    T *getParent() const
     {
         return m_parent;
     }

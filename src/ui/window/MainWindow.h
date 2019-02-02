@@ -55,7 +55,7 @@ class MainWindow : public QMainWindow
 
 public:
     /// Constructs the main window
-    explicit MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStore *faviconStore, bool privateWindow, QWidget *parent = nullptr);
+    explicit MainWindow(Settings *settings, BookmarkNodeManager *bookmarkManager, FaviconStore *faviconStore, bool privateWindow, QWidget *parent = nullptr);
 
     /// MainWindow destructor
     ~MainWindow();
@@ -240,8 +240,8 @@ private:
     /// Pointer to browser settings
     Settings *m_settings;
 
-    /// Bookmark manager
-    BookmarkManager *m_bookmarkManager;
+    /// Bookmark node manager
+    BookmarkNodeManager *m_bookmarkManager;
 
     /// Pointer to the favicon store
     FaviconStore *m_faviconStore;

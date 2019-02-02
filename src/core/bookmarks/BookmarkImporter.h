@@ -1,7 +1,7 @@
 #ifndef BOOKMARKIMPORTER_H
 #define BOOKMARKIMPORTER_H
 
-#include "BookmarkManager.h"
+#include "BookmarkNodeManager.h"
 
 #include <QLatin1String>
 
@@ -14,8 +14,8 @@
 class BookmarkImporter
 {
 public:
-    /// Constructs the bookmark importer, given a pointer to the bookmark manager
-    explicit BookmarkImporter(BookmarkManager *bookmarkMgr);
+    /// Constructs the bookmark importer, given a pointer to the bookmark node manager
+    explicit BookmarkImporter(BookmarkNodeManager *bookmarkMgr);
 
     /**
      * @brief import Attempts to import bookmarks from the given HTML file into a bookmark folder
@@ -26,8 +26,8 @@ public:
     bool import(const QString &fileName, BookmarkNode *importFolder);
 
 private:
-    /// Bookmark manager
-    BookmarkManager *m_bookmarkManager;
+    /// Bookmark node manager
+    BookmarkNodeManager *m_bookmarkManager;
 
     /// Folder element opening and closing tags
     QLatin1String m_folderStartTag;

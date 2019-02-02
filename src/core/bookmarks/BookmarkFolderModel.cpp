@@ -1,5 +1,6 @@
 #include "BookmarkFolderModel.h"
 #include "BookmarkNode.h"
+#include "BookmarkNodeManager.h"
 #include <vector>
 #include <cstdint>
 
@@ -8,7 +9,7 @@
 #include <QIODevice>
 #include <QMimeData>
 
-BookmarkFolderModel::BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent) :
+BookmarkFolderModel::BookmarkFolderModel(BookmarkNodeManager *bookmarkMgr, QObject *parent) :
     QAbstractItemModel(parent),
     m_root(bookmarkMgr->getRoot()),
     m_bookmarksBar(bookmarkMgr->getBookmarksBar()),
@@ -116,8 +117,7 @@ bool BookmarkFolderModel::setData(const QModelIndex &index, const QVariant &valu
     if (index.isValid() && role == Qt::EditRole)
     {
         BookmarkNode *folder = getItem(index);
-        folder->setName(value.toString());
-        m_bookmarkMgr->updatedFolderName(folder);
+        m_bookmarkMgr->setBookmarkName(folder, value.toString());
         emit dataChanged(index, index);
         return true;
     }
@@ -154,7 +154,7 @@ bool BookmarkFolderModel::removeRows(int row, int count, const QModelIndex &pare
 {
     beginRemoveRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i)
-        m_bookmarkMgr->removeFolder(getItem(index(row + i, 0, parent)));
+        m_bookmarkMgr->removeBookmark(getItem(index(row + i, 0, parent)));
     endRemoveRows();
     return true;
 }
@@ -227,7 +227,7 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
         {
             case BookmarkNode::Folder:
             {
-                BookmarkNode *newPtr = m_bookmarkMgr->setFolderParent(n, targetNode);
+                BookmarkNode *newPtr = m_bookmarkMgr->setBookmarkParent(n, targetNode);
                 emit movedFolder(n, newPtr);
                 break;
             }
@@ -235,8 +235,10 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
             {
                 if (droppedInRoot)
                     break;
+                const QString name = n->getName();
+                const QUrl url = n->getURL();
                 m_bookmarkMgr->removeBookmark(n);
-                m_bookmarkMgr->appendBookmark(n->getName(), n->getURL(), targetNode);
+                m_bookmarkMgr->appendBookmark(name, url, targetNode);
                 break;
             }
         }

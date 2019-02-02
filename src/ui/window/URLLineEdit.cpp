@@ -1,5 +1,5 @@
-#include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "BookmarkNodeManager.h"
 #include "BrowserApplication.h"
 #include "MainWindow.h"
 #include "SchemeRegistry.h"
@@ -239,7 +239,7 @@ void URLLineEdit::onInputEntered()
     if (delimIdx > 0)
         urlTextStart = urlTextStart.left(delimIdx);
 
-    BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
+    BookmarkNodeManager *bookmarkMgr = sBrowserApplication->getBookmarkNodeManager();
     for (auto it : *bookmarkMgr)
     {
         if (it->getType() == BookmarkNode::Bookmark

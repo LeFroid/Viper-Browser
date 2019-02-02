@@ -14,6 +14,7 @@
 class AutoFill;
 class BlockedSchemeHandler;
 class BookmarkManager;
+class BookmarkNodeManager;
 class CookieJar;
 class CookieWidget;
 class DownloadManager;
@@ -67,8 +68,8 @@ public:
     /// Returns a pointer to the AutoFill manager
     AutoFill *getAutoFill();
 
-    /// Returns a pointer to the bookmark manager
-    BookmarkManager *getBookmarkManager();
+    /// Returns a pointer to the bookmark node manager
+    BookmarkNodeManager *getBookmarkNodeManager();
 
     /// Returns the cookie jar used for standard (non-private) browsing mode
     CookieJar *getCookieJar();

@@ -5,6 +5,7 @@
 #include <QToolBar>
 #include <QWidget>
 
+class BookmarkNodeManager;
 class QHBoxLayout;
 class QMenu;
 
@@ -21,8 +22,8 @@ public:
     /// Constructs the bookmark bar widget
     explicit BookmarkBar(QWidget *parent = nullptr);
 
-    /// Sets the pointer to the bookmark manager
-    void setBookmarkManager(BookmarkManager *manager);
+    /// Sets the pointer to the bookmark node manager
+    void setBookmarkManager(BookmarkNodeManager *manager);
 
     /// Filters events if this object has been installed as an event filter for the watched object.
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -65,8 +66,8 @@ private:
     void clear();
 
 private:
-    /// Pointer to the bookmark manager
-    BookmarkManager *m_bookmarkManager;
+    /// Pointer to the bookmark node manager
+    BookmarkNodeManager *m_bookmarkManager;
 
     /// Horizontal layout manager
     QHBoxLayout *m_layout;

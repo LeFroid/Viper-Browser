@@ -5,6 +5,7 @@
 
 BookmarkNode::BookmarkNode() :
     TreeNode<BookmarkNode>(),
+    m_id(0),
     m_name(),
     m_url(),
     m_icon(),
@@ -16,6 +17,7 @@ BookmarkNode::BookmarkNode() :
 
 BookmarkNode::BookmarkNode(BookmarkNode::NodeType type, const QString &name) :
     TreeNode<BookmarkNode>(),
+    m_id(0),
     m_name(name),
     m_url(),
     m_icon(),
@@ -27,6 +29,7 @@ BookmarkNode::BookmarkNode(BookmarkNode::NodeType type, const QString &name) :
 
 BookmarkNode::BookmarkNode(BookmarkNode &&other)
 {
+    m_id = other.m_id;
     m_name = other.m_name;
     m_url = other.m_url;
     m_shortcut = other.m_shortcut;
@@ -61,6 +64,20 @@ int BookmarkNode::getFolderId() const
 void BookmarkNode::setFolderId(int id)
 {
     m_folderId = id;
+}
+
+int BookmarkNode::getPosition() const
+{
+    if (!m_parent)
+        return 0;
+
+    for (int i = 0; i < m_parent->getNumChildren(); ++i)
+    {
+        if (m_parent->getNode(i) == this)
+            return 1;
+    }
+
+    return m_parent->getNumChildren() - 1;
 }
 
 BookmarkNode::NodeType BookmarkNode::getType() const
@@ -111,6 +128,16 @@ const QIcon &BookmarkNode::getIcon() const
 void BookmarkNode::setIcon(const QIcon &icon)
 {
     m_icon = icon;
+}
+
+int BookmarkNode::getUniqueId() const
+{
+    return m_id;
+}
+
+void BookmarkNode::setUniqueId(int id)
+{
+    m_id = id;
 }
 
 QDataStream& operator<<(QDataStream &out, BookmarkNode *&node)

@@ -1,6 +1,7 @@
 #include "BookmarkMenu.h"
 #include "BrowserApplication.h"
-#include "BookmarkManager.h"
+#include "BookmarkNodeManager.h"
+#include "BookmarkNode.h"
 
 #include <deque>
 
@@ -46,7 +47,7 @@ void BookmarkMenu::resetMenu()
 
     // Iteratively load bookmark data into menu
     std::deque< std::pair<BookmarkNode*, QMenu*> > folders;
-    folders.push_back({ sBrowserApplication->getBookmarkManager()->getRoot(), this });
+    folders.push_back({ sBrowserApplication->getBookmarkNodeManager()->getRoot(), this });
 
     while (!folders.empty())
     {
@@ -81,7 +82,7 @@ void BookmarkMenu::setup()
     connect(m_addPageBookmarks,    &QAction::triggered, [=](){ emit addPageToBookmarks(); });
     connect(m_removePageBookmarks, &QAction::triggered, [=](){ emit removePageFromBookmarks(false); });
 
-    connect(sBrowserApplication->getBookmarkManager(), &BookmarkManager::bookmarksChanged,
+    connect(sBrowserApplication->getBookmarkNodeManager(), &BookmarkNodeManager::bookmarksChanged,
             this, &BookmarkMenu::resetMenu);
 
     resetMenu();

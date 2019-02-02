@@ -15,6 +15,7 @@ set(viper_src
     bookmarks/BookmarkImporter.cpp
     bookmarks/BookmarkManager.cpp
     bookmarks/BookmarkNode.cpp
+    bookmarks/BookmarkNodeManager.cpp
     bookmarks/BookmarkTableModel.cpp
     cookies/CookieJar.cpp
     cookies/CookieTableModel.cpp

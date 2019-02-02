@@ -8,6 +8,7 @@
 #include "BookmarkDialog.h"
 #include "BookmarkBar.h"
 #include "BookmarkNode.h"
+#include "BookmarkNodeManager.h"
 #include "BookmarkWidget.h"
 #include "CodeEditor.h"
 #include "CookieWidget.h"
@@ -56,7 +57,7 @@
 #include <QToolButton>
 #include <QtConcurrent>
 
-MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStore *faviconStore, bool privateWindow, QWidget *parent) :
+MainWindow::MainWindow(Settings *settings, BookmarkNodeManager *bookmarkManager, FaviconStore *faviconStore, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_privateWindow(privateWindow),
@@ -148,7 +149,7 @@ void MainWindow::openLinkNewWindow(const QUrl &url)
 
 void MainWindow::setupBookmarks()
 {
-    connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged,     this, &MainWindow::checkPageForBookmark);
+    connect(m_bookmarkManager, &BookmarkNodeManager::bookmarksChanged, this, &MainWindow::checkPageForBookmark);
 
     connect(ui->menuBookmarks, &BookmarkMenu::manageBookmarkRequest,   this, &MainWindow::openBookmarkWidget);
     connect(ui->menuBookmarks, &BookmarkMenu::loadUrlRequest,          this, &MainWindow::loadUrl);
@@ -289,7 +290,7 @@ void MainWindow::checkPageForBookmark()
         ui->toolBar->getURLWidget()->setCurrentPageBookmarked(isBookmarked, n);
         watcher->deleteLater();
     });
-    QFuture<bool> b = QtConcurrent::run(m_bookmarkManager, &BookmarkManager::isBookmarked, pageUrl);
+    QFuture<bool> b = QtConcurrent::run(m_bookmarkManager, &BookmarkNodeManager::isBookmarked, pageUrl);
     watcher->setFuture(b);
 }
 

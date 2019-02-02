@@ -8,6 +8,8 @@
 #include <QVector>
 #include <QWidget>
 
+class BookmarkNodeManager;
+
 namespace Ui {
 class BookmarkWidget;
 }
@@ -36,8 +38,8 @@ public:
     /// BookmarkWidget destructor
     ~BookmarkWidget();
 
-    /// Sets the pointer to the user's bookmark manager
-    void setBookmarkManager(BookmarkManager *bookmarkManager);
+    /// Sets the pointer to the user's bookmark node manager
+    void setBookmarkManager(BookmarkNodeManager *bookmarkManager);
 
 protected:
     /// Called to adjust the proportions of the columns belonging to the table view
@@ -148,8 +150,8 @@ private:
     /// Dialog's user interface elements
     Ui::BookmarkWidget *ui;
 
-    /// Pointer to the user's bookmark manager
-    BookmarkManager *m_bookmarkManager;
+    /// Pointer to the user's bookmark node manager
+    BookmarkNodeManager *m_bookmarkManager;
 
     /// Pointer to the selected bookmark node
     BookmarkNode *m_currentNode;
