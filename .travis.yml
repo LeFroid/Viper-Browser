@@ -35,9 +35,7 @@ before_script:
   - mkdir build
   - cd build
   - cmake --version
-  - ${CXX} --version
-  - ${CC} --version
-  - cmake -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DENABLE_TESTING=ON ..
+  - cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DENABLE_TESTING=ON ..
 
 script:
   - cmake --build .
