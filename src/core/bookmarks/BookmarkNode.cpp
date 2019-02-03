@@ -45,7 +45,7 @@ int BookmarkNode::getPosition() const
     for (int i = 0; i < m_parent->getNumChildren(); ++i)
     {
         if (m_parent->getNode(i) == this)
-            return 1;
+            return i;
     }
 
     return m_parent->getNumChildren() - 1;
