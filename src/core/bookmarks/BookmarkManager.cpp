@@ -248,8 +248,29 @@ void BookmarkManager::setBookmarkName(BookmarkNode *bookmark, const QString &nam
 
 BookmarkNode *BookmarkManager::setBookmarkParent(BookmarkNode *bookmark, BookmarkNode *parent)
 {
-    if (!bookmark|| !parent || bookmark == m_rootNode || bookmark->getParent() == parent)
+    if (!bookmark
+            || !parent
+            || bookmark == m_rootNode
+            || bookmark->getParent() == parent
+            || parent->getType() != BookmarkNode::Folder)
         return bookmark;
+
+    // Don't allow user to set a bookmark folder's parent to its child. They
+    // should use an intermediate or third folder instead
+    if (bookmark->getType() == BookmarkNode::Folder)
+    {
+        BookmarkNode *temp = parent;
+        while (temp->getParent())
+        {
+            BookmarkNode *tempParent = temp->getParent();
+            if (tempParent == m_rootNode)
+                break;
+            if (tempParent == bookmark)
+                return bookmark;
+
+            temp = tempParent;
+        }
+    }
 
     BookmarkNode *oldParent = bookmark->getParent();
     for (auto it = oldParent->m_children.begin(); it != oldParent->m_children.end(); ++it)

@@ -26,6 +26,8 @@ private slots:
 
     void testRemovingBookmarkFromFolder();
 
+    void testChangingBookmarkParent();
+
 private:
     /// Root node/folder used in bookmark management tests
     std::unique_ptr<BookmarkNode> m_root;
@@ -174,6 +176,41 @@ void BookmarkManagerTest::testRemovingBookmarkFromFolder()
         }
         QVERIFY2(!folderStillExists, "Bookmark manager should have deleted the node");
     }
+}
+
+void BookmarkManagerTest::testChangingBookmarkParent()
+{
+    QUrl bookmarkUrl { QLatin1String("https://viper-browser.com/") };
+
+    // Add bookmark to root folder
+    m_manager->appendBookmark(QLatin1String("Viper Browser"), bookmarkUrl, m_root.get());
+    BookmarkNode *bookmark = m_manager->getBookmark(bookmarkUrl);
+    QVERIFY2(bookmark != nullptr, "Bookmark manager should have inserted the bookmark into the collection");
+    QVERIFY2(bookmark->getParent() == m_root.get(), "Bookmark parent should be root folder");
+
+    // Create a sub-folder
+    BookmarkNode *linkFolder = m_manager->addFolder(QLatin1String("Links"), m_root.get());
+    QVERIFY2(linkFolder != nullptr, "Folder should exist");
+
+    bookmark = m_manager->setBookmarkParent(bookmark, linkFolder);
+    QVERIFY2(bookmark != nullptr, "Bookmark should not be null after changing parent");
+    QVERIFY2(bookmark->getParent() == linkFolder, "Bookmark parent should be link folder");
+
+    // Create another folder and move the "Links" folder into it
+    BookmarkNode *miscFolder = m_manager->addFolder(QLatin1String("Misc"), m_root.get());
+    QVERIFY2(miscFolder != nullptr, "Folder should exist");
+
+    linkFolder = m_manager->setBookmarkParent(linkFolder, miscFolder);
+    QVERIFY2(linkFolder != nullptr, "Folder should exist");
+    QVERIFY2(linkFolder->getParent() == miscFolder, "Link folder parent should be Misc folder");
+    QVERIFY2(bookmark->getParent() == linkFolder, "Bookmark parent should be link folder");
+
+    QVERIFY2(miscFolder->getParent() == m_root.get(), "Misc folder parent should be root");
+
+    // Verify that we can't set the parent of miscFolder to its child (Link folder)
+    miscFolder = m_manager->setBookmarkParent(miscFolder, linkFolder);
+    QVERIFY2(miscFolder->getParent() == m_root.get(), "Misc folder parent should be root");
+    QVERIFY2(linkFolder->getParent() == miscFolder, "Link folder parent should be Misc folder");
 }
 
 QTEST_APPLESS_MAIN(BookmarkManagerTest)
