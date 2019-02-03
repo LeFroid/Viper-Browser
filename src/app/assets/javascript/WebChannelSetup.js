@@ -33,7 +33,7 @@
     function onMessage(event) {
         try {
             var msgData = event.data;
-            if (!('_viper_webchannel_msg' in msgData) || !msgData._viper_webchannel_msg)
+            if (msgData._viper_webchannel_msg !== true)
                 return;
 
             var channelObj = window.viper[msgData._viper_webchannel_obj];
