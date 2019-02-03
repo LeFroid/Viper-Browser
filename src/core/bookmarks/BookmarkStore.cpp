@@ -18,7 +18,7 @@ BookmarkStore::BookmarkStore(const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("Bookmarks")),
     m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks"))),
-    m_nodeManager(new BookmarkManager(this))
+    m_nodeManager(new BookmarkManager(sBrowserApplication->getFaviconStore(), this))
 {
     connect(m_nodeManager, &BookmarkManager::bookmarkChanged, this, &BookmarkStore::onBookmarkChanged);
     connect(m_nodeManager, &BookmarkManager::bookmarkCreated, this, &BookmarkStore::onBookmarkCreated);

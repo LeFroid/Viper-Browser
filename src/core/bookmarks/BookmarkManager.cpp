@@ -1,7 +1,6 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BookmarkStore.h"
-#include "BrowserApplication.h"
 #include "FaviconStore.h"
 
 #include <deque>
@@ -9,14 +8,16 @@
 
 #include <QtConcurrent>
 
-BookmarkManager::BookmarkManager(QObject *parent) :
+BookmarkManager::BookmarkManager(FaviconStore *faviconStore, QObject *parent) :
     QObject(parent),
     m_rootNode(nullptr),
     m_bookmarkBar(nullptr),
+    m_faviconStore(faviconStore),
     m_lookupCache(24),
     m_nodeList(),
     m_canUpdateList(true),
     m_numBookmarks(0),
+    m_nodeListFuture(),
     m_mutex()
 {
 }
@@ -48,6 +49,9 @@ BookmarkNode *BookmarkManager::getBookmark(const QUrl &url)
             return node;
     }
 
+    if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
+        m_nodeListFuture.waitForFinished();
+
     for (BookmarkNode *node : m_nodeList)
     {
         if (node->getType() == BookmarkNode::Bookmark
@@ -66,6 +70,9 @@ bool BookmarkManager::isBookmarked(const QUrl &url)
     const std::string urlStdStr = url.toString().toStdString();
     if (m_lookupCache.has(urlStdStr) && m_lookupCache.get(urlStdStr) != nullptr)
         return true;
+
+    if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
+        m_nodeListFuture.waitForFinished();
 
     for (BookmarkNode *node : m_nodeList)
     {
@@ -91,7 +98,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, Bookm
     BookmarkNode *bookmark = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
     bookmark->setUniqueId(bookmarkId);
     bookmark->setURL(url);
-    bookmark->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(url));
+    bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
     ++m_numBookmarks;
 
@@ -117,7 +124,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QUrl &url, Bookm
     BookmarkNode *bookmark = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
     bookmark->setUniqueId(bookmarkId);
     bookmark->setURL(url);
-    bookmark->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(url));
+    bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
     ++m_numBookmarks;
 
@@ -309,7 +316,7 @@ void BookmarkManager::setBookmarkURL(BookmarkNode *bookmark, const QUrl &url)
         m_lookupCache.put(oldUrlStr, nullptr);
 
     bookmark->setURL(url);
-    bookmark->setIcon(sBrowserApplication->getFaviconStore()->getFavicon(url));
+    bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
     emit bookmarkChanged(bookmark);
 }
@@ -341,7 +348,7 @@ void BookmarkManager::setRootNode(BookmarkNode *node)
 void BookmarkManager::scheduleResetList()
 {
     if (m_canUpdateList)
-        QtConcurrent::run(this, &BookmarkManager::resetBookmarkList);
+        m_nodeListFuture = QtConcurrent::run(this, &BookmarkManager::resetBookmarkList);
 }
 
 void BookmarkManager::setCanUpdateList(bool value)

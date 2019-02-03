@@ -8,9 +8,11 @@
 #include <string>
 #include <vector>
 
+#include <QFuture>
 #include <QObject>
 
 class BookmarkNode;
+class FaviconStore;
 
 /**
  * @class BookmarkManager
@@ -22,6 +24,7 @@ class BookmarkManager : public QObject
 {
     friend class BookmarkImporter;
     friend class BookmarkStore;
+    friend class BookmarkManagerTest;
 
     Q_OBJECT
 
@@ -29,8 +32,9 @@ public:
     using iterator = std::vector<BookmarkNode*>::iterator;
     using const_iterator = std::vector<BookmarkNode*>::const_iterator;
 
-    /// Constructs the bookmark node manager with a given parent
-    explicit BookmarkManager(QObject *parent = nullptr);
+    /// Constructs the bookmark node manager with a given parent, and a pointer to
+    /// the \ref FaviconStore in order to load bookmark icons
+    explicit BookmarkManager(FaviconStore *faviconStore, QObject *parent = nullptr);
 
     /// BookmarkManager destructor
     ~BookmarkManager();
@@ -138,6 +142,9 @@ private:
     /// Holds a pointer to the bookmark bar node in the bookmark tree
     BookmarkNode *m_bookmarkBar;
 
+    /// Pointer to the favicon store
+    FaviconStore *m_faviconStore;
+
     /// Cache of bookmark nodes that were recently searched for within the application
     LRUCache<std::string, BookmarkNode*> m_lookupCache;
 
@@ -150,6 +157,9 @@ private:
 
     /// Stores the number of bookmarks in the tree. Used to assign unique IDs to new bookmarks
     std::atomic_int m_numBookmarks;
+
+    /// Future associated with the m_nodeList regeneration method
+    QFuture<void> m_nodeListFuture;
 
     /// Mutex
     mutable std::mutex m_mutex;
