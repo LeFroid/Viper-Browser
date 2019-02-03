@@ -30,6 +30,7 @@ install:
   - rm -f cmake.tar.gz
   - export PATH=/opt/cmake/bin:/opt/qt512/bin:${PATH}
   - export CMAKE_PREFIX_PATH=/opt/qt512:${CMAKE_PREFIX_PATH}
+  - export CXXFLAGS="-std=c++14 -stdlib=libc++"
 
 before_script:
   - mkdir build
