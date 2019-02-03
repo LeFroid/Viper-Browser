@@ -24,6 +24,8 @@ private slots:
     void testAddingBookmarksToSubFolder_data();
     void testAddingBookmarksToSubFolder();
 
+    void testRemovingBookmarkFromFolder();
+
 private:
     /// Root node/folder used in bookmark management tests
     std::unique_ptr<BookmarkNode> m_root;
@@ -60,7 +62,6 @@ void BookmarkManagerTest::cleanupTestCase()
 void BookmarkManagerTest::testAddingBookmarkToFolder()
 {
     QUrl bookmarkUrl { QLatin1String("https://www.home.page/") };
-    qDebug() << bookmarkUrl;
     m_manager->appendBookmark(QLatin1String("Home"), bookmarkUrl, m_root.get());
 
     QCOMPARE(m_root->getNumChildren(), 1);
@@ -129,6 +130,49 @@ void BookmarkManagerTest::testAddingBookmarksToSubFolder()
         }
         default:
             break;
+    }
+}
+
+void BookmarkManagerTest::testRemovingBookmarkFromFolder()
+{
+    QUrl bookmarkUrl { QLatin1String("https://some.website.com/welcome") };
+
+    // Add bookmark, test delete by URL
+    m_manager->appendBookmark(QLatin1String("To Delete"), bookmarkUrl, m_root.get());
+    QVERIFY2(m_manager->isBookmarked(bookmarkUrl), "Bookmark manager should have inserted the bookmark into the collection");
+
+    m_manager->removeBookmark(bookmarkUrl);
+    QVERIFY2(!m_manager->isBookmarked(bookmarkUrl), "Bookmark manager should have removed the bookmark from the collection");
+
+    // Add bookmark, test delete by Node pointer
+    bookmarkUrl = QUrl(QLatin1String("http://othersite.net/forum"));
+    m_manager->appendBookmark(QLatin1String("To Delete"), bookmarkUrl, m_root.get());
+
+    BookmarkNode *node = m_manager->getBookmark(bookmarkUrl);
+    QVERIFY2(node != nullptr, "Bookmark should exist");
+
+    if (node)
+    {
+        m_manager->removeBookmark(node);
+        QVERIFY2(!m_manager->isBookmarked(bookmarkUrl), "Bookmark manager should have deleted the node");
+    }
+
+    // Add folder, test delete by Node pointer
+    const auto folderName = QLatin1String("My Folder");
+    node = m_manager->addFolder(folderName, m_root.get());
+    QVERIFY2(node != nullptr, "Folder should exist");
+    if (node)
+    {
+        m_manager->removeBookmark(node);
+
+        bool folderStillExists = false;
+        for (int i = 0; i < m_root->getNumChildren(); ++i)
+        {
+            BookmarkNode *child = m_root->getNode(i);
+            if (child->getType() == BookmarkNode::Folder && child->getName() == folderName)
+                folderStillExists = true;
+        }
+        QVERIFY2(!folderStillExists, "Bookmark manager should have deleted the node");
     }
 }
 

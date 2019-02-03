@@ -24,6 +24,8 @@ BookmarkManager::BookmarkManager(FaviconStore *faviconStore, QObject *parent) :
 
 BookmarkManager::~BookmarkManager()
 {
+    if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
+        m_nodeListFuture.waitForFinished();
 }
 
 BookmarkNode *BookmarkManager::getRoot() const
