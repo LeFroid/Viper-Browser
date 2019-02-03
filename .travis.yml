@@ -20,7 +20,6 @@ before_install:
 
 install:
   - sudo apt-get install libgl1-mesa-dev
-  - sudo apt-get install kwalletmanager
   - if [ "$QT_BASE" = "512" ]; then sudo apt-get install -qq qt512base qt512connectivity qt512multimedia qt512svg qt512translations qt512tools qt512webchannel qt512webengine ; source /opt/qt512/bin/qt512-env.sh ; export QTHOME=/opt/qt512 ; fi
 
   # cmake
