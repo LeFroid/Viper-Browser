@@ -34,16 +34,6 @@ public:
     /// Move constructor
     BookmarkNode(BookmarkNode &&other);
 
-    /// Appends the given node to this node, returning a raw pointer to the child node
-    BookmarkNode *appendNode(std::unique_ptr<BookmarkNode> node) override;
-
-    /// Inserts the given node to this node at the given index, returning a raw pointer to the child node.
-    /// If the index is invalid, this will simply append the node to the end
-    BookmarkNode *insertNode(std::unique_ptr<BookmarkNode> node, int index) override;
-
-    /// Returns the identifier of the node, if it is of type folder
-    int getFolderId() const;
-
     /// Returns the position of the bookmark node in relation to its siblings
     int getPosition() const;
 
@@ -71,9 +61,6 @@ protected:
 
     /// Sets the unique identifier of the node
     void setUniqueId(int id);
-
-    /// Sets the identifier of the node
-    void setFolderId(int id);
 
     /// Sets the name of the bookmark node to the given value
     void setName(const QString &name);

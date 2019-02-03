@@ -10,8 +10,7 @@ BookmarkNode::BookmarkNode() :
     m_url(),
     m_icon(),
     m_shortcut(),
-    m_type(BookmarkNode::Bookmark),
-    m_folderId(0)
+    m_type(BookmarkNode::Bookmark)
 {
 }
 
@@ -22,8 +21,7 @@ BookmarkNode::BookmarkNode(BookmarkNode::NodeType type, const QString &name) :
     m_url(),
     m_icon(),
     m_shortcut(),
-    m_type(type),
-    m_folderId(0)
+    m_type(type)
 {
 }
 
@@ -34,36 +32,9 @@ BookmarkNode::BookmarkNode(BookmarkNode &&other)
     m_url = other.m_url;
     m_shortcut = other.m_shortcut;
     m_type = other.m_type;
-    m_folderId = other.m_folderId;
     m_parent = other.m_parent;
     m_icon = std::move(other.m_icon);
     m_children = std::move(other.m_children);
-}
-
-BookmarkNode *BookmarkNode::appendNode(std::unique_ptr<BookmarkNode> node)
-{
-    BookmarkNode *nodePtr = TreeNode<BookmarkNode>::appendNode(std::move(node));
-    if (nodePtr->getType() != BookmarkNode::Folder)
-        nodePtr->m_folderId = m_folderId;
-    return nodePtr;
-}
-
-BookmarkNode *BookmarkNode::insertNode(std::unique_ptr<BookmarkNode> node, int index)
-{
-    BookmarkNode *nodePtr = TreeNode<BookmarkNode>::insertNode(std::move(node), index);
-    if (nodePtr->getType() != BookmarkNode::Folder)
-        nodePtr->m_folderId = m_folderId;
-    return nodePtr;
-}
-
-int BookmarkNode::getFolderId() const
-{
-    return m_folderId;
-}
-
-void BookmarkNode::setFolderId(int id)
-{
-    m_folderId = id;
 }
 
 int BookmarkNode::getPosition() const
