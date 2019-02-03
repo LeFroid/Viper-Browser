@@ -27,7 +27,7 @@ BookmarkStore::BookmarkStore(const QString &databaseFile, QObject *parent) :
 
 BookmarkStore::~BookmarkStore()
 {
-    //save();
+    save();
 }
 
 BookmarkManager *BookmarkStore::getNodeManager() const
