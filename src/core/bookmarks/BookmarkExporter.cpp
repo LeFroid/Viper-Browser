@@ -44,16 +44,14 @@ void BookmarkExporter::exportFolders(QTextStream &stream)
 {
     // Iteratively export bookmarks
     QString spacing;
-    int depth;
-    BookmarkNode *current;
 
     std::stack<std::pair<BookmarkNode*, int>> nodes;
     nodes.push({ m_bookmarkManager->getRoot(), 0 });
     while (!nodes.empty())
     {
         std::pair<BookmarkNode*, int> currentItem = nodes.top();
-        current = currentItem.first;
-        depth = currentItem.second;
+        BookmarkNode *current = currentItem.first;
+        int depth = currentItem.second;
         nodes.pop();
 
         spacing.clear();

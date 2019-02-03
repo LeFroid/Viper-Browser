@@ -177,7 +177,7 @@ void CookieJar::onCookieAdded(const QNetworkCookie &cookie)
             static_cast<void>(insertCookie(cookie));
         else
             m_store->deleteCookie(cookie);
-    } catch (std::exception ex) {
+    } catch (const std::exception &ex) {
         qDebug() << "CookieJar::onCookieAdded - caught exception" << ex.what();
     }
 }

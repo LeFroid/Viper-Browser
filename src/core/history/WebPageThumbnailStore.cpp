@@ -24,6 +24,7 @@ WebPageThumbnailStore::WebPageThumbnailStore(const QString &databaseFile, QObjec
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("ThumbnailDB")),
     m_thumbnails(),
+    m_bookmarkManager(nullptr),
     m_historyManager(nullptr),
     m_mimeDatabase()
 {

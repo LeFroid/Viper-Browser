@@ -34,7 +34,7 @@ const cellTemplateNoThumbnail = '<div class="cell" draggable="true"><div class="
 
 // Allow for user to modify the cards on the page
 document.addEventListener('click', function(e) {
-    if (!e.target || pageList.length == 0)
+    if (!e.target || pageList.length === 0)
         return;
 
     let target = e.target;

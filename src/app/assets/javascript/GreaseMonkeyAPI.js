@@ -137,7 +137,7 @@
         'openInTab': GM_openInTab,
         'xmlHttpRequest': GM_xmlhttpRequest,
     }
-    for (newKey in entries) {
+    for (var newKey in entries) {
         let oldKey = entries[newKey];
         if (oldKey && (typeof GM[newKey] == 'undefined')) {
             GM[newKey] = function(...args) {

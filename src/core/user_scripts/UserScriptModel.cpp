@@ -162,13 +162,13 @@ bool UserScriptModel::removeRows(int row, int count, const QModelIndex &parent)
         return false;
 
     beginRemoveRows(parent, row, row + count - 1);
-    for (auto it = m_scripts.begin() + row; it != m_scripts.begin() + row + count; ++it)
+    for (auto it = m_scripts.begin() + row; it != m_scripts.begin() + row + count;)
     {
         // Delete file and remove from script container
         QFile f(it->m_fileName);
         if (f.exists())
             f.remove();
-        m_scripts.erase(it);
+        it = m_scripts.erase(it);
     }
     endRemoveRows();
     return true;
