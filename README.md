@@ -2,6 +2,8 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/faef22a2f30e4f1cbea3b15db777cab3)](https://www.codacy.com/app/LeFroid/Viper-Browser?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LeFroid/Viper-Browser&amp;utm_campaign=Badge_Grade)
 
+[![Build Status](https://travis-ci.com/LeFroid/Viper-Browser.svg?branch=master)](https://travis-ci.com/LeFroid/Viper-Browser)
+
 A lightweight web browser built with the Qt framework and QtWebEngine
 
 Licensed under GPLv3

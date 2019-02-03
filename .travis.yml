@@ -18,6 +18,7 @@ before_install:
   - sudo apt-get update -qq
 
 install:
+  - sudo apt-get install libgl1-mesa-dev
   - if [ "$QT_BASE" = "512" ]; then sudo apt-get install -qq qt512base qt512connectivity qt512multimedia qt512svg qt512translations qt512tools qt512webchannel qt512webengine ; source /opt/qt512/bin/qt512-env.sh ; export QTHOME=/opt/qt512 ; fi
 
   # cmake
