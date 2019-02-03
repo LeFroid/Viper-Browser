@@ -59,17 +59,16 @@ void UserAgentsWindow::loadUserAgents()
 
     // Load each UA category into the item model
     QStandardItem *parentItem = m_model->invisibleRootItem();
-    QStandardItem *category, *userAgent;
     for (auto it = m_userAgentManager->getAgentIterBegin(); it != m_userAgentManager->getAgentIterEnd(); ++it)
     {
-        category = new QStandardItem(it.key());
+        QStandardItem *category = new QStandardItem(it.key());
 
         const std::vector<UserAgent> &agents = it.value();
 
         // Load agents belonging to the category
         for (const UserAgent &ua : agents)
         {
-            userAgent = new QStandardItem(ua.Name);
+            QStandardItem *userAgent = new QStandardItem(ua.Name);
             userAgent->setData(ua.Value);
 
             bool isActiveAgent = (ua.Name.compare(activeAgent.Name) == 0
