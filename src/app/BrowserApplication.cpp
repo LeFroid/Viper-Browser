@@ -59,7 +59,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
 
     // Initialize bookmarks store 
-    m_bookmarkStore = DatabaseFactory::createWorker<BookmarkManager>(m_settings->getPathValue(BrowserSetting::BookmarkPath));
+    m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_settings->getPathValue(BrowserSetting::BookmarkPath));
 
     // Initialize cookie jar and cookie manager UI
     const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();

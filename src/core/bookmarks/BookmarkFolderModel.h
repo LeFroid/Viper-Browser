@@ -1,6 +1,8 @@
 #ifndef BOOKMARKFOLDERMODEL_H
 #define BOOKMARKFOLDERMODEL_H
 
+#include "BookmarkNode.h"
+
 #include <QAbstractItemModel>
 
 class BookmarkManager;

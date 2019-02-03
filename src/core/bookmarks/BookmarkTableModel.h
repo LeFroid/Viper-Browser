@@ -1,6 +1,8 @@
 #ifndef BOOKMARKTABLEMODEL_H
 #define BOOKMARKTABLEMODEL_H
 
+#include "BookmarkNode.h"
+
 #include <QAbstractTableModel>
 #include <vector>
 
