@@ -1,10 +1,9 @@
 #ifndef BOOKMARKFOLDERMODEL_H
 #define BOOKMARKFOLDERMODEL_H
 
-#include "BookmarkManager.h"
 #include <QAbstractItemModel>
 
-class BookmarkNodeManager;
+class BookmarkManager;
 
 /**
  * @class BookmarkFolderModel
@@ -20,7 +19,7 @@ class BookmarkFolderModel : public QAbstractItemModel
 
 public:
     /// Constructs the bookmark folder model
-    explicit BookmarkFolderModel(BookmarkNodeManager *bookmarkMgr, QObject *parent = nullptr);
+    explicit BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent = nullptr);
     ~BookmarkFolderModel();
 
     // Basic functionality:
@@ -74,7 +73,7 @@ private:
     BookmarkNode *m_bookmarksBar;
 
     /// Bookmark manager
-    BookmarkNodeManager *m_bookmarkMgr;
+    BookmarkManager *m_bookmarkMgr;
 };
 
 #endif // BOOKMARKFOLDERMODEL_H

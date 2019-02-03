@@ -1,6 +1,6 @@
 #include "BookmarkTableModel.h"
 #include "BookmarkNode.h"
-#include "BookmarkNodeManager.h"
+#include "BookmarkManager.h"
 
 #include <deque>
 #include <set>
@@ -13,7 +13,7 @@
 #include <QUrl>
 #include <QDebug>
 
-BookmarkTableModel::BookmarkTableModel(BookmarkNodeManager *bookmarkMgr, QObject *parent) :
+BookmarkTableModel::BookmarkTableModel(BookmarkManager *bookmarkMgr, QObject *parent) :
     QAbstractTableModel(parent),
     m_bookmarkMgr(bookmarkMgr),
     m_folder(bookmarkMgr->getBookmarksBar()),
@@ -44,7 +44,7 @@ int BookmarkTableModel::rowCount(const QModelIndex &/*parent*/) const
     if (m_searchModeOn)
         return static_cast<int>(m_searchResults.size());
 
-    return (m_folder) ? m_folder->getNumChildren() : 0;
+    return m_folder? m_folder->getNumChildren() : 0;
 }
 
 int BookmarkTableModel::columnCount(const QModelIndex &/*parent*/) const

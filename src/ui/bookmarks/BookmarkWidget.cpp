@@ -76,7 +76,7 @@ void BookmarkWidget::resizeEvent(QResizeEvent *event)
     ui->tableView->setColumnWidth(1, std::max(tableWidth * 2 / 3 - 3, 0));
 }
 
-void BookmarkWidget::setBookmarkManager(BookmarkNodeManager *bookmarkManager)
+void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
 {
     m_bookmarkManager = bookmarkManager;
 

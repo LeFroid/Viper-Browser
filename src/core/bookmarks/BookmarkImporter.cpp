@@ -7,7 +7,7 @@
 #include <QFile>
 #include <QUrl>
 
-BookmarkImporter::BookmarkImporter(BookmarkNodeManager *bookmarkMgr) :
+BookmarkImporter::BookmarkImporter(BookmarkManager *bookmarkMgr) :
     m_bookmarkManager(bookmarkMgr),
     m_folderStartTag("<DL><p>"),
     m_folderEndTag("</DL><p>"),

@@ -18,7 +18,7 @@
 class BookmarkNode : public TreeNode<BookmarkNode>
 {
     friend class BookmarkManager;
-    friend class BookmarkNodeManager;
+    friend class BookmarkStore;
 
 public:
     /// List of the specific types of bookmark nodes. At the moment, there are only bookmarks and folders.

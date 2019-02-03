@@ -6,7 +6,7 @@
 #include <QString>
 #include <QUrl>
 
-class BookmarkNodeManager;
+class BookmarkManager;
 
 namespace Ui {
     class BookmarkDialog;
@@ -25,7 +25,7 @@ class BookmarkDialog : public QDialog
 
 public:
     /// Constructs the dialog given a pointer to the bookmark manager and optionally a parent widget
-    explicit BookmarkDialog(BookmarkNodeManager *bookmarkMgr, QWidget *parent = 0);
+    explicit BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent = 0);
 
     /// Dialog destructor
     ~BookmarkDialog();
@@ -51,7 +51,7 @@ private:
     Ui::BookmarkDialog *ui;
 
     /// Bookmark manager
-    BookmarkNodeManager *m_bookmarkManager;
+    BookmarkManager *m_bookmarkManager;
 
     /// URL of current bookmark shown in the UI (bookmarks are referenced by their unique URL values in bookmark manager)
     QUrl m_currentUrl;

@@ -1,11 +1,10 @@
 #ifndef BOOKMARKTABLEMODEL_H
 #define BOOKMARKTABLEMODEL_H
 
-#include "BookmarkManager.h"
 #include <QAbstractTableModel>
 #include <vector>
 
-class BookmarkNodeManager;
+class BookmarkManager;
 class QMimeData;
 
 /**
@@ -21,7 +20,7 @@ class BookmarkTableModel : public QAbstractTableModel
 
 public:
     /// Constructs the bookmark table model, given a pointer to the bookmark manager
-    explicit BookmarkTableModel(BookmarkNodeManager *bookmarkMgr, QObject *parent = nullptr);
+    explicit BookmarkTableModel(BookmarkManager *bookmarkMgr, QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -73,8 +72,8 @@ protected:
     BookmarkNode *getBookmark(int row) const;
 
 private:
-    /// Bookmark node manager
-    BookmarkNodeManager *m_bookmarkMgr;
+    /// Bookmark manager
+    BookmarkManager *m_bookmarkMgr;
 
     /// Current folder
     BookmarkNode *m_folder;

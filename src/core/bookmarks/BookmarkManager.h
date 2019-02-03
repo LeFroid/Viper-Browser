@@ -1,89 +1,158 @@
-#ifndef BOOKMARKMANAGER_H
-#define BOOKMARKMANAGER_H
+#ifndef BOOKMARKNODEMANAGER_H
+#define BOOKMARKNODEMANAGER_H
 
-#include "DatabaseWorker.h"
 #include "LRUCache.h"
 
-#include <map>
-#include <memory>
+#include <atomic>
+#include <mutex>
 #include <string>
 #include <vector>
 
 #include <QObject>
-#include <QSqlQuery>
-#include <QString>
 
 class BookmarkNode;
-class BookmarkNodeManager;
-
-/**
- * @defgroup Bookmarks Bookmark System
- */
 
 /**
  * @class BookmarkManager
- * @brief Loads bookmark information from the database and acts as
- *        an interface for the user to view or modify their bookmark
- *        collection
+ * @brief Handles the in-memory bookmark collection, emitting a signal after any change
+ *        to a bookmark occurs so the \ref BookmarkStore can save the state to the database.
  * @ingroup Bookmarks
  */
-class BookmarkManager : public QObject, private DatabaseWorker
+class BookmarkManager : public QObject
 {
+    friend class BookmarkImporter;
+    friend class BookmarkStore;
+
     Q_OBJECT
 
-    friend class BookmarkImporter;
-    friend class BookmarkTableModel;
-    friend class BookmarkFolderModel;
-    friend class DatabaseFactory;
-
 public:
-    /// Bookmark constructor - loads database information into memory
-    explicit BookmarkManager(const QString &databaseFile, QObject *parent = nullptr);
+    using iterator = std::vector<BookmarkNode*>::iterator;
+    using const_iterator = std::vector<BookmarkNode*>::const_iterator;
 
-    /// Destructor
+    /// Constructs the bookmark node manager with a given parent
+    explicit BookmarkManager(QObject *parent = nullptr);
+
+    /// BookmarkManager destructor
     ~BookmarkManager();
 
-    /// Returns the in-memory manager and model of bookmarks
-    BookmarkNodeManager *getNodeManager() const;
+    /// Returns an iterator pointing to the first bookmark in the collection
+    const_iterator begin() { return m_nodeList.cbegin(); }
+
+    /// Returns an iterator at the end of the bookmark collection
+    const_iterator end() { return m_nodeList.cend(); }
+
+    /// Returns the root of the bookmark tree
+    BookmarkNode *getRoot() const;
+
+    /// Returns the folder that acts as the bookmarks bar
+    BookmarkNode *getBookmarksBar() const;
+
+    /**
+     * @brief Searches for a bookmark that is assigned the given URL
+     * @param url URL of the bookmark node
+     * @return A pointer to the bookmark node if found, otherwise returns a nullptr
+     */
+    BookmarkNode *getBookmark(const QUrl &url);
+
+    /// Checks if the given url is bookmarked, returning true if it is
+    bool isBookmarked(const QUrl &url);
+
+    /**
+     * @brief appendBookmark Adds a bookmark to the collection, at the end of its parent folder
+     * @param name Name to display as a reference to the bookmark
+     * @param url Location of the bookmark (ex: http://xyz.co/page123)
+     * @param folder Optional pointer to the parent folder. Defaults to root folder if not given.
+     */
+    void appendBookmark(const QString &name, const QUrl &url, BookmarkNode *folder = nullptr);
+
+    /**
+     * @brief insertBookmark Adds a bookmark to the collection at a specific position
+     * @param name Name to display as a reference to the bookmark
+     * @param url Location of the bookmark
+     * @param folder Pointer to the parent folder that the bookmark will belong to
+     * @param position Relative position of the new bookmark
+     */
+    void insertBookmark(const QString &name, const QUrl &url, BookmarkNode *folder, int position);
+
+    /**
+     * @brief addFolder Adds a folder to the bookmark collection, given a folder name and parent identifier
+     * @param name Name of the folder to be created
+     * @param parent Pointer to the parent folder
+     * @return A pointer to the new folder
+     */
+    BookmarkNode *addFolder(const QString &name, BookmarkNode *parent);
+
+    /// Removes the bookmark with the given URL (if it is a bookmark) from storage
+    void removeBookmark(const QUrl &url);
+
+    /// Removes the given bookmark from storage
+    void removeBookmark(BookmarkNode *item);
+
+    /// Sets the name of a bookmark in the database
+    void setBookmarkName(BookmarkNode *bookmark, const QString &name);
+
+    /// Sets the bookmark's parent to the given node, returning a pointer to the moved bookmark.
+    BookmarkNode *setBookmarkParent(BookmarkNode *bookmark, BookmarkNode *parent);
+
+    /// Sets the position of the bookmark to the given value
+    void setBookmarkPosition(BookmarkNode *bookmark, int position);
+
+    /// Sets the shortcut for a bookmark in the database
+    void setBookmarkShortcut(BookmarkNode *bookmark, const QString &shortcut);
+
+    /// Sets the URL of a bookmark in the database
+    void setBookmarkURL(BookmarkNode *bookmark, const QUrl &url);
 
 signals:
-    /// Emitted when there has been a change to the bookmark tree
+    /// Emitted when one of the properties of the given bookmark has changed
+    void bookmarkChanged(const BookmarkNode *node);
+
+    /// Emitted when there has been a change to the bookmark tree that requires an update to the UI
     void bookmarksChanged();
 
-private slots:
-    /// Handles a change of one or more properties to the given bookmark node
-    void onBookmarkChanged(const BookmarkNode *node);
+    /// Emitted when the given bookmark has been added to the tree
+    void bookmarkCreated(const BookmarkNode *node);
 
-    /// Inserts the given bookmark node into the database
-    void onBookmarkCreated(const BookmarkNode *node);
-
-    /// Removes the given bookmark from the database
-    void onBookmarkDeleted(int uniqueId, int parentId, int position);
-
-private:
-    /// Loads bookmark information from the database
-    void loadFolder(BookmarkNode *folder);
+    /// Emitted when a bookmark with the given unique identifier has been deleted.
+    /// This can either be a bookmark node or a folder
+    void bookmarkDeleted(int uniqueId, int parentId, int position);
 
 protected:
-    /// Returns true if the bookmark database contains the table structure(s) needed for it to function properly,
-    /// false if else.
-    bool hasProperStructure() override;
+    /// Sets the root node of the bookmark tree - this is called by the \ref BookmarkStore after loading the data
+    void setRootNode(BookmarkNode *node);
 
-    /// Creates the initial table structures and default bookmarks if necessary
-    void setup() override;
+    /// Runs resetBookmarkList concurrently as long as a major change isn't being made to the bookmark collection
+    void scheduleResetList();
 
-    /// Saves all bookmarks to the database
-    void save() override;
-
-    /// Loads bookmarks from the database
-    void load() override;
+    /// Sets the flag indicating whether or not the flattened list of bookmarks should be updated
+    void setCanUpdateList(bool value);
 
 private:
-    /// Root bookmark folder
-    std::unique_ptr<BookmarkNode> m_rootNode;
+    /// Resets the flat list of bookmark node pointers, used for iteration & bookmark searches
+    void resetBookmarkList();
 
-    /// Handles in-app management of bookmarks
-    BookmarkNodeManager *m_nodeManager;
+private:
+    /// Holds a pointer to the root node of the bookmark tree
+    BookmarkNode *m_rootNode;
+
+    /// Holds a pointer to the bookmark bar node in the bookmark tree
+    BookmarkNode *m_bookmarkBar;
+
+    /// Cache of bookmark nodes that were recently searched for within the application
+    LRUCache<std::string, BookmarkNode*> m_lookupCache;
+
+    /// Container of bookmark node pointers, flattened version of tree structure used for bookmark iteration
+    std::vector<BookmarkNode*> m_nodeList;
+
+    /// Flag indicating whether or not a major change is happening to the bookmark tree.
+    /// If true, the flattened bookmark list will not update itself until this flag is set back to false.
+    bool m_canUpdateList;
+
+    /// Stores the number of bookmarks in the tree. Used to assign unique IDs to new bookmarks
+    std::atomic_int m_numBookmarks;
+
+    /// Mutex
+    mutable std::mutex m_mutex;
 };
 
-#endif // BOOKMARKMANAGER_H
+#endif // BOOKMARKNODEMANAGER_H

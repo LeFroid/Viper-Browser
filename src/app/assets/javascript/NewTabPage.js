@@ -25,12 +25,12 @@ var pageList = [];
 var nextItem = 0;
 
 const cellTemplate = '<div class="cell" draggable="true"><div class="closeContainer"><span data-elemid="{{id}}" class="close">&times;</span>'
-            + '</div><a href="{{url}}"><img class="thumbnail" src="{{imgSrc}}" alt="{{title}}"><div class="titleContainer">'
-            + '<div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div>';
+            + '</div><div class="thumbnailContainer"><a href="{{url}}"><img class="thumbnail" src="{{imgSrc}}" alt="{{title}}">'
+            + '<div class="titleContainer"><div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div></div>';
 const cellTemplateNoThumbnail = '<div class="cell" draggable="true"><div class="closeContainer">'
-            + '<span data-elemid="{{id}}" class="close">&times;</span></div><a href="{{url}}">'
+            + '<span data-elemid="{{id}}" class="close">&times;</span></div><div class="thumbnailContainer"><a href="{{url}}">'
             + '<div class="thumbnail thumbnailMock"></div><div class="titleContainer"><div class="titleTextWrapper">'
-            + '<span class="title">{{title}}</span></div></div></a></div>';
+            + '<span class="title">{{title}}</span></div></div></a></div></div>';
 
 // Allow for user to modify the cards on the page
 document.addEventListener('click', function(e) {

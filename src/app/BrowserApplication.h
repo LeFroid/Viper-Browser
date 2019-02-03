@@ -14,7 +14,7 @@
 class AutoFill;
 class BlockedSchemeHandler;
 class BookmarkManager;
-class BookmarkNodeManager;
+class BookmarkStore;
 class CookieJar;
 class CookieWidget;
 class DownloadManager;
@@ -68,8 +68,8 @@ public:
     /// Returns a pointer to the AutoFill manager
     AutoFill *getAutoFill();
 
-    /// Returns a pointer to the bookmark node manager
-    BookmarkNodeManager *getBookmarkNodeManager();
+    /// Returns a pointer to the bookmark manager
+    BookmarkManager *getBookmarkManager();
 
     /// Returns the cookie jar used for standard (non-private) browsing mode
     CookieJar *getCookieJar();
@@ -150,8 +150,8 @@ private:
     /// Application settings
     std::unique_ptr<Settings> m_settings;
 
-    /// Bookmark management class
-    std::unique_ptr<BookmarkManager> m_bookmarks;
+    /// Bookmark storage class
+    std::unique_ptr<BookmarkStore> m_bookmarkStore;
 
     /// AutoFill manager
     AutoFill *m_autoFill;

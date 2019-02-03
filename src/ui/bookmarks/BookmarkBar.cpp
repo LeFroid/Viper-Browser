@@ -1,6 +1,6 @@
 #include "BookmarkBar.h"
 #include "BookmarkNode.h"
-#include "BookmarkNodeManager.h"
+#include "BookmarkManager.h"
 #include "BrowserApplication.h"
 #include "MainWindow.h"
 
@@ -28,10 +28,10 @@ BookmarkBar::BookmarkBar(QWidget *parent) :
     m_layout->installEventFilter(this);
 }
 
-void BookmarkBar::setBookmarkManager(BookmarkNodeManager *manager)
+void BookmarkBar::setBookmarkManager(BookmarkManager *manager)
 {
     m_bookmarkManager = manager;
-    connect(m_bookmarkManager, &BookmarkNodeManager::bookmarksChanged, this, &BookmarkBar::refresh);
+    connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged, this, &BookmarkBar::refresh);
     refresh();
 }
 

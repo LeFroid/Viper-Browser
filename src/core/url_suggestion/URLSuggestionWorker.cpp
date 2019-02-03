@@ -1,5 +1,5 @@
 #include "BrowserApplication.h"
-#include "BookmarkNodeManager.h"
+#include "BookmarkManager.h"
 #include "FastHash.h"
 #include "FaviconStore.h"
 #include "HistoryManager.h"
@@ -64,7 +64,7 @@ void URLSuggestionWorker::searchForHits()
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
 
-    BookmarkNodeManager *bookmarkMgr = sBrowserApplication->getBookmarkNodeManager();
+    BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
     for (auto it : *bookmarkMgr)
     {
         if (!m_working.load())

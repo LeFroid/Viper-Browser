@@ -1,6 +1,6 @@
 #include "BookmarkFolderModel.h"
 #include "BookmarkNode.h"
-#include "BookmarkNodeManager.h"
+#include "BookmarkManager.h"
 #include <vector>
 #include <cstdint>
 
@@ -9,7 +9,7 @@
 #include <QIODevice>
 #include <QMimeData>
 
-BookmarkFolderModel::BookmarkFolderModel(BookmarkNodeManager *bookmarkMgr, QObject *parent) :
+BookmarkFolderModel::BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent) :
     QAbstractItemModel(parent),
     m_root(bookmarkMgr->getRoot()),
     m_bookmarksBar(bookmarkMgr->getBookmarksBar()),

@@ -1,13 +1,13 @@
 #include "BookmarkDialog.h"
 #include "ui_BookmarkDialog.h"
 #include "BookmarkNode.h"
-#include "BookmarkNodeManager.h"
+#include "BookmarkManager.h"
 
 #include <QtConcurrent>
 #include <QFuture>
 #include <QQueue>
 
-BookmarkDialog::BookmarkDialog(BookmarkNodeManager *bookmarkMgr, QWidget *parent) :
+BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::BookmarkDialog),
     m_bookmarkManager(bookmarkMgr),
