@@ -92,10 +92,6 @@ protected:
 
     /// Type of node
     NodeType m_type;
-
-    /// Folder ID - If node is type folder, this refers to the node's own folder id.
-    /// If the node is type bookmark, this refers to its parent folder id.
-    int m_folderId;
 };
 
 Q_DECLARE_METATYPE(BookmarkNode::NodeType)
