@@ -2,6 +2,8 @@
 #define DATABASEFACTORY_H
 
 #include "DatabaseWorker.h"
+#include "ServiceLocator.h"
+
 #include <memory>
 #include <type_traits>
 #include <QFile>
@@ -20,6 +22,24 @@ public:
         static_assert(std::is_base_of<DatabaseWorker, Derived>::value, "Object should inherit from DatabaseWorker");
 
         auto worker = std::make_unique<Derived>(databaseFile);
+        // Check whether or not a call to DatabaseWorker::setup is needed.
+        // If any of the following conditions are met, setup() must be called:
+        //    1. Database file is not present on file system
+        //    2. Database file exists, but table structure(s) are not present or corrupted
+        if (!QFile::exists(databaseFile) || !worker->hasProperStructure())
+            worker->setup();
+
+        worker->load();
+        return std::move(worker);
+    }
+
+    /// Creates and returns a unique_ptr of an object that inherits the DatabaseWorker class
+    template <class Derived>
+    static std::unique_ptr<Derived> createWorker(ViperServiceLocator &serviceLocator, const QString &databaseFile)
+    {
+        static_assert(std::is_base_of<DatabaseWorker, Derived>::value, "Object should inherit from DatabaseWorker");
+
+        auto worker = std::make_unique<Derived>(serviceLocator, databaseFile);
         // Check whether or not a call to DatabaseWorker::setup is needed.
         // If any of the following conditions are met, setup() must be called:
         //    1. Database file is not present on file system

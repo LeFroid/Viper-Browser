@@ -1,7 +1,10 @@
 #ifndef SERVICELOCATOR_H
 #define SERVICELOCATOR_H
 
+#include <string>
 #include <unordered_map>
+
+class QObject;
 
 /**
  * @class ServiceLocator
@@ -25,7 +28,7 @@ public:
     ServiceLocator() = default;
 
     /// Default destructor
-    ~ServiceLocator();
+    ~ServiceLocator() = default;
 
     /**
      * @brief addService Attempts to add the given service to the registry.
@@ -68,13 +71,15 @@ public:
         static_assert(std::is_base_of<BaseServiceType, Derived>::value, "Object should inherit from BaseServiceType");
 
         if (BaseServiceType *service = getService(key))
-            return dynamic_cast<Derived>(service);
+            return static_cast<Derived*>(service);
 
         return nullptr;
     }
 
 private:
-    std::unordered_map<KeyType, BaseServiceType> m_serviceMap;
+    std::unordered_map<KeyType, BaseServiceType*> m_serviceMap;
 };
+
+using ViperServiceLocator = ServiceLocator<std::string, QObject>;
 
 #endif // SERVICELOCATOR_H

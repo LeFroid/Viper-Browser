@@ -8,11 +8,11 @@
 
 #include <QtConcurrent>
 
-BookmarkManager::BookmarkManager(FaviconStore *faviconStore, QObject *parent) :
+BookmarkManager::BookmarkManager(ViperServiceLocator &serviceLocator, QObject *parent) :
     QObject(parent),
     m_rootNode(nullptr),
     m_bookmarkBar(nullptr),
-    m_faviconStore(faviconStore),
+    m_faviconStore(nullptr),
     m_lookupCache(24),
     m_nodeList(),
     m_canUpdateList(true),
@@ -20,6 +20,8 @@ BookmarkManager::BookmarkManager(FaviconStore *faviconStore, QObject *parent) :
     m_nodeListFuture(),
     m_mutex()
 {
+    m_faviconStore = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+    setObjectName(QLatin1String("BookmarkManager"));
 }
 
 BookmarkManager::~BookmarkManager()

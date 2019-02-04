@@ -57,9 +57,15 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
+    if (!m_serviceLocator.addService(m_faviconStorage->objectName().toStdString(), m_faviconStorage.get()))
+        qWarning() << "Could not register Favicon Store with service registry/locator";
 
     // Initialize bookmarks store 
-    m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_settings->getPathValue(BrowserSetting::BookmarkPath));
+    m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::BookmarkPath));
+    if (!m_serviceLocator.addService(m_bookmarkStore->objectName().toStdString(), m_bookmarkStore.get()))
+        qWarning() << "Could not register Bookmark Store with service registry/locator";
+    if (!m_serviceLocator.addService(m_bookmarkStore->getNodeManager()->objectName().toStdString(), m_bookmarkStore->getNodeManager()))
+        qWarning() << "Could not register Bookmark Manager with service registry/locator";
 
     // Initialize cookie jar and cookie manager UI
     const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();
@@ -83,6 +89,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Instantiate the history manager and related systems
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
+    if (!m_serviceLocator.addService(m_historyMgr->objectName().toStdString(), m_historyMgr.get()))
+        qWarning() << "Could not register History Manager with service registry/locator";
 
     m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_settings->getPathValue(BrowserSetting::ThumbnailPath));
     m_thumbnailStore->setBookmarkManager(m_bookmarkStore->getNodeManager());

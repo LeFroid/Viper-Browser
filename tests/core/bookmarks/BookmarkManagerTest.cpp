@@ -1,5 +1,6 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "ServiceLocator.h"
 
 #include <memory>
 
@@ -51,7 +52,8 @@ void BookmarkManagerTest::initTestCase()
 {
     m_root.reset(new BookmarkNode(BookmarkNode::Folder, QLatin1String("Root Folder")));
 
-    m_manager = new BookmarkManager(nullptr, nullptr);
+    ViperServiceLocator serviceLocator;
+    m_manager = new BookmarkManager(serviceLocator, nullptr);
     m_manager->setRootNode(m_root.get());
 }
 

@@ -3,6 +3,7 @@
 
 #include "DatabaseWorker.h"
 #include "LRUCache.h"
+#include "ServiceLocator.h"
 
 #include <map>
 #include <memory>
@@ -15,6 +16,7 @@
 
 class BookmarkNode;
 class BookmarkManager;
+class FaviconStore;
 
 /**
  * @defgroup Bookmarks Bookmark System
@@ -37,7 +39,7 @@ class BookmarkStore : public QObject, private DatabaseWorker
 
 public:
     /// Bookmark constructor - loads database information into memory
-    explicit BookmarkStore(const QString &databaseFile, QObject *parent = nullptr);
+    explicit BookmarkStore(ViperServiceLocator &serviceLocator, const QString &databaseFile);
 
     /// Destructor
     ~BookmarkStore();
@@ -83,6 +85,9 @@ private:
 
     /// Handles in-app management of bookmarks
     BookmarkManager *m_nodeManager;
+
+    /// Pointer to the favicon store
+    FaviconStore *m_faviconStore;
 };
 
 #endif // BOOKMARKSTORE_H

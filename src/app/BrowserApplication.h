@@ -9,6 +9,7 @@
 
 #include "BookmarkNode.h"
 #include "ClearHistoryOptions.h"
+#include "ServiceLocator.h"
 #include "SessionManager.h"
 
 class AutoFill;
@@ -206,6 +207,9 @@ private:
 
     /// Web page thumbnail storage manager
     std::unique_ptr<WebPageThumbnailStore> m_thumbnailStore;
+
+    /// Service locator - stores the bookmark manager, history manager, favicon store, and other important services
+    ViperServiceLocator m_serviceLocator;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

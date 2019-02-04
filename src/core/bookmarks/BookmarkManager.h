@@ -2,6 +2,7 @@
 #define BOOKMARKNODEMANAGER_H
 
 #include "LRUCache.h"
+#include "ServiceLocator.h"
 
 #include <atomic>
 #include <mutex>
@@ -32,9 +33,8 @@ public:
     using iterator = std::vector<BookmarkNode*>::iterator;
     using const_iterator = std::vector<BookmarkNode*>::const_iterator;
 
-    /// Constructs the bookmark node manager with a given parent, and a pointer to
-    /// the \ref FaviconStore in order to load bookmark icons
-    explicit BookmarkManager(FaviconStore *faviconStore, QObject *parent = nullptr);
+    /// Constructs the bookmark node manager with a given parent, and a reference to the service locator
+    explicit BookmarkManager(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     /// BookmarkManager destructor
     ~BookmarkManager();

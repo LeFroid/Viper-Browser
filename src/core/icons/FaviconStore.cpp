@@ -28,6 +28,7 @@ FaviconStore::FaviconStore(const QString &databaseFile, QObject *parent) :
     m_iconCache(25),
     m_mutex()
 {
+    setObjectName(QLatin1String("FaviconStore"));
     setupQueries();
 }
 

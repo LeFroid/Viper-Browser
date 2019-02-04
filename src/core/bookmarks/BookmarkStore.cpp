@@ -1,4 +1,3 @@
-#include "BrowserApplication.h"
 #include "BookmarkNode.h"
 #include "BookmarkManager.h"
 #include "BookmarkStore.h"
@@ -14,12 +13,17 @@
 #include <QSqlRecord>
 #include <QDebug>
 
-BookmarkStore::BookmarkStore(const QString &databaseFile, QObject *parent) :
-    QObject(parent),
+BookmarkStore::BookmarkStore(ViperServiceLocator &serviceLocator, const QString &databaseFile) :
+    QObject(nullptr),
     DatabaseWorker(databaseFile, QLatin1String("Bookmarks")),
     m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks"))),
-    m_nodeManager(new BookmarkManager(sBrowserApplication->getFaviconStore(), this))
+    m_nodeManager(new BookmarkManager(serviceLocator, this)),
+    m_faviconStore(nullptr)
 {
+    m_faviconStore = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+
+    setObjectName(QLatin1String("BookmarkStore"));
+
     connect(m_nodeManager, &BookmarkManager::bookmarkChanged, this, &BookmarkStore::onBookmarkChanged);
     connect(m_nodeManager, &BookmarkManager::bookmarkCreated, this, &BookmarkStore::onBookmarkCreated);
     connect(m_nodeManager, &BookmarkManager::bookmarkDeleted, this, &BookmarkStore::onBookmarkDeleted);
@@ -133,8 +137,6 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
         return;
     }
 
-    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
-
     QSqlQuery query(m_database);
     query.prepare(QLatin1String("SELECT ID, Type, Name, URL, Shortcut FROM Bookmarks WHERE ParentID = (:id) ORDER BY Position ASC"));
 
@@ -170,7 +172,7 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
                 case BookmarkNode::Bookmark:
                     subNode->setURL(query.value(3).toString());
                     subNode->setShortcut(query.value(4).toString());
-                    subNode->setIcon(faviconStore->getFavicon(subNode->m_url));
+                    subNode->setIcon(m_faviconStore ? m_faviconStore->getFavicon(subNode->m_url) : QIcon());
                     break;
             }
         }
