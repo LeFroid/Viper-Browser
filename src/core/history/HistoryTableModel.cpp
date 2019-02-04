@@ -155,5 +155,7 @@ void HistoryTableModel::loadFromDate(const QDateTime &date)
     m_commonData.clear();
     m_history.clear();
 
+    //fetchMore(QModelIndex());
+
     endResetModel();
 }

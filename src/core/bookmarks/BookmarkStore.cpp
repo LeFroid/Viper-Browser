@@ -27,7 +27,7 @@ BookmarkStore::BookmarkStore(const QString &databaseFile, QObject *parent) :
 
 BookmarkStore::~BookmarkStore()
 {
-    save();
+    //save();
 }
 
 BookmarkManager *BookmarkStore::getNodeManager() const
@@ -243,15 +243,17 @@ void BookmarkStore::save()
         query.bindValue(QLatin1String(":shortcut"), node->getShortcut());
         query.bindValue(QLatin1String(":position"), node->getPosition());
         if (!query.exec())
-            qWarning() << "Could not save bookmark " << node->getName() << ", id " << node->getUniqueId();
+            qWarning() << "Could not save bookmark " << node->getName() << ", id " << node->getUniqueId()
+                       << ". Message: " << query.lastError().text();
     };
 
     std::deque<BookmarkNode*> queue;
     queue.push_back(m_rootNode.get());
     while (!queue.empty())
     {
-        BookmarkNode *node = queue.front();
+        BookmarkNode *node = queue.back();
         saveNode(node);
+        queue.pop_back();
 
         for (auto &child : node->m_children)
         {
@@ -260,8 +262,6 @@ void BookmarkStore::save()
             else
                 saveNode(child.get());
         }
-
-        queue.pop_front();
     }
 
     if (!m_database.commit())
