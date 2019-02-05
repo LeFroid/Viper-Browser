@@ -21,6 +21,11 @@ QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("other"), ElementType::Other }
 };
 
+AdBlockFilterParser::AdBlockFilterParser(AdBlockManager *adBlockManager) :
+    m_adBlockManager(adBlockManager)
+{
+}
+
 std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) const
 {
     auto filter = std::make_unique<AdBlockFilter>(rule);
@@ -380,7 +385,8 @@ bool AdBlockFilterParser::parseScriptInjection(AdBlockFilter *filter) const
     const QString &resourceName = injectionArgs.at(0);
 
     // Fetch resource from AdBlockManager and set value as m_evalString
-    filter->m_evalString = AdBlockManager::instance().getResource(resourceName);
+    if (m_adBlockManager != nullptr)
+        filter->m_evalString = m_adBlockManager->getResource(resourceName);
     if (injectionArgs.size() < 2)
         return true;
 

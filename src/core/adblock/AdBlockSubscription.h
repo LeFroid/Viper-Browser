@@ -8,6 +8,8 @@
 #include <QString>
 #include <QUrl>
 
+class AdBlockManager;
+
 /**
  * @class AdBlockSubscription
  * @ingroup AdBlock
@@ -62,7 +64,7 @@ public:
 
 protected:
     /// Loads the filters from the subscription file
-    void load();
+    void load(AdBlockManager *adBlockManager);
 
     /// Sets the time of the last update of the subscription file
     void setLastUpdate(const QDateTime &date);

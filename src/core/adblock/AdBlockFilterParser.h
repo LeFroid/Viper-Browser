@@ -6,6 +6,8 @@
 #include <memory>
 #include <QString>
 
+class AdBlockManager;
+
 /// Mapping of option name strings to their corresponding \ref ElementType
 extern QHash<QString, ElementType> eOptionMap;
 
@@ -40,8 +42,8 @@ struct CosmeticJSCallback
 class AdBlockFilterParser
 {
 public:
-    /// Default constructor
-    AdBlockFilterParser() = default;
+    /// Constructs the filter parser
+    AdBlockFilterParser(AdBlockManager *adBlockManager);
 
     /// Instantiates and returns an AdBlockFilter given a filter string
     std::unique_ptr<AdBlockFilter> makeFilter(QString rule) const;
@@ -82,6 +84,10 @@ private:
 
     /// Parses the given AdBlock Plus -formatted regular expression, returning the equivalent string used for a QRegularExpression
     QString parseRegExp(const QString &regExpString) const;
+
+private:
+    /// Pointer to the ad blocker
+    AdBlockManager *m_adBlockManager;
 };
 
 #endif // ADBLOCKFILTERPARSER_H

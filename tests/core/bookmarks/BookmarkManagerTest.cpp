@@ -59,8 +59,11 @@ void BookmarkManagerTest::initTestCase()
 
 void BookmarkManagerTest::cleanupTestCase()
 {
-    delete m_manager;
-    m_manager = nullptr;
+    if (m_manager)
+    {
+        delete m_manager;
+        m_manager = nullptr;
+    }
 }
 
 void BookmarkManagerTest::testAddingBookmarkToFolder()

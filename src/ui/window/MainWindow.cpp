@@ -4,6 +4,7 @@
 #include "ui_MainWindow.h"
 #include "AdBlockLogDisplay.h"
 #include "AdBlockWidget.h"
+#include "AdBlockManager.h"
 #include "AutoFillCredentialsView.h"
 #include "BookmarkDialog.h"
 #include "BookmarkBar.h"
@@ -57,13 +58,14 @@
 #include <QToolButton>
 #include <QtConcurrent>
 
-MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStore *faviconStore, bool privateWindow, QWidget *parent) :
+MainWindow::MainWindow(Settings *settings, ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_privateWindow(privateWindow),
     m_settings(settings),
-    m_bookmarkManager(bookmarkManager),
-    m_faviconStore(faviconStore),
+    m_serviceLocator(serviceLocator),
+    m_bookmarkManager(serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager")),
+    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
     m_clearHistoryDialog(nullptr),
     m_tabWidget(nullptr),
     m_bookmarkDialog(nullptr),
@@ -77,7 +79,7 @@ MainWindow::MainWindow(Settings *settings, BookmarkManager *bookmarkManager, Fav
 
     ui->setupUi(this);
     ui->toolBar->setMinHeights(ui->toolBar->height() + 3);
-    ui->toolBar->setFaviconStore(faviconStore);
+    ui->toolBar->setServiceLocator(serviceLocator);
 
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");
@@ -236,7 +238,7 @@ void MainWindow::setupMenuBar()
 void MainWindow::setupTabWidget()
 {
     // Create tab widget and insert into the layout
-    m_tabWidget = new BrowserTabWidget(m_settings, m_faviconStore, m_privateWindow, this);
+    m_tabWidget = new BrowserTabWidget(m_settings, m_serviceLocator, m_privateWindow, this);
     ui->verticalLayout->insertWidget(ui->verticalLayout->indexOf(ui->widgetFindText), m_tabWidget);
 
     // Add change tab slot after removing dummy tabs to avoid segfaulting
@@ -459,7 +461,7 @@ void MainWindow::onFindTextAction()
 
 void MainWindow::openAdBlockManager()
 {
-    AdBlockWidget *adBlockWidget = new AdBlockWidget;
+    AdBlockWidget *adBlockWidget = new AdBlockWidget(m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
     adBlockWidget->show();
     adBlockWidget->raise();
     adBlockWidget->activateWindow();
@@ -467,7 +469,7 @@ void MainWindow::openAdBlockManager()
 
 void MainWindow::openAdBlockLogDisplay()
 {
-    AdBlockLogDisplay *logDisplay = new AdBlockLogDisplay;
+    AdBlockLogDisplay *logDisplay = new AdBlockLogDisplay(m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
     logDisplay->setLogTableFor(m_tabWidget->currentWebWidget()->url().adjusted(QUrl::RemoveFragment));
     logDisplay->show();
     logDisplay->raise();
@@ -500,7 +502,7 @@ void MainWindow::openClearHistoryDialog()
 
 void MainWindow::openPreferences()
 {
-    Preferences *preferences = new Preferences(m_settings);
+    Preferences *preferences = new Preferences(m_settings, m_serviceLocator);
 
     connect(preferences, &Preferences::clearHistoryRequested, this, &MainWindow::openClearHistoryDialog);
     connect(preferences, &Preferences::viewHistoryRequested,  this, &MainWindow::onShowAllHistory);
@@ -612,7 +614,7 @@ void MainWindow::openInspector()
     if (!inspectorView)
     {
         inspectorView = new WebView(ui->dockWidget);
-        inspectorView->setupPage();
+        inspectorView->setupPage(m_serviceLocator);
         inspectorView->setObjectName(QLatin1String("inspectorView"));
         inspectorView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         inspectorView->setContextMenuPolicy(Qt::NoContextMenu);

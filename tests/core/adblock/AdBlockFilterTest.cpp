@@ -33,7 +33,7 @@ private:
 
 AdBlockFilterTest::AdBlockFilterTest()
 {
-    AdBlockFilterParser parser;
+    AdBlockFilterParser parser(nullptr);
     domainCSSFilter = parser.makeFilter(QLatin1String("slashdot.org##.ntv-sponsored"));
 
     blockDomainRule = parser.makeFilter(QLatin1String("|https://$image,media,script,third-party,domain=watchvid.com"));

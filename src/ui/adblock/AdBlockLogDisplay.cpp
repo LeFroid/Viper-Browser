@@ -7,9 +7,10 @@
 
 #include <QSortFilterProxyModel>
 
-AdBlockLogDisplay::AdBlockLogDisplay(QWidget *parent) :
-    QWidget(parent),
+AdBlockLogDisplay::AdBlockLogDisplay(AdBlockManager *adBlockManager) :
+    QWidget(nullptr),
     ui(new Ui::AdBlockLogDisplay),
+    m_adBlockManager(adBlockManager),
     m_proxyModel(new QSortFilterProxyModel(this)),
     m_sourceModel(new AdBlockLogTableModel(this)),
     m_logSource(LogSourcePageUrl),
@@ -49,14 +50,14 @@ void AdBlockLogDisplay::setLogTableFor(const QUrl &url)
     m_sourceUrl = url;
     ui->comboBoxLogSource->setCurrentIndex(0);
     ui->comboBoxLogSource->setItemText(0, url.toString());
-    m_sourceModel->setLogEntries(AdBlockManager::instance().getLog()->getEntriesFor(url));
+    m_sourceModel->setLogEntries(m_adBlockManager->getLog()->getEntriesFor(url));
     ui->tableView->resizeColumnsToContents();
 }
 
 void AdBlockLogDisplay::showAllLogs()
 {
     ui->comboBoxLogSource->setCurrentIndex(1);
-    m_sourceModel->setLogEntries(AdBlockManager::instance().getLog()->getAllEntries());
+    m_sourceModel->setLogEntries(m_adBlockManager->getLog()->getAllEntries());
     ui->tableView->resizeColumnsToContents();
 }
 

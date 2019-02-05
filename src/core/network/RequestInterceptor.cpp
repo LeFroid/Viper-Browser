@@ -4,10 +4,13 @@
 
 #include <QWebEngineUrlRequestInfo>
 
-RequestInterceptor::RequestInterceptor(QObject *parent) :
+RequestInterceptor::RequestInterceptor(ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEngineUrlRequestInterceptor(parent),
-    m_settings(nullptr)
+    m_settings(nullptr),
+    m_serviceLocator(serviceLocator),
+    m_adBlockManager(nullptr)
 {
+    m_adBlockManager = serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
 }
 
 void RequestInterceptor::setSettings(Settings *settings)
@@ -17,12 +20,15 @@ void RequestInterceptor::setSettings(Settings *settings)
 
 void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
+    if (!m_adBlockManager)
+        m_adBlockManager = m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
+
     const QString requestScheme = info.requestUrl().scheme();
     if (requestScheme != QLatin1String("viper")
             && requestScheme != QLatin1String("blocked")
             && info.requestMethod() == QString("GET"))
     {
-        if (AdBlockManager::instance().shouldBlockRequest(info))
+        if (m_adBlockManager && m_adBlockManager->shouldBlockRequest(info))
             info.block(true);
     }
 

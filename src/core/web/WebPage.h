@@ -1,6 +1,7 @@
 #ifndef WEBPAGE_H
 #define WEBPAGE_H
 
+#include "ServiceLocator.h"
 #include "UserScript.h"
 
 #include <vector>
@@ -14,6 +15,7 @@
 #include <QWebEngineRegisterProtocolHandlerRequest>
 #endif
 
+class AdBlockManager;
 class WebHistory;
 
 class QWebEngineProfile;
@@ -31,10 +33,10 @@ class WebPage : public QWebEnginePage
 
 public:
     /// WebPage constructor
-    WebPage(QObject *parent = nullptr);
+    WebPage(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     /// Constructs the web page with a specific browsing profile and a parent
-    WebPage(QWebEngineProfile *profile, QObject *parent = nullptr);
+    WebPage(ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent = nullptr);
 
     /// WebPage destructor
     ~WebPage();
@@ -109,6 +111,9 @@ private:
     void setupSlots();
 
 private:
+    /// Advertisement blocking system manager
+    AdBlockManager *m_adBlockManager;
+
     /// Stores the history of the web page
     WebHistory *m_history;
 

@@ -14,10 +14,11 @@
 #include <QMenu>
 #include <QTimer>
 
-BrowserTabWidget::BrowserTabWidget(Settings *settings, FaviconStore *faviconStore, bool privateMode, QWidget *parent) :
+BrowserTabWidget::BrowserTabWidget(Settings *settings, ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QTabWidget(parent),
     m_settings(settings),
-    m_faviconStore(faviconStore),
+    m_serviceLocator(serviceLocator),
+    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
     m_privateBrowsing(privateMode),
     m_activeView(nullptr),
     m_tabBar(new BrowserTabBar(this)),
@@ -194,7 +195,7 @@ void BrowserTabWidget::duplicateTab(int index)
 
 WebWidget *BrowserTabWidget::createWebWidget()
 {
-    WebWidget *ww = new WebWidget(m_privateBrowsing, this);
+    WebWidget *ww = new WebWidget(m_serviceLocator, m_privateBrowsing, this);
     if (m_mainWindow)
     {
         ww->setMaximumWidth(m_mainWindow->maximumWidth());

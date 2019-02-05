@@ -1,5 +1,5 @@
 #include "AdBlockButton.h"
-#include "BrowserApplication.h"
+#include "AdBlockManager.h"
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BrowserTabWidget.h"
@@ -75,9 +75,11 @@ void NavigationToolBar::setMinHeights(int size)
     m_adBlockButton->setMinimumHeight(subWidgetMinHeight);
 }
 
-void NavigationToolBar::setFaviconStore(FaviconStore *faviconStore)
+void NavigationToolBar::setServiceLocator(ViperServiceLocator &serviceLocator)
 {
-    m_faviconStore = faviconStore;
+    m_faviconStore = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+
+    m_adBlockButton->setAdBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
 }
 
 void NavigationToolBar::setupUI()

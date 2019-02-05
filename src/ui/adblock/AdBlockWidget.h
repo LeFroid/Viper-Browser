@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+class AdBlockManager;
+
 namespace Ui {
     class AdBlockWidget;
 }
@@ -18,8 +20,8 @@ class AdBlockWidget : public QWidget
     Q_OBJECT
 
 public:
-    /// Constructs the ad block widget with the given parent
-    explicit AdBlockWidget(QWidget *parent = nullptr);
+    /// Constructs the advertisement blocking management window
+    explicit AdBlockWidget(AdBlockManager *adBlockManager);
 
     /// Destructor
     ~AdBlockWidget();
@@ -47,6 +49,9 @@ private slots:
 private:
     /// Pointer to the user interface items
     Ui::AdBlockWidget *ui;
+
+    /// Points to the advertisement blocking system manager
+    AdBlockManager *m_adBlockManager;
 };
 
 #endif // ADBLOCKWIDGET_H

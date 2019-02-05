@@ -139,14 +139,14 @@ WebPage *WebView::getPage() const
     return m_page;
 }
 
-void WebView::setupPage()
+void WebView::setupPage(ViperServiceLocator &serviceLocator)
 {
     if (m_page != nullptr)
         return;
 
     QWebEngineProfile *profile = m_privateView ? sBrowserApplication->getPrivateBrowsingProfile() : QWebEngineProfile::defaultProfile();
 
-    m_page = new WebPage(profile);
+    m_page = new WebPage(serviceLocator, profile);
     m_page->setParent(this);
 
     QWebEngineView::setPage(m_page);

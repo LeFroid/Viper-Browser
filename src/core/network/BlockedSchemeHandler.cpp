@@ -6,19 +6,22 @@
 #include <QUrl>
 #include <QWebEngineUrlRequestJob>
 
-BlockedSchemeHandler::BlockedSchemeHandler(QObject *parent) :
-    QWebEngineUrlSchemeHandler(parent)
+BlockedSchemeHandler::BlockedSchemeHandler(ViperServiceLocator &serviceLocator, QObject *parent) :
+    QWebEngineUrlSchemeHandler(parent),
+    m_adBlockManager(nullptr)
 {
+    m_adBlockManager = serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
 }
 
 void BlockedSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 {
-    AdBlockManager &adBlockMgr = AdBlockManager::instance();
+    if (!m_adBlockManager)
+        return;
 
     QString resourceName = request->requestUrl().toString();
     resourceName = resourceName.mid(8);
 
-    QString mimeTypeStr = adBlockMgr.getResourceContentType(resourceName);
+    QString mimeTypeStr = m_adBlockManager->getResourceContentType(resourceName);
     const bool isB64 = mimeTypeStr.contains(QLatin1String(";base64"));
     if (isB64)
         mimeTypeStr = mimeTypeStr.left(mimeTypeStr.indexOf(QLatin1String(";base64")));
@@ -27,7 +30,7 @@ void BlockedSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     mimeType.append(mimeTypeStr);
 
     QByteArray resourceData;
-    resourceData.append(adBlockMgr.getResource(resourceName));
+    resourceData.append(m_adBlockManager->getResource(resourceName));
     if (isB64)
         resourceData = QByteArray::fromBase64(resourceData);
 

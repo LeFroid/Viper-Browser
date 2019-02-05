@@ -84,8 +84,16 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
     m_downloadMgr->setDownloadDir(m_settings->getValue(BrowserSetting::DownloadDir).toString());
+    if (!m_serviceLocator.addService(m_downloadMgr->objectName().toStdString(), m_downloadMgr))
+        qWarning() << "Could not register Download Manager with service registry";
+
     connect(webProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
     connect(m_privateProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
+
+    // Initialize advertisement blocking system
+    m_adBlockManager = new AdBlockManager(m_serviceLocator, m_settings.get());
+    if (!m_serviceLocator.addService("AdBlockManager", m_adBlockManager))
+        qWarning() << "Could not register AdBlock Manager with service registry/locator";
 
     // Instantiate the history manager and related systems
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
@@ -123,7 +131,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(BrowserSetting::SearchEnginesFile));
 
     // Load ad block subscriptions (will do nothing if disabled)
-    AdBlockManager::instance().loadSubscriptions();
+    m_adBlockManager->loadSubscriptions();
 
     // Set browser's saved sessions file
     m_sessionMgr.setSessionFile(m_settings->getPathValue(BrowserSetting::SessionFile));
@@ -147,6 +155,7 @@ BrowserApplication::~BrowserApplication()
     delete m_cookieUI;
     delete m_autoFill;
     delete m_favoritePagesMgr;
+    delete m_adBlockManager;
 }
 
 BrowserApplication *BrowserApplication::instance()
@@ -234,7 +243,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarkStore->getNodeManager(), m_faviconStorage.get(), false);
+    MainWindow *w = new MainWindow(m_settings.get(), m_serviceLocator, false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
     connect(w, &MainWindow::destroyed, [this, w](){
@@ -265,7 +274,7 @@ MainWindow *BrowserApplication::getNewWindow()
                 break;
         }
 
-        AdBlockManager::instance().updateSubscriptions();
+        m_adBlockManager->updateSubscriptions();
     }
 
     return w;
@@ -273,7 +282,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings.get(), m_bookmarkStore->getNodeManager(), m_faviconStorage.get(), true);
+    MainWindow *w = new MainWindow(m_settings.get(), m_serviceLocator, true);
     m_browserWindows.append(w);
     connect(w, &MainWindow::destroyed, [this, w](){
         if (m_browserWindows.contains(w))
@@ -350,11 +359,11 @@ void BrowserApplication::setupWebProfiles()
     m_privateProfile = new QWebEngineProfile(this);
 
     // Instantiate request interceptor
-    m_requestInterceptor = new RequestInterceptor(this);
+    m_requestInterceptor = new RequestInterceptor(m_serviceLocator, this);
 
     // Instantiate scheme handlers
     m_viperSchemeHandler = new ViperSchemeHandler(this);
-    m_blockedSchemeHandler = new BlockedSchemeHandler(this);
+    m_blockedSchemeHandler = new BlockedSchemeHandler(m_serviceLocator, this);
 
     // Attach request interceptor and scheme handlers to web profiles
     webProfile->setRequestInterceptor(m_requestInterceptor);

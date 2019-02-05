@@ -1,6 +1,8 @@
 #ifndef WEBVIEW_H
 #define WEBVIEW_H
 
+#include "ServiceLocator.h"
+
 #include <QPointer>
 #include <QWebEngineContextMenuData>
 #include <QWebEngineFullScreenRequest>
@@ -80,7 +82,7 @@ private slots:
 
 protected:
     /// Initializes the view's \ref WebPage
-    void setupPage();
+    void setupPage(ViperServiceLocator &serviceLocator);
 
     /// Sets the pointer to the render focus widget
     void setViewFocusProxy(QWidget *w);

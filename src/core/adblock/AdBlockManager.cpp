@@ -2,7 +2,6 @@
 #include "AdBlockLog.h"
 #include "AdBlockModel.h"
 #include "Bitfield.h"
-#include "BrowserApplication.h"
 #include "InternalDownloadItem.h"
 #include "DownloadManager.h"
 #include "Settings.h"
@@ -17,8 +16,9 @@
 
 #include <QDebug>
 
-AdBlockManager::AdBlockManager(QObject *parent) :
+AdBlockManager::AdBlockManager(ViperServiceLocator &serviceLocator, Settings *settings, QObject *parent) :
     QObject(parent),
+    m_downloadManager(nullptr),
     m_enabled(true),
     m_configFile(),
     m_subscriptionDir(),
@@ -45,8 +45,9 @@ AdBlockManager::AdBlockManager(QObject *parent) :
     m_pageAdBlockCount(),
     m_log(nullptr)
 {
-    // Fetch some global settings before loading ad block data
-    Settings *settings = sBrowserApplication->getSettings();
+    setObjectName(QLatin1String("AdBlockManager"));
+
+    m_downloadManager = serviceLocator.getServiceAs<DownloadManager>("DownloadManager");
 
     m_enabled = settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool();
     m_configFile = settings->getPathValue(BrowserSetting::AdBlockPlusConfig);
@@ -67,12 +68,6 @@ AdBlockManager::AdBlockManager(QObject *parent) :
 AdBlockManager::~AdBlockManager()
 {
     save();
-}
-
-AdBlockManager &AdBlockManager::instance()
-{
-    static AdBlockManager adBlockInstance;
-    return adBlockInstance;
 }
 
 void AdBlockManager::setEnabled(bool value)
@@ -108,7 +103,7 @@ void AdBlockManager::updateSubscriptions()
                 QNetworkRequest request;
                 request.setUrl(srcUrl);
 
-                InternalDownloadItem *item = sBrowserApplication->getDownloadManager()->downloadInternal(request, m_subscriptionDir, false, true);
+                InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_subscriptionDir, false, true);
                 connect(item, &InternalDownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath){
                     if (filePath != subPtr->getFilePath())
                     {
@@ -133,8 +128,7 @@ void AdBlockManager::installResource(const QUrl &url)
     QNetworkRequest request;
     request.setUrl(url);
 
-    DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir + QDir::separator() + QString("resources"), false);
+    InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_subscriptionDir + QDir::separator() + QString("resources"), false);
     connect(item, &InternalDownloadItem::downloadFinished, this, &AdBlockManager::loadResourceFile);
 }
 
@@ -146,8 +140,7 @@ void AdBlockManager::installSubscription(const QUrl &url)
     QNetworkRequest request;
     request.setUrl(url);
 
-    DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_subscriptionDir, false);
+    InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_subscriptionDir, false);
     connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
         AdBlockSubscription subscription(filePath);
         subscription.setSourceUrl(url);
@@ -834,7 +827,7 @@ void AdBlockManager::extractFilters()
     for (AdBlockSubscription &s : m_subscriptions)
     {
         // calling load() does nothing if subscription is disabled
-        s.load();
+        s.load(this);
 
         // Add filters to appropriate containers
         int numFilters = s.getNumFilters();

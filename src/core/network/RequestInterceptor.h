@@ -1,9 +1,12 @@
 #ifndef REQUESTINTERCEPTOR_H
 #define REQUESTINTERCEPTOR_H
 
+#include "ServiceLocator.h"
+
 #include <memory>
 #include <QWebEngineUrlRequestInterceptor>
 
+class AdBlockManager;
 class Settings;
 
 /**
@@ -16,7 +19,7 @@ class RequestInterceptor : public QWebEngineUrlRequestInterceptor
 
 public:
     /// Constructs the request interceptor with an optional parent pointer
-    RequestInterceptor(QObject *parent = nullptr);
+    RequestInterceptor(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     /// Passes a shared pointer to the application settings along to the request interceptor
     void setSettings(Settings *settings);
@@ -28,6 +31,12 @@ protected:
 private:
     /// Pointer to application settings
     Settings *m_settings;
+
+    /// Service locator
+    ViperServiceLocator &m_serviceLocator;
+
+    /// AdBlockManager
+    AdBlockManager *m_adBlockManager;
 };
 
 #endif // REQUESTINTERCEPTOR_H 

@@ -8,6 +8,7 @@ namespace Ui {
     class AdBlockLogDisplay;
 }
 
+class AdBlockManager;
 class AdBlockLogTableModel;
 class QSortFilterProxyModel;
 
@@ -23,7 +24,7 @@ class AdBlockLogDisplay : public QWidget
 
 public:
     /// Constructs the log display with a given parent
-    explicit AdBlockLogDisplay(QWidget *parent = nullptr);
+    explicit AdBlockLogDisplay(AdBlockManager *adBlockManager);
 
     /// Log display destructor
     ~AdBlockLogDisplay();
@@ -47,6 +48,9 @@ private slots:
 private:
     /// Pointer to the UI elements
     Ui::AdBlockLogDisplay *ui;
+
+    /// Pointer to the advertisement blocking system manager
+    AdBlockManager *m_adBlockManager;
 
     /// Proxy model used to manipulate the data shown in the log table
     QSortFilterProxyModel *m_proxyModel;

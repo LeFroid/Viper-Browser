@@ -2,6 +2,7 @@
 #define BROWSERTABWIDGET_H
 
 #include "Settings.h"
+#include "ServiceLocator.h"
 #include "WebWidget.h"
 
 #include <deque>
@@ -25,7 +26,7 @@ class BrowserTabWidget : public QTabWidget
 
 public:
     /// Constructs the browser tab widget
-    explicit BrowserTabWidget(Settings *settings, FaviconStore *faviconStore, bool privateMode, QWidget *parent = nullptr);
+    explicit BrowserTabWidget(Settings *settings, ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
 
     /// Returns a pointer to the current web widget
     WebWidget *currentWebWidget() const;
@@ -166,6 +167,9 @@ private:
 private:
     /// Browser settings
     Settings *m_settings;
+
+    /// Service locator
+    ViperServiceLocator &m_serviceLocator;
 
     /// Pointer to the favicon store
     FaviconStore *m_faviconStore;

@@ -31,8 +31,9 @@
 
 #include <iostream>
 
-WebPage::WebPage(QObject *parent) :
+WebPage::WebPage(ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEnginePage(parent),
+    m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
     m_history(new WebHistory(this)),
     m_originalUrl(),
     m_mainFrameHost(),
@@ -43,8 +44,9 @@ WebPage::WebPage(QObject *parent) :
     setupSlots();
 }
 
-WebPage::WebPage(QWebEngineProfile *profile, QObject *parent) :
+WebPage::WebPage(ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
+    m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
     m_history(new WebHistory(this)),
     m_originalUrl(),
     m_mainFrameHost(),
@@ -321,7 +323,7 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
     if (!urlHost.isEmpty() && m_mainFrameHost.compare(urlHost) != 0)
     {
         m_mainFrameHost = urlHost;
-        m_domainFilterStyle = QString("<style>%1</style>").arg(AdBlockManager::instance().getDomainStylesheet(urlCopy));
+        m_domainFilterStyle = QString("<style>%1</style>").arg(m_adBlockManager->getDomainStylesheet(urlCopy));
         m_domainFilterStyle.replace("'", "\\'");
     }
 }
@@ -336,7 +338,7 @@ void WebPage::onLoadProgress(int percent)
 
         m_needInjectAdBlockScript = false;
 
-        m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
+        m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
         if (!m_mainFrameAdBlockScript.isEmpty())
             runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
     }
@@ -355,13 +357,13 @@ void WebPage::onLoadFinished(bool ok)
 
     URL pageUrl(url());
 
-    QString adBlockStylesheet = AdBlockManager::instance().getStylesheet(pageUrl);
+    QString adBlockStylesheet = m_adBlockManager->getStylesheet(pageUrl);
     adBlockStylesheet.replace("'", "\\'");
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(adBlockStylesheet));
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
 
     if (m_needInjectAdBlockScript)
-        m_mainFrameAdBlockScript = AdBlockManager::instance().getDomainJavaScript(pageUrl);
+        m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
 
     if (!m_mainFrameAdBlockScript.isEmpty())
         runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);

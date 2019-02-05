@@ -8,10 +8,11 @@
 #include "UserScriptManager.h"
 #include <QDir>
 
-Preferences::Preferences(Settings *settings, QWidget *parent) :
+Preferences::Preferences(Settings *settings, ViperServiceLocator &serviceLocator, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Preferences),
-    m_settings(settings)
+    m_settings(settings),
+    m_serviceLocator(serviceLocator)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -89,7 +90,8 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(BrowserSetting::OpenAllTabsInBackground, ui->tabGeneral->openAllTabsInBackground());
 
     // Save preferences in Content tab
-    AdBlockManager::instance().setEnabled(ui->tabContent->isAdBlockEnabled());
+    if (AdBlockManager *adBlockManager = m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"))
+        adBlockManager->setEnabled(ui->tabContent->isAdBlockEnabled());
     m_settings->setValue(BrowserSetting::AdBlockPlusEnabled, ui->tabContent->isAdBlockEnabled());
     m_settings->setValue(BrowserSetting::AutoLoadImages, ui->tabContent->isAutoLoadImagesEnabled());
     m_settings->setValue(BrowserSetting::EnablePlugins, ui->tabContent->arePluginsEnabled());

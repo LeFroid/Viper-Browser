@@ -14,15 +14,16 @@
 #include <QResizeEvent>
 #include <QUrl>
 
-AdBlockWidget::AdBlockWidget(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::AdBlockWidget)
+AdBlockWidget::AdBlockWidget(AdBlockManager *adBlockManager) :
+    QWidget(nullptr),
+    ui(new Ui::AdBlockWidget),
+    m_adBlockManager(adBlockManager)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->setupUi(this);
 
     // Setup ad block subscription table
-    ui->tableView->setModel(AdBlockManager::instance().getModel());
+    ui->tableView->setModel(m_adBlockManager->getModel());
     connect(ui->tableView, &CheckableTableView::clicked, this, &AdBlockWidget::onItemClicked);
 
     // Setup "Add Subscription" menu
@@ -35,7 +36,7 @@ AdBlockWidget::AdBlockWidget(QWidget *parent) :
     connect(ui->pushButtonDeleteSubscription, &QPushButton::clicked, this, &AdBlockWidget::deleteSelectedSubscriptions);
 
     // Show total number of ads that have been blocked since using ad blocker
-    ui->labelRequestsBlockedValue->setText(QString::number(AdBlockManager::instance().getRequestsBlockedCount()));
+    ui->labelRequestsBlockedValue->setText(QString::number(m_adBlockManager->getRequestsBlockedCount()));
 }
 
 AdBlockWidget::~AdBlockWidget()
@@ -66,14 +67,13 @@ void AdBlockWidget::addSubscriptionFromList()
         return;
 
     // Iterate through selected subscriptions, installing each via AdBlockManager
-    AdBlockManager &adBlockMgr = AdBlockManager::instance();
     std::vector<AdBlockSubscriptionInfo> subscriptions = dialog.getSubscriptions();
     for (const AdBlockSubscriptionInfo &sub : subscriptions)
     {
         if (!sub.ResourceURL.isEmpty())
-            adBlockMgr.installResource(sub.ResourceURL);
+            m_adBlockManager->installResource(sub.ResourceURL);
 
-        adBlockMgr.installSubscription(sub.SubscriptionURL);
+        m_adBlockManager->installSubscription(sub.SubscriptionURL);
     }
 }
 
@@ -92,18 +92,14 @@ void AdBlockWidget::addSubscriptionFromURL()
                                                QMessageBox::Ok));
         return;
     }
-    AdBlockManager::instance().installSubscription(subUrl);
+    m_adBlockManager->installSubscription(subUrl);
 }
 
 void AdBlockWidget::editUserFilters()
 {
     CustomFilterEditor *editor = new CustomFilterEditor;
-    connect(editor, &CustomFilterEditor::createUserSubscription, [=](){
-        AdBlockManager::instance().createUserSubscription();
-    });
-    connect(editor, &CustomFilterEditor::filtersModified, [=](){
-        AdBlockManager::instance().reloadSubscriptions();
-    });
+    connect(editor, &CustomFilterEditor::createUserSubscription, m_adBlockManager, &AdBlockManager::createUserSubscription);
+    connect(editor, &CustomFilterEditor::filtersModified, m_adBlockManager, &AdBlockManager::reloadSubscriptions);
     editor->show();
 }
 

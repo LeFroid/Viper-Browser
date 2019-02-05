@@ -12,6 +12,7 @@
 #include "ServiceLocator.h"
 #include "SessionManager.h"
 
+class AdBlockManager;
 class AutoFill;
 class BlockedSchemeHandler;
 class BookmarkManager;
@@ -153,6 +154,9 @@ private:
 
     /// Bookmark storage class
     std::unique_ptr<BookmarkStore> m_bookmarkStore;
+
+    /// Advertisement blocking system
+    AdBlockManager *m_adBlockManager;
 
     /// AutoFill manager
     AutoFill *m_autoFill;

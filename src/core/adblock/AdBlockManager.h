@@ -4,6 +4,7 @@
 #include "AdBlockFilter.h"
 #include "AdBlockSubscription.h"
 #include "LRUCache.h"
+#include "ServiceLocator.h"
 #include "URL.h"
 
 #include <QHash>
@@ -16,6 +17,8 @@
 
 class AdBlockLog;
 class AdBlockModel;
+class DownloadManager;
+class Settings;
 
 /**
  * @defgroup AdBlock Advertisement Blocking System
@@ -40,14 +43,11 @@ class AdBlockManager : public QObject
     Q_OBJECT
 
 public:
-    /// Constructs the AdBlockManager object
-    AdBlockManager(QObject *parent = nullptr);
+    /// Constructs the AdBlockManager
+    AdBlockManager(ViperServiceLocator &serviceLocator, Settings *settings, QObject *parent = nullptr);
 
     /// AdBlockManager destructor
-    virtual ~AdBlockManager();
-
-    /// Static AdBlockManager instance
-    static AdBlockManager &instance();
+    ~AdBlockManager();
 
     /// Sets the state of the ad block manager. If true, it will filter network requests as per filter rules. Otherwise, no blocking will be done
     void setEnabled(bool value);
@@ -121,6 +121,7 @@ protected:
     void removeSubscription(int index);
 
 // Called by AdBlockWidget:
+protected slots:
     /// Reloads the ad blocking subscriptions
     void reloadSubscriptions();
 
@@ -159,6 +160,9 @@ private:
     void save();
 
 private:
+    /// Download manager, required to update subscription lists
+    DownloadManager *m_downloadManager;
+
     /// True if AdBlock is enabled, false if disabled
     bool m_enabled;
 

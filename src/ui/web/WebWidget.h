@@ -1,12 +1,15 @@
 #ifndef WEBWIDGET_H
 #define WEBWIDGET_H
 
+#include "ServiceLocator.h"
+
 #include <QIcon>
 #include <QMetaType>
 #include <QPointer>
 #include <QUrl>
 #include <QWidget>
 
+class AdBlockManager;
 class BrowserTabWidget;
 class HttpRequest;
 class MainWindow;
@@ -67,10 +70,11 @@ class WebWidget : public QWidget
 public:
     /**
      * @brief Constructs the WebWidget
+     * @param serviceLocator Web browser service registry / locator
      * @param privateMode Set to true if the web view should be off-the-record, false if a regular web view
      * @param parent Pointer to the parent widget
      */
-    explicit WebWidget(bool privateMode, QWidget *parent = nullptr);
+    explicit WebWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
 
     /// WebWidget destructor
     ~WebWidget();
@@ -216,6 +220,12 @@ private:
     void setupWebView();
 
 private:
+    /// Web browser service locator
+    ViperServiceLocator &m_serviceLocator;
+
+    /// Pointer to the advertisement blocking system manager
+    AdBlockManager *m_adBlockManager;
+
     /// The web page being shown by the web widget, unless the page is hibernating
     WebPage *m_page;
 

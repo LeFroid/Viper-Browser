@@ -5,6 +5,8 @@
 #include <QTimer>
 #include <QToolButton>
 
+class AdBlockManager;
+
 /**
  * @class AdBlockButton
  * @brief Acts as a visual indicator to the number of ads that are being blocked
@@ -18,11 +20,17 @@ public:
     /// Constructs the AdBlockButton with a given parent
     explicit AdBlockButton(QWidget *parent = nullptr);
 
+    /// Sets the pointer to the advertisement blocking system manager
+    void setAdBlockManager(AdBlockManager *adBlockManager);
+
 public slots:
     /// Updates the region of the button's icon containing the number of ads being blocked on the active page
     void updateCount();
 
 private:
+    /// Advertisement blocking system manager
+    AdBlockManager *m_adBlockManager;
+
     /// Base icon shown in the button
     QIcon m_icon;
 

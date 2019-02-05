@@ -63,8 +63,10 @@ void WebState::deserialize(QByteArray &data)
             >> pageHistory;
 }
 
-WebWidget::WebWidget(bool privateMode, QWidget *parent) :
+WebWidget::WebWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QWidget(parent),
+    m_serviceLocator(serviceLocator),
+    m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
     m_page(nullptr),
     m_view(nullptr),
     m_mainWindow(nullptr),
@@ -322,7 +324,7 @@ void WebWidget::setupWebView()
 {
     m_viewFocusProxy = nullptr;
     m_view = new WebView(m_privateMode, this);
-    m_view->setupPage();
+    m_view->setupPage(m_serviceLocator);
     m_view->installEventFilter(this);
 
     m_page = m_view->getPage();
@@ -335,7 +337,7 @@ void WebWidget::setupWebView()
     connect(m_page, &WebPage::urlChanged,           this, &WebWidget::urlChanged);
 
     connect(m_page, &WebPage::loadStarted, [=](){
-        AdBlockManager::instance().loadStarted(m_page->url().adjusted(QUrl::RemoveFragment));
+        m_adBlockManager->loadStarted(m_page->url().adjusted(QUrl::RemoveFragment));
     });
 
     connect(m_view, &WebView::loadFinished, this, &WebWidget::loadFinished);

@@ -20,6 +20,7 @@ DownloadManager::DownloadManager(QWidget *parent) :
     m_downloads()
 {
     ui->setupUi(this);
+    setObjectName(QLatin1String("DownloadManager"));
 
     connect(ui->pushButtonClear, &QPushButton::clicked, this, &DownloadManager::clearDownloads);
 }

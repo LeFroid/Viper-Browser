@@ -1,6 +1,8 @@
 #ifndef PREFERENCES_H
 #define PREFERENCES_H
 
+#include "ServiceLocator.h"
+
 #include <memory>
 #include <QWidget>
 
@@ -21,7 +23,7 @@ class Preferences : public QWidget
 
 public:
     /// Constructs the preferences widget given a pointer to the global settings object and an optional parent
-    explicit Preferences(Settings *settings, QWidget *parent = nullptr);
+    explicit Preferences(Settings *settings, ViperServiceLocator &serviceLocator, QWidget *parent = nullptr);
 
     /// Preferences destructor
     ~Preferences();
@@ -53,6 +55,9 @@ private:
 
     /// Pointer to the global browser settings
     Settings *m_settings;
+
+    /// Reference to the service locator / registry
+    ViperServiceLocator &m_serviceLocator;
 };
 
 #endif // PREFERENCES_H

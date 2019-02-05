@@ -1,6 +1,7 @@
 #ifndef NAVIGATIONTOOLBAR_H
 #define NAVIGATIONTOOLBAR_H
 
+#include "ServiceLocator.h"
 #include <QToolBar>
 
 class AdBlockButton;
@@ -48,8 +49,8 @@ signals:
     void clickedAdBlockButton();
 
 protected:
-    /// Sets the pointer to the favicon store
-    void setFaviconStore(FaviconStore *faviconStore);
+    /// Passes a reference to the browser service locator, used to fetch instances of the \ref AdBlockManager and \ref FaviconStore
+    void setServiceLocator(ViperServiceLocator &serviceLocator);
 
 private:
     /// Initializes the toolbar's properties and sub-widgets

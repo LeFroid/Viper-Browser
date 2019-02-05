@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "BookmarkManager.h"
+#include "ServiceLocator.h"
 #include "Settings.h"
 #include "WebActionProxy.h"
 
@@ -54,8 +55,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    /// Constructs the main window
-    explicit MainWindow(Settings *settings, BookmarkManager *bookmarkManager, FaviconStore *faviconStore, bool privateWindow, QWidget *parent = nullptr);
+    /// Constructs a browsing window
+    explicit MainWindow(Settings *settings, ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent = nullptr);
 
     /// MainWindow destructor
     ~MainWindow();
@@ -239,6 +240,9 @@ private:
 
     /// Pointer to browser settings
     Settings *m_settings;
+
+    /// Service locator
+    ViperServiceLocator &m_serviceLocator;
 
     /// Bookmark manager
     BookmarkManager *m_bookmarkManager;

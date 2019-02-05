@@ -14,6 +14,7 @@
 
 AdBlockButton::AdBlockButton(QWidget *parent) :
     QToolButton(parent),
+    m_adBlockManager(nullptr),
     m_icon(QLatin1String(":/AdBlock.svg")),
     m_timer(),
     m_lastCount(0)
@@ -24,6 +25,11 @@ AdBlockButton::AdBlockButton(QWidget *parent) :
 
     connect(&m_timer, &QTimer::timeout, this, &AdBlockButton::updateCount);
     m_timer.start(500);
+}
+
+void AdBlockButton::setAdBlockManager(AdBlockManager *adBlockManager)
+{
+    m_adBlockManager = adBlockManager;
 }
 
 void AdBlockButton::updateCount()
@@ -38,7 +44,7 @@ void AdBlockButton::updateCount()
 
         if (WebWidget *ww = win->currentWebWidget())
         {
-            const int adBlockCount = AdBlockManager::instance().getNumberAdsBlocked(ww->url().adjusted(QUrl::RemoveFragment));
+            const int adBlockCount = m_adBlockManager ? m_adBlockManager->getNumberAdsBlocked(ww->url().adjusted(QUrl::RemoveFragment)) : 0;
             if (adBlockCount == m_lastCount)
                 return;
 

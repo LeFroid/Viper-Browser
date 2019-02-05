@@ -107,7 +107,7 @@ const QDateTime &AdBlockSubscription::getNextUpdate() const
     return m_nextUpdate;
 }
 
-void AdBlockSubscription::load()
+void AdBlockSubscription::load(AdBlockManager *adBlockManager)
 {
     if (!m_enabled || m_filePath.isEmpty())
         return;
@@ -119,7 +119,7 @@ void AdBlockSubscription::load()
 
     m_filters.clear();
 
-    AdBlockFilterParser parser;
+    AdBlockFilterParser parser(adBlockManager);
 
     QString line;
     QTextStream stream(&subFile);
