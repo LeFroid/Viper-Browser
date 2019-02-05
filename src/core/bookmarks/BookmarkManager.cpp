@@ -26,6 +26,8 @@ BookmarkManager::BookmarkManager(ViperServiceLocator &serviceLocator, QObject *p
 
 BookmarkManager::~BookmarkManager()
 {
+    std::lock_guard<std::mutex> _(m_mutex);
+
     if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
         m_nodeListFuture.waitForFinished();
 }

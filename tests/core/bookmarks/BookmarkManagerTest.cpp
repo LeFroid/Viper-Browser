@@ -2,7 +2,9 @@
 #include "BookmarkNode.h"
 #include "ServiceLocator.h"
 
+#include <chrono>
 #include <memory>
+#include <thread>
 
 #include <QObject>
 #include <QString>
@@ -61,6 +63,7 @@ void BookmarkManagerTest::cleanupTestCase()
 {
     if (m_manager)
     {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         delete m_manager;
         m_manager = nullptr;
     }
