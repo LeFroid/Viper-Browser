@@ -28,6 +28,9 @@ public:
 private:
     /// Advertisement blocker
     AdBlockManager *m_adBlockManager;
+
+    /// Service locator
+    ViperServiceLocator &m_serviceLocator;
 };
 
 #endif // BLOCKEDSCHEMEHANDLER_H
