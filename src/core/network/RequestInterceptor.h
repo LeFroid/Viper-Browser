@@ -26,6 +26,10 @@ protected:
     void interceptRequest(QWebEngineUrlRequestInfo &info) override;
 
 private:
+    /// Attempts to fetch the settings and adblock manager services
+    void fetchServices();
+
+private:
     /// Pointer to application settings
     Settings *m_settings;
 

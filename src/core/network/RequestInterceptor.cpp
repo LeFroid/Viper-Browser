@@ -10,14 +10,24 @@ RequestInterceptor::RequestInterceptor(ViperServiceLocator &serviceLocator, QObj
     m_serviceLocator(serviceLocator),
     m_adBlockManager(nullptr)
 {
-    m_settings = serviceLocator.getServiceAs<Settings>("Settings");
-    m_adBlockManager = serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
+}
+
+void RequestInterceptor::fetchServices()
+{
+    if (!m_settings)
+    {
+        m_settings = m_serviceLocator.getServiceAs<Settings>("Settings");
+        connect(m_settings, &Settings::destroyed, this, [this](){
+            m_settings = nullptr;
+        });
+    }
+    if (!m_adBlockManager)
+        m_adBlockManager = m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
 }
 
 void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
-    if (!m_adBlockManager)
-        m_adBlockManager = m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
+    fetchServices();
 
     const QString requestScheme = info.requestUrl().scheme();
     if (requestScheme != QLatin1String("viper")
