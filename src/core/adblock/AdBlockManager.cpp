@@ -4,7 +4,6 @@
 #include "Bitfield.h"
 #include "InternalDownloadItem.h"
 #include "DownloadManager.h"
-#include "Settings.h"
 
 #include <QDir>
 #include <QDirIterator>
@@ -53,6 +52,9 @@ AdBlockManager::AdBlockManager(ViperServiceLocator &serviceLocator, Settings *se
     m_configFile = settings->getPathValue(BrowserSetting::AdBlockPlusConfig);
     m_subscriptionDir = settings->getPathValue(BrowserSetting::AdBlockPlusDataDir);
 
+    // Subscribe to settings event notifications
+    connect(settings, &Settings::settingChanged, this, &AdBlockManager::onSettingChanged);
+
     // Create data dir if it does not yet exist
     QDir subscriptionDir(m_subscriptionDir);
     if (!subscriptionDir.exists())
@@ -72,6 +74,9 @@ AdBlockManager::~AdBlockManager()
 
 void AdBlockManager::setEnabled(bool value)
 {
+    if (m_enabled == value)
+        return;
+
     m_enabled = value;
 
     // Clear filters regardless of state, and re-extract
@@ -739,6 +744,14 @@ void AdBlockManager::loadResourceFile(const QString &path)
                 readingValue = false;
             }
         }
+    }
+}
+
+void AdBlockManager::onSettingChanged(BrowserSetting setting, const QVariant &value)
+{
+    if (setting == BrowserSetting::AdBlockPlusEnabled)
+    {
+        setEnabled(value.toBool());
     }
 }
 

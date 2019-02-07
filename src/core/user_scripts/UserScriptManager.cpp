@@ -14,9 +14,9 @@
 
 UserScriptManager::UserScriptManager(Settings *settings, QObject *parent) :
     QObject(parent),
-    m_model(nullptr)
-{
-    m_model = new UserScriptModel(settings, this);
+    m_model(new UserScriptModel(settings, this))
+{    
+    connect(settings, &Settings::settingChanged, this, &UserScriptManager::onSettingChanged);
 }
 
 UserScriptManager::~UserScriptManager()
@@ -182,3 +182,8 @@ void UserScriptManager::createScript(const QString &name, const QString &nameSpa
     }
 }
 
+void UserScriptManager::onSettingChanged(BrowserSetting setting, const QVariant &value)
+{
+    if (setting == BrowserSetting::UserScriptsEnabled)
+        setEnabled(value.toBool());
+}

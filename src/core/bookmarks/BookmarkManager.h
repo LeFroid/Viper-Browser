@@ -131,6 +131,9 @@ protected:
     /// Sets the flag indicating whether or not the flattened list of bookmarks should be updated
     void setCanUpdateList(bool value);
 
+    /// Waits on any asynchronous resetBookmarkList() operations
+    void waitToFinishList();
+
 private:
     /// Resets the flat list of bookmark node pointers, used for iteration & bookmark searches
     void resetBookmarkList();

@@ -5,6 +5,7 @@
 #include "AdBlockSubscription.h"
 #include "LRUCache.h"
 #include "ServiceLocator.h"
+#include "Settings.h"
 #include "URL.h"
 
 #include <QHash>
@@ -18,7 +19,6 @@
 class AdBlockLog;
 class AdBlockModel;
 class DownloadManager;
-class Settings;
 
 /**
  * @defgroup AdBlock Advertisement Blocking System
@@ -133,6 +133,9 @@ protected:
 private slots:
     /// Loads the uBlock Origin-style resource file into the resource map
     void loadResourceFile(const QString &path);
+
+    /// Listens for any settings changes that affect the advertisement blocking system (ex: enable/disable ad block)
+    void onSettingChanged(BrowserSetting setting, const QVariant &value);
 
 private:
     /// Returns true if the request should not be processed by the Ad Block system based on its scheme

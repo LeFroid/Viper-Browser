@@ -4,6 +4,8 @@
 #include "ClearHistoryOptions.h"
 #include "DatabaseWorker.h"
 #include "FavoritePagesManager.h"
+#include "ServiceLocator.h"
+#include "Settings.h"
 
 #include <QDateTime>
 #include <QHash>
@@ -64,8 +66,8 @@ class HistoryManager : public QObject, private DatabaseWorker
     Q_OBJECT
 
 public:
-    /// Constructs the history manager, given the history database file path and a parent pointer
-    explicit HistoryManager(const QString &databaseFile, QObject *parent = nullptr);
+    /// Constructs the history manager, given the path to the history database
+    explicit HistoryManager(ViperServiceLocator &serviceLocator, const QString &databaseFile);
 
     /// Saves browsing history at exit
     virtual ~HistoryManager();
@@ -128,6 +130,10 @@ signals:
 public slots:
     /// Called when a (non-private profile) page has finished loading
     void onPageLoaded(bool ok);
+
+private slots:
+    /// Listens for any settings changes that affect the history manager
+    void onSettingChanged(BrowserSetting setting, const QVariant &value);
 
 protected:
     /// Returns true if the history database contains the table structures needed for it to function properly,

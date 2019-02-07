@@ -1,6 +1,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <QObject>
 #include <QMap>
 #include <QSettings>
 
@@ -169,14 +170,16 @@ enum class BrowserSetting
  * @class Settings
  * @brief Used to access and modify configurable settings of the browser
  */
-class Settings
+class Settings : public QObject
 {
+    Q_OBJECT
+
     /// Settings version
     const static QString Version;
 
 public:
     /// Settings constructor - loads browser settings and sets to defaults if applicable
-    Settings();
+    explicit Settings();
 
     /// Returns the path to the item associated with the path- or file-related key
     QString getPathValue(BrowserSetting key);
@@ -192,6 +195,10 @@ public:
 
     /// Applies the web engine settings to the QWebSettings instance
     void applyWebSettings();
+
+signals:
+    /// Emitted whenever a setting is changed to the given value
+    void settingChanged(BrowserSetting setting, const QVariant &value);
 
 private:
     /// Sets the default browser settings

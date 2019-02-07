@@ -150,7 +150,7 @@ private:
 
 private:
     /// Application settings
-    std::unique_ptr<Settings> m_settings;
+    Settings *m_settings;
 
     /// Bookmark storage class
     std::unique_ptr<BookmarkStore> m_bookmarkStore;

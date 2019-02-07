@@ -2,17 +2,14 @@
 #include "ui_Preferences.h"
 
 #include "AdBlockManager.h"
-#include "BrowserApplication.h"
 #include "HistoryManager.h"
 #include "Settings.h"
-#include "UserScriptManager.h"
 #include <QDir>
 
-Preferences::Preferences(Settings *settings, ViperServiceLocator &serviceLocator, QWidget *parent) :
+Preferences::Preferences(Settings *settings, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Preferences),
-    m_settings(settings),
-    m_serviceLocator(serviceLocator)
+    m_settings(settings)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -90,8 +87,6 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(BrowserSetting::OpenAllTabsInBackground, ui->tabGeneral->openAllTabsInBackground());
 
     // Save preferences in Content tab
-    if (AdBlockManager *adBlockManager = m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"))
-        adBlockManager->setEnabled(ui->tabContent->isAdBlockEnabled());
     m_settings->setValue(BrowserSetting::AdBlockPlusEnabled, ui->tabContent->isAdBlockEnabled());
     m_settings->setValue(BrowserSetting::AutoLoadImages, ui->tabContent->isAutoLoadImagesEnabled());
     m_settings->setValue(BrowserSetting::EnablePlugins, ui->tabContent->arePluginsEnabled());
@@ -99,7 +94,6 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(BrowserSetting::EnableJavascript, ui->tabContent->isJavaScriptEnabled());
     m_settings->setValue(BrowserSetting::ScrollAnimatorEnabled, ui->tabContent->isAnimatedScrollEnabled());
     m_settings->setValue(BrowserSetting::UserScriptsEnabled, ui->tabContent->areUserScriptsEnabled());
-    sBrowserApplication->getUserScriptManager()->setEnabled(ui->tabContent->areUserScriptsEnabled());
 
     // Save font choices
     m_settings->setValue(BrowserSetting::StandardFont, ui->tabContent->getDefaultFont());

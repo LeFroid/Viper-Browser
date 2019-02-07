@@ -65,6 +65,10 @@ public slots:
      */
     void createScript(const QString &name, const QString &nameSpace, const QString &description, const QString &version);
 
+private slots:
+    /// Listens for any settings changes that affect the user script system
+    void onSettingChanged(BrowserSetting setting, const QVariant &value);
+
 private:
     /// Pointer to the user scripts model
     UserScriptModel *m_model;

@@ -19,8 +19,8 @@
 #include <QUrl>
 #include <QDebug>
 
-HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
-    QObject(parent),
+HistoryManager::HistoryManager(ViperServiceLocator &serviceLocator, const QString &databaseFile) :
+    QObject(nullptr),
     DatabaseWorker(databaseFile, QLatin1String("HistoryDB")),
     m_lastVisitID(0),
     m_historyItems(),
@@ -30,7 +30,16 @@ HistoryManager::HistoryManager(const QString &databaseFile, QObject *parent) :
     m_storagePolicy(HistoryStoragePolicy::Remember),
     m_mutex()
 {
-    m_storagePolicy = static_cast<HistoryStoragePolicy>(sBrowserApplication->getSettings()->getValue(BrowserSetting::HistoryStoragePolicy).toInt());
+    setObjectName(QLatin1String("HistoryManager"));
+
+    if (Settings *settings = serviceLocator.getServiceAs<Settings>("Settings"))
+    {
+        m_storagePolicy = static_cast<HistoryStoragePolicy>(settings->getValue(BrowserSetting::HistoryStoragePolicy).toInt());
+
+        connect(settings, &Settings::settingChanged, this, &HistoryManager::onSettingChanged);
+    }
+    else
+        qWarning() << "Could not fetch application settings in history manager!";
 }
 
 HistoryManager::~HistoryManager()
@@ -310,6 +319,12 @@ void HistoryManager::onPageLoaded(bool ok)
     }
 
     emit pageVisited(url.toString(), title);
+}
+
+void HistoryManager::onSettingChanged(BrowserSetting setting, const QVariant &value)
+{
+    if (setting == BrowserSetting::HistoryStoragePolicy)
+        setStoragePolicy(static_cast<HistoryStoragePolicy>(value.toInt()));
 }
 
 bool HistoryManager::hasProperStructure()

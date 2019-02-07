@@ -15,6 +15,7 @@
 const QString Settings::Version = QStringLiteral("1.0");
 
 Settings::Settings() :
+    QObject(nullptr),
     m_firstRun(false),
     m_settings(),
     m_storagePath(),
@@ -45,6 +46,8 @@ Settings::Settings() :
         { BrowserSetting::FavoritePagesFile, QLatin1String("FavoritePagesFile") },    { BrowserSetting::Version, QLatin1String("Version") }
     }
 {
+    setObjectName(QLatin1String("Settings"));
+
     // Check if defaults need to be set
     if (!m_settings.contains(QLatin1String("StoragePath")))
         setDefaults();
@@ -69,6 +72,8 @@ QVariant Settings::getValue(BrowserSetting key)
 void Settings::setValue(BrowserSetting key, const QVariant &value)
 {
     m_settings.setValue(m_settingMap.value(key, QLatin1String("unknown")), value);
+
+    emit settingChanged(key, value);
 }
 
 bool Settings::firstRun() const
@@ -76,6 +81,8 @@ bool Settings::firstRun() const
     return m_firstRun;
 }
 
+//todo: create a WebSettings class that subscribes to the settingChanged() signal and performs these actions accordingly
+//      in its constructor, simply set initial values based on app init config
 void Settings::applyWebSettings()
 {
     QWebEngineSettings *settings = QWebEngineSettings::defaultSettings();
@@ -103,9 +110,6 @@ void Settings::applyWebSettings()
     // can cause issues on some websites, will keep disabled until a fix is found
     //settings->setAttribute(QWebEngineSettings::PlaybackRequiresUserGesture, true);
 //#endif
-
-    HistoryStoragePolicy historyPolicy = static_cast<HistoryStoragePolicy>(m_settings.value(QLatin1String("HistoryStoragePolicy")).toInt());
-    sBrowserApplication->getHistoryManager()->setStoragePolicy(historyPolicy);
 
     CookieJar *cookieJar = sBrowserApplication->getCookieJar();
     cookieJar->setCookiesEnabled(m_settings.value(QLatin1String("EnableCookies")).toBool());

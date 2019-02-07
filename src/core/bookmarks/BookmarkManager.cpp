@@ -27,9 +27,7 @@ BookmarkManager::BookmarkManager(ViperServiceLocator &serviceLocator, QObject *p
 BookmarkManager::~BookmarkManager()
 {
     std::lock_guard<std::mutex> _(m_mutex);
-
-    if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
-        m_nodeListFuture.waitForFinished();
+    waitToFinishList();
 }
 
 BookmarkNode *BookmarkManager::getRoot() const
@@ -385,12 +383,18 @@ void BookmarkManager::setCanUpdateList(bool value)
         scheduleResetList();
 }
 
+void BookmarkManager::waitToFinishList()
+{
+    if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
+        m_nodeListFuture.waitForFinished();
+}
+
 void BookmarkManager::resetBookmarkList()
 {
     std::lock_guard<std::mutex> _(m_mutex);
 
     int numBookmarks = 1;
-    m_nodeList.clear();
+    std::vector<BookmarkNode*> nodeList;
 
     std::deque<BookmarkNode*> queue;
     queue.push_back(m_rootNode);
@@ -402,7 +406,10 @@ void BookmarkManager::resetBookmarkList()
         {
             ++numBookmarks;
             BookmarkNode *childNode = node.get();
-            m_nodeList.push_back(childNode);
+            if (!childNode)
+                continue;
+
+            nodeList.push_back(childNode);
 
             if (childNode->getType() == BookmarkNode::Folder)
                 queue.push_back(childNode);
@@ -412,5 +419,6 @@ void BookmarkManager::resetBookmarkList()
     }
 
     m_numBookmarks.store(numBookmarks);
+    m_nodeList = std::move(nodeList);
     emit bookmarksChanged();
 }

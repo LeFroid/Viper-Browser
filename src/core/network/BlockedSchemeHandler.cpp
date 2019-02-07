@@ -8,8 +8,8 @@
 
 BlockedSchemeHandler::BlockedSchemeHandler(ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEngineUrlSchemeHandler(parent),
-    m_serviceLocator(serviceLocator),
-    m_adBlockManager(nullptr)
+    m_adBlockManager(nullptr),
+    m_serviceLocator(serviceLocator)
 {
     m_adBlockManager = serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
 }

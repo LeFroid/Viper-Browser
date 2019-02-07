@@ -10,12 +10,8 @@ RequestInterceptor::RequestInterceptor(ViperServiceLocator &serviceLocator, QObj
     m_serviceLocator(serviceLocator),
     m_adBlockManager(nullptr)
 {
+    m_settings = serviceLocator.getServiceAs<Settings>("Settings");
     m_adBlockManager = serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
-}
-
-void RequestInterceptor::setSettings(Settings *settings)
-{
-    m_settings = settings;
 }
 
 void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)

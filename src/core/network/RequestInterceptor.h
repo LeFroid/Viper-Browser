@@ -21,9 +21,6 @@ public:
     /// Constructs the request interceptor with an optional parent pointer
     RequestInterceptor(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
-    /// Passes a shared pointer to the application settings along to the request interceptor
-    void setSettings(Settings *settings);
-
 protected:
     /// Intercepts the given request, potentially blocking it, modifying the header values or redirecting the request
     void interceptRequest(QWebEngineUrlRequestInfo &info) override;

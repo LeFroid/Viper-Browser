@@ -49,11 +49,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Web profiles must be set up immediately upon browser initialization
     setupWebProfiles();
 
-    // Load settings
-    m_settings = std::make_unique<Settings>();
-
-    // Request interceptor needs the settings to determine if we should send a DNT header
-    m_requestInterceptor->setSettings(m_settings.get());
+    // Instantiate and load settings
+    m_settings = new Settings;
+    if (!m_serviceLocator.addService(m_settings->objectName().toStdString(), m_settings))
+        qWarning() << "Could not register application settings manager with service registry/locator";
 
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
@@ -91,12 +90,12 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     connect(m_privateProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
 
     // Initialize advertisement blocking system
-    m_adBlockManager = new AdBlockManager(m_serviceLocator, m_settings.get());
+    m_adBlockManager = new AdBlockManager(m_serviceLocator, m_settings);
     if (!m_serviceLocator.addService("AdBlockManager", m_adBlockManager))
         qWarning() << "Could not register AdBlock Manager with service registry/locator";
 
     // Instantiate the history manager and related systems
-    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_settings->getPathValue(BrowserSetting::HistoryPath));
+    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::HistoryPath));
     if (!m_serviceLocator.addService(m_historyMgr->objectName().toStdString(), m_historyMgr.get()))
         qWarning() << "Could not register History Manager with service registry/locator";
 
@@ -113,10 +112,10 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_downloadMgr->setNetworkAccessManager(m_networkAccessMgr);
 
     // Setup user agent manager before settings
-    m_userAgentMgr = new UserAgentManager(m_settings.get());
+    m_userAgentMgr = new UserAgentManager(m_settings);
 
     // Setup user script manager
-    m_userScriptMgr = new UserScriptManager(m_settings.get());
+    m_userScriptMgr = new UserScriptManager(m_settings);
 
     // Setup extension storage manager
     m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
@@ -142,8 +141,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
 BrowserApplication::~BrowserApplication()
 {
-    m_requestInterceptor->setSettings(nullptr);
-
     delete m_downloadMgr;
     delete m_networkAccessMgr;
     delete m_userAgentMgr;
@@ -156,6 +153,7 @@ BrowserApplication::~BrowserApplication()
     delete m_autoFill;
     delete m_favoritePagesMgr;
     delete m_adBlockManager;
+    delete m_settings;
 }
 
 BrowserApplication *BrowserApplication::instance()
@@ -180,7 +178,7 @@ CookieJar *BrowserApplication::getCookieJar()
 
 Settings *BrowserApplication::getSettings()
 {
-    return m_settings.get();
+    return m_settings;
 }
 
 DownloadManager *BrowserApplication::getDownloadManager()
@@ -243,7 +241,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings.get(), m_serviceLocator, false);
+    MainWindow *w = new MainWindow(m_settings, m_serviceLocator, false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
     connect(w, &MainWindow::destroyed, [this, w](){
@@ -282,7 +280,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings.get(), m_serviceLocator, true);
+    MainWindow *w = new MainWindow(m_settings, m_serviceLocator, true);
     m_browserWindows.append(w);
     connect(w, &MainWindow::destroyed, [this, w](){
         if (m_browserWindows.contains(w))

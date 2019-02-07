@@ -502,7 +502,7 @@ void MainWindow::openClearHistoryDialog()
 
 void MainWindow::openPreferences()
 {
-    Preferences *preferences = new Preferences(m_settings, m_serviceLocator);
+    Preferences *preferences = new Preferences(m_settings);
 
     connect(preferences, &Preferences::clearHistoryRequested, this, &MainWindow::openClearHistoryDialog);
     connect(preferences, &Preferences::viewHistoryRequested,  this, &MainWindow::onShowAllHistory);
@@ -562,7 +562,7 @@ void MainWindow::onLoadFinished(bool ok)
 void MainWindow::onShowAllHistory()
 {
     HistoryWidget *histWidget = new HistoryWidget;
-    histWidget->setHistoryManager(sBrowserApplication->getHistoryManager());
+    histWidget->setHistoryManager(m_serviceLocator.getServiceAs<HistoryManager>("HistoryManager"));
     histWidget->loadHistory();
 
     connect(histWidget, &HistoryWidget::openLink, m_tabWidget, &BrowserTabWidget::loadUrl);

@@ -49,6 +49,10 @@ AdBlockManager::~AdBlockManager()
 {
 }
 
+void AdBlockManager::onSettingChanged(BrowserSetting, const QVariant &)
+{
+}
+
 void AdBlockManager::setEnabled(bool value)
 {
     m_enabled = value;
