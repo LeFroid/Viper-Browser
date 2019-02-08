@@ -14,9 +14,9 @@
 #include <QMenu>
 #include <QTimer>
 
-BrowserTabWidget::BrowserTabWidget(Settings *settings, ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
+BrowserTabWidget::BrowserTabWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QTabWidget(parent),
-    m_settings(settings),
+    m_settings(serviceLocator.getServiceAs<Settings>("Settings")),
     m_serviceLocator(serviceLocator),
     m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
     m_privateBrowsing(privateMode),

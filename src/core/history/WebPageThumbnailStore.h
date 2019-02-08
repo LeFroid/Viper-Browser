@@ -2,6 +2,7 @@
 #define WEBPAGETHUMBNAILSTORE_H
 
 #include "DatabaseWorker.h"
+#include "ServiceLocator.h"
 
 #include <vector>
 
@@ -30,8 +31,8 @@ class WebPageThumbnailStore : public QObject, private DatabaseWorker
     Q_OBJECT
 
 public:
-    /// Constructs the thumbnail storage manager, given the path to the database file and an optional parent object
-    explicit WebPageThumbnailStore(const QString &databaseFile, QObject *parent = nullptr);
+    /// Constructs the thumbnail storage manager, given a reference to the service locator, the path to the database file and an optional parent object
+    explicit WebPageThumbnailStore(ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent = nullptr);
 
     /// Destructor
     ~WebPageThumbnailStore();
@@ -43,15 +44,6 @@ public:
 public slots:
     /// Handles the loadFinished event which is emitted by a \ref WebWidget
     void onPageLoaded(bool ok);
-
-protected:
-    /// Sets a pointer to the \ref BookmarkManager, which is needed to determine the thumbnails that should
-    /// be saved to the database at exit, instead of being ignored
-    void setBookmarkManager(BookmarkManager *bookmarkMgr);
-
-    /// Sets a pointer to the \ref HistoryManager, which is needed to determine the thumbnails that should
-    /// be saved to the database at exit, instead of being ignored
-    void setHistoryManager(HistoryManager *historyMgr);
 
 protected:
     /// Returns true if the thumbnail database contains the table structures needed for it to function properly,

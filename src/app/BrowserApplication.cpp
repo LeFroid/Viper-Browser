@@ -99,9 +99,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     if (!m_serviceLocator.addService(m_historyMgr->objectName().toStdString(), m_historyMgr.get()))
         qWarning() << "Could not register History Manager with service registry/locator";
 
-    m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_settings->getPathValue(BrowserSetting::ThumbnailPath));
-    m_thumbnailStore->setBookmarkManager(m_bookmarkStore->getNodeManager());
-    m_thumbnailStore->setHistoryManager(m_historyMgr.get());
+    m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::ThumbnailPath));
 
     m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get(), m_settings->getPathValue(BrowserSetting::FavoritePagesFile));
 
@@ -241,7 +239,7 @@ MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
 
-    MainWindow *w = new MainWindow(m_settings, m_serviceLocator, false);
+    MainWindow *w = new MainWindow(m_serviceLocator, false);
     m_browserWindows.append(w);
     connect(w, &MainWindow::aboutToClose, this, &BrowserApplication::maybeSaveSession);
     connect(w, &MainWindow::destroyed, [this, w](){
@@ -280,7 +278,7 @@ MainWindow *BrowserApplication::getNewWindow()
 
 MainWindow *BrowserApplication::getNewPrivateWindow()
 {
-    MainWindow *w = new MainWindow(m_settings, m_serviceLocator, true);
+    MainWindow *w = new MainWindow(m_serviceLocator, true);
     m_browserWindows.append(w);
     connect(w, &MainWindow::destroyed, [this, w](){
         if (m_browserWindows.contains(w))

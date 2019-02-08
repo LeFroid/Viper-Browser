@@ -20,12 +20,12 @@
 
 #include <QDebug>
 
-WebPageThumbnailStore::WebPageThumbnailStore(const QString &databaseFile, QObject *parent) :
+WebPageThumbnailStore::WebPageThumbnailStore(ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("ThumbnailDB")),
     m_thumbnails(),
-    m_bookmarkManager(nullptr),
-    m_historyManager(nullptr),
+    m_bookmarkManager(serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager")),
+    m_historyManager(serviceLocator.getServiceAs<HistoryManager>("HistoryManager")),
     m_mimeDatabase()
 {
 }
@@ -121,16 +121,6 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
             }
         }
     });
-}
-
-void WebPageThumbnailStore::setBookmarkManager(BookmarkManager *bookmarkMgr)
-{
-    m_bookmarkManager = bookmarkMgr;
-}
-
-void WebPageThumbnailStore::setHistoryManager(HistoryManager *historyMgr)
-{
-    m_historyManager = historyMgr;
 }
 
 bool WebPageThumbnailStore::hasProperStructure()

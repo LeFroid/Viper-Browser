@@ -26,7 +26,7 @@ class BrowserTabWidget : public QTabWidget
 
 public:
     /// Constructs the browser tab widget
-    explicit BrowserTabWidget(Settings *settings, ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
+    explicit BrowserTabWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
 
     /// Returns a pointer to the current web widget
     WebWidget *currentWebWidget() const;

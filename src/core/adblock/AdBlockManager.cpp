@@ -15,7 +15,7 @@
 
 #include <QDebug>
 
-AdBlockManager::AdBlockManager(ViperServiceLocator &serviceLocator, Settings *settings, QObject *parent) :
+AdBlockManager::AdBlockManager(ViperServiceLocator &serviceLocator, QObject *parent) :
     QObject(parent),
     m_downloadManager(nullptr),
     m_enabled(true),
@@ -48,12 +48,15 @@ AdBlockManager::AdBlockManager(ViperServiceLocator &serviceLocator, Settings *se
 
     m_downloadManager = serviceLocator.getServiceAs<DownloadManager>("DownloadManager");
 
-    m_enabled = settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool();
-    m_configFile = settings->getPathValue(BrowserSetting::AdBlockPlusConfig);
-    m_subscriptionDir = settings->getPathValue(BrowserSetting::AdBlockPlusDataDir);
+    if (Settings *settings = serviceLocator.getServiceAs<Settings>("Settings"))
+    {
+        m_enabled = settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool();
+        m_configFile = settings->getPathValue(BrowserSetting::AdBlockPlusConfig);
+        m_subscriptionDir = settings->getPathValue(BrowserSetting::AdBlockPlusDataDir);
 
-    // Subscribe to settings event notifications
-    connect(settings, &Settings::settingChanged, this, &AdBlockManager::onSettingChanged);
+        // Subscribe to settings event notifications
+        connect(settings, &Settings::settingChanged, this, &AdBlockManager::onSettingChanged);
+    }
 
     // Create data dir if it does not yet exist
     QDir subscriptionDir(m_subscriptionDir);

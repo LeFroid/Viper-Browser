@@ -55,8 +55,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    /// Constructs a browsing window
-    explicit MainWindow(Settings *settings, ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent = nullptr);
+    /// Constructs a browser window
+    explicit MainWindow(ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent = nullptr);
 
     /// MainWindow destructor
     ~MainWindow();

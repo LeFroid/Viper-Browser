@@ -58,11 +58,11 @@
 #include <QToolButton>
 #include <QtConcurrent>
 
-MainWindow::MainWindow(Settings *settings, ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent) :
+MainWindow::MainWindow(ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_privateWindow(privateWindow),
-    m_settings(settings),
+    m_settings(serviceLocator.getServiceAs<Settings>("Settings")),
     m_serviceLocator(serviceLocator),
     m_bookmarkManager(serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager")),
     m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
@@ -238,7 +238,7 @@ void MainWindow::setupMenuBar()
 void MainWindow::setupTabWidget()
 {
     // Create tab widget and insert into the layout
-    m_tabWidget = new BrowserTabWidget(m_settings, m_serviceLocator, m_privateWindow, this);
+    m_tabWidget = new BrowserTabWidget(m_serviceLocator, m_privateWindow, this);
     ui->verticalLayout->insertWidget(ui->verticalLayout->indexOf(ui->widgetFindText), m_tabWidget);
 
     // Add change tab slot after removing dummy tabs to avoid segfaulting
