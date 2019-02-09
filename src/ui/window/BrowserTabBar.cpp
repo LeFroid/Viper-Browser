@@ -243,13 +243,14 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
         {
             window()->close();
         }
+        /*
         else
         {
             BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
             WebWidget *ww = tabWidget->getWebWidget(tabIdx);
             tabWidget->removeTab(tabIdx);
             ww->deleteLater();
-        }
+        }*/
     }
 
     QTabBar::mouseMoveEvent(event);
@@ -354,7 +355,7 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
             {
                 auto lastTabRect = tabRect(count() - 1);
                 if (event->pos().x() >= lastTabRect.x() + lastTabRect.width())
-                    tabIndexAtPos = count() - 1;
+                    tabIndexAtPos = count();
             }
 
             if (originalTabIndex >= 0 && tabIndexAtPos >= 0 && originalTabIndex != tabIndexAtPos)
@@ -364,9 +365,11 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
                 if (tabIndexAtPos > originalTabIndex)
                     --tabIndexAtPos;
                 tabIndexAtPos = tabWidget->insertTab(tabIndexAtPos, ww, ww->getIcon(), ww->getTitle());
+                setTabPinned(tabIndexAtPos, m_draggedTabState.isPinned);
                 tabWidget->setCurrentIndex(tabIndexAtPos);
                 setCurrentIndex(tabIndexAtPos);
             }
+            event->acceptProposedAction();
             return;
         }
         qobject_cast<MainWindow*>(window())->dropEvent(event);
