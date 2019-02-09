@@ -16,7 +16,7 @@ AutoFill::AutoFill(QObject *parent) :
     m_credentialStore(nullptr),
     m_formFillScript()
 {
-    if (std::is_base_of<CredentialStoreImpl, CredentialStore>::value)
+    if (std::is_class<CredentialStoreImpl>::value)
         m_credentialStore = std::make_unique<CredentialStoreImpl>();
 
     QFile scriptFile(QLatin1String(":/AutoFill.js"));

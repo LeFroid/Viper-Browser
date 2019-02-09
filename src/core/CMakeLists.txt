@@ -86,5 +86,6 @@ target_link_libraries(viper-core
 )
 
 if (KF5Wallet_FOUND)
+    target_compile_definitions(viper-core PRIVATE USE_KWALLET=1)
     target_link_libraries(viper-core KF5::Wallet)
 endif()
