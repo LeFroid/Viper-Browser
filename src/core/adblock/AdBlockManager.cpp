@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QNetworkRequest>
+#include <QtGlobal>
 
 #include <QDebug>
 
@@ -791,14 +792,22 @@ void AdBlockManager::loadSubscriptions()
         // Get last update as unix epoch value
         bool ok;
         quint64 lastUpdateUInt = subscriptionObj.value(QLatin1String("last_update")).toVariant().toULongLong(&ok);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
         QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromSecsSinceEpoch(lastUpdateUInt) : QDateTime::currentDateTime());
+#else
+        QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromMSecsSinceEpoch(lastUpdateUInt * 1000ULL) : QDateTime::currentDateTime());
+#endif
         subscription.setLastUpdate(lastUpdate);
 
         // Attempt to get next update time as unix epoch value
         quint64 nextUpdateUInt = subscriptionObj.value(QLatin1String("next_update")).toVariant().toULongLong(&ok);
         if (ok && nextUpdateUInt > 0)
         {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
             QDateTime nextUpdate = QDateTime::fromSecsSinceEpoch(nextUpdateUInt);
+#else
+            QDateTime nextUpdate = QDateTime::fromMSecsSinceEpoch(nextUpdateUInt * 1000ULL);
+#endif
             subscription.setNextUpdate(nextUpdate);
         }
 
@@ -1023,8 +1032,13 @@ void AdBlockManager::save()
     {
         QJsonObject subscriptionObj;
         subscriptionObj.insert(QLatin1String("enabled"), it->isEnabled());
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
         subscriptionObj.insert(QLatin1String("last_update"), QJsonValue::fromVariant(QVariant(it->getLastUpdate().toSecsSinceEpoch())));
         subscriptionObj.insert(QLatin1String("next_update"), QJsonValue::fromVariant(QVariant(it->getNextUpdate().toSecsSinceEpoch())));
+#else
+        subscriptionObj.insert(QLatin1String("last_update"), QJsonValue::fromVariant(QVariant(it->getLastUpdate().toMSecsSinceEpoch() / 1000ULL)));
+        subscriptionObj.insert(QLatin1String("next_update"), QJsonValue::fromVariant(QVariant(it->getNextUpdate().toMSecsSinceEpoch() / 1000ULL)));
+#endif
         subscriptionObj.insert(QLatin1String("source"), it->getSourceUrl().toString(QUrl::FullyEncoded));
 
         configObj.insert(it->getFilePath(), QJsonValue(subscriptionObj));
