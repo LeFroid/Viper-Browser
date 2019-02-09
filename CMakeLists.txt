@@ -15,6 +15,8 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 # Get Qt
 set(QT_VERSION_MIN "5.9.0")
 find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Core Concurrent Gui Network PrintSupport Sql Svg QuickWidgets Widgets WebChannel WebEngineWidgets)
@@ -25,8 +27,9 @@ endif()
 
 # Check for credential storage backends
 if(UNIX AND NOT APPLE)
-    find_package(KF5Wallet CONFIG)
+    find_package(KF5Wallet)
     if (KF5Wallet_FOUND)
+        message("Using KWallet for Autofill backend")
         add_definitions(-DUSE_KWALLET)
     endif()
 endif()
