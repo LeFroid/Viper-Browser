@@ -15,6 +15,7 @@
 #include <QMenu>
 #include <QRegExp>
 #include <QResizeEvent>
+#include <QtConcurrent>
 #include <QDebug>
 
 BookmarkWidget::BookmarkWidget(QWidget *parent) :
@@ -86,38 +87,22 @@ void BookmarkWidget::setBookmarkManager(BookmarkManager *bookmarkManager)
     // Add context menu to bookmark view
     ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableView, &QTableView::customContextMenuRequested, this, &BookmarkWidget::onBookmarkContextMenu);
-
     connect(ui->tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &BookmarkWidget::onBookmarkSelectionChanged);
 
     connect(tableModel, &BookmarkTableModel::dataChanged, this, &BookmarkWidget::onTableDataChanged);
+
+    // Connect change in folder data via table model to an update in the folder model
+    connect(tableModel, &BookmarkTableModel::movedFolder, this, &BookmarkWidget::resetFolderModel);
 
     // Set up bookmark folder model and view
     BookmarkFolderModel *treeViewModel = new BookmarkFolderModel(bookmarkManager, this);
     ui->treeView->setModel(treeViewModel);
     ui->treeView->header()->hide();
 
-    // Auto select root folder and expand it
-    QModelIndex root = treeViewModel->index(0, 0);
-    ui->treeView->setCurrentIndex(root);
-    ui->treeView->setExpanded(root, true);
-    m_folderBackHistory.push_back(root);
-
-    connect(treeViewModel, &BookmarkFolderModel::dataChanged, this, &BookmarkWidget::onFolderDataChanged);
-
     // Add context menu to folder view (for adding or removing folders)
     ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeView, &QTreeView::customContextMenuRequested, this, &BookmarkWidget::onFolderContextMenu);
-
-    // Connect change in selection in tree view to a change in data display in table view
-    connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &BookmarkWidget::onFolderSelectionChanged);
-
-    // Connect change in folder data via table model to an update in the folder model
-    connect(tableModel, &BookmarkTableModel::movedFolder, this, &BookmarkWidget::resetFolderModel);
-
-    // Connect changes in bookmark data via folder model to an update in the table model
-    connect(treeViewModel, &BookmarkFolderModel::beginMovingBookmarks, this, &BookmarkWidget::beginResetTableModel);
-    connect(treeViewModel, &BookmarkFolderModel::endMovingBookmarks,   this, &BookmarkWidget::endResetTableModel);
-    connect(treeViewModel, &BookmarkFolderModel::movedFolder,          this, &BookmarkWidget::onFolderMoved);
+    setupFolderModel(treeViewModel);
 }
 
 void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
@@ -143,7 +128,7 @@ void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
         openFont.setBold(true);
         openAction->setFont(openFont);
 
-        menu.addAction(tr("Open in a new tab"), this, &BookmarkWidget::openInNewTab);
+        menu.addAction(tr("Open in a new tab"),    this, &BookmarkWidget::openInNewTab);
         menu.addAction(tr("Open in a new window"), this, &BookmarkWidget::openInNewWindow);
         menu.addSeparator();
     }
@@ -162,7 +147,7 @@ void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
     if (!model->isInSearchMode())
     {
         menu.addAction(tr("New bookmark..."), this, &BookmarkWidget::addBookmark);
-        menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
+        menu.addAction(tr("New folder..."),   this, &BookmarkWidget::addFolder);
     }
 
     if (isBookmarkNode)
@@ -191,7 +176,7 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
         }
 
         menu.addAction(tr("New bookmark..."), this, &BookmarkWidget::addBookmark);
-        menu.addAction(tr("New folder..."), this, &BookmarkWidget::addFolder);
+        menu.addAction(tr("New folder..."),   this, &BookmarkWidget::addFolder);
         menu.addSeparator();
         menu.addAction(tr("Delete"), this, &BookmarkWidget::deleteFolderSelection);
     }
@@ -255,9 +240,13 @@ void BookmarkWidget::onImportExportBoxChanged(int index)
             BookmarkNode *importFolder = m_bookmarkManager->addFolder(tr("Imported Bookmarks"), m_bookmarkManager->getRoot());
             resetFolderModel();
 
-            BookmarkImporter importer(m_bookmarkManager);
-            if (!importer.import(fileName, importFolder))
-                qDebug() << "Error: In BookmarkWidget, could not import bookmarks from file " << fileName;
+            QtConcurrent::run([=](){
+                BookmarkImporter importer(m_bookmarkManager);
+                if (!importer.import(fileName, importFolder))
+                    qDebug() << "Error: In BookmarkWidget, could not import bookmarks from file " << fileName;
+
+                resetFolderModel();
+            });
 
             break;
         }
@@ -378,22 +367,39 @@ void BookmarkWidget::searchBookmarks()
 void BookmarkWidget::resetFolderModel()
 {
     QAbstractItemModel *oldModel = ui->treeView->model();
+    QItemSelectionModel *oldSelectionModel = ui->treeView->selectionModel();
     disconnect(oldModel, &QAbstractItemModel::dataChanged, this, &BookmarkWidget::onFolderDataChanged);
 
     BookmarkFolderModel *updatedModel = new BookmarkFolderModel(m_bookmarkManager, this);
     ui->treeView->setModel(updatedModel);
-    oldModel->deleteLater();
     ui->treeView->setExpanded(updatedModel->index(0, 0), true);
-
-    connect(updatedModel, &BookmarkFolderModel::dataChanged, this, &BookmarkWidget::onFolderDataChanged);
+    oldModel->deleteLater();
+    oldSelectionModel->deleteLater();
 
     showInfoForNode(nullptr);
 
+    setupFolderModel(updatedModel);
+}
+
+void BookmarkWidget::setupFolderModel(BookmarkFolderModel *folderModel)
+{
     // Clear history items
-    m_folderBackHistory.clear();
-    m_folderForwardHistory.clear();
-    ui->buttonBack->setEnabled(false);
-    ui->buttonForward->setEnabled(false);
+    clearNavigationHistory();
+
+    // Auto select root folder and expand it
+    QModelIndex root = folderModel->index(0, 0);
+    ui->treeView->setCurrentIndex(root);
+    ui->treeView->setExpanded(root, true);
+    m_folderBackHistory.push_back(root);
+
+    // Folder model selection and data handlers
+    connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &BookmarkWidget::onFolderSelectionChanged);
+    connect(folderModel, &BookmarkFolderModel::dataChanged, this, &BookmarkWidget::onFolderDataChanged);
+
+    // Connect changes in bookmark data via folder model to an update in the table model
+    connect(folderModel, &BookmarkFolderModel::beginMovingBookmarks, this, &BookmarkWidget::beginResetTableModel);
+    connect(folderModel, &BookmarkFolderModel::endMovingBookmarks,   this, &BookmarkWidget::endResetTableModel);
+    connect(folderModel, &BookmarkFolderModel::movedFolder,          this, &BookmarkWidget::onFolderMoved);
 }
 
 void BookmarkWidget::beginResetTableModel()
@@ -412,10 +418,7 @@ void BookmarkWidget::endResetTableModel()
     showInfoForNode(nullptr);
 
     // Clear history items
-    m_folderBackHistory.clear();
-    m_folderForwardHistory.clear();
-    ui->buttonBack->setEnabled(false);
-    ui->buttonForward->setEnabled(false);
+    clearNavigationHistory();
 }
 
 void BookmarkWidget::onFolderMoved(BookmarkNode *folder, BookmarkNode *updatedPtr)
@@ -426,10 +429,7 @@ void BookmarkWidget::onFolderMoved(BookmarkNode *folder, BookmarkNode *updatedPt
         tableModel->setCurrentFolder(updatedPtr);
 
     // Clear history items
-    m_folderBackHistory.clear();
-    m_folderForwardHistory.clear();
-    ui->buttonBack->setEnabled(false);
-    ui->buttonForward->setEnabled(false);
+    clearNavigationHistory();
 }
 
 void BookmarkWidget::onClickBackButton()
@@ -622,6 +622,14 @@ void BookmarkWidget::onEditNodeShortcut()
         return;
 
     m_bookmarkManager->setBookmarkShortcut(m_currentNode, ui->lineEditShortcut->text());
+}
+
+void BookmarkWidget::clearNavigationHistory()
+{
+    m_folderBackHistory.clear();
+    m_folderForwardHistory.clear();
+    ui->buttonBack->setEnabled(false);
+    ui->buttonForward->setEnabled(false);
 }
 
 QUrl BookmarkWidget::getUrlForSelection()

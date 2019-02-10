@@ -8,6 +8,7 @@
 #include <QVector>
 #include <QWidget>
 
+class BookmarkFolderModel;
 class BookmarkManager;
 
 namespace Ui {
@@ -140,11 +141,17 @@ private slots:
     void onEditNodeShortcut();
 
 private:
+    /// Clears the local bookmark folder navigation history
+    void clearNavigationHistory();
+
     /// Returns a QUrl containing the location of the bookmark that the user has selected in the table view
     QUrl getUrlForSelection();
 
     /// Displays information about the given node at the bottom of the window
     void showInfoForNode(BookmarkNode *node);
+
+    /// Sets the behavior of the folder model
+    void setupFolderModel(BookmarkFolderModel *folderModel);
 
 private:
     /// Dialog's user interface elements
