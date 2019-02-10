@@ -50,7 +50,7 @@ document.addEventListener('click', function(e) {
     window.viper.favoritePageManager.removeEntry(pageData.url);
 
     // Remove item from web page
-    let p = target.parentNode;
+    let p = target.parentNode.parentNode;
     p.parentNode.removeChild(p);
 
     // Attempt to add the next item to the web page

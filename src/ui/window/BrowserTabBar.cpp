@@ -226,6 +226,7 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
     QDrag *drag = new QDrag(this);
     QMimeData *mimeData = new QMimeData;
 
+    m_dragStartPos.setX(event->pos().x());
     int tabIdx = tabAt(m_dragStartPos);
     QByteArray encodedState = m_draggedTabState.serialize();
     mimeData->setData("application/x-browser-tab", encodedState);
