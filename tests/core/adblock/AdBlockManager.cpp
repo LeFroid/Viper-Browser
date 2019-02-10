@@ -226,7 +226,6 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
         {
             //qDebug() << "Adding CSP rule from filter: " << filter->getRule();
             javascript.append(cspScript.arg(filter->getContentSecurityPolicy()));
-            usedCspScript = true;
             break;
         }
     }

@@ -120,7 +120,6 @@ void HTMLHighlighter::highlightBlock(const QString &text)
     {
         auto match = m_commentEndExpr.match(text, startIdx);
         endIdx = match.capturedStart();
-        captureLen = 0;
         if (endIdx == -1)
         {
             setCurrentBlockState(HTMLHighlighter::Comment);

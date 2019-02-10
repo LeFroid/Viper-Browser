@@ -105,7 +105,7 @@ void FastHashTest::testStringsShouldMatch()
     quint64 differenceHash = FastHash::getDifferenceHash(static_cast<quint64>(needle.size()));
 	quint64 needleHash = FastHash::getNeedleHash(needleWideStr);
 
-    bool isMatch;
+    bool isMatch = false;
     QBENCHMARK {
 	    isMatch = FastHash::isMatch(needleWideStr, haystackWideStr, needleHash, differenceHash);
     }
@@ -134,7 +134,7 @@ void FastHashTest::testStringsShouldNotMatch()
     quint64 differenceHash = FastHash::getDifferenceHash(static_cast<quint64>(needle.size()));
 	quint64 needleHash = FastHash::getNeedleHash(needleWideStr);
 
-    bool isMatch;
+    bool isMatch = true;
     QBENCHMARK {
 	    isMatch = FastHash::isMatch(needleWideStr, haystackWideStr, needleHash, differenceHash);
     }
