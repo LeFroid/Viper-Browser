@@ -394,10 +394,6 @@ void BrowserApplication::beforeBrowserQuit()
 
     if (!windows.empty() && mode == StartupMode::RestoreSession && !m_sessionMgr.alreadySaved())
         m_sessionMgr.saveState(windows);
-
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    QWebEngineProfile::defaultProfile()->cookieStore()->setCookieFilter(nullptr);
-#endif
 }
 
 void BrowserApplication::maybeSaveSession()

@@ -31,6 +31,13 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
 
     if (!m_privateJar)
         loadExemptThirdParties();
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    connect(sBrowserApplication, &BrowserApplication::aboutToQuit, this, [this]() {
+        if (m_store)
+            m_store->setCookieFilter(nullptr);
+    });
+#endif
 }
 
 CookieJar::~CookieJar()
