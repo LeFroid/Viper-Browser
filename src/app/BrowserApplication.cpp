@@ -78,7 +78,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     webProfile->cookieStore()->loadAllCookies();
 
     // Initialize auto fill manager
-    m_autoFill = new AutoFill();
+    m_autoFill = new AutoFill(m_settings);
+    if (!m_serviceLocator.addService(m_autoFill->objectName().toStdString(), m_autoFill))
+        qWarning() << "Could not register AutoFill Manager with service registry";
 
     // Initialize download manager
     m_downloadMgr = new DownloadManager;
@@ -102,6 +104,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::ThumbnailPath));
 
     m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get(), m_settings->getPathValue(BrowserSetting::FavoritePagesFile));
+    if (!m_serviceLocator.addService(m_favoritePagesMgr->objectName().toStdString(), m_favoritePagesMgr))
+        qWarning() << "Could not register Favorite Web Page Manager with service registry/locator";
 
     // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
@@ -117,6 +121,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Setup extension storage manager
     m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
+    if (!m_serviceLocator.addService(m_extStorage->objectName().toStdString(), m_extStorage.get()))
+        qWarning() << "Could not register Web Extension Storage Manager with service registry/locator";
 
     // Apply global web scripts
     installGlobalWebScripts();

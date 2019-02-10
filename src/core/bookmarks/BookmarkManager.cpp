@@ -173,6 +173,9 @@ void BookmarkManager::removeBookmark(const QUrl &url)
         }
     }
 
+    if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
+        m_nodeListFuture.waitForFinished();
+
     for (BookmarkNode *node : m_nodeList)
     {
         if (node->getType() != BookmarkNode::Bookmark)

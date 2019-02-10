@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+class FaviconStore;
 class WebPage;
 
 /**
@@ -16,7 +17,7 @@ class FaviconStoreBridge : public QObject
 
 public:
     /// Constructs the favicon store bridge, given a pointer to the parent web page
-    FaviconStoreBridge(WebPage *parent);
+    explicit FaviconStoreBridge(FaviconStore *faviconStore, WebPage *parent);
 
     /// Destructor
     ~FaviconStoreBridge();
@@ -28,6 +29,9 @@ public slots:
 private:
     /// Pointer to the page that owns this bridge
     WebPage *m_page;
+
+    /// Pointer to the favicon store
+    FaviconStore *m_faviconStore;
 };
 
 #endif // FAVICONSTOREBRIDGE_H

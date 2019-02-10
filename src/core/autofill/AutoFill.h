@@ -2,6 +2,7 @@
 #define AUTOFILL_H
 
 #include "CredentialStore.h"
+#include "Settings.h"
 
 #include <memory>
 
@@ -25,8 +26,9 @@ class AutoFill : public QObject
     Q_OBJECT
 
 public:
+    /// Constructs the AutoFill manager given a pointer to the application settings
     /// AutoFill constructor
-    explicit AutoFill(QObject *parent = nullptr);
+    explicit AutoFill(Settings *settings);
 
     /// Destructor
     ~AutoFill();
@@ -59,12 +61,18 @@ private slots:
     /// Updates the given credentials in the \ref CredentialStore
     void updateCredentials(const WebCredentials &credentials);
 
+    /// Listens for any settings changes that affect the AutoFill system (ex: enable/disable autofill)
+    void onSettingChanged(BrowserSetting setting, const QVariant &value);
+
 private:
     /// Credential storage system
     std::unique_ptr<CredentialStore> m_credentialStore;
 
     /// Form filling javascript template
     QString m_formFillScript;
+
+    /// Flag indicating whether or not the AutoFill system is enabled
+    bool m_enabled;
 };
 
 

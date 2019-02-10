@@ -41,7 +41,7 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
 
     // Add "New Tab" button
     m_buttonNewTab = new QToolButton(this);
-    m_buttonNewTab->setIcon(QIcon::fromTheme("folder-new"));
+    m_buttonNewTab->setIcon(QIcon::fromTheme(QLatin1String("folder-new")));
     m_buttonNewTab->setStyleSheet(QLatin1String("QToolButton:hover { border: 1px solid #666666; border-radius: 2px; } "));
     m_buttonNewTab->setToolTip(tr("New Tab"));
     m_buttonNewTab->setFixedSize(28, height() - 2);

@@ -6,6 +6,7 @@
 #include <QString>
 #include <QVariant>
 
+class AutoFill;
 class WebPage;
 
 /**
@@ -18,8 +19,8 @@ class AutoFillBridge : public QObject
     Q_OBJECT
 
 public:
-    /// Constructs the AutoFillBridge with the given parent
-    explicit AutoFillBridge(WebPage *parent);
+    /// Constructs the AutoFillBridge with a pointer to the auto fill manager and a parent web page
+    explicit AutoFillBridge(AutoFill *autoFill, WebPage *parent);
 
     /// AutoFillBridge destructor
     ~AutoFillBridge();
@@ -37,6 +38,9 @@ public slots:
 private:
     /// Pointer to the web page that owns this bridge
     WebPage *m_page;
+
+    /// Pointer to the auto fill manager
+    AutoFill *m_autoFill;
 };
 
 #endif // AUTOFILLBRIDGE_H

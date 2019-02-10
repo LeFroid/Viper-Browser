@@ -6,6 +6,7 @@
 #include "BrowserTabWidget.h"
 #include "CommonUtil.h"
 #include "ExtStorage.h"
+#include "FaviconStore.h"
 #include "FaviconStoreBridge.h"
 #include "FavoritePagesManager.h"
 #include "HistoryManager.h"
@@ -41,7 +42,7 @@ WebPage::WebPage(ViperServiceLocator &serviceLocator, QObject *parent) :
     m_mainFrameAdBlockScript(),
     m_needInjectAdBlockScript(true)
 {
-    setupSlots();
+    setupSlots(serviceLocator);
 }
 
 WebPage::WebPage(ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent) :
@@ -53,20 +54,20 @@ WebPage::WebPage(ViperServiceLocator &serviceLocator, QWebEngineProfile *profile
     m_domainFilterStyle(),
     m_needInjectAdBlockScript(true)
 {
-    setupSlots();
+    setupSlots(serviceLocator);
 }
 
 WebPage::~WebPage()
 {
 }
 
-void WebPage::setupSlots()
+void WebPage::setupSlots(ViperServiceLocator &serviceLocator)
 {
     QWebChannel *channel = new QWebChannel(this);
-    channel->registerObject(QLatin1String("extStorage"), sBrowserApplication->getExtStorage());
-    channel->registerObject(QLatin1String("favoritePageManager"), sBrowserApplication->getFavoritePagesManager());
-    channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(this));
-    channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(this));
+    channel->registerObject(QLatin1String("extStorage"), serviceLocator.getServiceAs<ExtStorage>("storage"));
+    channel->registerObject(QLatin1String("favoritePageManager"), serviceLocator.getServiceAs<FavoritePagesManager>("favoritePageManager"));
+    channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(serviceLocator.getServiceAs<AutoFill>("AutoFill"), this));
+    channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(serviceLocator.getServiceAs<FaviconStore>("FaviconStore"), this));
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
     connect(this, &WebPage::authenticationRequired,      this, &WebPage::onAuthenticationRequired);

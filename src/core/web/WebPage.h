@@ -108,7 +108,7 @@ private slots:
 
 private:
     /// Connects web engine page signals to their handlers
-    void setupSlots();
+    void setupSlots(ViperServiceLocator &serviceLocator);
 
 private:
     /// Advertisement blocking system manager

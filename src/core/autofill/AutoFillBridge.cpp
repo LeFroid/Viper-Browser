@@ -6,9 +6,10 @@
 
 #include <QDebug>
 
-AutoFillBridge::AutoFillBridge(WebPage *parent) :
+AutoFillBridge::AutoFillBridge(AutoFill *autoFill, WebPage *parent) :
     QObject(parent),
-    m_page(parent)
+    m_page(parent),
+    m_autoFill(autoFill)
 {
 }
 
@@ -18,8 +19,5 @@ AutoFillBridge::~AutoFillBridge()
 
 void AutoFillBridge::onFormSubmitted(const QString &pageUrl, const QString &username, const QString &password, const QMap<QString, QVariant> &formData)
 {
-    if (!sBrowserApplication->getSettings()->getValue(BrowserSetting::EnableAutoFill).toBool())
-        return;
-
-    sBrowserApplication->getAutoFill()->onFormSubmitted(m_page, pageUrl, username, password, formData);
+    m_autoFill->onFormSubmitted(m_page, pageUrl, username, password, formData);
 }

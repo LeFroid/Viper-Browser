@@ -11,11 +11,14 @@
 #include <QFile>
 #include <QWebEngineScript>
 
-AutoFill::AutoFill(QObject *parent) :
-    QObject(parent),
+AutoFill::AutoFill(Settings *settings) :
+    QObject(nullptr),
     m_credentialStore(nullptr),
-    m_formFillScript()
+    m_formFillScript(),
+    m_enabled(settings->getValue(BrowserSetting::EnableAutoFill).toBool())
 {
+    setObjectName(QLatin1String("AutoFill"));
+
     if (std::is_class<CredentialStoreImpl>::value)
         m_credentialStore = std::make_unique<CredentialStoreImpl>();
 
@@ -23,6 +26,8 @@ AutoFill::AutoFill(QObject *parent) :
     if (scriptFile.open(QIODevice::ReadOnly))
         m_formFillScript = scriptFile.readAll();
     scriptFile.close();
+
+    connect(settings, &Settings::settingChanged, this, &AutoFill::onSettingChanged);
 }
 
 AutoFill::~AutoFill()
@@ -31,7 +36,7 @@ AutoFill::~AutoFill()
 
 void AutoFill::onFormSubmitted(WebPage *page, const QString &pageUrl, const QString &username, const QString &password, const QMap<QString, QVariant> &formData)
 {
-    if (!m_credentialStore || !sBrowserApplication->getSettings()->getValue(BrowserSetting::EnableAutoFill).toBool())
+    if (!m_credentialStore || !m_enabled)
         return;
 
     if (!page || !page->view())
@@ -86,7 +91,7 @@ void AutoFill::onFormSubmitted(WebPage *page, const QString &pageUrl, const QStr
 
 void AutoFill::onPageLoaded(WebPage *page, const QUrl &url)
 {
-    if (!m_credentialStore || !sBrowserApplication->getSettings()->getValue(BrowserSetting::EnableAutoFill).toBool())
+    if (!m_credentialStore || !m_enabled)
         return;
 
     std::vector<WebCredentials> savedLogins = m_credentialStore->getCredentialsFor(url);
@@ -142,4 +147,10 @@ void AutoFill::removeCredentials(const WebCredentials &credentials)
 {
     if (m_credentialStore)
         m_credentialStore->removeCredentials(credentials);
+}
+
+void AutoFill::onSettingChanged(BrowserSetting setting, const QVariant &value)
+{
+    if (setting == BrowserSetting::EnableAutoFill)
+        m_enabled = value.toBool();
 }
