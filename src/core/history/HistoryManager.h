@@ -66,11 +66,19 @@ class HistoryManager : public QObject, private DatabaseWorker
     Q_OBJECT
 
 public:
+    using const_iterator = QHash<QString, WebHistoryItem>::const_iterator;
+
     /// Constructs the history manager, given the path to the history database
     explicit HistoryManager(ViperServiceLocator &serviceLocator, const QString &databaseFile);
 
     /// Saves browsing history at exit
-    virtual ~HistoryManager();
+    ~HistoryManager();
+
+    /// Returns a const_iterator to the first element in the history hash map
+    const_iterator begin() const { return m_historyItems.cbegin(); }
+
+    /// Returns a const_iterator to the end of the history hash map
+    const_iterator end() const { return m_historyItems.cend(); }
 
     /// Clears all browsing history
     void clearAllHistory();
@@ -91,12 +99,6 @@ public:
 
     /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
     const std::deque<WebHistoryItem> &getRecentItems() const { return m_recentItems; }
-
-    /// Returns a const_iterator to the first element in the history hash map
-    QHash<QString, WebHistoryItem>::const_iterator getHistIterBegin() const { return m_historyItems.cbegin(); }
-
-    /// Returns a const_iterator to the end of the history hash map
-    QHash<QString, WebHistoryItem>::const_iterator getHistIterEnd() const { return m_historyItems.cend(); }
 
     /// Returns a list of all visited URLs
     QList<QString> getVisitedURLs() const { return m_historyItems.keys(); }

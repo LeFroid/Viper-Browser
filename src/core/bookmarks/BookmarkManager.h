@@ -40,10 +40,10 @@ public:
     ~BookmarkManager();
 
     /// Returns an iterator pointing to the first bookmark in the collection
-    const_iterator begin() { return m_nodeList.cbegin(); }
+    const_iterator begin() const { return m_nodeList.cbegin(); }
 
     /// Returns an iterator at the end of the bookmark collection
-    const_iterator end() { return m_nodeList.cend(); }
+    const_iterator end() const { return m_nodeList.cend(); }
 
     /// Returns the root of the bookmark tree
     BookmarkNode *getRoot() const;

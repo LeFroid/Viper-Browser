@@ -93,18 +93,18 @@ void URLSuggestionWorker::searchForHits()
         return;
 
     std::vector<URLSuggestion> histSuggestions;
-    for (auto it = historyMgr->getHistIterBegin(); it != historyMgr->getHistIterEnd(); ++it)
+    for (const auto it : *historyMgr)
     {
         if (!m_working.load())
             return;
 
-        const QString &url = it->URL.toString();
+        const QString &url = it.URL.toString();
         if (hits.contains(url))
             continue;
 
-        if (isEntryMatch(it->Title.toUpper(), url.toUpper()))
+        if (isEntryMatch(it.Title.toUpper(), url.toUpper()))
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(it->URL), it->Title, url, false, historyMgr->getTimesVisited(it->URL));
+            auto suggestion = URLSuggestion(faviconStore->getFavicon(it.URL), it.Title, url, false, historyMgr->getTimesVisited(it.URL));
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)
