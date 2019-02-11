@@ -15,7 +15,8 @@
 UserScriptManager::UserScriptManager(Settings *settings, QObject *parent) :
     QObject(parent),
     m_model(new UserScriptModel(settings, this))
-{    
+{
+    setObjectName(QLatin1String("UserScriptManager"));
     connect(settings, &Settings::settingChanged, this, &UserScriptManager::onSettingChanged);
 }
 

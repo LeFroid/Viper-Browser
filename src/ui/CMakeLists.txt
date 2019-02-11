@@ -50,6 +50,7 @@ set(viper_ui_src
     window/MainWindow.cpp
     window/NavigationToolBar.cpp
     window/SearchEngineLineEdit.cpp
+    window/ToolMenu.cpp
     window/URLLineEdit.cpp
 )
 

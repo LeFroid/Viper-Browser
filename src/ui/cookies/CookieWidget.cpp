@@ -19,6 +19,7 @@ CookieWidget::CookieWidget(QWidget *parent) :
     m_dialogEditMode(false)
 {
     ui->setupUi(this);
+    setObjectName(QLatin1String("CookieWidget"));
 
     ui->tableViewCookies->setModel(new CookieTableModel(this));
     ui->tableViewCookieDetail->setModel(new DetailedCookieTableModel(this));

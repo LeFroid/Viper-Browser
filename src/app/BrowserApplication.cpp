@@ -72,6 +72,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_cookieJar->setThirdPartyCookiesEnabled(m_settings->getValue(BrowserSetting::EnableThirdPartyCookies).toBool());
 
     m_cookieUI = new CookieWidget();
+    if (!m_serviceLocator.addService(m_cookieUI->objectName().toStdString(), m_cookieUI))
+        qWarning() << "Could not register Bookmark Manager with service registry/locator";
 
     // Get default profile and load cookies now that the cookie jar is instantiated
     auto webProfile = QWebEngineProfile::defaultProfile();
@@ -118,6 +120,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Setup user script manager
     m_userScriptMgr = new UserScriptManager(m_settings);
+    if (!m_serviceLocator.addService(m_userScriptMgr->objectName().toStdString(), m_userScriptMgr))
+        qWarning() << "Could not register User Script Manager with service registry/locator";
 
     // Setup extension storage manager
     m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
@@ -195,11 +199,6 @@ FaviconStore *BrowserApplication::getFaviconStore()
     return m_faviconStorage.get();
 }
 
-FavoritePagesManager *BrowserApplication::getFavoritePagesManager()
-{
-    return m_favoritePagesMgr;
-}
-
 HistoryManager *BrowserApplication::getHistoryManager()
 {
     return m_historyMgr.get();
@@ -223,17 +222,6 @@ UserAgentManager *BrowserApplication::getUserAgentManager()
 UserScriptManager *BrowserApplication::getUserScriptManager()
 {
     return m_userScriptMgr;
-}
-
-CookieWidget *BrowserApplication::getCookieManager()
-{
-    m_cookieUI->resetUI();
-    return m_cookieUI;
-}
-
-ExtStorage *BrowserApplication::getExtStorage()
-{
-    return m_extStorage.get();
 }
 
 WebPageThumbnailStore *BrowserApplication::getWebPageThumbnailStore()

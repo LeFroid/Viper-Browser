@@ -12,6 +12,7 @@
 
 #include <QAction>
 #include <QMouseEvent>
+#include <QQuickWidget>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -368,9 +369,10 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                 QTimer::singleShot(0, this, [this](){
                     if (m_hibernating)
                         return;
-                    if (m_view->focusProxy() && m_view->focusProxy() != m_viewFocusProxy)
+                    QWidget *proxy = m_view->focusProxy();
+                    if (proxy && proxy != m_viewFocusProxy && (qobject_cast<QQuickWidget*>(proxy) != 0))
                     {
-                        m_viewFocusProxy = m_view->focusProxy();
+                        m_viewFocusProxy = proxy;
                         m_viewFocusProxy->installEventFilter(this);
 
                         m_view->setViewFocusProxy(m_viewFocusProxy);

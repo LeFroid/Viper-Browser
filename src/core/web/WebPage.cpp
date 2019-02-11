@@ -173,6 +173,10 @@ QVariant WebPage::runJavaScriptBlocking(const QString &scriptSource)
         }
     });
 
+    connect(this, &WebPage::renderProcessTerminated, this, [&loop](RenderProcessTerminationStatus terminationStatus, int /*exitCode*/){
+        if (!loop.isNull() && terminationStatus != WebPage::NormalTerminationStatus)
+            loop->quit();
+    });
     connect(this, &WebPage::destroyed, loop.data(), &QEventLoop::quit);
 
     loop->exec(QEventLoop::ExcludeUserInputEvents);

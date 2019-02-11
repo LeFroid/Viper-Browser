@@ -126,21 +126,10 @@
      <string>Boo&amp;kmarks</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuTools">
+   <widget class="ToolMenu" name="menuTools">
     <property name="title">
      <string>Tools</string>
     </property>
-    <widget class="UserAgentMenu" name="menuUser_Agents">
-     <property name="title">
-      <string>&amp;User Agents</string>
-     </property>
-    </widget>
-    <addaction name="actionManage_Ad_Blocker"/>
-    <addaction name="actionManage_Cookies"/>
-    <addaction name="actionUser_Scripts"/>
-    <addaction name="menuUser_Agents"/>
-    <addaction name="separator"/>
-    <addaction name="actionView_Downloads"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -576,11 +565,6 @@
    <header>HistoryMenu.h</header>
   </customwidget>
   <customwidget>
-   <class>UserAgentMenu</class>
-   <extends>QMenu</extends>
-   <header>UserAgentMenu.h</header>
-  </customwidget>
-  <customwidget>
    <class>BookmarkMenu</class>
    <extends>QMenu</extends>
    <header>BookmarkMenu.h</header>
@@ -589,6 +573,11 @@
    <class>NavigationToolBar</class>
    <extends>QToolBar</extends>
    <header>NavigationToolBar.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ToolMenu</class>
+   <extends>QMenu</extends>
+   <header>ToolMenu.h</header>
   </customwidget>
  </customwidgets>
  <resources>

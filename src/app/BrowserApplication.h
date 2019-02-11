@@ -85,9 +85,6 @@ public:
     /// Returns the favicon storage manager
     FaviconStore *getFaviconStore();
 
-    /// Returns a pointer to the object that maintains a list of the user's favorite web pages
-    FavoritePagesManager *getFavoritePagesManager();
-
     /// Returns the history manager
     HistoryManager *getHistoryManager();
 
@@ -102,12 +99,6 @@ public:
 
     /// Returns a pointer to the user script manager
     UserScriptManager *getUserScriptManager();
-
-    /// Returns the cookie manager
-    CookieWidget *getCookieManager();
-
-    /// Returns a pointer to the extension storage object
-    ExtStorage *getExtStorage();
 
     /// Returns a pointer to the web page thumbnail storage manager
     WebPageThumbnailStore *getWebPageThumbnailStore();

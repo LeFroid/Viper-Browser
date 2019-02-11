@@ -3,7 +3,6 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include "AdBlockLogDisplay.h"
-#include "AdBlockWidget.h"
 #include "AdBlockManager.h"
 #include "AutoFillCredentialsView.h"
 #include "BookmarkDialog.h"
@@ -12,8 +11,6 @@
 #include "BookmarkManager.h"
 #include "BookmarkWidget.h"
 #include "CodeEditor.h"
-#include "CookieWidget.h"
-#include "DownloadManager.h"
 #include "FaviconStore.h"
 #include "ClearHistoryDialog.h"
 #include "HistoryManager.h"
@@ -23,10 +20,9 @@
 #include "Preferences.h"
 #include "SecurityManager.h"
 #include "SearchEngineLineEdit.h"
+#include "ToolMenu.h"
 #include "URLLineEdit.h"
 #include "UserAgentManager.h"
-#include "UserScriptManager.h"
-#include "UserScriptWidget.h"
 #include "WebPage.h"
 #include "WebPageTextFinder.h"
 #include "WebView.h"
@@ -208,13 +204,7 @@ void MainWindow::setupMenuBar()
     toggleBookmarkBar(ui->actionBookmark_Bar->isChecked());
 
     // Tools menu
-    connect(ui->actionManage_Ad_Blocker, &QAction::triggered, this, &MainWindow::openAdBlockManager);
-    connect(ui->actionManage_Cookies,    &QAction::triggered, this, &MainWindow::openCookieManager);
-    connect(ui->actionUser_Scripts,      &QAction::triggered, this, &MainWindow::openUserScriptManager);
-    connect(ui->actionView_Downloads,    &QAction::triggered, this, &MainWindow::openDownloadManager);
-
-    // User agent sub-menu
-    ui->menuUser_Agents->resetItems();
+    ui->menuTools->setServiceLocator(m_serviceLocator);
 
     // Help menu
     connect(ui->actionAbout, &QAction::triggered, [=](){
@@ -356,18 +346,6 @@ void MainWindow::openBookmarkWidget()
     bookmarkWidget->activateWindow();
 }
 
-void MainWindow::openCookieManager()
-{
-    sBrowserApplication->getCookieManager()->show();
-}
-
-void MainWindow::openDownloadManager()
-{
-    DownloadManager *mgr = sBrowserApplication->getDownloadManager();
-    if (mgr->isHidden())
-        mgr->show();
-}
-
 void MainWindow::onClearHistoryDialogFinished(int result)
 {
     if (result == QDialog::Rejected)
@@ -459,14 +437,6 @@ void MainWindow::onFindTextAction()
     lineEdit->selectAll();
 }
 
-void MainWindow::openAdBlockManager()
-{
-    AdBlockWidget *adBlockWidget = new AdBlockWidget(m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
-    adBlockWidget->show();
-    adBlockWidget->raise();
-    adBlockWidget->activateWindow();
-}
-
 void MainWindow::openAdBlockLogDisplay()
 {
     AdBlockLogDisplay *logDisplay = new AdBlockLogDisplay(m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
@@ -510,14 +480,6 @@ void MainWindow::openPreferences()
     connect(preferences, &Preferences::viewAutoFillExceptionsRequested, this, &MainWindow::openAutoFillExceptionsView);
 
     preferences->show();
-}
-
-void MainWindow::openUserScriptManager()
-{
-    UserScriptWidget *userScriptWidget = new UserScriptWidget;
-    userScriptWidget->show();
-    userScriptWidget->raise();
-    userScriptWidget->activateWindow();
 }
 
 void MainWindow::openFileInBrowser()

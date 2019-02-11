@@ -3,6 +3,8 @@
 
 #include <QWidget>
 
+class UserScriptManager;
+
 namespace Ui {
     class UserScriptWidget;
 }
@@ -18,8 +20,8 @@ class UserScriptWidget : public QWidget
     Q_OBJECT
 
 public:
-    /// Constructs the management window. No parent widget should be given
-    explicit UserScriptWidget(QWidget *parent = nullptr);
+    /// Constructs the management window, given a pointer to the user script manager
+    explicit UserScriptWidget(UserScriptManager *userScriptManager);
 
     /// Destroys the UI elements associated with the object
     ~UserScriptWidget();
@@ -50,6 +52,9 @@ private slots:
 private:
     /// Pointer to the user interface elements
     Ui::UserScriptWidget *ui;
+
+    /// Points to the user script management system
+    UserScriptManager *m_userScriptManager;
 };
 
 #endif // USERSCRIPTWIDGET_H

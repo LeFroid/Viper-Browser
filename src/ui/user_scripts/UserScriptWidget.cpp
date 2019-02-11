@@ -1,7 +1,6 @@
 #include "UserScriptWidget.h"
 #include "ui_UserScriptWidget.h"
 #include "AddUserScriptDialog.h"
-#include "BrowserApplication.h"
 #include "UserScriptManager.h"
 #include "UserScriptModel.h"
 #include "UserScriptEditor.h"
@@ -12,17 +11,17 @@
 #include <algorithm>
 #include <vector>
 
-UserScriptWidget::UserScriptWidget(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::UserScriptWidget)
+UserScriptWidget::UserScriptWidget(UserScriptManager *userScriptManager) :
+    QWidget(nullptr),
+    ui(new Ui::UserScriptWidget),
+    m_userScriptManager(userScriptManager)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     ui->setupUi(this);
 
-    UserScriptManager *scriptMgr = sBrowserApplication->getUserScriptManager();
-    ui->tableViewScripts->setModel(scriptMgr->getModel());
+    ui->tableViewScripts->setModel(m_userScriptManager->getModel());
 
-    connect(scriptMgr, &UserScriptManager::scriptCreated, this, &UserScriptWidget::onScriptCreated);
+    connect(m_userScriptManager,         &UserScriptManager::scriptCreated, this, &UserScriptWidget::onScriptCreated);
 
     connect(ui->tableViewScripts,        &CheckableTableView::clicked,  this, &UserScriptWidget::onItemClicked);
     connect(ui->pushButtonInstallScript, &QPushButton::clicked,         this, &UserScriptWidget::onInstallButtonClicked);
@@ -116,13 +115,13 @@ void UserScriptWidget::onInstallButtonClicked()
                                                QMessageBox::Ok));
         return;
     }
-    sBrowserApplication->getUserScriptManager()->installScript(scriptUrl);
+    m_userScriptManager->installScript(scriptUrl);
 }
 
 void UserScriptWidget::onCreateButtonClicked()
 {    
     AddUserScriptDialog *scriptDialog = new AddUserScriptDialog;
-    connect(scriptDialog, &AddUserScriptDialog::informationEntered, sBrowserApplication->getUserScriptManager(), &UserScriptManager::createScript);
+    connect(scriptDialog, &AddUserScriptDialog::informationEntered, m_userScriptManager, &UserScriptManager::createScript);
     scriptDialog->show();
     scriptDialog->setFocus();
     scriptDialog->activateWindow();

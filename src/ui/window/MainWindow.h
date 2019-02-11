@@ -116,12 +116,6 @@ public slots:
     /// Attempts to load the URL into a new window
     void openLinkNewWindow(const QUrl &url);
 
-    /// Launches the cookie manager UI
-    void openCookieManager();
-
-    /// Displays the download manager UI
-    void openDownloadManager();
-
     /// Called when the clear history dialog is finished, returning a result (to cancel or clear history)
     void onClearHistoryDialogFinished(int result);
 
@@ -165,9 +159,6 @@ private slots:
     /// soon-to-be hibernated widget
     void onWebWidgetAboutToHibernate();
 
-    /// Launches the ad block manager UI
-    void openAdBlockManager();
-
     /// Opens the ad block log event viewer
     void openAdBlockLogDisplay();
 
@@ -184,9 +175,6 @@ private slots:
 
     /// Launches the browser settings / preferences UI
     void openPreferences();
-
-    /// Launches the user script manager UI
-    void openUserScriptManager();
 
     /// Spawns a file chooser dialog so the user can open a file into the web browser
     void openFileInBrowser();
