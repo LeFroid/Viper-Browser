@@ -116,10 +116,12 @@ bool BookmarkFolderModel::setData(const QModelIndex &index, const QVariant &valu
 {
     if (index.isValid() && role == Qt::EditRole)
     {
-        BookmarkNode *folder = getItem(index);
-        m_bookmarkMgr->setBookmarkName(folder, value.toString());
-        emit dataChanged(index, index);
-        return true;
+        if (BookmarkNode *folder = getItem(index))
+        {
+            m_bookmarkMgr->setBookmarkName(folder, value.toString());
+            emit dataChanged(index, index);
+            return true;
+        }
     }
     return false;
 }

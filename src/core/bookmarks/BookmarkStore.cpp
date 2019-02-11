@@ -328,5 +328,22 @@ void BookmarkStore::load()
         loadFolder(m_rootNode.get());
 
         m_nodeManager->setRootNode(m_rootNode.get());
+
+        // Get last unique bookmark id
+        int lastUniqueId = -1;
+        query.prepare(QLatin1String("SELECT MAX(ID) FROM Bookmarks"));
+        if (query.exec() && query.first())
+            lastUniqueId = query.value(0).toInt();
+
+        query.prepare(QLatin1String("SELECT MAX(ParentID) FROM Bookmarks"));
+        if (query.exec() && query.first())
+        {
+            int id = query.value(0).toInt();
+            if (id > lastUniqueId)
+                lastUniqueId = id;
+        }
+
+        if (lastUniqueId >= 0)
+            m_nodeManager->setLastBookmarkId(lastUniqueId);
     }
 }

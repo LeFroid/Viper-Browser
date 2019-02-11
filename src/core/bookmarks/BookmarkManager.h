@@ -122,6 +122,10 @@ signals:
     void bookmarkDeleted(int uniqueId, int parentId, int position);
 
 protected:
+    /// Sets the last unique bookmark ID that has been stored in the database. Used to assign
+    /// new unique identifiers to any newly created bookmarks
+    void setLastBookmarkId(int id);
+
     /// Sets the root node of the bookmark tree - this is called by the \ref BookmarkStore after loading the data
     void setRootNode(BookmarkNode *node);
 
@@ -158,7 +162,10 @@ private:
     /// If true, the flattened bookmark list will not update itself until this flag is set back to false.
     bool m_canUpdateList;
 
-    /// Stores the number of bookmarks in the tree. Used to assign unique IDs to new bookmarks
+    /// Next unique identifier to be assigned to a bookmark
+    int m_nextBookmarkId;
+
+    /// Stores the number of bookmarks in the tree.
     std::atomic_int m_numBookmarks;
 
     /// Future associated with the m_nodeList regeneration method

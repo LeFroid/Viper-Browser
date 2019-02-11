@@ -73,8 +73,8 @@ void BookmarkDialog::setBookmarkInfo(const QString &bookmarkName, const QUrl &bo
         const int numFolders = ui->comboBoxFolder->count();
         for (int i = 0; i < numFolders; ++i)
         {
-            BookmarkNode *itemPtr = (BookmarkNode*)ui->comboBoxFolder->itemData(i, Qt::UserRole).value<void*>();
-            if (itemPtr == parentFolder)
+            BookmarkNode *itemPtr = static_cast<BookmarkNode*>(ui->comboBoxFolder->itemData(i, Qt::UserRole).value<void*>());
+            if (itemPtr && itemPtr == parentFolder)
             {
                 ui->comboBoxFolder->setCurrentIndex(i);
                 return;

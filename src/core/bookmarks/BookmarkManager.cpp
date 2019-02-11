@@ -16,6 +16,7 @@ BookmarkManager::BookmarkManager(ViperServiceLocator &serviceLocator, QObject *p
     m_lookupCache(24),
     m_nodeList(),
     m_canUpdateList(true),
+    m_nextBookmarkId(0),
     m_numBookmarks(0),
     m_nodeListFuture(),
     m_mutex()
@@ -96,7 +97,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, Bookm
     if (!folder)
         folder = getBookmarksBar();
 
-    const int bookmarkId = m_numBookmarks.load();
+    const int bookmarkId = m_nextBookmarkId;
 
     // Create new bookmark
     BookmarkNode *bookmark = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
@@ -105,6 +106,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, Bookm
     bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
     ++m_numBookmarks;
+    ++m_nextBookmarkId;
 
     emit bookmarkCreated(bookmark); //set the uniqueId of bookmark in the handler of this signal
 
@@ -122,7 +124,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QUrl &url, Bookm
         return;
     }
 
-    const int bookmarkId = m_numBookmarks.load();
+    const int bookmarkId = m_nextBookmarkId;
 
     // Create new bookmark
     BookmarkNode *bookmark = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
@@ -131,6 +133,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QUrl &url, Bookm
     bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
     ++m_numBookmarks;
+    ++m_nextBookmarkId;
 
     emit bookmarkCreated(bookmark);
 
@@ -143,13 +146,14 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
     if (!parent)
         parent = m_rootNode;
 
-    const int folderId = m_numBookmarks.load();
+    const int folderId = m_nextBookmarkId;
 
     // Append bookmark folder to parent
     BookmarkNode *folder = parent->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, name));
     folder->setUniqueId(folderId);
     folder->setIcon(QIcon::fromTheme(QLatin1String("folder")));
     ++m_numBookmarks;
+    ++m_nextBookmarkId;
 
     emit bookmarkCreated(folder);
 
@@ -347,6 +351,11 @@ void BookmarkManager::setBookmarkURL(BookmarkNode *bookmark, const QUrl &url)
     bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
     emit bookmarkChanged(bookmark);
+}
+
+void BookmarkManager::setLastBookmarkId(int id)
+{
+    m_nextBookmarkId = id + 1;
 }
 
 void BookmarkManager::setRootNode(BookmarkNode *node)
