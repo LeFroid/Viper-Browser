@@ -16,6 +16,17 @@
             a:hover {
                 color:blue;
             }
+            .addItem {
+                float: right;
+                font-weight: 800;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+            .addItem::after {
+                content: "";
+                clear: both;
+                display: table;
+            }
             .content {
                 width: 60%;
                 padding-top: 5%;
@@ -48,6 +59,9 @@
                 float: right;
                 margin-right: 4px;
             }
+            .gridHeading {
+                padding-bottom: 1rem;
+            }
             .thumbnailContainer {
                 margin: 7.5% auto 0 auto;
                 width: 87.5%;
@@ -73,7 +87,10 @@
     </head>
     <body>
         <div class="content">
-            <p class="welcomeText">Top Websites</p>
+            <div class="gridHeading">
+                <span class="welcomeText">Top Websites</span>
+                <span title="Add a web page" class="addItem">+</span>
+            </div>
             <div id="mainGrid" class="thumbnailGrid">
             </div>
         </div>
