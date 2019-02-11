@@ -25,6 +25,7 @@
 #include "WebPageThumbnailStore.h"
 
 #include <vector>
+#include <QDesktopServices>
 #include <QDir>
 #include <QUrl>
 #include <QDebug>
@@ -145,6 +146,11 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Connect aboutToQuit signal to browser's session management slot
     connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
+
+    // Set URL handlers while application is active
+    const std::vector<QString> urlSchemes { QLatin1String("http"), QLatin1String("https"), QLatin1String("viper") };
+    for (const QString &scheme : urlSchemes)
+        QDesktopServices::setUrlHandler(scheme, this, "openUrl");
 }
 
 BrowserApplication::~BrowserApplication()
@@ -281,6 +287,24 @@ MainWindow *BrowserApplication::getNewPrivateWindow()
 
     w->show();
     return w;
+}
+
+void BrowserApplication::openUrl(const QUrl &url)
+{
+    if (MainWindow *win = qobject_cast<MainWindow*>(activeWindow()))
+    {
+        win->openLinkNewTab(url);
+        return;
+    }
+
+    for (QPointer<MainWindow> &win : m_browserWindows)
+    {
+        if (!win.isNull())
+        {
+            win->openLinkNewTab(url);
+            return;
+        }
+    }
 }
 
 void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
