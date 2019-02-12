@@ -4,6 +4,7 @@
 #include "BookmarkManager.h"
 
 #include <QtConcurrent>
+#include <QFontMetrics>
 #include <QFuture>
 #include <QQueue>
 
@@ -20,12 +21,14 @@ BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
     setWindowFlags(Qt::Window | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint | Qt::BypassWindowManagerHint);
     setContentsMargins(0, 0, 0, 0);
 
+    const int maxTextWidth = std::max(width(), 290) * 3 / 4;
+    QFontMetrics folderFontMetrics(font());
     // Populate combo box with each folder in the bookmark collection
     const BookmarkNode *rootNode = m_bookmarkManager->getRoot();
     for (const auto it : *m_bookmarkManager)
     {
         if (it != rootNode && it->getType() == BookmarkNode::Folder)
-            ui->comboBoxFolder->addItem(it->getName(), qVariantFromValue((void *)it));
+            ui->comboBoxFolder->addItem(folderFontMetrics.elidedText(it->getName(), Qt::ElideRight, maxTextWidth) , qVariantFromValue((void *)it));
     }
 
     ui->comboBoxFolder->setCurrentIndex(0);
@@ -47,6 +50,9 @@ void BookmarkDialog::alignAndShow(const QRect &windowGeom, const QRect &toolbarG
     dialogPos.setY(windowGeom.y() + toolbarGeom.y() + toolbarGeom.height() + (urlBarGeom.height() * 2 / 3));
 
     move(dialogPos);
+
+    //setMaximumWidth(windowGeom.width() / 7);
+
     show();
     activateWindow();
     raise();

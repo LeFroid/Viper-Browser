@@ -79,7 +79,7 @@ void BookmarkMenu::resetMenu()
 
 void BookmarkMenu::setup()
 {
-    connect(m_addPageBookmarks,    &QAction::triggered, this, &BookmarkMenu::addPageToBookmarks);
+    connect(m_addPageBookmarks,    &QAction::triggered, [=](){ emit addPageToBookmarks(); });
     connect(m_removePageBookmarks, &QAction::triggered, [=](){ emit removePageFromBookmarks(false); });
 
     connect(sBrowserApplication->getBookmarkManager(), &BookmarkManager::bookmarksChanged,
