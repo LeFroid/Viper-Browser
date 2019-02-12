@@ -61,7 +61,7 @@ public slots:
     /// Returns a list of the user's favorite web pages. The QVariants in the list may be converted to \ref WebPageInformation
     QVariantList getFavorites() const;
 
-    /// Adds an item to the list of favorited (pinned) we pages
+    /// Adds an item to the list of favorited (pinned) web pages
     void addFavorite(const QUrl &url);
 
     /// Removes an item from the collection of top/favorite pages

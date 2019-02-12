@@ -289,8 +289,9 @@ bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
         case CosmeticFilter::Has:
         case CosmeticFilter::If:
         case CosmeticFilter::IfNot:
+        case CosmeticFilter::Not:
         {
-            const bool isNegation = (std::get<1>(p) == CosmeticFilter::IfNot);
+            const bool isNegation = (std::get<1>(p) == CosmeticFilter::IfNot || std::get<1>(p) == CosmeticFilter::Not);
             // Check if anything within the :if(...) is a cosmetic filter, thus requiring the use of callbacks
             if (filters.size() > 1)
             {
@@ -459,6 +460,7 @@ std::vector< std::tuple<int, CosmeticFilter, int> > AdBlockFilterParser::getChai
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":has-text(")), CosmeticFilter::HasText, 10));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if(")), CosmeticFilter::If, 4));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if-not(")), CosmeticFilter::IfNot, 8));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":not(")), CosmeticFilter::IfNot, 5));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css(")), CosmeticFilter::MatchesCSS, 13));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-before(")), CosmeticFilter::MatchesCSSBefore, 20));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-after(")), CosmeticFilter::MatchesCSSAfter, 19));

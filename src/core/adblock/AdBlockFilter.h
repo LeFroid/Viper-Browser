@@ -79,6 +79,7 @@ enum class CosmeticFilter
     HasText,             /// Selects the subject element(s) iff the given text is contained within the subject element
     If,                  /// Same as :has cosmetic filter, however this may take other procedural cosmetic filters as arguments, while :has cannot
     IfNot,               /// Selects the subject element(s) iff the result of evaluating the argument has exactly zero elements
+    Not,                 /// Selects the subject element(s) iff the result of evaluating the argument has exactly zero elements
     MatchesCSS,          /// Selects the subject element(s) iff the given argument (css) is a subset of the subject's CSS properties
     MatchesCSSBefore,    /// Same as :matches-css cosmetic filter, with the :before pseudo-class attached to the subject
     MatchesCSSAfter,     /// Same as :matches-css cosmetic filter, with the :after pseudo-class attached to the subject
