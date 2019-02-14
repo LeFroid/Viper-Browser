@@ -28,6 +28,7 @@ WebPageThumbnailStore::WebPageThumbnailStore(ViperServiceLocator &serviceLocator
     m_historyManager(serviceLocator.getServiceAs<HistoryManager>("HistoryManager")),
     m_mimeDatabase()
 {
+    setObjectName(QLatin1String("WebPageThumbnailStore"));
 }
 
 WebPageThumbnailStore::~WebPageThumbnailStore()

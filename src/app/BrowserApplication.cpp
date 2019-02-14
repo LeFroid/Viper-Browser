@@ -53,19 +53,19 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Instantiate and load settings
     m_settings = new Settings;
     if (!m_serviceLocator.addService(m_settings->objectName().toStdString(), m_settings))
-        qWarning() << "Could not register application settings manager with service registry/locator";
+        qWarning() << "Could not register application settings manager with service registry";
 
     // Initialize favicon storage module
     m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
     if (!m_serviceLocator.addService(m_faviconStorage->objectName().toStdString(), m_faviconStorage.get()))
-        qWarning() << "Could not register Favicon Store with service registry/locator";
+        qWarning() << "Could not register Favicon Store with service registry";
 
     // Initialize bookmarks store 
     m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::BookmarkPath));
     if (!m_serviceLocator.addService(m_bookmarkStore->objectName().toStdString(), m_bookmarkStore.get()))
-        qWarning() << "Could not register Bookmark Store with service registry/locator";
+        qWarning() << "Could not register Bookmark Store with service registry";
     if (!m_serviceLocator.addService(m_bookmarkStore->getNodeManager()->objectName().toStdString(), m_bookmarkStore->getNodeManager()))
-        qWarning() << "Could not register Bookmark Manager with service registry/locator";
+        qWarning() << "Could not register Bookmark Manager with service registry";
 
     // Initialize cookie jar and cookie manager UI
     const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();
@@ -74,7 +74,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     m_cookieUI = new CookieWidget();
     if (!m_serviceLocator.addService(m_cookieUI->objectName().toStdString(), m_cookieUI))
-        qWarning() << "Could not register Bookmark Manager with service registry/locator";
+        qWarning() << "Could not register Bookmark Manager with service registry";
 
     // Get default profile and load cookies now that the cookie jar is instantiated
     auto webProfile = QWebEngineProfile::defaultProfile();
@@ -97,18 +97,20 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Initialize advertisement blocking system
     m_adBlockManager = new AdBlockManager(m_serviceLocator, m_settings);
     if (!m_serviceLocator.addService("AdBlockManager", m_adBlockManager))
-        qWarning() << "Could not register AdBlock Manager with service registry/locator";
+        qWarning() << "Could not register AdBlock Manager with service registry";
 
     // Instantiate the history manager and related systems
     m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::HistoryPath));
     if (!m_serviceLocator.addService(m_historyMgr->objectName().toStdString(), m_historyMgr.get()))
-        qWarning() << "Could not register History Manager with service registry/locator";
+        qWarning() << "Could not register History Manager with service registry";
 
     m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::ThumbnailPath));
+    if (!m_serviceLocator.addService(m_thumbnailStore->objectName().toStdString(), m_thumbnailStore.get()))
+            qWarning() << "Could not register Thumbnail Store with service registry";
 
     m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get(), m_settings->getPathValue(BrowserSetting::FavoritePagesFile));
     if (!m_serviceLocator.addService(m_favoritePagesMgr->objectName().toStdString(), m_favoritePagesMgr))
-        qWarning() << "Could not register Favorite Web Page Manager with service registry/locator";
+        qWarning() << "Could not register Favorite Web Page Manager with service registry";
 
     // Create network access manager
     m_networkAccessMgr = new NetworkAccessManager;
@@ -122,12 +124,12 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     // Setup user script manager
     m_userScriptMgr = new UserScriptManager(m_settings);
     if (!m_serviceLocator.addService(m_userScriptMgr->objectName().toStdString(), m_userScriptMgr))
-        qWarning() << "Could not register User Script Manager with service registry/locator";
+        qWarning() << "Could not register User Script Manager with service registry";
 
     // Setup extension storage manager
     m_extStorage = DatabaseFactory::createWorker<ExtStorage>(m_settings->getPathValue(BrowserSetting::ExtensionStoragePath));
     if (!m_serviceLocator.addService(m_extStorage->objectName().toStdString(), m_extStorage.get()))
-        qWarning() << "Could not register Web Extension Storage Manager with service registry/locator";
+        qWarning() << "Could not register Web Extension Storage Manager with service registry";
 
     // Apply global web scripts
     installGlobalWebScripts();

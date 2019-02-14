@@ -14,6 +14,7 @@ class BrowserTabWidget;
 class HttpRequest;
 class MainWindow;
 class WebHistory;
+class WebInspector;
 class WebPage;
 class WebView;
 class WebWidget;
@@ -123,6 +124,12 @@ public:
     /// Returns the widget's web history as a serialized byte array
     QByteArray getEncodedHistory() const;
 
+    /// Returns true if the web inspector is connected to the current page, false if otherwise
+    bool isInspectorActive() const;
+
+    /// Returns a pointer to the web inspector, instantiating it if not already done so
+    WebInspector *getInspector();
+
     /// Returns the current url
     QUrl url() const;
 
@@ -231,6 +238,9 @@ private:
 
     /// The actual web view being used to render and access web content
     WebView *m_view;
+
+    /// The web page inspector associated with this widget
+    WebInspector *m_inspector;
 
     /// Pointer to the widget's parent window
     MainWindow *m_mainWindow;

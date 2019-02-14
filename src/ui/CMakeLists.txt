@@ -39,6 +39,7 @@ set(viper_ui_src
     user_scripts/UserScriptEditor.cpp
     user_scripts/UserScriptWidget.cpp
     web/WebDialog.cpp
+    web/WebInspector.cpp
     web/WebView.cpp
     web/WebWidget.cpp
     widgets/CheckableTableView.cpp

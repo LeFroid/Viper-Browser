@@ -26,7 +26,10 @@ class WebView : public QWebEngineView
 
 public:
     /// Constructs a web view
-    explicit WebView(bool privateView, QWidget* parent = 0);
+    explicit WebView(bool privateView, QWidget* parent = nullptr);
+
+    /// Destructor
+    virtual ~WebView();
 
     /// Returns the loading progress percentage value of the page as an integer in the range [0,100]
     int getProgress() const;

@@ -52,6 +52,10 @@ WebView::WebView(bool privateView, QWidget *parent) :
     }
 }
 
+WebView::~WebView()
+{
+}
+
 int WebView::getProgress() const
 {
     return m_progress;

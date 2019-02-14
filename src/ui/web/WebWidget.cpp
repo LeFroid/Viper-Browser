@@ -1,11 +1,12 @@
 #include "AdBlockManager.h"
-#include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "HistoryManager.h"
 #include "HttpRequest.h"
 #include "MainWindow.h"
+#include "Settings.h"
 #include "WebWidget.h"
 #include "WebHistory.h"
+#include "WebInspector.h"
 #include "WebPage.h"
 #include "WebPageThumbnailStore.h"
 #include "WebView.h"
@@ -70,6 +71,7 @@ WebWidget::WebWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWid
     m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
     m_page(nullptr),
     m_view(nullptr),
+    m_inspector(nullptr),
     m_mainWindow(nullptr),
     m_privateMode(privateMode),
     m_contextMenuPosGlobal(),
@@ -94,13 +96,21 @@ WebWidget::WebWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWid
 
     if (!m_privateMode)
     {
-        connect(this, &WebWidget::loadFinished, sBrowserApplication->getHistoryManager(), &HistoryManager::onPageLoaded);
-        connect(this, &WebWidget::loadFinished, sBrowserApplication->getWebPageThumbnailStore(), &WebPageThumbnailStore::onPageLoaded);
+        if (HistoryManager *historyMgr = serviceLocator.getServiceAs<HistoryManager>("HistoryManager"))
+            connect(this, &WebWidget::loadFinished, historyMgr, &HistoryManager::onPageLoaded);
+
+        if (WebPageThumbnailStore *thumbnailStore = serviceLocator.getServiceAs<WebPageThumbnailStore>("WebPageThumbnailStore"))
+            connect(this, &WebWidget::loadFinished, thumbnailStore, &WebPageThumbnailStore::onPageLoaded);
     }
 }
 
 WebWidget::~WebWidget()
 {
+    if (m_inspector)
+    {
+        delete m_inspector;
+        m_inspector = nullptr;
+    }
 }
 
 int WebWidget::getProgress() const
@@ -208,6 +218,13 @@ void WebWidget::setHibernation(bool on)
 
         layout()->removeWidget(m_view);
         setFocusProxy(nullptr);
+
+        if (m_inspector)
+        {
+            delete m_inspector;
+            m_inspector = nullptr;
+        }
+
         delete m_view;
         m_view = nullptr;
         m_page = nullptr;
@@ -263,6 +280,33 @@ QByteArray WebWidget::getEncodedHistory() const
         return m_savedState.pageHistory;
 
     return m_page->getHistory()->save();
+}
+
+bool WebWidget::isInspectorActive() const
+{
+    if (m_hibernating)
+        return false;
+
+    return m_inspector ? m_inspector->isActive() : false;
+}
+
+WebInspector *WebWidget::getInspector()
+{
+    if (!m_inspector && !m_hibernating)
+    {
+        m_inspector = new WebInspector(m_privateMode);
+        m_inspector->setupPage(m_serviceLocator);
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+        m_inspector->page()->setInspectedPage(m_page);
+#else
+    if (Settings *settings = m_serviceLocator.getServiceAs<Settings>("Settings"))
+    {
+        QString inspectorUrl = QString("http://127.0.0.1:%1").arg(settings->getValue(BrowserSetting::InspectorPort).toString());
+        m_inspector->load(QUrl(inspectorUrl));
+    }
+#endif
+    }
+    return m_inspector;
 }
 
 QUrl WebWidget::url() const
@@ -347,7 +391,10 @@ void WebWidget::setupWebView()
     connect(m_view, &WebView::openInNewTab, this, &WebWidget::openInNewTab);
     connect(m_view, &WebView::openInNewBackgroundTab, this, &WebWidget::openInNewBackgroundTab);
     connect(m_view, &WebView::openInNewWindowRequest, this, &WebWidget::openInNewWindowRequest);
-    connect(m_view, &WebView::inspectElement, this, &WebWidget::inspectElement);
+    connect(m_view, &WebView::inspectElement, this, [this](){
+        m_inspector = getInspector();
+        emit inspectElement();
+    });
 
     connect(m_view, &WebView::fullScreenRequested, m_mainWindow, &MainWindow::onToggleFullScreen);
 

@@ -155,10 +155,6 @@ private slots:
     /// the bookmark menu after checking the database
     void checkPageForBookmark();
 
-    /// Called when a web widget is about to hibernate - makes sure that nothing depends on the
-    /// soon-to-be hibernated widget
-    void onWebWidgetAboutToHibernate();
-
     /// Opens the ad block log event viewer
     void openAdBlockLogDisplay();
 
@@ -252,10 +248,6 @@ private:
 
     /// Displays the link being hovered by the user in the status bar
     QLabel *m_linkHoverLabel;
-
-    /// Map of web widgets to a boolean indicating whether or not the inspector should be
-    /// visible when that web widget is active
-    std::unordered_map<WebWidget*, bool> m_tabInspectorMap;
 
     /// Flag indicating whether or not the window is being closed
     std::atomic_bool m_closing;
