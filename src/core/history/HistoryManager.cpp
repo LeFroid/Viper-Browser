@@ -19,7 +19,7 @@
 #include <QUrl>
 #include <QDebug>
 
-HistoryManager::HistoryManager(ViperServiceLocator &serviceLocator, const QString &databaseFile) :
+HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, const QString &databaseFile) :
     QObject(nullptr),
     DatabaseWorker(databaseFile, QLatin1String("HistoryDB")),
     m_lastVisitID(0),

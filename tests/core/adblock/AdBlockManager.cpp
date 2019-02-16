@@ -18,7 +18,7 @@ public:
     AdBlockModel() {}
 };
 
-AdBlockManager::AdBlockManager(ViperServiceLocator &, QObject *parent) :
+AdBlockManager::AdBlockManager(const ViperServiceLocator &, QObject *parent) :
     QObject(parent),
     m_enabled(false),
     m_configFile("AdBlockStub.json"),

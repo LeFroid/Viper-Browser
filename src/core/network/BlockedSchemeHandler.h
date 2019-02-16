@@ -20,7 +20,7 @@ class BlockedSchemeHandler : public QWebEngineUrlSchemeHandler
 
 public:
     /// Constructs the scheme handler with a given parent object
-    BlockedSchemeHandler(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
+    BlockedSchemeHandler(const ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     /// Called whenever a request for the blocked scheme is started
     void requestStarted(QWebEngineUrlRequestJob *request) override;
@@ -30,7 +30,7 @@ private:
     AdBlockManager *m_adBlockManager;
 
     /// Service locator
-    ViperServiceLocator &m_serviceLocator;
+    const ViperServiceLocator &m_serviceLocator;
 };
 
 #endif // BLOCKEDSCHEMEHANDLER_H

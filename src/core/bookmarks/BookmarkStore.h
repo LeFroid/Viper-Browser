@@ -39,7 +39,7 @@ class BookmarkStore : public QObject, private DatabaseWorker
 
 public:
     /// Bookmark constructor - loads database information into memory
-    explicit BookmarkStore(ViperServiceLocator &serviceLocator, const QString &databaseFile);
+    explicit BookmarkStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile);
 
     /// Destructor
     ~BookmarkStore();

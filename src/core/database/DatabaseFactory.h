@@ -35,7 +35,7 @@ public:
 
     /// Creates and returns a unique_ptr of an object that inherits the DatabaseWorker class
     template <class Derived>
-    static std::unique_ptr<Derived> createWorker(ViperServiceLocator &serviceLocator, const QString &databaseFile)
+    static std::unique_ptr<Derived> createWorker(const ViperServiceLocator &serviceLocator, const QString &databaseFile)
     {
         static_assert(std::is_base_of<DatabaseWorker, Derived>::value, "Object should inherit from DatabaseWorker");
 

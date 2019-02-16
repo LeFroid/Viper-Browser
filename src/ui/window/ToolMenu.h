@@ -33,7 +33,7 @@ public:
 protected:
     /// Passes a reference to the service locator, which allows the tool menu
     /// to bind its actions to the appropriate slots
-    void setServiceLocator(ViperServiceLocator &serviceLocator);
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
 private slots:
     /// Opens a window that allows the user to manage the advertisement blocking subscriptions and filters

@@ -75,7 +75,7 @@ public:
      * @param privateMode Set to true if the web view should be off-the-record, false if a regular web view
      * @param parent Pointer to the parent widget
      */
-    explicit WebWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
+    explicit WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
 
     /// WebWidget destructor
     ~WebWidget();
@@ -228,7 +228,7 @@ private:
 
 private:
     /// Web browser service locator
-    ViperServiceLocator &m_serviceLocator;
+    const ViperServiceLocator &m_serviceLocator;
 
     /// Pointer to the advertisement blocking system manager
     AdBlockManager *m_adBlockManager;

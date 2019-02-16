@@ -8,7 +8,7 @@
 
 #include <QtConcurrent>
 
-BookmarkManager::BookmarkManager(ViperServiceLocator &serviceLocator, QObject *parent) :
+BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QObject(parent),
     m_rootNode(nullptr),
     m_bookmarkBar(nullptr),

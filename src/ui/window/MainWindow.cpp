@@ -55,7 +55,7 @@
 #include <QToolButton>
 #include <QtConcurrent>
 
-MainWindow::MainWindow(ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent) :
+MainWindow::MainWindow(const ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_privateWindow(privateWindow),

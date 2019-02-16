@@ -33,10 +33,10 @@ class WebPage : public QWebEnginePage
 
 public:
     /// WebPage constructor
-    WebPage(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
+    WebPage(const ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     /// Constructs the web page with a specific browsing profile and a parent
-    WebPage(ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent = nullptr);
+    WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent = nullptr);
 
     /// WebPage destructor
     ~WebPage();
@@ -108,7 +108,7 @@ private slots:
 
 private:
     /// Connects web engine page signals to their handlers
-    void setupSlots(ViperServiceLocator &serviceLocator);
+    void setupSlots(const ViperServiceLocator &serviceLocator);
 
 private:
     /// Advertisement blocking system manager

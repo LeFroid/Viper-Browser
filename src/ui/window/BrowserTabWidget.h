@@ -26,7 +26,7 @@ class BrowserTabWidget : public QTabWidget
 
 public:
     /// Constructs the browser tab widget
-    explicit BrowserTabWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
+    explicit BrowserTabWidget(const ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent = nullptr);
 
     /// Returns a pointer to the current web widget
     WebWidget *currentWebWidget() const;
@@ -169,7 +169,7 @@ private:
     Settings *m_settings;
 
     /// Service locator
-    ViperServiceLocator &m_serviceLocator;
+    const ViperServiceLocator &m_serviceLocator;
 
     /// Pointer to the favicon store
     FaviconStore *m_faviconStore;

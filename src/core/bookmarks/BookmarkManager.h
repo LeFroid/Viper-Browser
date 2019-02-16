@@ -34,7 +34,7 @@ public:
     using const_iterator = std::vector<BookmarkNode*>::const_iterator;
 
     /// Constructs the bookmark node manager with a given parent, and a reference to the service locator
-    explicit BookmarkManager(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
+    explicit BookmarkManager(const ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     /// BookmarkManager destructor
     ~BookmarkManager();

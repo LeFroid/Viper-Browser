@@ -1,5 +1,5 @@
-#include "BrowserApplication.h"
 #include "BookmarkManager.h"
+#include "BookmarkNode.h"
 #include "FastHash.h"
 #include "FaviconStore.h"
 #include "HistoryManager.h"
@@ -21,7 +21,10 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     m_suggestions(),
     m_searchTermWideStr(),
     m_differenceHash(0),
-    m_searchTermHash(0)
+    m_searchTermHash(0),
+    m_bookmarkManager(nullptr),
+    m_faviconStore(nullptr),
+    m_historyManager(nullptr)
 {
     m_suggestionWatcher = new QFutureWatcher<void>(this);
     connect(m_suggestionWatcher, &QFutureWatcher<void>::finished, [this](){
@@ -49,23 +52,32 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
     m_suggestionWatcher->setFuture(m_suggestionFuture);
 }
 
+void URLSuggestionWorker::setServiceLocator(const ViperServiceLocator &serviceLocator)
+{
+    m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
+    m_faviconStore    = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+    m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
+}
+
 void URLSuggestionWorker::searchForHits()
 {
     m_working.store(true);
     m_suggestions.clear();
 
+    if (!m_bookmarkManager || !m_faviconStore || !m_historyManager)
+    {
+        m_working.store(false);
+        return;
+    }
+
     // Set upper bound on number of suggestions for each type of item being checked
     const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 50;
     int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
 
-    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
-    HistoryManager *historyMgr = sBrowserApplication->getHistoryManager();
-
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
 
-    BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
-    for (auto it : *bookmarkMgr)
+    for (auto it : *m_bookmarkManager)
     {
         if (!m_working.load())
             return;
@@ -76,7 +88,7 @@ void URLSuggestionWorker::searchForHits()
         const QString url = it->getURL().toString();
         if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
         {
-            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), url, true, historyMgr->getTimesVisited(url));
+            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), url, true, m_historyManager->getTimesVisited(url));
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
 
@@ -93,7 +105,7 @@ void URLSuggestionWorker::searchForHits()
         return;
 
     std::vector<URLSuggestion> histSuggestions;
-    for (const auto it : *historyMgr)
+    for (const auto it : *m_historyManager)
     {
         if (!m_working.load())
             return;
@@ -104,7 +116,7 @@ void URLSuggestionWorker::searchForHits()
 
         if (isEntryMatch(it.Title.toUpper(), url.toUpper()))
         {
-            auto suggestion = URLSuggestion(faviconStore->getFavicon(it.URL), it.Title, url, false, historyMgr->getTimesVisited(it.URL));
+            auto suggestion = URLSuggestion(m_faviconStore->getFavicon(it.URL), it.Title, url, false, m_historyManager->getTimesVisited(it.URL));
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)

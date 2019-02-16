@@ -1,6 +1,8 @@
 #ifndef URLSUGGESTIONWIDGET_H
 #define URLSUGGESTIONWIDGET_H
 
+#include "ServiceLocator.h"
+
 #include <QString>
 #include <QWidget>
 
@@ -34,6 +36,9 @@ public:
 
     /// Sets the pointer to the URL line edit
     void setURLLineEdit(URLLineEdit *lineEdit);
+
+    /// Sets the reference to the service locator, which is passed on to the \ref URLSuggestionWorker
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
     /// Returns the suggested size of the widget
     QSize sizeHint() const override;

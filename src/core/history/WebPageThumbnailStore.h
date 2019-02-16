@@ -32,7 +32,7 @@ class WebPageThumbnailStore : public QObject, private DatabaseWorker
 
 public:
     /// Constructs the thumbnail storage manager, given a reference to the service locator, the path to the database file and an optional parent object
-    explicit WebPageThumbnailStore(ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent = nullptr);
+    explicit WebPageThumbnailStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent = nullptr);
 
     /// Destructor
     ~WebPageThumbnailStore();

@@ -143,7 +143,7 @@ WebPage *WebView::getPage() const
     return m_page;
 }
 
-void WebView::setupPage(ViperServiceLocator &serviceLocator)
+void WebView::setupPage(const ViperServiceLocator &serviceLocator)
 {
     if (m_page != nullptr)
         return;

@@ -1,6 +1,7 @@
 #ifndef URLSUGGESTIONWORKER_H
 #define URLSUGGESTIONWORKER_H
 
+#include "ServiceLocator.h"
 #include "URLSuggestionListModel.h"
 
 #include <atomic>
@@ -12,6 +13,10 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+
+class BookmarkManager;
+class FaviconStore;
+class HistoryManager;
 
 /**
  * @class URLSuggestionWorker
@@ -28,6 +33,10 @@ public:
     /// Begins a new search operation for suggestions related to the given string.
     /// Cancels any operations in progress at the time this method is called
     void findSuggestionsFor(const QString &text);
+
+    /// Sets a reference to the service locator, which is used to gather the dependencies required by this worker
+    /// (namely, the \ref HistoryManager , \ref BookmarkManager , and \ref FaviconStore )
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
 signals:
     /// Emitted when a suggestion search is finished, passing a reference to each URL matching the input pattern
@@ -77,6 +86,15 @@ private:
 
     /// Contains a hash of the search term string
     quint64 m_searchTermHash;
+
+    /// Pointer to the bookmark manager, used for suggeseting urls
+    BookmarkManager *m_bookmarkManager;
+
+    /// Gathers icons which are sent in the suggestion results
+    FaviconStore *m_faviconStore;
+
+    /// Used to determine history-based matches
+    HistoryManager *m_historyManager;
 };
 
 #endif // URLSUGGESTIONWORKER_H

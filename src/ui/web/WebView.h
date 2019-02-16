@@ -85,7 +85,7 @@ private slots:
 
 protected:
     /// Initializes the view's \ref WebPage
-    void setupPage(ViperServiceLocator &serviceLocator);
+    void setupPage(const ViperServiceLocator &serviceLocator);
 
     /// Sets the pointer to the render focus widget
     void setViewFocusProxy(QWidget *w);

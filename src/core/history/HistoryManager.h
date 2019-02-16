@@ -69,7 +69,7 @@ public:
     using const_iterator = QHash<QString, WebHistoryItem>::const_iterator;
 
     /// Constructs the history manager, given the path to the history database
-    explicit HistoryManager(ViperServiceLocator &serviceLocator, const QString &databaseFile);
+    explicit HistoryManager(const ViperServiceLocator &serviceLocator, const QString &databaseFile);
 
     /// Saves browsing history at exit
     ~HistoryManager();

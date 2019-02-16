@@ -44,7 +44,7 @@ class AdBlockManager : public QObject
 
 public:
     /// Constructs the AdBlockManager
-    AdBlockManager(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
+    AdBlockManager(const ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     /// AdBlockManager destructor
     ~AdBlockManager();

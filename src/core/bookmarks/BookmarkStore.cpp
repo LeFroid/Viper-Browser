@@ -13,7 +13,7 @@
 #include <QSqlRecord>
 #include <QDebug>
 
-BookmarkStore::BookmarkStore(ViperServiceLocator &serviceLocator, const QString &databaseFile) :
+BookmarkStore::BookmarkStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile) :
     QObject(nullptr),
     DatabaseWorker(databaseFile, QLatin1String("Bookmarks")),
     m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks"))),

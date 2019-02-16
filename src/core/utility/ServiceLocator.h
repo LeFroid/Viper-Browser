@@ -51,9 +51,9 @@ public:
      * @param key Unique identifier of the service
      * @return Pointer to the service if found, or a nullptr if not found
      */
-    BaseServiceType *getService(const KeyType &key)
+    BaseServiceType *getService(const KeyType &key) const
     {
-        auto it = m_serviceMap.find(key);
+        const auto it = m_serviceMap.find(key);
         if (it == m_serviceMap.end())
             return nullptr;
 
@@ -66,7 +66,7 @@ public:
      * @return Pointer to the service if found, or a nullptr if not found
      */
     template <class Derived>
-    Derived *getServiceAs(const KeyType &key)
+    Derived *getServiceAs(const KeyType &key) const
     {
         static_assert(std::is_base_of<BaseServiceType, Derived>::value, "Object should inherit from BaseServiceType");
 

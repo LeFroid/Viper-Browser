@@ -16,7 +16,7 @@
 
 #include <QDebug>
 
-AdBlockManager::AdBlockManager(ViperServiceLocator &serviceLocator, QObject *parent) :
+AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QObject(parent),
     m_downloadManager(nullptr),
     m_enabled(true),

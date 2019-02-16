@@ -50,7 +50,7 @@ signals:
 
 protected:
     /// Passes a reference to the browser service locator, used to fetch instances of the \ref AdBlockManager and \ref FaviconStore
-    void setServiceLocator(ViperServiceLocator &serviceLocator);
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
 private:
     /// Initializes the toolbar's properties and sub-widgets

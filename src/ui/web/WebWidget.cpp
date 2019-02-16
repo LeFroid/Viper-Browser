@@ -65,7 +65,7 @@ void WebState::deserialize(QByteArray &data)
             >> pageHistory;
 }
 
-WebWidget::WebWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
+WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QWidget(parent),
     m_serviceLocator(serviceLocator),
     m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),

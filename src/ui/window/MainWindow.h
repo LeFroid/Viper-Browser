@@ -56,7 +56,7 @@ class MainWindow : public QMainWindow
 
 public:
     /// Constructs a browser window
-    explicit MainWindow(ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent = nullptr);
+    explicit MainWindow(const ViperServiceLocator &serviceLocator, bool privateWindow, QWidget *parent = nullptr);
 
     /// MainWindow destructor
     ~MainWindow();
@@ -226,7 +226,7 @@ private:
     Settings *m_settings;
 
     /// Service locator
-    ViperServiceLocator &m_serviceLocator;
+    const ViperServiceLocator &m_serviceLocator;
 
     /// Bookmark manager
     BookmarkManager *m_bookmarkManager;

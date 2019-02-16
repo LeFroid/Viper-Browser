@@ -4,7 +4,7 @@
 
 #include <QWebEngineUrlRequestInfo>
 
-RequestInterceptor::RequestInterceptor(ViperServiceLocator &serviceLocator, QObject *parent) :
+RequestInterceptor::RequestInterceptor(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEngineUrlRequestInterceptor(parent),
     m_settings(nullptr),
     m_serviceLocator(serviceLocator),

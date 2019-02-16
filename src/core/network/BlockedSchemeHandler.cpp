@@ -6,7 +6,7 @@
 #include <QUrl>
 #include <QWebEngineUrlRequestJob>
 
-BlockedSchemeHandler::BlockedSchemeHandler(ViperServiceLocator &serviceLocator, QObject *parent) :
+BlockedSchemeHandler::BlockedSchemeHandler(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEngineUrlSchemeHandler(parent),
     m_adBlockManager(nullptr),
     m_serviceLocator(serviceLocator)

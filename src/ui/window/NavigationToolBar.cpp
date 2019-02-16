@@ -75,11 +75,12 @@ void NavigationToolBar::setMinHeights(int size)
     m_adBlockButton->setMinimumHeight(subWidgetMinHeight);
 }
 
-void NavigationToolBar::setServiceLocator(ViperServiceLocator &serviceLocator)
+void NavigationToolBar::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
     m_faviconStore = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
 
     m_adBlockButton->setAdBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
+    m_urlInput->setServiceLocator(serviceLocator);
 }
 
 void NavigationToolBar::setupUI()

@@ -1,8 +1,11 @@
 #ifndef URLLINEEDIT_H
 #define URLLINEEDIT_H
 
+#include "ServiceLocator.h"
+
 #include <unordered_map>
 #include <vector>
+
 #include <QLineEdit>
 #include <QString>
 #include <QTextLayout>
@@ -43,6 +46,8 @@ enum class BookmarkIcon
  */
 class URLLineEdit : public QLineEdit
 {
+    friend class NavigationToolBar;
+
     Q_OBJECT
 
 public:
@@ -99,6 +104,10 @@ protected:
 
     /// Sets the format of the text in the line edit
     void setTextFormat(const std::vector<QTextLayout::FormatRange> &formats);
+
+    /// Passes the service locator on to the url widget. This widget does not require the service locator,
+    /// but instead passes it on to the URL suggestion worker
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
 private:
     /// Sets the bookmark icon at the right side of the line edit widget

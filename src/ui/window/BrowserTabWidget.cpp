@@ -14,7 +14,7 @@
 #include <QMenu>
 #include <QTimer>
 
-BrowserTabWidget::BrowserTabWidget(ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
+BrowserTabWidget::BrowserTabWidget(const ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QTabWidget(parent),
     m_settings(serviceLocator.getServiceAs<Settings>("Settings")),
     m_serviceLocator(serviceLocator),

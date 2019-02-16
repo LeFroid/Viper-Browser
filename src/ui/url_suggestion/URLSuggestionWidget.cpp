@@ -216,6 +216,11 @@ void URLSuggestionWidget::setURLLineEdit(URLLineEdit *lineEdit)
     m_lineEdit->installEventFilter(this);
 }
 
+void URLSuggestionWidget::setServiceLocator(const ViperServiceLocator &serviceLocator)
+{
+    m_worker->setServiceLocator(serviceLocator);
+}
+
 QSize URLSuggestionWidget::sizeHint() const
 {
     QSize widgetSize;

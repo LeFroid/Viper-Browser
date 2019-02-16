@@ -207,6 +207,11 @@ void URLLineEdit::setTextFormat(const std::vector<QTextLayout::FormatRange> &for
     QCoreApplication::sendEvent(this, &event);
 }
 
+void URLLineEdit::setServiceLocator(const ViperServiceLocator &serviceLocator)
+{
+    m_suggestionWidget->setServiceLocator(serviceLocator);
+}
+
 void URLLineEdit::removeMappedView(WebWidget *view)
 {
     auto it = m_userTextMap.find(view);

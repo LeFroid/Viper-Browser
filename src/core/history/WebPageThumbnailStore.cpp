@@ -20,7 +20,7 @@
 
 #include <QDebug>
 
-WebPageThumbnailStore::WebPageThumbnailStore(ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent) :
+WebPageThumbnailStore::WebPageThumbnailStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("ThumbnailDB")),
     m_thumbnails(),

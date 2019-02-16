@@ -32,7 +32,7 @@
 
 #include <iostream>
 
-WebPage::WebPage(ViperServiceLocator &serviceLocator, QObject *parent) :
+WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEnginePage(parent),
     m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
     m_history(new WebHistory(this)),
@@ -45,7 +45,7 @@ WebPage::WebPage(ViperServiceLocator &serviceLocator, QObject *parent) :
     setupSlots(serviceLocator);
 }
 
-WebPage::WebPage(ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent) :
+WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
     m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
     m_history(new WebHistory(this)),
@@ -61,7 +61,7 @@ WebPage::~WebPage()
 {
 }
 
-void WebPage::setupSlots(ViperServiceLocator &serviceLocator)
+void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
 {
     QWebChannel *channel = new QWebChannel(this);
     channel->registerObject(QLatin1String("extStorage"), serviceLocator.getServiceAs<ExtStorage>("storage"));

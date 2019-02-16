@@ -19,7 +19,7 @@ class RequestInterceptor : public QWebEngineUrlRequestInterceptor
 
 public:
     /// Constructs the request interceptor with an optional parent pointer
-    RequestInterceptor(ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
+    RequestInterceptor(const ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
 protected:
     /// Intercepts the given request, potentially blocking it, modifying the header values or redirecting the request
@@ -34,7 +34,7 @@ private:
     Settings *m_settings;
 
     /// Service locator
-    ViperServiceLocator &m_serviceLocator;
+    const ViperServiceLocator &m_serviceLocator;
 
     /// AdBlockManager
     AdBlockManager *m_adBlockManager;

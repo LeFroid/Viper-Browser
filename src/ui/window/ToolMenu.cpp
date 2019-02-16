@@ -41,7 +41,7 @@ ToolMenu::~ToolMenu()
 {
 }
 
-void ToolMenu::setServiceLocator(ViperServiceLocator &serviceLocator)
+void ToolMenu::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
     m_adBlockManager    = serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
     m_cookieWidget      = serviceLocator.getServiceAs<CookieWidget>("CookieWidget");
