@@ -162,6 +162,6 @@ void BookmarkIntegrationTest::testIsBookmarkedAfterDeletingParentFolder()
     QVERIFY(!m_bookmarkManager->isBookmarked(testUrl));
 }
 
-QTEST_MAIN(BookmarkIntegrationTest)
+QTEST_GUILESS_MAIN(BookmarkIntegrationTest)
 
 #include "BookmarkIntegrationTest.moc"
