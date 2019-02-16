@@ -39,5 +39,6 @@ before_script:
 
 script:
   - cmake --build .
+  - ./tests/core/bookmarks/BookmarkIntegrationTest
   - make test
 
