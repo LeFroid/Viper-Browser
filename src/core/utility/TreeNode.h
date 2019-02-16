@@ -55,7 +55,7 @@ public:
         {
             if (it->get() == node)
             {
-                m_children.erase(it);
+                it = m_children.erase(it);
                 return true;
             }
         }
@@ -64,7 +64,7 @@ public:
     }
 
     /// Attempts to remove the node at the given index, returning true on success, false on failure or invalid index.
-    bool removeNode(int index)
+    bool removeNodeAt(int index)
     {
         if (index < 0 || index >= static_cast<int>(m_children.size()))
             return false;

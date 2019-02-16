@@ -27,8 +27,6 @@ BookmarkManager::BookmarkManager(ViperServiceLocator &serviceLocator, QObject *p
 
 BookmarkManager::~BookmarkManager()
 {
-    std::lock_guard<std::mutex> _(m_mutex);
-    waitToFinishList();
 }
 
 BookmarkNode *BookmarkManager::getRoot() const
@@ -76,16 +74,31 @@ bool BookmarkManager::isBookmarked(const QUrl &url)
     if (m_lookupCache.has(urlStdStr) && m_lookupCache.get(urlStdStr) != nullptr)
         return true;
 
-    if (!m_nodeListFuture.isCanceled() && m_nodeListFuture.isRunning())
-        m_nodeListFuture.waitForFinished();
-
-    for (BookmarkNode *node : m_nodeList)
+    std::deque<BookmarkNode*> queue;
+    queue.push_back(m_rootNode);
+    while (!queue.empty())
     {
-        if (node->m_url == url)
+        BookmarkNode *n = queue.front();
+
+        for (const auto &node : n->m_children)
         {
-            m_lookupCache.put(urlStdStr, node);
-            return true;
+            BookmarkNode *childNode = node.get();
+            if (!childNode)
+                continue;
+            if (childNode->getType() == BookmarkNode::Folder)
+            {
+                queue.push_back(childNode);
+                continue;
+            }
+
+            if (childNode->getURL() == url)
+            {
+                m_lookupCache.put(urlStdStr, childNode);
+                return true;
+            }
         }
+
+        queue.pop_front();
     }
 
     return false;
@@ -108,7 +121,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, Bookm
     ++m_numBookmarks;
     ++m_nextBookmarkId;
 
-    emit bookmarkCreated(bookmark); //set the uniqueId of bookmark in the handler of this signal
+    emit bookmarkCreated(bookmark);
 
     scheduleResetList();
 }
@@ -216,8 +229,12 @@ void BookmarkManager::removeBookmark(BookmarkNode *item)
             BookmarkNode *child = node->getNode(i);
             if (child->getType() == BookmarkNode::Folder)
                 processQueue.push_back(child);
-            else if (child->m_type == BookmarkNode::Bookmark && m_lookupCache.has(item->m_url.toString().toStdString()))
-                m_lookupCache.put(item->m_url.toString().toStdString(), nullptr);
+            else if (child->m_type == BookmarkNode::Bookmark)
+            {
+                const std::string urlStdStr = child->m_url.toString().toStdString();
+                if (m_lookupCache.has(urlStdStr))
+                    m_lookupCache.put(urlStdStr, nullptr);
+            }
         }
 
         deleteQueue.push_back(node);
@@ -235,8 +252,12 @@ void BookmarkManager::removeBookmark(BookmarkNode *item)
         deleteQueue.pop_back();
     }
 
-    if (item->m_type == BookmarkNode::Bookmark && m_lookupCache.has(item->m_url.toString().toStdString()))
-        m_lookupCache.put(item->m_url.toString().toStdString(), nullptr);
+    if (item->m_type == BookmarkNode::Bookmark)
+    {
+        const std::string urlStdStr = item->m_url.toString().toStdString();
+        if (m_lookupCache.has(urlStdStr))
+            m_lookupCache.put(urlStdStr, nullptr);
+    }
 
     if (BookmarkNode *parent = item->getParent())
     {
@@ -414,7 +435,7 @@ void BookmarkManager::resetBookmarkList()
     {
         BookmarkNode *n = queue.front();
 
-        for (auto &node : n->m_children)
+        for (const auto &node : n->m_children)
         {
             ++numBookmarks;
             BookmarkNode *childNode = node.get();

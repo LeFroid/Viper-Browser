@@ -31,7 +31,8 @@ BookmarkStore::BookmarkStore(ViperServiceLocator &serviceLocator, const QString 
 
 BookmarkStore::~BookmarkStore()
 {
-    //save();
+    m_nodeManager->waitToFinishList();
+    save();
 }
 
 BookmarkManager *BookmarkStore::getNodeManager() const
@@ -150,6 +151,7 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
         if (!query.exec())
         {
             qDebug() << "Error loading bookmarks for folder " << n->getName() << ". Message: " << query.lastError().text();
+            subFolders.pop_front();
             continue;
         }
 
@@ -206,6 +208,8 @@ void BookmarkStore::setup()
 
     m_rootNode->setUniqueId(0);
     m_nodeManager->setRootNode(m_rootNode.get());
+    m_nodeManager->setLastBookmarkId(0);
+    m_nodeManager->setCanUpdateList(false);
 
     // Insert bookmarks bar folder
     BookmarkNode *bookmarkBar = m_nodeManager->addFolder(QLatin1String("Bookmarks Bar"), m_rootNode.get());
@@ -215,6 +219,8 @@ void BookmarkStore::setup()
 
     // Insert bookmark for search engine
     m_nodeManager->appendBookmark(QLatin1String("Search Engine"), QUrl(QLatin1String("https://www.startpage.com")), bookmarkBar);
+
+    m_nodeManager->setCanUpdateList(true);
 }
 
 void BookmarkStore::save()
