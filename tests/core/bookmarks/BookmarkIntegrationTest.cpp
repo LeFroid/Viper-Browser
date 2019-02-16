@@ -27,6 +27,9 @@ public:
     BookmarkIntegrationTest();
 
 private slots:
+    /// Called before any tests are ran
+    void initTestCase();
+
     /// Called before each test function is executed - this will instantiate the BookmarkStore
     /// as well as the BookmarkManager
     void init();
@@ -66,6 +69,12 @@ BookmarkIntegrationTest::BookmarkIntegrationTest() :
     m_bookmarkStore(nullptr),
     m_bookmarkManager(nullptr)
 {
+}
+
+void BookmarkIntegrationTest::initTestCase()
+{
+    if (QFile::exists(m_dbFile))
+        QFile::remove(m_dbFile);
 }
 
 void BookmarkIntegrationTest::init()
