@@ -93,6 +93,7 @@ enum class CosmeticFilter
  */
 class AdBlockFilter
 {
+    friend class AdBlockFilterContainer;
     friend class AdBlockFilterParser;
     friend class AdBlockManager;
 
@@ -150,10 +151,10 @@ public:
      * @param typeMask Element type(s) associated with the request. Filter will disregard if type is set to none
      * @return True if request matches filter, false if else.
      */
-    bool isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask);
+    bool isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask) const;
 
     /// Returns true if this rule is of the Stylesheet category and applies to the given domain, returns false if else.
-    bool isDomainStyleMatch(const QString &domain);
+    bool isDomainStyleMatch(const QString &domain) const;
 
     /// Returns true if the given ElementType bitfield is set for the bit associated with the target ElementType
     inline bool hasElementType(ElementType subject, ElementType target) const

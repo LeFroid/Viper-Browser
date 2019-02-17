@@ -2,11 +2,13 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
  
 set(viper_src
     adblock/AdBlockFilter.cpp
+    adblock/AdBlockFilterContainer.cpp
     adblock/AdBlockFilterParser.cpp
     adblock/AdBlockLog.cpp
     adblock/AdBlockLogTableModel.cpp
     adblock/AdBlockManager.cpp
     adblock/AdBlockModel.cpp
+    adblock/AdBlockRequestHandler.cpp
     adblock/AdBlockSubscription.cpp
     autofill/AutoFill.cpp
     autofill/AutoFillBridge.cpp

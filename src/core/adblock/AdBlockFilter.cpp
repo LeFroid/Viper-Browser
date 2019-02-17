@@ -183,7 +183,7 @@ const QString &AdBlockFilter::getRedirectName() const
     return m_redirectName;
 }
 
-bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
+bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask) const
 {
     if (m_disabled)
         return false;
@@ -272,7 +272,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
     return match;
 }
 
-bool AdBlockFilter::isDomainStyleMatch(const QString &domain)
+bool AdBlockFilter::isDomainStyleMatch(const QString &domain) const
 {
     if (m_disabled || domain.isEmpty())
         return false;

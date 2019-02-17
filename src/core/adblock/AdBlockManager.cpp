@@ -1,9 +1,11 @@
 #include "AdBlockManager.h"
 #include "AdBlockLog.h"
 #include "AdBlockModel.h"
+#include "AdBlockRequestHandler.h"
 #include "Bitfield.h"
 #include "InternalDownloadItem.h"
 #include "DownloadManager.h"
+#include "SchemeRegistry.h"
 
 #include <QDir>
 #include <QDirIterator>
@@ -18,32 +20,21 @@
 
 AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QObject(parent),
+    m_filterContainer(),
     m_downloadManager(nullptr),
     m_enabled(true),
     m_configFile(),
     m_subscriptionDir(),
-    m_stylesheet(),
     m_cosmeticJSTemplate(),
     m_subscriptions(),
-    m_importantBlockFilters(),
-    m_blockFilters(),
-    m_blockFiltersByPattern(),
-    m_blockFiltersByDomain(),
-    m_allowFilters(),
-    m_domainStyleFilters(),
-    m_domainJSFilters(),
-    m_customStyleFilters(),
-    m_genericHideFilters(),
-    m_cspFilters(),
     m_resourceMap(),
     m_resourceContentTypeMap(),
     m_domainStylesheetCache(24),
     m_jsInjectionCache(24),
     m_emptyStr(),
     m_adBlockModel(nullptr),
-    m_numRequestsBlocked(0),
-    m_pageAdBlockCount(),
-    m_log(nullptr)
+    m_log(nullptr),
+    m_requestHandler(nullptr)
 {
     setObjectName(QLatin1String("AdBlockManager"));
 
@@ -69,6 +60,9 @@ AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObjec
 
     // Instantiate the logger
     m_log = new AdBlockLog(this);
+
+    // Instantiate the network request handler
+    m_requestHandler = new AdBlockRequestHandler(m_filterContainer, m_log, this);
 }
 
 AdBlockManager::~AdBlockManager()
@@ -113,7 +107,7 @@ void AdBlockManager::updateSubscriptions()
                 request.setUrl(srcUrl);
 
                 InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_subscriptionDir, false, true);
-                connect(item, &InternalDownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath){
+                connect(item, &InternalDownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath) {
                     if (filePath != subPtr->getFilePath())
                     {
                         QFile oldFile(subPtr->getFilePath());
@@ -199,7 +193,7 @@ void AdBlockManager::createUserSubscription()
 
 void AdBlockManager::loadStarted(const QUrl &url)
 {
-    m_pageAdBlockCount[url] = 0;
+    m_requestHandler->loadStarted(url);
 }
 
 AdBlockLog *AdBlockManager::getLog() const
@@ -222,13 +216,11 @@ const QString &AdBlockManager::getStylesheet(const URL &url) const
     QString secondLevelDomain = url.getSecondLevelDomain();
     if (secondLevelDomain.isEmpty())
         secondLevelDomain = url.host();
-    for (AdBlockFilter *filter : m_genericHideFilters)
-    {
-        if (filter->isMatch(requestUrl, requestUrl, secondLevelDomain, ElementType::Other))
-            return m_emptyStr;
-    }
 
-    return m_stylesheet;
+    if (m_filterContainer.hasGenericHideFilter(requestUrl, secondLevelDomain))
+        return m_emptyStr;
+
+    return m_filterContainer.getCombinedFilterStylesheet();
 }
 
 const QString &AdBlockManager::getDomainStylesheet(const URL &url)
@@ -237,7 +229,6 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
         return m_emptyStr;
 
     QString domain = url.host().toLower();
-    //QString sld = url.getSecondLevelDomain();
     if (domain.startsWith(QLatin1String("www.")))
         domain = domain.mid(4);
 
@@ -248,19 +239,17 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
 
     QString stylesheet;
     int numStylesheetRules = 0;
-    for (AdBlockFilter *filter : m_domainStyleFilters)
+    std::vector<AdBlockFilter*> domainBasedHidingFilters = m_filterContainer.getDomainBasedHidingFilters(domain);
+    for (AdBlockFilter *filter : domainBasedHidingFilters)
     {
-        if (filter->isDomainStyleMatch(domain) && !filter->isException())
+        stylesheet.append(filter->getEvalString() + QChar(','));
+        if (numStylesheetRules > 1000)
         {
-            stylesheet.append(filter->getEvalString() + QChar(','));
-            if (numStylesheetRules > 1000)
-            {
-                stylesheet = stylesheet.left(stylesheet.size() - 1);
-                stylesheet.append(QLatin1String("{ display: none !important; } "));
-                numStylesheetRules = 0;
-            }
-            ++numStylesheetRules;
+            stylesheet = stylesheet.left(stylesheet.size() - 1);
+            stylesheet.append(QLatin1String("{ display: none !important; } "));
+            numStylesheetRules = 0;
         }
+        ++numStylesheetRules;
     }
 
     if (numStylesheetRules > 0)
@@ -270,10 +259,10 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     }
 
     // Check for custom stylesheet rules
-    for (AdBlockFilter *filter : m_customStyleFilters)
+    domainBasedHidingFilters = m_filterContainer.getDomainBasedCustomHidingFilters(domain);
+    for (AdBlockFilter *filter : domainBasedHidingFilters)
     {
-        if (filter->isDomainStyleMatch(domain))
-            stylesheet.append(filter->getEvalString());
+        stylesheet.append(filter->getEvalString());
     }
 
     // Insert the stylesheet into cache
@@ -304,7 +293,6 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
                                        "meta.setAttribute('content', \"%1\");\n"
                                        "doc.head.appendChild(meta);\n"
                                    "})();");
-    bool usedCspScript = false;
 
     QString domain = url.host().toLower();
     if (domain.startsWith(QLatin1String("www.")))
@@ -323,47 +311,19 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
         return m_jsInjectionCache.get(requestHostStdStr);
 
     QString javascript;
-
     std::vector<QString> cspDirectives;
-    for (AdBlockFilter *filter : m_domainJSFilters)
-    {
-        if (filter->isDomainStyleMatch(domain))
-            javascript.append(filter->getEvalString());
-    }
 
-    auto filterCSPCheck = [&](std::deque<AdBlockFilter*> &filterContainer) {
-        for (AdBlockFilter *filter : filterContainer)
-        {
-            if (usedCspScript)
-                return;
+    std::vector<AdBlockFilter*> domainBasedScripts = m_filterContainer.getDomainBasedScriptInjectionFilters(domain);
+    for (AdBlockFilter *filter : domainBasedScripts)
+        javascript.append(filter->getEvalString());
 
-            if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript) && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
-            {
-                cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
-                usedCspScript = true;
-                return;
-            }
-        }
-    };
+    const AdBlockFilter *inlineScriptBlockingRule = m_filterContainer.findInlineScriptBlockingFilter(requestUrl, domain);
+    if (inlineScriptBlockingRule != nullptr)
+        cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
 
-    filterCSPCheck(m_importantBlockFilters);
-
-    auto it = m_blockFiltersByDomain.find(domain);
-    if (it != m_blockFiltersByDomain.end())
-    {
-        filterCSPCheck(*it);
-    }
-
-    filterCSPCheck(m_blockFilters);
-    filterCSPCheck(m_blockFiltersByPattern);
-
-    for (AdBlockFilter *filter : m_cspFilters)
-    {
-        if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
-        {
-            cspDirectives.push_back(filter->getContentSecurityPolicy());
-        }
-    }
+    std::vector<AdBlockFilter*> cspFilters = m_filterContainer.getMatchingCSPFilters(requestUrl, domain);
+    for (AdBlockFilter *filter : cspFilters)
+        cspDirectives.push_back(filter->getContentSecurityPolicy());
 
     QString result;
     if (!cspDirectives.empty())
@@ -391,121 +351,20 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
 
 bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
 {
-    if (!m_enabled)
+    if (!m_enabled || SchemeRegistry::isSchemeWhitelisted(info.requestUrl().scheme().toLower()))
         return false;
 
-    // Check if scheme is whitelisted
-    if (isSchemeWhitelisted(info.requestUrl().scheme().toLower()))
-        return false;
-
-    // Get request URL and the originating URL
-    QUrl firstPartyUrl = info.firstPartyUrl();
-    QString requestUrl = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
-    QString baseUrl = getSecondLevelDomain(firstPartyUrl).toLower();
-
-    // Get request domain
-    QString domain = info.requestUrl().host().toLower();
-    if (domain.startsWith(QLatin1String("www.")))
-        domain = domain.mid(4);
-    if (domain.isEmpty())
-        domain = getSecondLevelDomain(info.requestUrl());
-
-    if (baseUrl.isEmpty())
-        baseUrl = firstPartyUrl.host().toLower();
-
-    // Convert QWebEngine request type to AdBlockFilter request type
-    ElementType elemType = getRequestType(info);
-
-    // Compare to filters
-    for (auto it = m_importantBlockFilters.begin(); it != m_importantBlockFilters.end(); ++it)
-    {
-        AdBlockFilter *filter = *it;
-        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
-        {
-            ++m_numRequestsBlocked;
-            ++m_pageAdBlockCount[firstPartyUrl];
-
-            it = m_importantBlockFilters.erase(it);
-            m_importantBlockFilters.push_front(filter);
-
-            if (filter->isRedirect())
-            {
-                info.redirect(QUrl(QString("blocked:%1").arg(filter->getRedirectName())));
-                m_log->addEntry(AdBlockFilterAction::Redirect, info.firstPartyUrl(), info.requestUrl(), elemType, filter->getRule(), QDateTime::currentDateTime());
-                return false;
-            }
-
-            m_log->addEntry(AdBlockFilterAction::Block, info.firstPartyUrl(), info.requestUrl(), elemType, filter->getRule(), QDateTime::currentDateTime());
-            return true;
-        }
-    }
-
-    // Look for a matching blocking filter before iterating through the allowed filter list, to avoid wasted resources
-    AdBlockFilter *matchingBlockFilter = nullptr;
-
-    auto checkFiltersForMatch = [&](std::deque<AdBlockFilter*> &filterContainer) {
-        for (auto it = filterContainer.begin(); it != filterContainer.end(); ++it)
-        {
-            AdBlockFilter *filter = *it;
-            if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
-            {
-                matchingBlockFilter = filter;
-                it = filterContainer.erase(it);
-                filterContainer.push_front(filter);
-                return;
-            }
-        }
-    };
-
-    auto itr = m_blockFiltersByDomain.find(getSecondLevelDomain(info.requestUrl()));
-    if (itr != m_blockFiltersByDomain.end())
-        checkFiltersForMatch(*itr);
-
-    if (matchingBlockFilter == nullptr)
-        checkFiltersForMatch(m_blockFilters);
-
-    if (matchingBlockFilter == nullptr)
-        checkFiltersForMatch(m_blockFiltersByPattern);
-
-    if (matchingBlockFilter == nullptr)
-        return false;
-
-    for (AdBlockFilter *filter : m_allowFilters)
-    {
-        if (filter->isMatch(baseUrl, requestUrl, domain, elemType))
-        {
-            m_log->addEntry(AdBlockFilterAction::Allow, info.firstPartyUrl(), info.requestUrl(), elemType, filter->getRule(), QDateTime::currentDateTime());
-            return false;
-        }
-    }
-
-    // If we reach this point, then the matching block filter is applied to the request
-    ++m_numRequestsBlocked;
-    ++m_pageAdBlockCount[firstPartyUrl];
-
-    if (matchingBlockFilter->isRedirect())
-    {
-        info.redirect(QUrl(QString("blocked:%1").arg(matchingBlockFilter->getRedirectName())));
-        m_log->addEntry(AdBlockFilterAction::Redirect, info.firstPartyUrl(), info.requestUrl(), elemType, matchingBlockFilter->getRule(), QDateTime::currentDateTime());
-        return false;
-    }
-
-    m_log->addEntry(AdBlockFilterAction::Block, info.firstPartyUrl(), info.requestUrl(), elemType, matchingBlockFilter->getRule(), QDateTime::currentDateTime());
-    return true;
+    return m_requestHandler->shouldBlockRequest(info);
 }
 
 quint64 AdBlockManager::getRequestsBlockedCount() const
 {
-    return m_numRequestsBlocked;
+    return m_requestHandler->getTotalNumberOfBlockedRequests();
 }
 
-int AdBlockManager::getNumberAdsBlocked(const QUrl &url)
+int AdBlockManager::getNumberAdsBlocked(const QUrl &url) const
 {
-    auto it = m_pageAdBlockCount.find(url);
-    if (it != m_pageAdBlockCount.end())
-        return *it;
-
-    return 0;
+    return m_requestHandler->getNumberAdsBlocked(url);
 }
 
 QString AdBlockManager::getResource(const QString &key) const
@@ -571,90 +430,6 @@ void AdBlockManager::reloadSubscriptions()
 
     clearFilters();
     extractFilters();
-}
-
-bool AdBlockManager::isSchemeWhitelisted(const QString &scheme) const
-{
-    const std::array<QString, 4> whitelistedSchemes {
-            QLatin1String("blocked"),
-            QLatin1String("file"),
-            QLatin1String("qrc"),
-            QLatin1String("viper")
-    };
-
-    for (const QString &allowedScheme : whitelistedSchemes)
-    {
-        if (allowedScheme.compare(scheme) == 0)
-            return true;
-    }
-
-    return false;
-}
-
-ElementType AdBlockManager::getRequestType(const QWebEngineUrlRequestInfo &info) const
-{
-    const QUrl firstPartyUrl = info.firstPartyUrl();
-    const QUrl requestUrl = info.requestUrl();
-    const QString requestUrlStr = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
-
-    ElementType elemType = ElementType::None;
-    switch (info.resourceType())
-    {
-        case QWebEngineUrlRequestInfo::ResourceTypeMainFrame:
-            elemType |= ElementType::Document;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeSubFrame:
-            elemType |= ElementType::Subdocument;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeStylesheet:
-            elemType |= ElementType::Stylesheet;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeScript:
-            elemType |= ElementType::Script;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeImage:
-            elemType |= ElementType::Image;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeSubResource:
-            if (requestUrlStr.endsWith(QLatin1String("htm"))
-                || requestUrlStr.endsWith(QLatin1String("html"))
-                || requestUrlStr.endsWith(QLatin1String("xml")))
-            {
-                elemType |= ElementType::Subdocument;
-            }
-            else
-                elemType |= ElementType::Other;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeXhr:
-            elemType |= ElementType::XMLHTTPRequest;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypePing:
-            elemType |= ElementType::Ping;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypePluginResource:
-            elemType |= ElementType::ObjectSubrequest;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeObject:
-            elemType |= ElementType::Object;
-            break;
-        case QWebEngineUrlRequestInfo::ResourceTypeFontResource:
-        case QWebEngineUrlRequestInfo::ResourceTypeMedia:
-        case QWebEngineUrlRequestInfo::ResourceTypeWorker:
-        case QWebEngineUrlRequestInfo::ResourceTypeSharedWorker:
-        case QWebEngineUrlRequestInfo::ResourceTypeServiceWorker:
-        case QWebEngineUrlRequestInfo::ResourceTypePrefetch:
-        case QWebEngineUrlRequestInfo::ResourceTypeFavicon:
-        case QWebEngineUrlRequestInfo::ResourceTypeCspReport:
-        default:
-            elemType |= ElementType::Other;
-            break;
-    }
-
-    // Check for third party request type
-    if (firstPartyUrl.isEmpty() || (getSecondLevelDomain(requestUrl) != getSecondLevelDomain(firstPartyUrl)))
-        elemType |= ElementType::ThirdParty;
-
-    return elemType;
 }
 
 QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const
@@ -781,7 +556,7 @@ void AdBlockManager::loadSubscriptions()
         const QString key = it.key();
         if (key.compare(QLatin1String("requests_blocked")) == 0)
         {
-            m_numRequestsBlocked = it.value().toString().toULongLong();
+            m_requestHandler->setTotalNumberOfBlockedRequests(it.value().toString().toULongLong());
             continue;
         }
         AdBlockSubscription subscription(key);
@@ -824,191 +599,18 @@ void AdBlockManager::loadSubscriptions()
 
 void AdBlockManager::clearFilters()
 {
-    m_importantBlockFilters.clear();
-    m_allowFilters.clear();
-    m_blockFilters.clear();
-    m_blockFiltersByPattern.clear();
-    m_blockFiltersByDomain.clear();
-    m_stylesheet.clear();
-    m_domainStyleFilters.clear();
-    m_domainJSFilters.clear();
-    m_customStyleFilters.clear();
-    m_genericHideFilters.clear();
-    m_cspFilters.clear();
+    m_filterContainer.clearFilters();
 }
 
 void AdBlockManager::extractFilters()
 {
-    // Used to store css rules for the global stylesheet and domain-specific stylesheets
-    QHash<QString, AdBlockFilter*> stylesheetFilterMap;
-    QHash<QString, AdBlockFilter*> stylesheetExceptionMap;
-
-    // Used to remove bad filters (badfilter option from uBlock)
-    QSet<QString> badFilters, badHideFilters;
-
-    // Setup global stylesheet string
-    m_stylesheet = QLatin1String("<style>");
-
     for (AdBlockSubscription &s : m_subscriptions)
     {
         // calling load() does nothing if subscription is disabled
         s.load(this);
-
-        // Add filters to appropriate containers
-        int numFilters = s.getNumFilters();
-        for (int i = 0; i < numFilters; ++i)
-        {
-            AdBlockFilter *filter = s.getFilter(i);
-            if (!filter)
-                continue;
-
-            if (filter->getCategory() == FilterCategory::Stylesheet)
-            {
-                if (filter->isException())
-                    stylesheetExceptionMap.insert(filter->getEvalString(), filter);
-                else
-                    stylesheetFilterMap.insert(filter->getEvalString(), filter);
-            }
-            else if (filter->getCategory() == FilterCategory::StylesheetJS)
-            {
-                m_domainJSFilters.push_back(filter);
-            }
-            else if (filter->getCategory() == FilterCategory::StylesheetCustom)
-            {
-                m_customStyleFilters.push_back(filter);
-            }
-            else if (filter->hasElementType(filter->m_blockedTypes, ElementType::BadFilter))
-            {
-                badFilters.insert(filter->getRule());
-            }
-            else if (filter->hasElementType(filter->m_blockedTypes, ElementType::CSP))
-            {
-                if (!filter->hasElementType(filter->m_blockedTypes, ElementType::PopUp)) // Temporary workaround for issues with popup types
-                    m_cspFilters.push_back(filter);
-            }
-            else
-            {
-                if (filter->isException())
-                {
-                    if (filter->hasElementType(filter->m_blockedTypes, ElementType::GenericHide))
-                        m_genericHideFilters.push_back(filter);
-                    else
-                        m_allowFilters.push_back(filter);
-                }
-                else if (filter->isImportant())
-                {
-                    if (filter->hasElementType(filter->m_blockedTypes, ElementType::GenericHide))
-                        badHideFilters.insert(filter->getRule());
-                    else
-                        m_importantBlockFilters.push_back(filter);
-                }
-                else if (filter->getCategory() == FilterCategory::StringContains)
-                {
-                    m_blockFiltersByPattern.push_back(filter);
-                }
-                else if (filter->getCategory() == FilterCategory::Domain)
-                {
-                    //const QString &filterDomain = filter->getEvalString();
-                    const QString filterDomain = getSecondLevelDomain(QUrl::fromUserInput(filter->getEvalString()));
-                    auto it = m_blockFiltersByDomain.find(filterDomain);
-                    if (it != m_blockFiltersByDomain.end())
-                    {
-                        it->push_back(filter);
-                    }
-                    else
-                    {
-                        std::deque<AdBlockFilter*> queue;
-                        queue.push_back(filter);
-                        m_blockFiltersByDomain.insert(filterDomain, queue);
-                    }
-                }
-                else
-                {
-                    m_blockFilters.push_back(filter);
-                }
-            }
-        }
     }
 
-    // Remove bad filters from all applicable filter containers
-    auto removeBadFiltersFromVector = [&badFilters](std::vector<AdBlockFilter*> &filterContainer) {
-        for (auto it = filterContainer.begin(); it != filterContainer.end();)
-        {
-            if (badFilters.contains((*it)->getRule()))
-                it = filterContainer.erase(it);
-            else
-                ++it;
-        }
-    };
-    auto removeBadFiltersFromDeque = [&badFilters](std::deque<AdBlockFilter*> &filterContainer) {
-        for (auto it = filterContainer.begin(); it != filterContainer.end();)
-        {
-            if (badFilters.contains((*it)->getRule()))
-                it = filterContainer.erase(it);
-            else
-                ++it;
-        }
-    };
-
-    removeBadFiltersFromVector(m_allowFilters);
-
-    removeBadFiltersFromDeque(m_blockFilters);
-    removeBadFiltersFromDeque(m_blockFiltersByPattern);
-
-    for (std::deque<AdBlockFilter*> &queue : m_blockFiltersByDomain)
-    {
-        removeBadFiltersFromDeque(queue);
-    }
-
-    removeBadFiltersFromVector(m_cspFilters);
-    removeBadFiltersFromVector(m_genericHideFilters);
-
-    // Parse stylesheet exceptions
-    QHashIterator<QString, AdBlockFilter*> it(stylesheetExceptionMap);
-    while (it.hasNext())
-    {
-        it.next();
-
-        // Ignore the exception if the blocking rule does not exist
-        if (!stylesheetFilterMap.contains(it.key()))
-            continue;
-
-        AdBlockFilter *filter = it.value();
-        stylesheetFilterMap.value(it.key())->m_domainWhitelist.unite(filter->m_domainBlacklist);
-    }
-
-    // Parse stylesheet blocking rules
-    it = QHashIterator<QString, AdBlockFilter*>(stylesheetFilterMap);
-    int numStylesheetRules = 0;
-    while (it.hasNext())
-    {
-        it.next();
-        AdBlockFilter *filter = it.value();
-
-        if (filter->hasDomainRules())
-        {
-            m_domainStyleFilters.push_back(filter);
-            continue;
-        }
-
-        if (numStylesheetRules > 1000)
-        {
-            m_stylesheet = m_stylesheet.left(m_stylesheet.size() - 1);
-            m_stylesheet.append(QLatin1String("{ display: none !important; } "));
-            numStylesheetRules = 0;
-        }
-
-        m_stylesheet.append(filter->getEvalString() + QChar(','));
-        ++numStylesheetRules;
-    }
-
-    // Complete global stylesheet string
-    if (numStylesheetRules > 0)
-    {
-        m_stylesheet = m_stylesheet.left(m_stylesheet.size() - 1);
-        m_stylesheet.append(QLatin1String("{ display: none !important; } "));
-    }
-    m_stylesheet.append(QLatin1String("</style>"));
+    m_filterContainer.extractFilters(m_subscriptions);
 }
 
 void AdBlockManager::save()
@@ -1027,7 +629,7 @@ void AdBlockManager::save()
     // Subscription object format: { "enabled": (true|false), "last_update": (timestamp),
     //                               "next_update": (timestamp), "source": "origin_url" }
     QJsonObject configObj;
-    configObj.insert(QLatin1String("requests_blocked"), QJsonValue(QString::number(m_numRequestsBlocked)));
+    configObj.insert(QLatin1String("requests_blocked"), QJsonValue(QString::number(m_requestHandler->getTotalNumberOfBlockedRequests())));
     for (auto it = m_subscriptions.cbegin(); it != m_subscriptions.cend(); ++it)
     {
         QJsonObject subscriptionObj;

@@ -23,9 +23,15 @@ public:
      */
     static bool isSecure(const QString &scheme);
 
+    /// Returns true if the given scheme should be whitelisted by the advertisement blocking system
+    static bool isSchemeWhitelisted(const QString &scheme);
+
 private:
     /// Array of secure schemes
     static const std::array<QString, 2> SecureSchemes;
+
+    /// Array of whitelisted schemes
+    static const std::array<QString, 4> WhitelistedSchemes;
 };
 
 #endif // SCHEMEREGISTRY_H

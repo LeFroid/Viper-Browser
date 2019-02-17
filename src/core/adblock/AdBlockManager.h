@@ -2,6 +2,7 @@
 #define ADBLOCKMANAGER_H
 
 #include "AdBlockFilter.h"
+#include "AdBlockFilterContainer.h"
 #include "AdBlockSubscription.h"
 #include "LRUCache.h"
 #include "ServiceLocator.h"
@@ -18,6 +19,7 @@
 
 class AdBlockLog;
 class AdBlockModel;
+class AdBlockRequestHandler;
 class DownloadManager;
 
 /**
@@ -74,7 +76,7 @@ public:
     quint64 getRequestsBlockedCount() const;
 
     /// Returns the number of ads that were blocked on the page with the given URL during its last page load
-    int getNumberAdsBlocked(const QUrl &url);
+    int getNumberAdsBlocked(const QUrl &url) const;
 
 public slots:
     /// Attempt to update ad block subscriptions
@@ -138,12 +140,6 @@ private slots:
     void onSettingChanged(BrowserSetting setting, const QVariant &value);
 
 private:
-    /// Returns true if the request should not be processed by the Ad Block system based on its scheme
-    bool isSchemeWhitelisted(const QString &scheme) const;
-
-    /// Returns the \ref ElementType of the network request, which is used to check for filter option/type matches
-    ElementType getRequestType(const QWebEngineUrlRequestInfo &info) const;
-
     /// Returns the second-level domain string of the given url
     QString getSecondLevelDomain(const QUrl &url) const;
 
@@ -163,6 +159,9 @@ private:
     void save();
 
 private:
+    /// Stores the union of all subscription list filters
+    AdBlockFilterContainer m_filterContainer;
+
     /// Download manager, required to update subscription lists
     DownloadManager *m_downloadManager;
 
@@ -175,44 +174,11 @@ private:
     /// Directory path in which subscriptions are located
     QString m_subscriptionDir;
 
-    /// Global adblock stylesheet
-    QString m_stylesheet;
-
     /// JavaScript template for uBlock style cosmetic filters
     QString m_cosmeticJSTemplate;
 
     /// Container of content blocking subscriptions
     std::vector<AdBlockSubscription> m_subscriptions;
-
-    /// Container of important blocking filters that are checked before allow filters on network requests
-    std::deque<AdBlockFilter*> m_importantBlockFilters;
-
-    /// Container of filters that block content
-    std::deque<AdBlockFilter*> m_blockFilters;
-
-    /// Container of filters that block content based on a partial string match (needle in haystack)
-    std::deque<AdBlockFilter*> m_blockFiltersByPattern;
-
-    /// Hashmap of filters that are of the Domain category (||some.domain.com^ style filter rules)
-    QHash<QString, std::deque<AdBlockFilter*>> m_blockFiltersByDomain;
-
-    /// Container of filters that whitelist content
-    std::vector<AdBlockFilter*> m_allowFilters;
-
-    /// Container of filters that have domain-specific stylesheet rules
-    std::vector<AdBlockFilter*> m_domainStyleFilters;
-
-    /// Container of filters that have domain-specific javascript rules
-    std::vector<AdBlockFilter*> m_domainJSFilters;
-
-    /// Container of filters that have custom stylesheet values (:style filter option)
-    std::vector<AdBlockFilter*> m_customStyleFilters;
-
-    /// Container of domain-specific filters for which the generic element hiding rules (in m_stylesheet) do not apply
-    std::vector<AdBlockFilter*> m_genericHideFilters;
-
-    /// Container of filters that set the content security policy for a matching domain
-    std::vector<AdBlockFilter*> m_cspFilters;
 
     /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
     QHash<QString, QString> m_resourceMap;
@@ -232,14 +198,11 @@ private:
     /// Ad Block model, used to indirectly view and modify subscriptions in the user interface
     AdBlockModel *m_adBlockModel;
 
-    /// Stores the number of network requests that have been blocked by the ad block system
-    quint64 m_numRequestsBlocked;
-
-    /// Hash map of URLs to the number of requests that were blocked on that given URL
-    QHash<QUrl, int> m_pageAdBlockCount;
-
     /// Stores logs associated with actions taken by the ad block system
     AdBlockLog *m_log;
+
+    /// Performs network request matching to filters, and keeps count of the number of blocked requests (total + per URL)
+    AdBlockRequestHandler *m_requestHandler;
 };
 
 #endif // ADBLOCKMANAGER_H

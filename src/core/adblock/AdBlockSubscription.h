@@ -17,7 +17,9 @@ class AdBlockManager;
  */
 class AdBlockSubscription
 {
+    friend class AdBlockFilterContainer;
     friend class AdBlockManager;
+    friend class AdBlockRequestHandler;
 
 public:
     /// Constructs the AdBlockSubscription object
