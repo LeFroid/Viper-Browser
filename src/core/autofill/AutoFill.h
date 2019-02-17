@@ -3,6 +3,7 @@
 
 #include "CredentialStore.h"
 #include "Settings.h"
+#include "ISettingsObserver.h"
 
 #include <memory>
 
@@ -19,7 +20,7 @@ class WebPage;
  * @brief Handles automatic filling of form data that the user allows
  *        the system to manage for them.
  */
-class AutoFill : public QObject
+class AutoFill : public QObject, public ISettingsObserver
 {
     friend class AutoFillCredentialsView;
 
@@ -62,7 +63,7 @@ private slots:
     void updateCredentials(const WebCredentials &credentials);
 
     /// Listens for any settings changes that affect the AutoFill system (ex: enable/disable autofill)
-    void onSettingChanged(BrowserSetting setting, const QVariant &value);
+    void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
 private:
     /// Credential storage system

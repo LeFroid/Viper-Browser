@@ -7,6 +7,7 @@
 #include "LRUCache.h"
 #include "ServiceLocator.h"
 #include "Settings.h"
+#include "ISettingsObserver.h"
 #include "URL.h"
 
 #include <QHash>
@@ -34,7 +35,7 @@ class DownloadManager;
  *        network requests against blocking and allowing filter rules before
  *        letting any requests go through.
  */
-class AdBlockManager : public QObject
+class AdBlockManager : public QObject, public ISettingsObserver
 {
     friend class AdBlockFilterParser;
     friend class AdBlockModel;
@@ -137,7 +138,7 @@ private slots:
     void loadResourceFile(const QString &path);
 
     /// Listens for any settings changes that affect the advertisement blocking system (ex: enable/disable ad block)
-    void onSettingChanged(BrowserSetting setting, const QVariant &value);
+    void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
 private:
     /// Returns the second-level domain string of the given url

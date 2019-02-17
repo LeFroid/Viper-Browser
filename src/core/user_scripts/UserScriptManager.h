@@ -2,6 +2,7 @@
 #define USERSCRIPTMANAGER_H
 
 #include "Settings.h"
+#include "ISettingsObserver.h"
 #include "UserScript.h"
 
 #include <memory>
@@ -17,7 +18,7 @@ class UserScriptModel;
  * @class UserScriptManager
  * @brief Manages a collection of GreaseMonkey-style user scripts
  */
-class UserScriptManager : public QObject
+class UserScriptManager : public QObject, public ISettingsObserver
 {
     Q_OBJECT
 public:
@@ -67,7 +68,7 @@ public slots:
 
 private slots:
     /// Listens for any settings changes that affect the user script system
-    void onSettingChanged(BrowserSetting setting, const QVariant &value);
+    void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
 private:
     /// Pointer to the user scripts model

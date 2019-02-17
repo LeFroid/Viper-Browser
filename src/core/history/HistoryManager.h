@@ -6,6 +6,7 @@
 #include "FavoritePagesManager.h"
 #include "ServiceLocator.h"
 #include "Settings.h"
+#include "ISettingsObserver.h"
 
 #include <QDateTime>
 #include <QHash>
@@ -59,7 +60,7 @@ struct WebHistoryItem
  * @class HistoryManager
  * @brief Maintains the state of the browsing history that belongs to a user profile
  */
-class HistoryManager : public QObject, private DatabaseWorker
+class HistoryManager : public QObject, public ISettingsObserver, private DatabaseWorker
 {
     friend class DatabaseFactory;
 
@@ -135,7 +136,7 @@ public slots:
 
 private slots:
     /// Listens for any settings changes that affect the history manager
-    void onSettingChanged(BrowserSetting setting, const QVariant &value);
+    void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
 protected:
     /// Returns true if the history database contains the table structures needed for it to function properly,
