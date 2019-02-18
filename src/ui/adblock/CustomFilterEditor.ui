@@ -67,8 +67,8 @@
   </action>
   <action name="actionFind">
    <property name="icon">
-    <iconset theme="edit-find">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset resource="../../app/assets/application.qrc">
+     <normaloff>:/edit-find.png</normaloff>:/edit-find.png</iconset>
    </property>
    <property name="text">
     <string>Find</string>
@@ -109,6 +109,8 @@
    <header>CodeEditor.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../app/assets/application.qrc"/>
+ </resources>
  <connections/>
 </ui>

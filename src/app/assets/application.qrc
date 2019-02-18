@@ -5,6 +5,7 @@
         <file alias="AdBlock.svg">images/AdBlock.svg</file>
         <file alias="arrow-back.png">images/arrow-back.png</file>
         <file alias="arrow-forward.png">images/arrow-forward.png</file>
+        <file alias="edit-find.png">images/edit-find.png</file>
         <file alias="reload.png">images/reload.png</file>
         <file alias="stop.png">images/stop.png</file>
         <file alias="logo.png">images/logo.png</file>
