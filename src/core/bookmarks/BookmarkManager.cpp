@@ -118,7 +118,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, Bookm
     bookmark->setURL(url);
     bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
-    ++m_numBookmarks;
+    m_numBookmarks++;
 
     emit bookmarkCreated(bookmark);
 
@@ -144,7 +144,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QUrl &url, Bookm
     bookmark->setURL(url);
     bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
 
-    ++m_numBookmarks;
+    m_numBookmarks++;
 
     emit bookmarkCreated(bookmark);
 
@@ -164,7 +164,7 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
     folder->setUniqueId(folderId);
     folder->setIcon(QIcon::fromTheme(QLatin1String("folder")));
 
-    ++m_numBookmarks;
+    m_numBookmarks++;
 
     emit bookmarkCreated(folder);
 
