@@ -1,10 +1,8 @@
 # Viper Browser
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/faef22a2f30e4f1cbea3b15db777cab3)](https://www.codacy.com/app/LeFroid/Viper-Browser?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LeFroid/Viper-Browser&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/faef22a2f30e4f1cbea3b15db777cab3)](https://www.codacy.com/app/LeFroid/Viper-Browser?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LeFroid/Viper-Browser&amp;utm_campaign=Badge_Grade) [![Coverity Scan](https://scan.coverity.com/projects/14853/badge.svg?flat=1)](https://scan.coverity.com/projects/lefroid-viper-browser) [![Build Status](https://travis-ci.com/LeFroid/Viper-Browser.svg?branch=master)](https://travis-ci.com/LeFroid/Viper-Browser)
 
-[![Build Status](https://travis-ci.com/LeFroid/Viper-Browser.svg?branch=master)](https://travis-ci.com/LeFroid/Viper-Browser)
-
-A lightweight web browser built with the Qt framework and QtWebEngine
+A powerful yet lightweight web browser built with the Qt framework
 
 Licensed under GPLv3
 
