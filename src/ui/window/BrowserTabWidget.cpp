@@ -38,16 +38,18 @@ BrowserTabWidget::BrowserTabWidget(const ViperServiceLocator &serviceLocator, bo
     // Set tab widget UI properties
     setDocumentMode(true);
     setElideMode(Qt::ElideRight);
-    //setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    connect(this, &BrowserTabWidget::tabCloseRequested, this, &BrowserTabWidget::closeTab);
-    connect(this, &BrowserTabWidget::currentChanged, this, &BrowserTabWidget::onCurrentChanged);
+    connect(this, &BrowserTabWidget::tabCloseRequested,    this, &BrowserTabWidget::closeTab);
+    connect(this, &BrowserTabWidget::currentChanged,       this, &BrowserTabWidget::onCurrentChanged);
 
+    connect(m_tabBar, &BrowserTabBar::tabPinned,           this, &BrowserTabWidget::tabPinned);
     connect(m_tabBar, &BrowserTabBar::duplicateTabRequest, this, &BrowserTabWidget::duplicateTab);
-    connect(m_tabBar, &BrowserTabBar::newTabRequest, [=](){ newBackgroundTab(); });
-    connect(m_tabBar, &BrowserTabBar::reloadTabRequest, [=](int index){
-        if (WebWidget *view = getWebWidget(index))
-            view->reload();
+    connect(m_tabBar, &BrowserTabBar::newTabRequest,       this, [this](){
+        static_cast<void>(newBackgroundTab());
+    });
+    connect(m_tabBar, &BrowserTabBar::reloadTabRequest,    this, [this](int index){
+        if (WebWidget *webWidget = getWebWidget(index))
+            webWidget->reload();
     });
 
     QCoreApplication::instance()->installEventFilter(this);
@@ -121,14 +123,14 @@ void BrowserTabWidget::reopenLastTab()
     if (m_closedTabs.empty())
         return;
 
-    auto &tabInfo = m_closedTabs.front();
+    WebState tabInfo = m_closedTabs.front();
 
     WebWidget *ww = newBackgroundTabAtIndex(tabInfo.index);
     m_tabBar->setTabPinned(tabInfo.index, tabInfo.isPinned);
     setTabText(tabInfo.index, tabInfo.title);
     setTabToolTip(tabInfo.index, tabInfo.title);
     setTabIcon(tabInfo.index, tabInfo.icon);
-    ww->setWebState(tabInfo);
+    ww->setWebState(std::move(tabInfo));
 
     m_closedTabs.pop_front();
 }

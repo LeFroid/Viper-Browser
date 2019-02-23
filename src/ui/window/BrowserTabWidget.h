@@ -56,6 +56,9 @@ signals:
     /// Emitted when a tab containing the given web widget is being closed
     void tabClosing(WebWidget *view);
 
+    /// Emitted when the pinned state of a tab at the given index has changed (i.e., from pin -> unpin or unpin -> pin)
+    void tabPinned(int index, bool value);
+
     /// Emitted when the title of the active tab's web page has changed
     void titleChanged(const QString &title);
 

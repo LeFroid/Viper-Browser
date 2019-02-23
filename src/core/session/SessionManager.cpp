@@ -180,7 +180,7 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
 
                 ww->setHibernation(tabInfoObj.value(QLatin1String("is_hibernating")).toBool());
 
-                ww->setWebState(webState);
+                ww->setWebState(std::move(webState));
 
                 ++i;
             }

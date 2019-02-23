@@ -17,54 +17,6 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-WebState::WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget) :
-    index(0),
-    isPinned(false),
-    icon(webWidget->getIcon()),
-    iconUrl(webWidget->getIconUrl()),
-    title(webWidget->getTitle()),
-    url(webWidget->url()),
-    pageHistory()
-{
-    if (tabWidget != nullptr)
-    {
-        index = tabWidget->indexOf(webWidget);
-        isPinned = tabWidget->isTabPinned(index);
-
-        if (icon.isNull())
-            icon = tabWidget->tabIcon(index);
-    }
-
-    if (WebHistory *history = webWidget->getHistory())
-        pageHistory = history->save();
-}
-
-QByteArray WebState::serialize() const
-{
-    QByteArray result;
-    QDataStream stream(&result, QIODevice::WriteOnly);
-    stream << index
-           << isPinned
-           << icon
-           << iconUrl
-           << title
-           << url
-           << pageHistory;
-    return result;
-}
-
-void WebState::deserialize(QByteArray &data)
-{
-    QDataStream stream(&data, QIODevice::ReadOnly);
-    stream  >> index
-            >> isPinned
-            >> icon
-            >> iconUrl
-            >> title
-            >> url
-            >> pageHistory;
-}
-
 WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QWidget(parent),
     m_serviceLocator(serviceLocator),
@@ -93,6 +45,11 @@ WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode
     setLayout(vLayout);
 
     setFocusProxy(m_view);
+
+    if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
+    {
+        connect(tabWidget, &BrowserTabWidget::tabPinned, this, &WebWidget::onTabPinned);
+    }
 
     if (!m_privateMode)
     {
@@ -166,10 +123,9 @@ QString WebWidget::getTitle() const
 
 const WebState &WebWidget::getState()
 {
-    if (m_hibernating)
-        return m_savedState;
+    if (!m_hibernating)
+        saveState();
 
-    saveState();
     return m_savedState;
 }
 
@@ -230,10 +186,12 @@ void WebWidget::setHibernation(bool on)
         m_page = nullptr;
 
         setCursor(Qt::PointingHandCursor);
+        setAutoFillBackground(true);
     }
     else
     {
         m_hibernating = false;
+        setAutoFillBackground(false);
 
         setupWebView();
         layout()->addWidget(m_view);
@@ -253,7 +211,7 @@ void WebWidget::setHibernation(bool on)
     m_hibernating = on;
 }
 
-void WebWidget::setWebState(WebState &state)
+void WebWidget::setWebState(WebState &&state)
 {
     m_savedState = state;
 
@@ -357,6 +315,15 @@ void WebWidget::showContextMenuForView()
 {
     if (!m_hibernating)
         m_view->showContextMenu(m_contextMenuPosGlobal, m_contextMenuPosRelative);
+}
+
+void WebWidget::onTabPinned(int index, bool value)
+{
+    if (BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget()))
+    {
+        if (tabWidget->getWebWidget(index) == this)
+            m_savedState.isPinned = value;
+    }
 }
 
 void WebWidget::saveState()

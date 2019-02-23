@@ -758,7 +758,7 @@ void MainWindow::dropEvent(QDropEvent *event)
         WebWidget *webWidget = win->currentWebWidget();
         win->getTabWidget()->setTabPinned(0, webState.isPinned);
         webWidget->setHibernation(event->mimeData()->property("tab-hibernating").toBool());
-        webWidget->setWebState(webState);
+        webWidget->setWebState(std::move(webState));
         win->onTabChanged(0);
     }
     else
@@ -767,7 +767,7 @@ void MainWindow::dropEvent(QDropEvent *event)
         int tabIndex = m_tabWidget->indexOf(newTab);
         m_tabWidget->setTabPinned(tabIndex, webState.isPinned);
         newTab->setHibernation(event->mimeData()->property("tab-hibernating").toBool());
-        newTab->setWebState(webState);
+        newTab->setWebState(std::move(webState));
         onTabChanged(tabIndex);
     }
 

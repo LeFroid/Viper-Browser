@@ -68,6 +68,9 @@ signals:
     /// Emitted when the user chooses the "Reload" option on a tab from the context menu
     void reloadTabRequest(int index);
 
+    /// Emitted when the pinned state of a tab at the given index has changed (i.e., from pin -> unpin or unpin -> pin)
+    void tabPinned(int index, bool value);
+
 public slots:
     /// Sets the tab at the given index to be pinned if value is true, otherwise it will be unpinned
     void setTabPinned(int index, bool value);

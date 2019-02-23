@@ -2,6 +2,7 @@
 #define WEBWIDGET_H
 
 #include "ServiceLocator.h"
+#include "WebState.h"
 
 #include <QIcon>
 #include <QMetaType>
@@ -18,44 +19,6 @@ class WebInspector;
 class WebPage;
 class WebView;
 class WebWidget;
-
-/// Contains the information about a \ref WebWidget that is needed to hibernate/wake a tab,
-/// or save and restore a tab across browsing sessions
-struct WebState
-{
-    /// The index of the page in its parent \ref BrowserTabWidget
-    int index;
-
-    /// True if the page is pinned in its \ref BrowserTabWidget, false if else
-    bool isPinned;
-
-    /// The icon associated with the page at its URL
-    QIcon icon;
-
-    /// The URL of the icon
-    QUrl iconUrl;
-
-    /// The title of the page its URL
-    QString title;
-
-    /// The page's current URL
-    QUrl url;
-
-    /// Serialized history of the page
-    QByteArray pageHistory;
-
-    /// Default constructor
-    WebState() = default;
-
-    /// Constructs the WebState, given a pointer to the WebWidget and its parent BrowserTabWidget
-    WebState(WebWidget *webWidget, BrowserTabWidget *tabWidget);
-
-    /// Serializes the WebState into a byte array
-    QByteArray serialize() const;
-
-    /// Deserializes the WebState from the given byte array
-    void deserialize(QByteArray &data);
-};
 
 /**
  * @class WebWidget
@@ -142,6 +105,9 @@ public:
     /// Returns a pointer to the web view
     WebView *view() const;
 
+    /// Sets the state of the web widget as it was during a hibernation event
+    void setWebState(WebState &&state);
+
     /// Event filter
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -158,9 +124,6 @@ public slots:
      *           web widget will reactivate its WebView
      */
     void setHibernation(bool on);
-
-    /// Sets the state of the web widget as it was during a hibernation event
-    void setWebState(WebState &state);
 
 signals:
     /// Emitted when the widget is about to go into hibernation state
@@ -218,6 +181,9 @@ protected:
 private slots:
     /// Shows the context menu on the web page
     void showContextMenuForView();
+
+    /// Handles a tab pinned state change event notification
+    void onTabPinned(int index, bool value);
 
 private:
     /// Saves the state of the web widget before it is hibernated

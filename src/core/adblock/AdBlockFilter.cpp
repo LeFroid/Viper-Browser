@@ -76,7 +76,7 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
 
 AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
 {
-    if(this != &other)
+    if (this != &other)
     {
         m_category = other.m_category;
         m_ruleString = other.m_ruleString;
@@ -104,7 +104,7 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
 
 AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
 {
-    if(this != &other)
+    if (this != &other)
     {
         m_category = other.m_category;
         m_ruleString = other.m_ruleString;

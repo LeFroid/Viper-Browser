@@ -78,6 +78,8 @@ void BrowserTabBar::setTabPinned(int index, bool value)
 
     m_tabPinMap[index] = value;
     forceRepaint();
+
+    emit tabPinned(index, value);
 }
 
 void BrowserTabBar::onNextTabShortcut()
@@ -244,14 +246,6 @@ void BrowserTabBar::mouseMoveEvent(QMouseEvent *event)
         {
             window()->close();
         }
-        /*
-        else
-        {
-            BrowserTabWidget *tabWidget = qobject_cast<BrowserTabWidget*>(parentWidget());
-            WebWidget *ww = tabWidget->getWebWidget(tabIdx);
-            tabWidget->removeTab(tabIdx);
-            ww->deleteLater();
-        }*/
     }
 
     QTabBar::mouseMoveEvent(event);
@@ -348,7 +342,7 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
     }
     else if (mimeData->hasFormat("application/x-browser-tab"))
     {
-        if ((qulonglong)window()->winId() == mimeData->property("tab-origin-window-id").toULongLong())
+        if (static_cast<qulonglong>(window()->winId()) == mimeData->property("tab-origin-window-id").toULongLong())
         {
             int originalTabIndex = mimeData->property("tab-index").toInt();
             int tabIndexAtPos = tabAt(event->pos());
@@ -369,6 +363,7 @@ void BrowserTabBar::dropEvent(QDropEvent *event)
                 setTabPinned(tabIndexAtPos, m_draggedTabState.isPinned);
                 tabWidget->setCurrentIndex(tabIndexAtPos);
                 setCurrentIndex(tabIndexAtPos);
+                forceRepaint();
             }
             event->acceptProposedAction();
             return;
