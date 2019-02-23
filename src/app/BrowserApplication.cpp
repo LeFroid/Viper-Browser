@@ -237,6 +237,20 @@ WebPageThumbnailStore *BrowserApplication::getWebPageThumbnailStore()
     return m_thumbnailStore.get();
 }
 
+MainWindow *BrowserApplication::getWindowById(WId windowId) const
+{
+    for (auto it = m_browserWindows.begin(); it != m_browserWindows.end(); ++it)
+    {
+        QPointer<MainWindow> winPtr = *it;
+        if (!winPtr.isNull() && winPtr->winId() == windowId)
+        {
+            return winPtr.data();
+        }
+    }
+
+    return nullptr;
+}
+
 MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();

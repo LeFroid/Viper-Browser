@@ -103,6 +103,10 @@ public:
     /// Returns a pointer to the web page thumbnail storage manager
     WebPageThumbnailStore *getWebPageThumbnailStore();
 
+    /// Searches for a window with the given identifier, returning a pointer to the
+    /// MainWindow if found, or a nullptr otherwise.
+    MainWindow *getWindowById(WId windowId) const;
+
 signals:
     /// Emitted when each browsing window's history menu should reset its contents
     void resetHistoryMenu();

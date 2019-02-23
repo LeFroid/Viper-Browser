@@ -752,9 +752,11 @@ void MainWindow::dropEvent(QDropEvent *event)
     WebState webState;
     webState.deserialize(encodedData);
 
+    const qulonglong otherWinId = event->mimeData()->property("tab-origin-window-id").toULongLong();
+
     // Check window identifier of tab. If matches this window's id, load the tab
     // in a new window. Otherwise, add the tab to this window
-    if ((qulonglong)winId() == event->mimeData()->property("tab-origin-window-id").toULongLong())
+    if (static_cast<qulonglong>(winId()) == otherWinId)
     {
         MainWindow *win = sBrowserApplication->getNewWindow();
         WebWidget *webWidget = win->currentWebWidget();
@@ -765,12 +767,24 @@ void MainWindow::dropEvent(QDropEvent *event)
     }
     else
     {
-        WebWidget *newTab = m_tabWidget->newTab();
-        int tabIndex = m_tabWidget->indexOf(newTab);
-        m_tabWidget->setTabPinned(tabIndex, webState.isPinned);
+        auto tabBar = m_tabWidget->tabBar();
+        int newTabIndex = tabBar->tabAt(event->pos());//tabBar->mapFrom(this, event->pos());
+        if (newTabIndex < 0)
+            newTabIndex = tabBar->count();
+
+        WebWidget *newTab = m_tabWidget->newTabAtIndex(newTabIndex);
+        newTabIndex = m_tabWidget->indexOf(newTab);
+        m_tabWidget->setTabPinned(newTabIndex, webState.isPinned);
         newTab->setHibernation(event->mimeData()->property("tab-hibernating").toBool());
         newTab->setWebState(std::move(webState));
-        onTabChanged(tabIndex);
+        onTabChanged(newTabIndex);
+
+        if (MainWindow *otherWindow = sBrowserApplication->getWindowById(static_cast<WId>(otherWinId)))
+        {
+            // close the tab
+            const int otherTabIndex = event->mimeData()->property("tab-index").toInt();
+            otherWindow->getTabWidget()->closeTab(otherTabIndex);
+        }
     }
 
     event->acceptProposedAction();
