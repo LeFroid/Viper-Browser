@@ -158,9 +158,15 @@ int main(int argc, char *argv[])
     std::vector<char> processModelBuffer(processModel.begin(), processModel.end());
 
     if (!disableGpu.empty())
+    {
+        disableGpuBuffer[disableGpu.size()] = '\0';
         argv2[argc2++] = disableGpuBuffer.data();
+    }
     if (!processModel.empty())
+    {
+        processModelBuffer[processModel.size()] = '\0';
         argv2[argc2++] = processModelBuffer.data();
+    }
 
     BrowserApplication a(argc2, argv2);
 #else
