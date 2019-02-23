@@ -48,6 +48,7 @@
 #include <QPrinter>
 #include <QPrintPreviewDialog>
 #include <QPushButton>
+#include <QScreen>
 #include <QShortcut>
 #include <QTabBar>
 #include <QTimer>
@@ -80,8 +81,9 @@ MainWindow::MainWindow(const ViperServiceLocator &serviceLocator, bool privateWi
     if (m_privateWindow)
         setWindowTitle("Web Browser - Private Browsing");
 
-	QDesktopWidget *desktop = sBrowserApplication->desktop();
-	const int availableWidth = desktop->availableGeometry().width(), availableHeight = desktop->availableGeometry().height();
+    QScreen *mainScreen = sBrowserApplication->primaryScreen();
+    const int availableWidth = mainScreen->availableGeometry().width(),
+              availableHeight = mainScreen->availableGeometry().height();
     setGeometry(availableWidth / 16, availableHeight / 16, availableWidth * 7 / 8, availableHeight * 7 / 8);
 
     ui->widgetFindText->setTextFinder(new WebPageTextFinder);
