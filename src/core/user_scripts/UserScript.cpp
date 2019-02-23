@@ -190,7 +190,19 @@ QString UserScript::getScriptJSON() const
     nameFix.replace("'", "\\'");
     QString namespaceFix = m_namespace;
     namespaceFix.replace("'", "\\'");
-    QString runTime = (m_injectionTime == ScriptInjectionTime::DocumentEnd ? QStringLiteral("document-end") : QStringLiteral("document-start"));
+    QString runTime;
+    switch (m_injectionTime)
+    {
+        case ScriptInjectionTime::DocumentEnd:
+            runTime = QLatin1String("document-end");
+            break;
+        case ScriptInjectionTime::DocumentStart:
+            runTime = QLatin1String("document-start");
+            break;
+        case ScriptInjectionTime::DocumentIdle:
+            runTime = QLatin1String("document-idle");
+            break;
+    }
     return QString("{ 'description': '%1', 'excludes': [ %2 ], "
     "'includes': [ %3 ], 'matches': [], 'name': '%4', "
     "'namespace': '%5', 'resources': {}, 'run-at': '%6', "
