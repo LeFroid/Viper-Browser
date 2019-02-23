@@ -128,6 +128,8 @@ void Preferences::onCloseWithSave()
     std::string processModel = ui->tabAdvanced->getProcessModel().toStdString();
     if (!processModel.empty())
         initSettings.setValue(AppInitKey::ProcessModel, processModel);
+    else if (initSettings.hasSetting(AppInitKey::ProcessModel))
+        initSettings.removeSetting(AppInitKey::ProcessModel);
     if (ui->tabAdvanced->isGpuDisabled())
         initSettings.setValue(AppInitKey::DisableGPU, "--disable-gpu");
     else if (initSettings.hasSetting(AppInitKey::DisableGPU))
