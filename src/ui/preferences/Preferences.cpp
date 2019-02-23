@@ -2,6 +2,7 @@
 #include "ui_Preferences.h"
 
 #include "AdBlockManager.h"
+#include "AppInitSettings.h"
 #include "HistoryManager.h"
 #include "Settings.h"
 #include <QDir>
@@ -63,6 +64,11 @@ void Preferences::loadSettings()
     ui->tabPrivacy->setCookiesDeleteWithSession(m_settings->getValue(BrowserSetting::CookiesDeleteWithSession).toBool());
     ui->tabPrivacy->setThirdPartyCookiesEnabled(m_settings->getValue(BrowserSetting::EnableThirdPartyCookies).toBool());
     ui->tabPrivacy->setDoNotTrackEnabled(m_settings->getValue(BrowserSetting::SendDoNotTrack).toBool());
+
+    AppInitSettings initSettings;
+    if (initSettings.hasSetting(AppInitKey::ProcessModel))
+        ui->tabAdvanced->setProcessModel(QString::fromStdString(initSettings.getValue(AppInitKey::ProcessModel)));
+    ui->tabAdvanced->setGpuDisabled(initSettings.hasSetting(AppInitKey::DisableGPU));
 }
 
 void Preferences::onCloseWithSave()
@@ -116,6 +122,16 @@ void Preferences::onCloseWithSave()
 
     // Apply web settings to web brower engine
     m_settings->applyWebSettings();
+
+    // Application initialization-related settings (requires restart to take effect)
+    AppInitSettings initSettings;
+    std::string processModel = ui->tabAdvanced->getProcessModel().toStdString();
+    if (!processModel.empty())
+        initSettings.setValue(AppInitKey::ProcessModel, processModel);
+    if (ui->tabAdvanced->isGpuDisabled())
+        initSettings.setValue(AppInitKey::DisableGPU, "--disable-gpu");
+    else if (initSettings.hasSetting(AppInitKey::DisableGPU))
+        initSettings.removeSetting(AppInitKey::DisableGPU);
 
     close();
 }

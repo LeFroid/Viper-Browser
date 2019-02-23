@@ -24,6 +24,7 @@ set(viper_ui_src
     network/CertificateViewer.cpp
     network/SecurityInfoDialog.cpp
     preferences/AddSearchEngineDialog.cpp
+    preferences/AdvancedTab.cpp
     preferences/ContentTab.cpp
     preferences/ExemptThirdPartyCookieDialog.cpp
     preferences/GeneralTab.cpp
@@ -76,6 +77,7 @@ qt5_wrap_ui(viper_ui_files
     network/CertificateViewer.ui
     network/SecurityInfoDialog.ui
     preferences/AddSearchEngineDialog.ui
+    preferences/AdvancedTab.ui
     preferences/ContentTab.ui
     preferences/ExemptThirdPartyCookieDialog.ui
     preferences/GeneralTab.ui

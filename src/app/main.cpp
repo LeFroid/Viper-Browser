@@ -1,3 +1,4 @@
+#include "AppInitSettings.h"
 #include "BrowserApplication.h"
 #include "MainWindow.h"
 #include "SecurityManager.h"
@@ -5,6 +6,7 @@
 #include "WebWidget.h"
 
 #include <memory>
+#include <vector>
 #include <QUrl>
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
@@ -141,7 +143,26 @@ int main(int argc, char *argv[])
     SchemeRegistry::registerSchemes();
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    BrowserApplication a(argc, argv);
+    AppInitSettings initSettings;
+
+    std::string emptyStr = "";
+    std::vector<char> emptyStrBuffer(emptyStr.begin(), emptyStr.end());
+
+    int argc2 = 1;
+    char *argv2[] = { argv[0], emptyStrBuffer.data(), emptyStrBuffer.data() };
+
+    std::string disableGpu = initSettings.getValue(AppInitKey::DisableGPU);
+    std::vector<char> disableGpuBuffer(disableGpu.begin(), disableGpu.end());
+
+    std::string processModel = initSettings.getValue(AppInitKey::ProcessModel);
+    std::vector<char> processModelBuffer(processModel.begin(), processModel.end());
+
+    if (!disableGpu.empty())
+        argv2[argc2++] = disableGpuBuffer.data();
+    if (!processModel.empty())
+        argv2[argc2++] = processModelBuffer.data();
+
+    BrowserApplication a(argc2, argv2);
 #else
     int argc2 = 2;
     char *argv2[] = { argv[0], "--remote-debugging-port=9477" };

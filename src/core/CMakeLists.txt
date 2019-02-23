@@ -44,6 +44,7 @@ set(viper_src
     network/ViperSchemeHandler.cpp
     search/SearchEngineManager.cpp
     session/SessionManager.cpp
+    settings/AppInitSettings.cpp
     settings/Settings.cpp
     text_finder/ITextFinder.cpp
     text_finder/TextEditorTextFinder.cpp

@@ -39,6 +39,11 @@
        <string>Privacy</string>
       </attribute>
      </widget>
+     <widget class="AdvancedTab" name="tabAdvanced">
+      <attribute name="title">
+       <string>Advanced</string>
+      </attribute>
+     </widget>
     </widget>
    </item>
    <item row="1" column="0">
@@ -73,6 +78,12 @@
    <class>PrivacyTab</class>
    <extends>QWidget</extends>
    <header>PrivacyTab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AdvancedTab</class>
+   <extends>QWidget</extends>
+   <header>AdvancedTab.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

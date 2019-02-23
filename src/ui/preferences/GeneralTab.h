@@ -17,8 +17,12 @@ namespace Ui {
 class GeneralTab : public QWidget
 {
     Q_OBJECT
+
 public:
+    /// Tab constructor
     explicit GeneralTab(QWidget *parent = nullptr);
+
+    /// Destructor
     ~GeneralTab();
 
     /**
