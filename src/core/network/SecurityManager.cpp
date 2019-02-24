@@ -81,7 +81,7 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
 
     const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
 
-    QString hostStripped = url.host();
+    QString hostStripped = url.host().toLower();
     hostStripped = hostStripped.remove(QRegularExpression("(www\\.)"));
     auto certIt = m_certChains.find(hostStripped);
     if (isHttps && certIt != m_certChains.end())

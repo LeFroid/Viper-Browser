@@ -1,0 +1,431 @@
+#include "BrowserApplication.h"
+#include "HistoryStore.h"
+#include "Settings.h"
+#include "WebWidget.h"
+
+#include <array>
+#include <QBuffer>
+#include <QCryptographicHash>
+#include <QDateTime>
+#include <QFuture>
+#include <QIcon>
+#include <QImage>
+#include <QRegularExpression>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QSqlRecord>
+#include <QtConcurrent>
+#include <QUrl>
+#include <QDebug>
+
+HistoryStore::HistoryStore(const QString &databaseFile) :
+    DatabaseWorker(databaseFile, QLatin1String("HistoryDB")),
+    m_lastVisitID(0),
+    m_entries(),
+    m_recentItems(),
+    m_queryHistoryItem(nullptr),
+    m_queryVisit(nullptr),
+    m_queryGetEntryByUrl(nullptr)
+{
+}
+
+HistoryStore::~HistoryStore()
+{
+    if (m_queryGetEntryByUrl)
+    {
+        delete m_queryGetEntryByUrl;
+        m_queryGetEntryByUrl = nullptr;
+    }
+
+    if (m_queryHistoryItem != nullptr)
+    {
+        delete m_queryHistoryItem;
+        m_queryHistoryItem = nullptr;
+
+        delete m_queryVisit;
+        m_queryVisit = nullptr;
+    }
+}
+
+void HistoryStore::clearAllHistory()
+{
+    if (!exec(QLatin1String("DELETE FROM History")))
+        qWarning() << "In HistoryStore::clearAllHistory - Unable to clear History table.";
+
+    if (!exec(QLatin1String("DELETE FROM Visits")))
+        qWarning() << "In HistoryStore::clearAllHistory - Unable to clear Visits table.";
+}
+
+void HistoryStore::clearHistoryFrom(const QDateTime &start)
+{
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("DELETE FROM Visits WHERE Date >= (:date)"));
+    query.bindValue(QLatin1String(":date"), start.toMSecsSinceEpoch());
+    if (!query.exec())
+        qWarning() << "In HistoryStore::clearHistoryFrom - Unable to clear history. Message: "
+                   << query.lastError().text();
+
+    if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
+        qWarning() << "In HistoryStore::clearHistoryFrom - Unable to clear history. Message: "
+                   << query.lastError().text();
+}
+
+void HistoryStore::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
+{
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("DELETE FROM Visits WHERE Date >= (:startDate) AND Date <= (:endDate)"));
+    query.bindValue(QLatin1String(":startDate"), range.first.toMSecsSinceEpoch());
+    query.bindValue(QLatin1String(":endDate"), range.second.toMSecsSinceEpoch());
+    if (!query.exec())
+        qWarning() << "In HistoryStore::clearHistoryFrom - Unable to clear history. Message: "
+                   << query.lastError().text();
+
+    if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
+        qWarning() << "In HistoryStore::clearHistoryFrom - Unable to clear history. Message: "
+                   << query.lastError().text();
+}
+
+bool HistoryStore::contains(const QUrl &url) const
+{
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("SELECT VisitID FROM History WHERE URL = (:url)"));
+    query.bindValue(QLatin1String(":url"), url);
+    return query.exec() && query.next();
+}
+
+HistoryEntry HistoryStore::getEntry(const QUrl &url)
+{
+    HistoryEntry result;
+    result.URL = url;
+    result.VisitID = -1;
+    if (!m_queryGetEntryByUrl)
+    {
+        m_queryGetEntryByUrl = new QSqlQuery(m_database);
+        m_queryGetEntryByUrl->prepare(QLatin1String("SELECT Visits.VisitID, Visits.Date, MostRecentVisit.NumVisits, History.Title FROM "
+                              " (SELECT VisitID, MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
+                              " FROM Visits "
+                              " GROUP BY VisitID) AS MostRecentVisit "
+                              " INNER JOIN Visits ON "
+                              "  Visits.VisitID = MostRecentVisit.VisitID AND "
+                              "  Visits.Date = MostRecentVisit.Date "
+                              " INNER JOIN History "
+                              "  ON History.VisitID = Visits.VisitID "
+                              " WHERE History.URL = (:url)"));
+    }
+
+    m_queryGetEntryByUrl->bindValue(QLatin1String(":url"), url);
+    if (!m_queryGetEntryByUrl->exec())
+        qWarning() << "In HistoryStore::getEntry - Unable to execute search query. Message: "
+                   << m_queryGetEntryByUrl->lastError().text();
+
+    if (m_queryGetEntryByUrl->first())
+    {
+        result.VisitID   = m_queryGetEntryByUrl->value(0).toInt();
+        result.LastVisit = QDateTime::fromMSecsSinceEpoch(m_queryGetEntryByUrl->value(1).toULongLong());
+        result.NumVisits = m_queryGetEntryByUrl->value(2).toInt();
+        result.Title     = m_queryGetEntryByUrl->value(3).toString();
+    }
+
+    return result;
+}
+
+std::deque<HistoryEntry> HistoryStore::getRecentItems()
+{
+    std::deque<HistoryEntry> result;
+
+    QSqlQuery query(m_database);
+    if (!query.exec(QLatin1String("SELECT Visits.VisitID, Visits.Date, History.URL, History.Title FROM Visits "
+                                  "INNER JOIN History ON Visits.VisitID = History.VisitID "
+                                  "ORDER BY Visits.Date DESC LIMIT 15")))
+    {
+        qWarning() << "HistoryStore - could not load recently visited history entries";
+        return result;
+    }
+
+    while (query.next())
+    {
+        HistoryEntry entry;
+        entry.VisitID   = query.value(0).toInt();
+        entry.LastVisit = QDateTime::fromMSecsSinceEpoch(query.value(1).toULongLong());
+        entry.URL       = query.value(2).toUrl();
+        entry.Title     = query.value(3).toString();
+        entry.NumVisits = 1;
+
+        result.push_back(std::move(entry));
+    }
+
+    return result;
+}
+
+std::vector<URLRecord> HistoryStore::getHistoryFrom(const QDateTime &startDate) const
+{
+    return getHistoryBetween(startDate, QDateTime::currentDateTime());
+}
+
+std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate) const
+{
+    std::vector<URLRecord> result;
+
+    if (!startDate.isValid() || !endDate.isValid())
+        return result;
+
+    // Get startDate in msec format
+    qint64 startMSec = startDate.toMSecsSinceEpoch();
+    qint64 endMSec = endDate.toMSecsSinceEpoch();
+
+    // Setup queries
+    QSqlQuery queryVisitIds(m_database), queryHistoryItem(m_database), queryVisitDates(m_database);
+    queryVisitIds.prepare(QLatin1String("SELECT DISTINCT VisitID FROM Visits WHERE Date >= (:startDate) AND Date <= (:endDate) "
+                                        " ORDER BY Date ASC"));
+    queryHistoryItem.prepare(QLatin1String("SELECT URL, Title FROM History WHERE VisitID = (:visitId)"));
+    queryVisitDates.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) AND Date >= "
+                                          "(:startDate) AND Date <= (:endDate) ORDER BY Date ASC"));
+
+    queryVisitIds.bindValue(QLatin1String(":startDate"), startMSec);
+    queryVisitIds.bindValue(QLatin1String(":endDate"), endMSec);
+    if (!queryVisitIds.exec())
+        qDebug() << "HistoryStore::getHistoryBetween - error executing query. Message: " << queryVisitIds.lastError().text();
+    while (queryVisitIds.next())
+    {
+        const int visitId = queryVisitIds.value(0).toInt();
+
+        queryHistoryItem.bindValue(QLatin1String(":visitId"), visitId);
+        if (!queryHistoryItem.exec() || !queryHistoryItem.next())
+            continue;
+
+        HistoryEntry entry;
+        entry.URL = queryHistoryItem.value(0).toUrl();
+        entry.Title = queryHistoryItem.value(1).toString();
+        entry.VisitID = visitId;
+
+        std::vector<VisitEntry> visits;
+        queryVisitDates.bindValue(QLatin1String(":visitId"), visitId);
+        queryVisitDates.bindValue(QLatin1String(":startDate"), startMSec);
+        queryVisitDates.bindValue(QLatin1String(":endDate"), endMSec);
+        if (queryVisitDates.exec())
+        {
+            while (queryVisitDates.next())
+            {
+                VisitEntry visit;
+                visit.VisitID = entry.VisitID;
+                visit.VisitTime = QDateTime::fromMSecsSinceEpoch(queryVisitDates.value(0).toLongLong());
+                visits.push_back(visit);
+            }
+        }
+
+        entry.LastVisit = visits.at(visits.size() - 1).VisitTime;
+        entry.NumVisits = static_cast<int>(visits.size());
+        result.push_back( URLRecord{ std::move(entry), std::move(visits) } );
+    }
+
+    return result;
+}
+
+int HistoryStore::getTimesVisitedHost(const QUrl &url) const
+{
+    int timesVisited = 0;
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("SELECT h.VisitID, v.NumVisits FROM History AS h "
+                                "INNER JOIN (SELECT VisitID, COUNT(VisitID) AS NumVisits "
+                                "FROM Visits GROUP BY VisitID) AS v "
+                                "ON h.VisitID = v.VisitID WHERE h.URL LIKE (:url)"));
+    query.bindValue(QLatin1String(":url"), QString("%%1%").arg(url.host().toLower()));
+    if (!query.exec())
+        return timesVisited;
+    while (query.next())
+        timesVisited += query.value(1).toInt();
+
+    return timesVisited;
+}
+
+int HistoryStore::getTimesVisited(const QUrl &url) const
+{
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("SELECT h.VisitID, v.NumVisits FROM History AS h "
+                                "INNER JOIN (SELECT VisitID, COUNT(VisitID) AS NumVisits "
+                                "FROM Visits GROUP BY VisitID) AS v "
+                                "ON h.VisitID = v.VisitID WHERE h.URL = (:url)"));
+    query.bindValue(QLatin1String(":url"), url);
+    if (query.exec() && query.first())
+    {
+        return query.value(1).toInt();
+    }
+
+    return 0;
+}
+
+void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl)
+{
+    if (m_queryHistoryItem == nullptr)
+    {
+        m_queryHistoryItem = new QSqlQuery(m_database);
+        m_queryHistoryItem->prepare(
+                    QLatin1String("INSERT OR REPLACE INTO History(VisitID, URL, Title) "
+                                  "VALUES(:visitId, :url, :title)"));
+
+        m_queryVisit = new QSqlQuery(m_database);
+        m_queryVisit->prepare(
+                    QLatin1String("INSERT INTO Visits(VisitID, Date) VALUES(:visitId, :date)"));
+    }
+
+    auto existingEntry = getEntry(url);
+    qulonglong visitId = existingEntry.VisitID >= 0 ? existingEntry.VisitID : ++m_lastVisitID;
+    m_queryHistoryItem->bindValue(QLatin1String(":visitId"), visitId);
+    m_queryHistoryItem->bindValue(QLatin1String(":url"), url);
+    m_queryHistoryItem->bindValue(QLatin1String(":title"), title);
+    if (!m_queryHistoryItem->exec())
+        qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
+                   << m_queryHistoryItem->lastError().text();
+
+    const quint64 visitTimeInMSec = visitTime.toMSecsSinceEpoch();
+    m_queryVisit->bindValue(QLatin1String(":visitId"), visitId);
+    m_queryVisit->bindValue(QLatin1String(":date"), visitTimeInMSec);
+    if (!m_queryVisit->exec())
+        qWarning() << "HistoryStore::addVisit - could not save visit to database. Error: "
+                   << m_queryVisit->lastError().text();
+
+    if (!url.matches(requestedUrl, QUrl::RemoveScheme | QUrl::RemoveAuthority))
+    {
+        existingEntry = getEntry(requestedUrl);
+        visitId = existingEntry.VisitID >= 0 ? existingEntry.VisitID : ++m_lastVisitID;
+        m_queryHistoryItem->bindValue(QLatin1String(":visitId"), visitId);
+        m_queryHistoryItem->bindValue(QLatin1String(":url"), requestedUrl);
+        m_queryHistoryItem->bindValue(QLatin1String(":title"), title);
+        if (!m_queryHistoryItem->exec())
+            qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
+                       << m_queryHistoryItem->lastError().text();
+
+        m_queryVisit->bindValue(QLatin1String(":visitId"), visitId);
+        m_queryVisit->bindValue(QLatin1String(":date"), std::min(visitTimeInMSec, quint64(visitTimeInMSec - 100)));
+        if (!m_queryVisit->exec())
+            qWarning() << "HistoryStore::addVisit - could not save visit to database. Error: "
+                       << m_queryVisit->lastError().text();
+    }
+}
+
+bool HistoryStore::hasProperStructure()
+{
+    // Verify existence of Visits and History tables
+    return hasTable(QLatin1String("Visits")) && hasTable(QLatin1String("History"));
+}
+
+void HistoryStore::setup()
+{
+    QSqlQuery query(m_database);
+    if (!query.exec(QLatin1String("CREATE TABLE History(VisitID INTEGER PRIMARY KEY, URL TEXT UNIQUE NOT NULL, Title TEXT)")))
+    {
+        qDebug() << "[Error]: In HistoryStore::setup - unable to create history table. Message: " << query.lastError().text();
+    }
+    if (!query.exec(QLatin1String("CREATE TABLE Visits(VisitID INTEGER NOT NULL, Date INTEGER NOT NULL, "
+                                  "FOREIGN KEY(VisitID) REFERENCES History(VisitID) ON DELETE CASCADE, PRIMARY KEY(VisitID, Date))")))
+    {
+        qDebug() << "[Error]: In HistoryStore::setup - unable to create visited table. Message: " << query.lastError().text();
+    }
+}
+
+void HistoryStore::load()
+{
+    m_entries.clear();
+    purgeOldEntries();
+
+    // Load minimal data from the History database, will load more specific information
+    // on user request
+    QSqlQuery query(m_database);
+    QSqlQuery queryRecentVisit(m_database);
+
+    queryRecentVisit.prepare(
+                QLatin1String("SELECT MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
+                              "FROM Visits WHERE VisitID = (:visitId)"));
+
+    // Clear history entries that are not referenced by any specific visits
+    if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
+    {
+        qWarning() << "In HistoryStore::load - Could not remove non-referenced history entries from the database."
+                   << " Message: " << query.lastError().text();
+    }
+
+    // Now load history entries
+    if (query.exec(QLatin1String("SELECT VisitID, URL, Title FROM History ORDER BY VisitID ASC")))
+    {
+        QSqlRecord rec = query.record();
+        int idVisit = rec.indexOf(QLatin1String("VisitID"));
+        int idUrl = rec.indexOf(QLatin1String("URL"));
+        int idTitle = rec.indexOf(QLatin1String("Title"));
+        while (query.next())
+        {
+            HistoryEntry entry;
+            entry.URL     = query.value(idUrl).toUrl();
+            entry.Title   = query.value(idTitle).toString();
+            entry.VisitID = query.value(idVisit).toInt();
+
+            queryRecentVisit.bindValue(QLatin1String(":visitId"), entry.VisitID);
+            if (queryRecentVisit.exec() && queryRecentVisit.first())
+            {
+                entry.LastVisit = QDateTime::fromMSecsSinceEpoch(queryRecentVisit.value(0).toULongLong());
+                entry.NumVisits = queryRecentVisit.value(1).toInt();
+            }
+        }
+    }
+    else
+        qWarning() << "In HistoryStore::load - Unable to fetch history items from the database. Message: "
+                   << query.lastError().text();
+
+    if (query.exec(QLatin1String("SELECT MAX(VisitID) FROM History")) && query.first())
+        m_lastVisitID = query.value(0).toULongLong();
+}
+
+void HistoryStore::save()
+{
+}
+
+void HistoryStore::purgeOldEntries()
+{
+    // Clear visits that are 6+ months old
+    QSqlQuery query(m_database);
+    quint64 purgeDate = QDateTime::currentMSecsSinceEpoch();
+    const quint64 tmp = quint64{15552000000};
+    if (purgeDate > tmp)
+    {
+        purgeDate -= tmp;
+        query.prepare(QLatin1String("DELETE FROM Visits WHERE Date < (:purgeDate)"));
+        query.bindValue(QLatin1String(":purgeDate"), purgeDate);
+        if (!query.exec())
+        {
+            qWarning() << "HistoryStore - Could not purge old history entries. Message: " << query.lastError().text();
+        }
+    }
+}
+
+std::vector<WebPageInformation> HistoryStore::loadMostVisitedEntries(int limit)
+{
+    std::vector<WebPageInformation> result;
+    if (limit <= 0)
+        return result;
+
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM "
+                                "Visits AS v JOIN History AS h ON v.VisitID = h.VisitID GROUP BY v.VisitID "
+                                "ORDER BY NumVisits DESC LIMIT (:resultLimit)"));
+    query.bindValue(QLatin1String(":resultLimit"), limit);
+    if (!query.exec())
+    {
+        qWarning() << "In HistoryStore::loadMostVisitedEntries - unable to load most frequently visited entries. Message: " << query.lastError().text();
+        return result;
+    }
+
+    QSqlRecord rec = query.record();
+    int idUrl = rec.indexOf(QLatin1String("URL"));
+    int idTitle = rec.indexOf(QLatin1String("Title"));
+    int count = 0;
+    while (query.next())
+    {
+        WebPageInformation item;
+        item.Position = count++;
+        item.URL = query.value(idUrl).toUrl();
+        item.Title = query.value(idTitle).toString();
+        result.push_back(item);
+    }
+
+    return result;
+}
+

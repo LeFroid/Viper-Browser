@@ -97,9 +97,6 @@ public:
     /// Returns a pointer to the user agent manager
     UserAgentManager *getUserAgentManager();
 
-    /// Returns a pointer to the user script manager
-    UserScriptManager *getUserScriptManager();
-
     /// Returns a pointer to the web page thumbnail storage manager
     WebPageThumbnailStore *getWebPageThumbnailStore();
 

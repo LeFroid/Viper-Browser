@@ -44,8 +44,10 @@ public:
      */
     void onFormSubmitted(WebPage *page, const QString &pageUrl, const QString &username, const QString &password, const QMap<QString, QVariant> &formData);
 
-    /// Checks for any saved login information for the given URL, completing any forms found on the page if auto fill is enabled
-    void onPageLoaded(WebPage *page, const QUrl &url);
+public slots:
+    /// Checks for any saved login information for the URL associated with the web page
+    /// that triggered this slot, completing any forms found on the page if auto fill is enabled
+    void onPageLoaded(bool ok);
 
 protected:
     /// Returns a list of all credentials that are stored in the system

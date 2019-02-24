@@ -1,4 +1,5 @@
 add_subdirectory(adblock)
 add_subdirectory(bookmarks)
 add_subdirectory(database)
+add_subdirectory(history)
 add_subdirectory(utility)

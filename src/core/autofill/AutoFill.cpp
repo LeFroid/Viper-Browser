@@ -89,12 +89,16 @@ void AutoFill::onFormSubmitted(WebPage *page, const QString &pageUrl, const QStr
     dialog->alignAndShow(window->frameGeometry());
 }
 
-void AutoFill::onPageLoaded(WebPage *page, const QUrl &url)
+void AutoFill::onPageLoaded(bool ok)
 {
-    if (!m_credentialStore || !m_enabled)
+    if (!ok || !m_credentialStore || !m_enabled)
         return;
 
-    std::vector<WebCredentials> savedLogins = m_credentialStore->getCredentialsFor(url);
+    WebPage *page = qobject_cast<WebPage*>(sender());
+    if (!page)
+        return;
+
+    std::vector<WebCredentials> savedLogins = m_credentialStore->getCredentialsFor(page->url());
     if (savedLogins.empty())
         return;
 

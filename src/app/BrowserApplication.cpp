@@ -227,11 +227,6 @@ UserAgentManager *BrowserApplication::getUserAgentManager()
     return m_userAgentMgr;
 }
 
-UserScriptManager *BrowserApplication::getUserScriptManager()
-{
-    return m_userScriptMgr;
-}
-
 WebPageThumbnailStore *BrowserApplication::getWebPageThumbnailStore()
 {
     return m_thumbnailStore.get();

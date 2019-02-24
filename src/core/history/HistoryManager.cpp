@@ -1,7 +1,7 @@
 #include "BrowserApplication.h"
 #include "HistoryManager.h"
+#include "HistoryStore.h"
 #include "Settings.h"
-#include "WebView.h"
 #include "WebWidget.h"
 
 #include <array>
@@ -22,6 +22,7 @@
 HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, const QString &databaseFile) :
     QObject(nullptr),
     DatabaseWorker(databaseFile, QLatin1String("HistoryDB")),
+    m_historyStore(nullptr),
     m_lastVisitID(0),
     m_historyItems(),
     m_recentItems(),
@@ -202,6 +203,7 @@ int HistoryManager::getTimesVisitedHost(const QString &host) const
     query.prepare(QLatin1String("SELECT COUNT(VisitID) FROM Visits WHERE VisitID = (:id)"));
     for (const WebHistoryItem &item : m_historyItems)
     {
+        //const QString entryHost = item.URL.host().toLower().remove(QRegularExpression("^(http(s)?://)?(www\\.)"));
         if (host.endsWith(item.URL.host().remove(QRegularExpression("(http(s)?://)?(www\\.)"))))
         {
             query.bindValue(QLatin1String(":id"), item.VisitID);
@@ -214,20 +216,15 @@ int HistoryManager::getTimesVisitedHost(const QString &host) const
 
 int HistoryManager::getTimesVisited(const QUrl &url) const
 {
-    QSqlQuery queryVisitId(m_database);
-    queryVisitId.prepare(QLatin1String("SELECT VisitID FROM History WHERE URL = (:url)"));
-    queryVisitId.bindValue(QLatin1String(":url"), url);
-
-    if (queryVisitId.exec() && queryVisitId.first())
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("SELECT h.VisitID, v.NumVisits FROM History AS h "
+                                "INNER JOIN (SELECT VisitID, COUNT(VisitID) AS NumVisits "
+                                "FROM Visits GROUP BY VisitID) AS v "
+                                "ON h.VisitID = v.VisitID WHERE h.URL = (:url)"));
+    query.bindValue(QLatin1String(":url"), url);
+    if (query.exec() && query.first())
     {
-        int visitId = queryVisitId.value(0).toInt();
-
-        QSqlQuery queryVisitCount(m_database);
-        queryVisitCount.prepare(QLatin1String("SELECT COUNT(VisitID) FROM Visits WHERE VisitID = (:id)"));
-        queryVisitCount.bindValue(QLatin1String(":id"), visitId);
-
-        if (queryVisitCount.exec() && queryVisitCount.first())
-            return queryVisitCount.value(0).toInt();
+        return query.value(1).toInt();
     }
 
     return 0;
@@ -299,7 +296,7 @@ void HistoryManager::onPageLoaded(bool ok)
                 m_recentItems.pop_back();
 
             if (!it->Title.isEmpty())
-                QtConcurrent::run(this, &HistoryManager::saveVisit, *it, visitTime);
+                saveVisit(*it, visitTime);
         }
         else
         {
@@ -314,7 +311,7 @@ void HistoryManager::onPageLoaded(bool ok)
             while (m_recentItems.size() > 15)
                 m_recentItems.pop_back();
 
-            QtConcurrent::run(this, &HistoryManager::saveVisit, item, visitTime);
+            saveVisit(item, visitTime);
         }
     }
 
@@ -464,14 +461,18 @@ void HistoryManager::loadRecentVisits()
 
 std::vector<WebPageInformation> HistoryManager::loadMostVisitedEntries(int limit)
 {
-    //m_mostVisitedList.clear();
     std::vector<WebPageInformation> result;
     if (limit <= 0)
         return result;
 
     QSqlQuery query(m_database);
-    if (!query.exec(QString("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM Visits AS v JOIN History AS h"
-                            " ON v.VisitID = h.VisitID GROUP BY v.VisitID ORDER BY NumVisits DESC LIMIT %1").arg(limit)))
+    query.prepare(QLatin1String("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM "
+                                "Visits AS v JOIN History AS h ON v.VisitID = h.VisitID GROUP BY v.VisitID "
+                                "ORDER BY NumVisits DESC LIMIT (:resultLimit)"));
+    query.bindValue(QLatin1String(":resultLimit"), limit);
+    //if (!query.exec(QString("SELECT v.VisitID, COUNT(v.VisitID) AS NumVisits, h.URL, h.Title FROM Visits AS v JOIN History AS h"
+    //                        " ON v.VisitID = h.VisitID GROUP BY v.VisitID ORDER BY NumVisits DESC LIMIT %1").arg(limit)))
+    if (!query.exec())
     {
         qWarning() << "In HistoryManager::loadMostVisitedEntries - unable to load most frequently visited entries. Message: " << query.lastError().text();
         return result;

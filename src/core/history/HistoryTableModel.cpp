@@ -22,9 +22,9 @@ QVariant HistoryTableModel::headerData(int section, Qt::Orientation orientation,
     {
         switch (section)
         {
-            case 0: return "Name";
-            case 1: return "Location";
-            case 2: return "Date";
+            case 0: return tr("Name");
+            case 1: return tr("Location");
+            case 2: return tr("Date");
         }
     }
 
@@ -154,8 +154,6 @@ void HistoryTableModel::loadFromDate(const QDateTime &date)
     // Clear old model data
     m_commonData.clear();
     m_history.clear();
-
-    //fetchMore(QModelIndex());
 
     endResetModel();
 }

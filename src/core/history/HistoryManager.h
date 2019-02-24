@@ -19,7 +19,7 @@
 #include <mutex>
 #include <vector>
 
-class WebWidget;
+class HistoryStore;
 
 /// Available policies for storage of browsing history data
 enum class HistoryStoragePolicy
@@ -75,7 +75,7 @@ public:
     /// Constructs the history manager, given the path to the history database
     explicit HistoryManager(const ViperServiceLocator &serviceLocator, const QString &databaseFile);
 
-    /// Saves browsing history at exit
+    /// Destructor
     ~HistoryManager();
 
     /// Returns a const_iterator to the first element in the history hash map
@@ -166,6 +166,9 @@ private:
     void loadRecentVisits();
 
 private:
+    /// Pointer to the history data store
+    HistoryStore *m_historyStore;
+
     /// Stores the last visit ID that has been used to record browsing history. Auto increments for each new history item
     uint64_t m_lastVisitID;
 

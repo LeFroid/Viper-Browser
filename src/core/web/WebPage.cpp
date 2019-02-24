@@ -35,6 +35,7 @@
 WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEnginePage(parent),
     m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
+    m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(this)),
     m_originalUrl(),
     m_mainFrameHost(),
@@ -48,6 +49,7 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
 WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
     m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
+    m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(this)),
     m_originalUrl(),
     m_mainFrameHost(),
@@ -63,10 +65,12 @@ WebPage::~WebPage()
 
 void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
 {
+    AutoFill *autoFillManager = serviceLocator.getServiceAs<AutoFill>("AutoFill");
+
     QWebChannel *channel = new QWebChannel(this);
     channel->registerObject(QLatin1String("extStorage"), serviceLocator.getServiceAs<ExtStorage>("storage"));
     channel->registerObject(QLatin1String("favoritePageManager"), serviceLocator.getServiceAs<FavoritePagesManager>("favoritePageManager"));
-    channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(serviceLocator.getServiceAs<AutoFill>("AutoFill"), this));
+    channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(autoFillManager, this));
     channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(serviceLocator.getServiceAs<FaviconStore>("FaviconStore"), this));
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
@@ -74,6 +78,7 @@ void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
     connect(this, &WebPage::proxyAuthenticationRequired, this, &WebPage::onProxyAuthenticationRequired);
     connect(this, &WebPage::loadProgress,                this, &WebPage::onLoadProgress);
     connect(this, &WebPage::loadFinished,                this, &WebPage::onLoadFinished);
+    connect(this, &WebPage::loadFinished,     autoFillManager, &AutoFill::onPageLoaded);
     connect(this, &WebPage::urlChanged,                  this, &WebPage::onMainFrameUrlChanged);
     connect(this, &WebPage::featurePermissionRequested,  this, &WebPage::onFeaturePermissionRequested);
     connect(this, &WebPage::renderProcessTerminated,     this, &WebPage::onRenderProcessTerminated);
@@ -142,7 +147,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
     {
         QWebEngineScriptCollection &scriptCollection = scripts();
         scriptCollection.clear();
-        auto pageScripts = sBrowserApplication->getUserScriptManager()->getAllScriptsFor(url);
+        auto pageScripts = m_userScriptManager->getAllScriptsFor(url);
         for (auto &script : pageScripts)
             scriptCollection.insert(script);
 
@@ -374,8 +379,6 @@ void WebPage::onLoadFinished(bool ok)
         runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
 
     m_needInjectAdBlockScript = true;
-
-    sBrowserApplication->getAutoFill()->onPageLoaded(this, url());
 }
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
@@ -424,14 +427,16 @@ void WebPage::showTabCrashedPage()
     }
 }
 
+// Was used when backend was QtWebEngine. No longer used. Will keep this method
+// for now in case it may be needed in the future.
 void WebPage::injectUserJavaScript(ScriptInjectionTime injectionTime)
 {
     // Attempt to get URL associated with frame
-    QUrl pageUrl = url();
+    const QUrl pageUrl = url();
     if (pageUrl.isEmpty())
         return;
 
-    QString userJS = sBrowserApplication->getUserScriptManager()->getScriptsFor(pageUrl, injectionTime, true);
+    const QString userJS = m_userScriptManager->getScriptsFor(pageUrl, injectionTime, true);
     if (!userJS.isEmpty())
         runJavaScript(userJS);
 }

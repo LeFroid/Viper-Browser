@@ -30,7 +30,9 @@ set(viper_src
     highlighters/JavaScriptHighlighter.cpp
     history/FavoritePagesManager.cpp
     history/HistoryManager.cpp
+    history/HistoryStore.cpp
     history/HistoryTableModel.cpp
+    history/URLRecord.cpp
     history/WebPageThumbnailStore.cpp
     icons/FaviconStore.cpp
     icons/FaviconStoreBridge.cpp

@@ -16,6 +16,7 @@
 #endif
 
 class AdBlockManager;
+class UserScriptManager;
 class WebHistory;
 
 class QWebEngineProfile;
@@ -113,6 +114,9 @@ private:
 private:
     /// Advertisement blocking system manager
     AdBlockManager *m_adBlockManager;
+
+    /// User script system manager
+    UserScriptManager *m_userScriptManager;
 
     /// Stores the history of the web page
     WebHistory *m_history;
