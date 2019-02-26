@@ -269,7 +269,6 @@ void HistoryManager::onHistoryRecordsLoaded(std::vector<URLRecord> &&records)
 
     for (auto &&record : records)
     {
-        qDebug() << "Adding record: " << record.getUrl();
         m_historyItems.insert(record.getUrl().toString().toUpper(), std::move(record));
     }
 }
