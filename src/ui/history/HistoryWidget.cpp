@@ -37,9 +37,9 @@ HistoryWidget::~HistoryWidget()
     delete ui;
 }
 
-void HistoryWidget::setHistoryManager(HistoryManager *manager)
+void HistoryWidget::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
-    HistoryTableModel *tableModel = new HistoryTableModel(manager, this);
+    HistoryTableModel *tableModel = new HistoryTableModel(serviceLocator, this);
     m_proxyModel->setSourceModel(tableModel);
     ui->tableView->setModel(m_proxyModel);
 

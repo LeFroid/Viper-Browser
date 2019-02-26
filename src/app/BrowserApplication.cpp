@@ -100,15 +100,18 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
         qWarning() << "Could not register AdBlock Manager with service registry";
 
     // Instantiate the history manager and related systems
-    m_historyMgr = DatabaseFactory::createWorker<HistoryManager>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::HistoryPath));
-    if (!m_serviceLocator.addService(m_historyMgr->objectName().toStdString(), m_historyMgr.get()))
+    m_databaseScheduler.addWorker("HistoryStore",
+                                  std::bind(DatabaseFactory::createDBWorker<HistoryStore>, m_settings->getPathValue(BrowserSetting::HistoryPath)));
+    m_historyMgr = new HistoryManager(m_serviceLocator, m_databaseScheduler);
+                                      //DatabaseFactory::createWorker<HistoryManager>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::HistoryPath));
+    if (!m_serviceLocator.addService(m_historyMgr->objectName().toStdString(), m_historyMgr))
         qWarning() << "Could not register History Manager with service registry";
 
     m_thumbnailStore = DatabaseFactory::createWorker<WebPageThumbnailStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::ThumbnailPath));
     if (!m_serviceLocator.addService(m_thumbnailStore->objectName().toStdString(), m_thumbnailStore.get()))
             qWarning() << "Could not register Thumbnail Store with service registry";
 
-    m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr.get(), m_thumbnailStore.get(), m_settings->getPathValue(BrowserSetting::FavoritePagesFile));
+    m_favoritePagesMgr = new FavoritePagesManager(m_historyMgr, m_thumbnailStore.get(), m_settings->getPathValue(BrowserSetting::FavoritePagesFile));
     if (!m_serviceLocator.addService(m_favoritePagesMgr->objectName().toStdString(), m_favoritePagesMgr))
         qWarning() << "Could not register Favorite Web Page Manager with service registry";
 
@@ -153,6 +156,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     const std::vector<QString> urlSchemes { QLatin1String("http"), QLatin1String("https"), QLatin1String("viper") };
     for (const QString &scheme : urlSchemes)
         QDesktopServices::setUrlHandler(scheme, this, "openUrl");
+
+    m_databaseScheduler.run();
 }
 
 BrowserApplication::~BrowserApplication()
@@ -168,6 +173,7 @@ BrowserApplication::~BrowserApplication()
     delete m_cookieUI;
     delete m_autoFill;
     delete m_favoritePagesMgr;
+    delete m_historyMgr;
     delete m_adBlockManager;
     delete m_settings;
 }
@@ -209,7 +215,7 @@ FaviconStore *BrowserApplication::getFaviconStore()
 
 HistoryManager *BrowserApplication::getHistoryManager()
 {
-    return m_historyMgr.get();
+    return m_historyMgr;
 }
 
 NetworkAccessManager *BrowserApplication::getNetworkAccessManager()

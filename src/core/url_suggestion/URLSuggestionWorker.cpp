@@ -110,13 +110,13 @@ void URLSuggestionWorker::searchForHits()
         if (!m_working.load())
             return;
 
-        const QString &url = it.URL.toString();
+        const QString &url = it.getUrl().toString();
         if (hits.contains(url))
             continue;
 
-        if (isEntryMatch(it.Title.toUpper(), url.toUpper()))
+        if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
         {
-            auto suggestion = URLSuggestion(m_faviconStore->getFavicon(it.URL), it.Title, url, false, m_historyManager->getTimesVisited(it.URL));
+            auto suggestion = URLSuggestion(m_faviconStore->getFavicon(it.getUrl()), it.getTitle(), url, false, it.getNumVisits());
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)

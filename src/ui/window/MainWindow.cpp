@@ -538,7 +538,7 @@ void MainWindow::onLoadFinished(bool ok)
 void MainWindow::onShowAllHistory()
 {
     HistoryWidget *histWidget = new HistoryWidget;
-    histWidget->setHistoryManager(m_serviceLocator.getServiceAs<HistoryManager>("HistoryManager"));
+    histWidget->setServiceLocator(m_serviceLocator);
     histWidget->loadHistory();
 
     connect(histWidget, &HistoryWidget::openLink, m_tabWidget, &BrowserTabWidget::loadUrl);

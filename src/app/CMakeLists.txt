@@ -16,6 +16,8 @@ add_executable(viper-browser ${viper_qrc} ${viper_browser_src})
 target_link_libraries(viper-browser
     viper-core
     viper-ui
+    Threads::Threads
 )
+
 
 install(TARGETS viper-browser DESTINATION bin)

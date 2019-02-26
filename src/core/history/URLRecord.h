@@ -140,7 +140,6 @@ protected:
     /// Adds a visit to the record
     void addVisit(VisitEntry &&entry);
 
-private:
     /// The history entry, containg the URL, title, last visit and visit count
     HistoryEntry m_historyEntry;
 

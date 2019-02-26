@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <array>
 #include <set>
+#include <utility>
 #include <QBuffer>
 #include <QMimeType>
 #include <QPixmap>
@@ -147,21 +148,12 @@ void WebPageThumbnailStore::load()
     // load only when needed, not during instantiation
 }
 
-void WebPageThumbnailStore::save()
+void WebPageThumbnailStore::onMostVisitedPagesLoaded(std::vector<WebPageInformation> &&results)
 {
-    // iterate through the in-memory collection, and if any of the hostnames of a page's thumbnail
-    // is (1) in the top 100 most visited web pages (see HistoryManager), or (2) is favorited by
-    // the user, or (3) is bookmarked, then save to the DB
-    if (!m_historyManager || !m_bookmarkManager)
-        return;
-
     std::set<std::string> mostVisitedHosts;
 
     // Load top history entries into set
-    int historyLimit = std::min(m_thumbnails.size(), 100);
-    auto mostVisitedHistoryPages = m_historyManager->loadMostVisitedEntries(historyLimit);
-
-    for (const auto &entry : mostVisitedHistoryPages)
+    for (const auto &entry : results)
     {
         const std::string host = entry.URL.host().toLower().toStdString();
         if (!host.empty())
@@ -203,4 +195,16 @@ void WebPageThumbnailStore::save()
             qWarning() << "WebPageThumbnailStore - could not save thumbnail to database. Message: "
                        << query.lastError().text();
     }
+}
+
+void WebPageThumbnailStore::save()
+{
+    // iterate through the in-memory collection, and if any of the hostnames of a page's thumbnail
+    // is (1) in the top 100 most visited web pages (see HistoryManager), or (2) is favorited by
+    // the user, or (3) is bookmarked, then save to the DB
+    if (!m_historyManager || !m_bookmarkManager)
+        return;
+
+    int historyLimit = std::min(m_thumbnails.size(), 100);
+    m_historyManager->loadMostVisitedEntries(historyLimit, std::bind(&WebPageThumbnailStore::onMostVisitedPagesLoaded, this, std::placeholders::_1));
 }

@@ -1,11 +1,13 @@
-#include "BrowserApplication.h"
 #include "HistoryTableModel.h"
 #include "HistoryManager.h"
 #include "FaviconStore.h"
 
-HistoryTableModel::HistoryTableModel(HistoryManager *historyMgr, QObject *parent) :
+#include <utility>
+
+HistoryTableModel::HistoryTableModel(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QAbstractTableModel(parent),
-    m_historyMgr(historyMgr),
+    m_historyManager(serviceLocator.getServiceAs<HistoryManager>("HistoryManager")),
+    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
     m_targetDate(),
     m_loadedDate(),
     m_commonData(),
@@ -61,26 +63,28 @@ void HistoryTableModel::fetchMore(const QModelIndex &/*parent*/)
         m_loadedDate = m_targetDate;
         return;
     }
+    m_historyManager->getHistoryBetween(m_loadedDate.addDays(-1), m_loadedDate,
+                                    std::bind(&HistoryTableModel::onHistoryFetched, this, std::placeholders::_1));
+}
 
-    FaviconStore *favicons = sBrowserApplication->getFaviconStore();
-
+void HistoryTableModel::onHistoryFetched(std::vector<URLRecord> &&entries)
+{
     QDateTime nextLoadedDate = m_loadedDate.addDays(-1);
 
-    std::vector<WebHistoryItem> entries = m_historyMgr->getHistoryBetween(nextLoadedDate, m_loadedDate);
     QMap<qint64, int> tmpVisitInfo; // Used to sort visits by date
     for (auto &it : entries)
     {
         // Load entry into common entry list, then specific visits into a temporary map for sorting
         HistoryTableItem tableItem;
-        tableItem.Title = it.Title;
-        tableItem.URL = it.URL.toString();
-        tableItem.Favicon = favicons->getFavicon(it.URL).pixmap(16, 16);
+        tableItem.Title = it.getTitle();
+        tableItem.URL = it.getUrl().toString();
+        tableItem.Favicon = m_faviconStore->getFavicon(it.getUrl()).pixmap(16, 16);
         m_commonData.push_back(tableItem);
 
         int itemIndex = static_cast<int>(m_commonData.size()) - 1;
-        for (auto visit : it.Visits)
+        for (const auto &visit : it.getVisits())
         {
-            auto time = visit.toMSecsSinceEpoch();
+            auto time = visit.VisitTime.toMSecsSinceEpoch();
             if (!tmpVisitInfo.contains(time))
                 tmpVisitInfo.insert(time, itemIndex);
         }

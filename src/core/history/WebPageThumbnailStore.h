@@ -2,6 +2,7 @@
 #define WEBPAGETHUMBNAILSTORE_H
 
 #include "DatabaseWorker.h"
+#include "HistoryManager.h"
 #include "ServiceLocator.h"
 
 #include <vector>
@@ -59,6 +60,11 @@ protected:
 
     /// Saves thumbnails of web pages into the database
     void save() override;
+
+private:
+    /// Callback registered during a call to save() - handles the query to fetch the most frequently
+    /// visited web pages
+    void onMostVisitedPagesLoaded(std::vector<WebPageInformation> &&results);
 
 private:
     /// Hashmap of web hostnames to their corresponding thumbnails

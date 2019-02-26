@@ -101,7 +101,7 @@ void FavoritePagesManager::addFavorite(const QUrl &url)
             || isPresent(url))
         return;
 
-    WebHistoryItem record = m_historyManager->getEntry(url);
+    HistoryEntry record = m_historyManager->getEntry(url);
 
     WebPageInformation pageInfo;
     pageInfo.Position = static_cast<int>(m_favoritePages.size());
@@ -186,21 +186,22 @@ void FavoritePagesManager::loadFromHistory()
     // Load most frequent visits, and then remove any that the user requested to be excluded from
     // the new tab page
     const int numResults = 10 + static_cast<int>(m_excludedPages.size());
-    int itemPosition = static_cast<int>(m_favoritePages.size());
-    m_mostVisitedPages = m_historyManager->loadMostVisitedEntries(numResults);
-
-    for (auto it = m_mostVisitedPages.begin(); it != m_mostVisitedPages.end();)
-    {
-        if (std::find(m_excludedPages.begin(), m_excludedPages.end(), it->URL) != m_excludedPages.end())
-            it = m_mostVisitedPages.erase(it);
-        else
+    m_historyManager->loadMostVisitedEntries(numResults, [=](std::vector<WebPageInformation> &&results){
+        int itemPosition = static_cast<int>(m_favoritePages.size());
+        m_mostVisitedPages = results;
+        for (auto it = m_mostVisitedPages.begin(); it != m_mostVisitedPages.end();)
         {
-            // Set position and get the thumbnail if we will keep this result
-            it->Position = itemPosition++;
-            it->Thumbnail = m_thumbnailStore->getThumbnail(it->URL);
-            ++it;
+            if (std::find(m_excludedPages.begin(), m_excludedPages.end(), it->URL) != m_excludedPages.end())
+                it = m_mostVisitedPages.erase(it);
+            else
+            {
+                // Set position and get the thumbnail if we will keep this result
+                it->Position = itemPosition++;
+                it->Thumbnail = m_thumbnailStore->getThumbnail(it->URL);
+                ++it;
+            }
         }
-    }
+    });
 }
 
 void FavoritePagesManager::save()

@@ -17,6 +17,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads)
+
 # Get Qt
 set(QT_VERSION_MIN "5.9.0")
 find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Core Concurrent Gui Network PrintSupport Sql Svg QuickWidgets Widgets WebChannel WebEngineWidgets)
@@ -54,6 +58,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/core/session
     ${CMAKE_SOURCE_DIR}/src/core/settings
     ${CMAKE_SOURCE_DIR}/src/core/text_finder
+    ${CMAKE_SOURCE_DIR}/src/core/threading
     ${CMAKE_SOURCE_DIR}/src/core/url_suggestion
     ${CMAKE_SOURCE_DIR}/src/core/user_agents
     ${CMAKE_SOURCE_DIR}/src/core/user_scripts

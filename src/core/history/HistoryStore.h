@@ -49,6 +49,9 @@ public:
     /// database
     HistoryEntry getEntry(const QUrl &url);
 
+    /// Returns the history entries that were loaded during instantiation of the history store.
+    std::vector<URLRecord> getEntries() const;
+
     /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
     std::deque<HistoryEntry> getRecentItems();
 
@@ -94,7 +97,7 @@ private:
     uint64_t m_lastVisitID;
 
     /// Contains the history entries at the time of the initial database load
-    std::vector<HistoryEntry> m_entries;
+    std::vector<URLRecord> m_entries;
 
     /// Queue of recently visited items
     std::deque<HistoryEntry> m_recentItems;

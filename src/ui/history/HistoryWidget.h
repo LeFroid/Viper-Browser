@@ -1,6 +1,7 @@
 #ifndef HISTORYWIDGET_H
 #define HISTORYWIDGET_H
 
+#include "ServiceLocator.h"
 #include <QModelIndex>
 #include <QWidget>
 
@@ -38,8 +39,9 @@ public:
     /// Destroys the UI
     ~HistoryWidget();
 
-    /// Sets the history manager which is used to load data into the history table
-    void setHistoryManager(HistoryManager *manager);
+    /// Sets a reference to the service locator, which is used to inject the \ref HistoryManager
+    /// and \ref FaviconStore into the history tabel model
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
     /// Loads all history items matching the current filter, as set in the list widget
     void loadHistory();

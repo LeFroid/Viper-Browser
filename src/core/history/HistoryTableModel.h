@@ -1,6 +1,9 @@
 #ifndef HISTORYTABLEMODEL_H
 #define HISTORYTABLEMODEL_H
 
+#include "HistoryStore.h"
+#include "ServiceLocator.h"
+
 #include <vector>
 #include <QAbstractTableModel>
 #include <QDateTime>
@@ -9,6 +12,7 @@
 #include <QUrl>
 
 class HistoryManager;
+class FaviconStore;
 
 /**
  * @struct HistoryTableItem
@@ -53,8 +57,8 @@ class HistoryTableModel : public QAbstractTableModel
     friend class HistoryWidget;
 
 public:
-    /// Constructs the table model given a pointer to the HistoryManager and an optional parent object pointer
-    explicit HistoryTableModel(HistoryManager *historyMgr, QObject *parent = nullptr);
+    /// Constructs the table model given a reference to the service locator, and an optional parent object pointer
+    explicit HistoryTableModel(const ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -77,8 +81,15 @@ protected:
     void loadFromDate(const QDateTime &date);
 
 private:
+    /// Callback registered in fetchMore(..) - this handles the result of fetching more history entries
+    void onHistoryFetched(std::vector<URLRecord> &&entries);
+
+private:
     /// History manager
-    HistoryManager *m_historyMgr;
+    HistoryManager *m_historyManager;
+
+    /// Favicon store
+    FaviconStore *m_faviconStore;
 
     /// Date-time requested from the last call to loadFromDate(..) - when the date is older than 24 hours, it is loaded incrementially
     QDateTime m_targetDate;

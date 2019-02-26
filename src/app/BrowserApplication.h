@@ -9,6 +9,7 @@
 
 #include "BookmarkNode.h"
 #include "ClearHistoryOptions.h"
+#include "DatabaseTaskScheduler.h"
 #include "ServiceLocator.h"
 #include "SessionManager.h"
 
@@ -166,7 +167,7 @@ private:
     std::unique_ptr<FaviconStore> m_faviconStorage;
 
     /// Web history manager
-    std::unique_ptr<HistoryManager> m_historyMgr;
+    HistoryManager *m_historyMgr;
 
     /// Network access manager
     NetworkAccessManager *m_networkAccessMgr;
@@ -209,6 +210,9 @@ private:
 
     /// Service locator - stores the bookmark manager, history manager, favicon store, and other important services
     ViperServiceLocator m_serviceLocator;
+
+    /// Database worker task scheduler
+    DatabaseTaskScheduler m_databaseScheduler;
 };
 
 #define sBrowserApplication BrowserApplication::instance()

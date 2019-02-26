@@ -129,6 +129,11 @@ HistoryEntry HistoryStore::getEntry(const QUrl &url)
     return result;
 }
 
+std::vector<URLRecord> HistoryStore::getEntries() const
+{
+    return m_entries;
+}
+
 std::deque<HistoryEntry> HistoryStore::getRecentItems()
 {
     std::deque<HistoryEntry> result;
@@ -328,14 +333,16 @@ void HistoryStore::load()
     m_entries.clear();
     purgeOldEntries();
 
-    // Load minimal data from the History database, will load more specific information
-    // on user request
+    // Load current state of history entries from the DB
     QSqlQuery query(m_database);
     QSqlQuery queryRecentVisit(m_database);
+    QSqlQuery queryAllVisits(m_database);
 
     queryRecentVisit.prepare(
                 QLatin1String("SELECT MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
                               "FROM Visits WHERE VisitID = (:visitId)"));
+
+    queryAllVisits.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) ORDER BY Date ASC"));
 
     // Clear history entries that are not referenced by any specific visits
     if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
@@ -364,6 +371,23 @@ void HistoryStore::load()
                 entry.LastVisit = QDateTime::fromMSecsSinceEpoch(queryRecentVisit.value(0).toULongLong());
                 entry.NumVisits = queryRecentVisit.value(1).toInt();
             }
+
+            std::vector<VisitEntry> visits;
+            visits.reserve(entry.NumVisits);
+
+            queryAllVisits.bindValue(QLatin1String(":visitId"), entry.VisitID);
+            if (queryAllVisits.exec())
+            {
+                while (queryAllVisits.next())
+                {
+                    VisitEntry visit;
+                    visit.VisitID = entry.VisitID;
+                    visit.VisitTime = QDateTime::fromMSecsSinceEpoch(queryAllVisits.value(0).toULongLong());
+                    visits.push_back(visit);
+                }
+            }
+
+            m_entries.push_back(URLRecord{ std::move(entry), std::move(visits) });
         }
     }
     else

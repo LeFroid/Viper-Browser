@@ -7,6 +7,7 @@
 #include <QList>
 #include <QKeySequence>
 #include <QDebug>
+#include <QTimer>
 
 HistoryMenu::HistoryMenu(QWidget *parent) :
     QMenu(parent),
@@ -74,15 +75,17 @@ void HistoryMenu::clearItems()
 
 void HistoryMenu::resetItems()
 {
+    QTimer::singleShot(500, this, [this](){
     clearItems();
 
     FaviconStore *faviconStorage = sBrowserApplication->getFaviconStore();
-    const std::deque<WebHistoryItem> &historyItems = sBrowserApplication->getHistoryManager()->getRecentItems();
+    const std::deque<HistoryEntry> &historyItems = sBrowserApplication->getHistoryManager()->getRecentItems();
     for (auto &it : historyItems)
     {
         if (!it.Title.isEmpty())
             addHistoryItem(it.URL, it.Title, faviconStorage->getFavicon(it.URL));
     }
+    });
 }
 
 void HistoryMenu::onPageVisited(const QString &url, const QString &title)
