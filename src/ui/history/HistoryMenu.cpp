@@ -6,7 +6,6 @@
 #include <QList>
 #include <QKeySequence>
 #include <QDebug>
-#include <QTimer>
 
 HistoryMenu::HistoryMenu(QWidget *parent) :
     QMenu(parent),
@@ -80,16 +79,14 @@ void HistoryMenu::clearItems()
 
 void HistoryMenu::resetItems()
 {
-    QTimer::singleShot(500, this, [this](){
-        clearItems();
+    clearItems();
 
-        const std::deque<HistoryEntry> &historyItems = m_historyManager->getRecentItems();
-        for (auto &it : historyItems)
-        {
-            if (!it.Title.isEmpty())
-                addHistoryItem(it.URL, it.Title, m_faviconStore ? m_faviconStore->getFavicon(it.URL) : QIcon());
-        }
-    });
+    const std::deque<HistoryEntry> &historyItems = m_historyManager->getRecentItems();
+    for (auto &it : historyItems)
+    {
+        if (!it.Title.isEmpty())
+            addHistoryItem(it.URL, it.Title, m_faviconStore ? m_faviconStore->getFavicon(it.URL) : QIcon());
+    }
 }
 
 void HistoryMenu::onPageVisited(const QUrl &url, const QString &title)
