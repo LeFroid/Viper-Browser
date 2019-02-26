@@ -82,6 +82,7 @@ void HistoryManager::clearHistoryFrom(const QDateTime &start)
         m_historyStore->clearHistoryFrom(start);
 
         m_recentItems = m_historyStore->getRecentItems();
+        onHistoryRecordsLoaded(m_historyStore->getEntries());
         emit historyCleared();
     });
 }
@@ -95,6 +96,7 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
         m_historyStore->clearHistoryInRange(range);
 
         m_recentItems = m_historyStore->getRecentItems();
+        onHistoryRecordsLoaded(m_historyStore->getEntries());
         emit historyCleared();
     });
 }
@@ -267,6 +269,7 @@ void HistoryManager::onHistoryRecordsLoaded(std::vector<URLRecord> &&records)
 
     for (auto &&record : records)
     {
+        qDebug() << "Adding record: " << record.getUrl();
         m_historyItems.insert(record.getUrl().toString().toUpper(), std::move(record));
     }
 }
