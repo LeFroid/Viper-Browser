@@ -1,5 +1,4 @@
 #include "HistoryMenu.h"
-#include "BrowserApplication.h"
 #include "FaviconStore.h"
 #include "HistoryManager.h"
 
@@ -14,17 +13,23 @@ HistoryMenu::HistoryMenu(QWidget *parent) :
     m_actionShowHistory(nullptr),
     m_actionClearHistory(nullptr)
 {
-    setup();
 }
 
 HistoryMenu::HistoryMenu(const QString &title, QWidget *parent) :
     QMenu(title, parent)
 {
-    setup();
 }
 
 HistoryMenu::~HistoryMenu()
 {
+}
+
+void HistoryMenu::setServiceLocator(const ViperServiceLocator &serviceLocator)
+{
+    m_historyManager = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
+    m_faviconStore   = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+
+    setup();
 }
 
 void HistoryMenu::addHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon)
@@ -76,30 +81,27 @@ void HistoryMenu::clearItems()
 void HistoryMenu::resetItems()
 {
     QTimer::singleShot(500, this, [this](){
-    clearItems();
+        clearItems();
 
-    FaviconStore *faviconStorage = sBrowserApplication->getFaviconStore();
-    const std::deque<HistoryEntry> &historyItems = sBrowserApplication->getHistoryManager()->getRecentItems();
-    for (auto &it : historyItems)
-    {
-        if (!it.Title.isEmpty())
-            addHistoryItem(it.URL, it.Title, faviconStorage->getFavicon(it.URL));
-    }
+        const std::deque<HistoryEntry> &historyItems = m_historyManager->getRecentItems();
+        for (auto &it : historyItems)
+        {
+            if (!it.Title.isEmpty())
+                addHistoryItem(it.URL, it.Title, m_faviconStore ? m_faviconStore->getFavicon(it.URL) : QIcon());
+        }
     });
 }
 
-void HistoryMenu::onPageVisited(const QString &url, const QString &title)
+void HistoryMenu::onPageVisited(const QUrl &url, const QString &title)
 {
-    QUrl itemUrl(url);
-    QIcon favicon = sBrowserApplication->getFaviconStore()->getFavicon(itemUrl);
-    prependHistoryItem(itemUrl, title, favicon);
+    QIcon favicon = m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon();
+    prependHistoryItem(url, title, favicon);
 }
 
 void HistoryMenu::setup()
 {
-    BrowserApplication *app = sBrowserApplication;
-    connect(app->getHistoryManager(), &HistoryManager::pageVisited, this, &HistoryMenu::onPageVisited);
-    connect(app, &BrowserApplication::resetHistoryMenu, this, &HistoryMenu::resetItems);
+    connect(m_historyManager, &HistoryManager::pageVisited, this, &HistoryMenu::onPageVisited);
+    connect(m_historyManager, &HistoryManager::historyCleared, this, &HistoryMenu::resetItems);
 
     m_actionShowHistory = addAction(QLatin1String("&Show all History"));
     m_actionShowHistory->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_H));

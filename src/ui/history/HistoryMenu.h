@@ -1,9 +1,14 @@
 #ifndef HISTORYMENU_H
 #define HISTORYMENU_H
 
+#include "ServiceLocator.h"
+
 #include <QIcon>
 #include <QMenu>
 #include <QUrl>
+
+class FaviconStore;
+class HistoryManager;
 
 /**
  * @class HistoryMenu
@@ -25,6 +30,10 @@ public:
     /// Destroys the menu
     virtual ~HistoryMenu();
 
+    /// Passes a reference to the service locator, which allows the history menu
+    /// to gather its dependencies on the \ref HistoryManager and \ref FaviconStore
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
+
     /// Adds an item to the history menu, given a name, title and favicon
     void addHistoryItem(const QUrl &url, const QString &title, const QIcon &favicon);
 
@@ -43,7 +52,7 @@ private slots:
     void resetItems();
 
     /// Called when a page has been visited by the user
-    void onPageVisited(const QString &url, const QString &title);
+    void onPageVisited(const QUrl &url, const QString &title);
 
 private:
     /// Binds the pageVisited signal from the \ref HistoryManager to a slot that adds the
@@ -54,6 +63,12 @@ private:
     void clearOldestEntries();
 
 protected:
+    /// History manager
+    HistoryManager *m_historyManager;
+
+    /// Favicon store
+    FaviconStore *m_faviconStore;
+
     /// "Show all history" menu action
     QAction *m_actionShowHistory;
 

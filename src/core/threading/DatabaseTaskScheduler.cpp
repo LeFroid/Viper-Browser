@@ -8,30 +8,33 @@ DatabaseTaskScheduler::DatabaseTaskScheduler() :
     m_cv(),
     m_thread(nullptr),
     m_tasks(),
+    m_initCallbacks(),
     m_working(false)
 {
 }
 
 DatabaseTaskScheduler::~DatabaseTaskScheduler()
 {
-    if (m_thread != nullptr)
-    {
-        //std::lock_guard<std::mutex> lock{m_mutex};
-        m_working = false;
-        m_cv.notify_all();
-
-        if (m_thread->joinable())
-            m_thread->join();
-
-        delete m_thread;
-        m_thread = nullptr;
-    }
+    stop();
 }
 
-void DatabaseTaskScheduler::addTask(std::unique_ptr<DatabaseWorkerTask> &&task)
+DatabaseWorker *DatabaseTaskScheduler::getWorker(const std::string &name) const
+{
+    const auto it = m_registry.find(name);
+    if (it != m_registry.end())
+        return it->second.get();
+    return nullptr;
+}
+
+void DatabaseTaskScheduler::onInit(std::function<void()> &&callback)
+{
+    m_initCallbacks.push_back(std::move(callback));
+}
+
+void DatabaseTaskScheduler::post(std::function<void()> &&work)
 {
     std::lock_guard<std::mutex> lock{m_mutex};
-    m_tasks.push_back(std::move(task));
+    m_tasks.push_back(std::move(work));
     m_cv.notify_one();
 }
 
@@ -49,6 +52,21 @@ void DatabaseTaskScheduler::run()
     m_thread = new std::thread(&DatabaseTaskScheduler::workerThread, this);
 }
 
+void DatabaseTaskScheduler::stop()
+{
+    if (m_thread != nullptr)
+    {
+        m_working = false;
+        m_cv.notify_all();
+
+        if (m_thread->joinable())
+            m_thread->join();
+
+        delete m_thread;
+        m_thread = nullptr;
+    }
+}
+
 void DatabaseTaskScheduler::workerThread()
 {
     for (auto &workerInfo : m_workersToCreate)
@@ -57,6 +75,9 @@ void DatabaseTaskScheduler::workerThread()
     }
     m_workersToCreate.clear();
 
+    for (auto &initCallback : m_initCallbacks)
+        initCallback();
+
     for (;;)
     {
         std::unique_lock<std::mutex> lock{m_mutex};
@@ -64,15 +85,16 @@ void DatabaseTaskScheduler::workerThread()
             return !m_tasks.empty() || !m_working;
         });
 
-        if (!m_working)
+        if (!m_working && m_tasks.empty())
             break;
 
-        std::unique_ptr<DatabaseWorkerTask> task = std::move(m_tasks.front());
+        std::function<void()> task = std::move(m_tasks.front());
         m_tasks.pop_front();
         lock.unlock();
 
-        auto it = m_registry.find(task->getWorkerName());
-        if (it != m_registry.end())
-            task->run(it->second.get());
+        task();
+
+        if (!m_working && m_tasks.empty())
+            break;
     }
 }

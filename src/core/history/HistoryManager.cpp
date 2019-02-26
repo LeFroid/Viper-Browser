@@ -1,4 +1,3 @@
-#include "BrowserApplication.h"
 #include "HistoryManager.h"
 #include "HistoryStore.h"
 #include "Settings.h"
@@ -19,21 +18,14 @@
 #include <QUrl>
 #include <QDebug>
 
-std::unique_ptr<DatabaseWorkerTask> makeHistoryTask(std::function<void(HistoryStore *store)> &&task)
-{
-    std::unique_ptr<HistoryTask> historyTask = std::make_unique<HistoryTask>();
-    historyTask->setTask(std::move(task));
-    std::unique_ptr<DatabaseWorkerTask> workerTask(historyTask.release());
-    return workerTask;
-}
-
 HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler) :
     QObject(nullptr),
     m_taskScheduler(taskScheduler),
     m_lastVisitID(0),
     m_historyItems(),
     m_recentItems(),
-    m_storagePolicy(HistoryStoragePolicy::Remember)
+    m_storagePolicy(HistoryStoragePolicy::Remember),
+    m_historyStore(nullptr)
 {
     setObjectName(QLatin1String("HistoryManager"));
 
@@ -47,11 +39,14 @@ HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, Databa
         qWarning() << "Could not fetch application settings in history manager!";
 
     //m_threadManager.initHistoryStore(databaseFile);
+    m_taskScheduler.onInit([this](){
+        m_historyStore = static_cast<HistoryStore*>(m_taskScheduler.getWorker("HistoryStore"));
+    });
 
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
-        onHistoryRecordsLoaded(store->getEntries());
-        onRecentItemsLoaded(store->getRecentItems());
-    }));
+    m_taskScheduler.post([this](){
+        onHistoryRecordsLoaded(m_historyStore->getEntries());
+        onRecentItemsLoaded(m_historyStore->getRecentItems());
+    });
 }
 
 HistoryManager::~HistoryManager()
@@ -73,37 +68,42 @@ void HistoryManager::clearAllHistory()
     m_recentItems.clear();
     m_historyItems.clear();
 
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
-        store->clearAllHistory();
-    }));
+    m_taskScheduler.post([this](){
+        m_historyStore->clearAllHistory();
+    });
 }
 
 void HistoryManager::clearHistoryFrom(const QDateTime &start)
 {
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
+    m_taskScheduler.post([=](){
         m_historyItems.clear();
         m_recentItems.clear();
-        store->clearHistoryFrom(start);
-    }));
+
+        m_historyStore->clearHistoryFrom(start);
+
+        m_recentItems = m_historyStore->getRecentItems();
+        emit historyCleared();
+    });
 }
 
 void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 {   
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
+    m_taskScheduler.post([=](){
         m_historyItems.clear();
         m_recentItems.clear();
 
-        store->clearHistoryInRange(range);
+        m_historyStore->clearHistoryInRange(range);
 
-        m_recentItems = store->getRecentItems();
-    }));
+        m_recentItems = m_historyStore->getRecentItems();
+        emit historyCleared();
+    });
 }
 
 void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl)
 {
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
-        store->addVisit(url, title, visitTime, requestedUrl);
-    }));
+    m_taskScheduler.post([=](){
+        m_historyStore->addVisit(url, title, visitTime, requestedUrl);
+    });
 
     VisitEntry visit;
     visit.VisitTime = visitTime;
@@ -161,16 +161,16 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
 
 void HistoryManager::getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate, std::function<void(std::vector<URLRecord>)> callback)
 {
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
-        callback(store->getHistoryBetween(startDate, endDate));
-    }));
+    m_taskScheduler.post([=](){
+        callback(m_historyStore->getHistoryBetween(startDate, endDate));
+    });
 }
 
 void HistoryManager::getHistoryFrom(const QDateTime &startDate, std::function<void(std::vector<URLRecord>)> callback)
 {
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
-        callback(store->getHistoryFrom(startDate));
-    }));
+    m_taskScheduler.post([=](){
+        callback(m_historyStore->getHistoryFrom(startDate));
+    });
 }
 
 bool HistoryManager::historyContains(const QString &url) const
@@ -191,9 +191,9 @@ HistoryEntry HistoryManager::getEntry(const QUrl &url) const
 
 void HistoryManager::getTimesVisitedHost(const QString &host, std::function<void(int)> callback)
 {
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
-        callback(store->getTimesVisitedHost(host));
-    }));
+    m_taskScheduler.post([=](){
+        callback(m_historyStore->getTimesVisitedHost(host));
+    });
 }
 
 int HistoryManager::getTimesVisited(const QUrl &url) const
@@ -215,10 +215,7 @@ void HistoryManager::setStoragePolicy(HistoryStoragePolicy policy)
     m_storagePolicy = policy;
 
     if (policy == HistoryStoragePolicy::Never)
-    {
-        QDateTime invalidDate;
-        sBrowserApplication->clearHistory(HistoryType::Browsing, invalidDate);
-    }
+        clearAllHistory();
 }
 
 void HistoryManager::onPageLoaded(bool ok)
@@ -249,51 +246,8 @@ void HistoryManager::onPageLoaded(bool ok)
     const QDateTime visitTime = QDateTime::currentDateTime();
     const QString title = ww->getTitle();
     addVisit(url, title, visitTime, originalUrl);
-    /*
-    const QString title = ww->getTitle();
-    const bool emptyTitle = title.isEmpty();
 
-    std::vector<QUrl> urls { url };
-    if (!url.matches(originalUrl, QUrl::RemoveScheme | QUrl::RemoveAuthority))
-        urls.push_back(originalUrl);
-
-    for (const QUrl &currentUrl : urls)
-    {
-        QString urlFormatted = currentUrl.toString();
-        const QString urlUpper = urlFormatted.toUpper();
-
-        auto it = m_historyItems.find(urlUpper);
-        if (it != m_historyItems.end())
-        {
-            it->Visits.prepend(visitTime);
-            if (it->Title.isEmpty() && !emptyTitle)
-                it->Title = title;
-
-            m_recentItems.push_front(*it);
-            while (m_recentItems.size() > 15)
-                m_recentItems.pop_back();
-
-            if (!it->Title.isEmpty())
-                saveVisit(*it, visitTime);
-        }
-        else
-        {
-            WebHistoryItem item;
-            item.URL = currentUrl;
-            item.VisitID = ++m_lastVisitID;
-            item.Title = title;
-            item.Visits.prepend(visitTime);
-
-            m_historyItems.insert(urlUpper, item);
-            m_recentItems.push_front(item);
-            while (m_recentItems.size() > 15)
-                m_recentItems.pop_back();
-
-            saveVisit(item, visitTime);
-        }
-    }*/
-
-    emit pageVisited(url.toString(), title);
+    emit pageVisited(url, title);
 }
 
 void HistoryManager::onSettingChanged(BrowserSetting setting, const QVariant &value)
@@ -319,7 +273,7 @@ void HistoryManager::onHistoryRecordsLoaded(std::vector<URLRecord> &&records)
 
 void HistoryManager::loadMostVisitedEntries(int limit, std::function<void(std::vector<WebPageInformation>)> callback)
 {
-    m_taskScheduler.addTask(makeHistoryTask([=](HistoryStore *store){
-        callback(store->loadMostVisitedEntries(limit));
-    }));
+    m_taskScheduler.post([=](){
+        callback(m_historyStore->loadMostVisitedEntries(limit));
+    });
 }

@@ -14,25 +14,6 @@
 class DatabaseWorker;
 
 /**
- * @class DatabaseWorkerTask
- * @brief Defines the interface for any tasks that will
- *        require access to a \ref DatabaseWorker derived
- *        class
- */
-class DatabaseWorkerTask
-{
-public:
-    DatabaseWorkerTask() {}
-    virtual ~DatabaseWorkerTask() {}
-
-    /// Runs in the worker thread
-    virtual void run(DatabaseWorker *worker) = 0;
-
-    /// Returns the name of the DatabaseWorker that the task requires
-    virtual std::string getWorkerName() = 0;
-};
-
-/**
  * @class DatabaseTaskScheduler
  * @brief Manages a collection of DatabaseWorkers
  *        that operate outside of the main thread
@@ -46,8 +27,16 @@ public:
     /// Destructor
     ~DatabaseTaskScheduler();
 
-    /// Adds a task to the end of the queue
-    void addTask(std::unique_ptr<DatabaseWorkerTask> &&task);
+    /// Returns a database worker that has been registered with the given name
+    /// Note: this function should *only* be called in a callback registered with
+    /// the onInit() method
+    DatabaseWorker *getWorker(const std::string &name) const;
+
+    /// Registers a callback to be executed when the worker thread has started
+    void onInit(std::function<void()> &&callback);
+
+    /// Posts a task to the end of the work queue
+    void post(std::function<void()> &&work);
 
     /// Adds a database worker to the pool of workers. It will be constructed after calling the run() method.
     /// Anything registered with this method after calling run() will not be instantiated
@@ -55,6 +44,9 @@ public:
 
     /// Starts the worker thread
     void run();
+
+    /// Stops the worker thread
+    void stop();
 
 private:
     /// Main loop of the worker thread
@@ -78,7 +70,10 @@ private:
     std::thread *m_thread;
 
     /// Pending tasks
-    std::deque<std::unique_ptr<DatabaseWorkerTask>> m_tasks;
+    std::deque<std::function<void()>> m_tasks;
+
+    /// Callbacks to be executed after insantiating all of the database workers in the worker thread
+    std::vector<std::function<void()>> m_initCallbacks;
 
     /// Worker flag - when set to false, the worker thread will halt
     bool m_working;

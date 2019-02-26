@@ -105,10 +105,6 @@ public:
     /// MainWindow if found, or a nullptr otherwise.
     MainWindow *getWindowById(WId windowId) const;
 
-signals:
-    /// Emitted when each browsing window's history menu should reset its contents
-    void resetHistoryMenu();
-
 public slots:
     /// Spawns and returns the pointer to a new browser window
     MainWindow *getNewWindow();

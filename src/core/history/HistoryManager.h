@@ -21,29 +21,6 @@
 #include <mutex>
 #include <vector>
 
-/// Implementation of the task class that uses the \ref HistoryStore
-class HistoryTask final : public DatabaseWorkerTask
-{
-public:
-    void run(DatabaseWorker *worker) override
-    {
-        m_task(static_cast<HistoryStore*>(worker));
-    }
-
-    std::string getWorkerName() override
-    {
-        return "HistoryStore";
-    }
-
-    void setTask(std::function<void(HistoryStore *store)> &&task)
-    {
-        m_task = std::move(task);
-    }
-
-private:
-    std::function<void(HistoryStore *store)> m_task;
-};
-
 /// Available policies for storage of browsing history data
 enum class HistoryStoragePolicy
 {
@@ -132,7 +109,10 @@ public:
 
 signals:
     /// Emitted when a page has been visited
-    void pageVisited(const QString &url, const QString &title);
+    void pageVisited(const QUrl &url, const QString &title);
+
+    /// Emitted when some or all of the history collection has been erased
+    void historyCleared();
 
 public slots:
     /// Called when a (non-private profile) page has finished loading
@@ -165,8 +145,8 @@ private:
     /// History storage policy
     HistoryStoragePolicy m_storagePolicy;
 
-    /// Mutex
-    mutable std::mutex m_mutex;
+    /// Pointer to the history store
+    HistoryStore *m_historyStore;
 };
 
 #endif // HISTORYMANAGER_H

@@ -204,6 +204,7 @@ void MainWindow::setupMenuBar()
     connect(ui->actionReset_Zoom, &QAction::triggered, m_tabWidget, &BrowserTabWidget::resetZoomCurrentView);
 
     // History menu
+    ui->menuHistory->setServiceLocator(m_serviceLocator);
     connect(ui->menuHistory, &HistoryMenu::loadUrl, this, &MainWindow::loadUrl);
 
     // History menu items
