@@ -50,6 +50,10 @@ private:
     /// true on a match and false if not matching
     bool isEntryMatch(const QString &title, const QString &url, const QString &shortcut = QString());
 
+    /// Check if, for a very small search term (< 5 chars), either a part of the page title or URL begins with
+    /// the characters in the search term.
+    bool isMatchForSmallSearchTerm(const QString &title, const QString &url);
+
     /// Applies the Rabin-Karp string matching algorithm to determine whether or not the haystack contains the search term
     bool isStringMatch(const QString &haystack);
 

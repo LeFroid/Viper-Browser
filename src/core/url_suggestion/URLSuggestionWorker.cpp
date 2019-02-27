@@ -139,7 +139,14 @@ void URLSuggestionWorker::searchForHits()
 
 bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url, const QString &shortcut)
 {
-    if (isStringMatch(title) || (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut)))
+    if (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut))
+        return true;
+
+    // Special case for small search terms
+    if (m_searchTerm.size() < 5)
+        return isMatchForSmallSearchTerm(title, url);
+
+    if (isStringMatch(title))
         return true;
 
     if (m_searchWords.size() > 1)
@@ -151,7 +158,7 @@ bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url,
         }
     }
 
-    int prefix = url.indexOf(QLatin1String("://"));
+    const int prefix = url.indexOf(QLatin1String("://"));
     if (!m_searchTermHasScheme && prefix >= 0)
     {
         QString urlMutable = url;
@@ -160,6 +167,27 @@ bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url,
     }
 
     return isStringMatch(url);
+}
+
+bool URLSuggestionWorker::isMatchForSmallSearchTerm(const QString &title, const QString &url)
+{
+    QStringList nameParts = title.split(QLatin1Char(' '), QString::SkipEmptyParts);
+    if (nameParts.empty())
+        nameParts.push_back(title);
+    for (const QString &part : nameParts)
+    {
+        if (part.startsWith(m_searchTerm))
+            return true;
+    }
+
+    const int prefix = url.indexOf(QLatin1String("://"));
+    if (!m_searchTermHasScheme && prefix >= 0)
+    {
+        QString urlMutable = url;
+        urlMutable = urlMutable.mid(prefix + 3);
+        return urlMutable.startsWith(m_searchTerm);
+    }
+    return url.startsWith(m_searchTerm);
 }
 
 void URLSuggestionWorker::hashSearchTerm()
