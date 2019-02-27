@@ -52,6 +52,9 @@ public:
     /// Returns the history entries that were loaded during instantiation of the history store.
     std::vector<URLRecord> getEntries() const;
 
+    /// Returns the visits associated with a given \ref HistoryEntry
+    std::vector<VisitEntry> getVisits(const HistoryEntry &record);
+
     /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
     std::deque<HistoryEntry> getRecentItems();
 

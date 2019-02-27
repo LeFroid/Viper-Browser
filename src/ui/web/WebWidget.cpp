@@ -153,7 +153,7 @@ void WebWidget::reload()
         return;
     }
 
-    m_page->action(WebPage::Reload)->trigger();
+    m_page->triggerAction(WebPage::Reload);
 }
 
 void WebWidget::stop()

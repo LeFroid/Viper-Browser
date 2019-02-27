@@ -8,6 +8,8 @@
 #include <QString>
 #include <QUrl>
 
+using VisitEntry = QDateTime;
+
 /**
  * @struct HistoryEntry
  * @brief Contains data about a specific web URL visited by the user
@@ -24,7 +26,7 @@ struct HistoryEntry
     int VisitID;
 
     /// The last time the user visited this entry
-    QDateTime LastVisit;
+    VisitEntry LastVisit;
 
     /// The number of visits to this entry
     int NumVisits;
@@ -93,6 +95,7 @@ struct HistoryEntry
  * @struct VisitEntry
  * @brief Keeps a record of a single visit to a URL in a \ref HistoryEntry at a distinct point in time.
  */
+/*
 struct VisitEntry
 {
     /// Identifier of the unique \ref HistoryEntry to which this visit references.
@@ -103,7 +106,7 @@ struct VisitEntry
 
     /// Default constructor
     VisitEntry() : VisitID(0), VisitTime() {}
-};
+};*/
 
 /**
  * @class URLRecord
@@ -118,8 +121,11 @@ public:
     /// Constructs the URL record given the associated history entry and a list of visits
     explicit URLRecord(HistoryEntry &&entry, std::vector<VisitEntry> &&visits);
 
+    /// Constructs the URL record given a history entry
+    explicit URLRecord(HistoryEntry &&entry);
+
     /// Returns the last time that the user visited this entry
-    const QDateTime &getLastVisit() const;
+    const VisitEntry &getLastVisit() const;
 
     /// Returns the number of visits made to this entry
     int getNumVisits() const;
@@ -138,7 +144,7 @@ public:
 
 protected:
     /// Adds a visit to the record
-    void addVisit(VisitEntry &&entry);
+    void addVisit(VisitEntry entry);
 
     /// The history entry, containg the URL, title, last visit and visit count
     HistoryEntry m_historyEntry;

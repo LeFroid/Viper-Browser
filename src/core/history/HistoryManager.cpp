@@ -107,14 +107,14 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
         m_historyStore->addVisit(url, title, visitTime, requestedUrl);
     });
 
-    VisitEntry visit;
-    visit.VisitTime = visitTime;
+    VisitEntry visit = visitTime;
+    //visit.VisitTime = visitTime;
 
     auto it = m_historyItems.find(url.toString().toUpper());
     if (it != m_historyItems.end())
     {
-        visit.VisitID = it->getVisitId();
-        it->addVisit(std::move(visit));
+        //visit.VisitID = it->getVisitId();
+        it->addVisit(visit);
 
         m_recentItems.push_front(it->m_historyEntry);
     }
@@ -133,14 +133,15 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
 
     if (!url.matches(requestedUrl, QUrl::RemoveScheme | QUrl::RemoveAuthority))
     {
-        visit.VisitID = -1;
-        visit.VisitTime = visitTime;
+        visit = visitTime.addSecs(-1);
+        //visit.VisitID = -1;
+        //visit.VisitTime = visitTime;
 
         it = m_historyItems.find(requestedUrl.toString().toUpper());
         if (it != m_historyItems.end())
         {
-            visit.VisitID = it->getVisitId();
-            it->addVisit(std::move(visit));
+            //visit.VisitID = it->getVisitId();
+            it->addVisit(visit);
             m_recentItems.push_front(it->m_historyEntry);
         }
         else

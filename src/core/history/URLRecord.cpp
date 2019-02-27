@@ -6,7 +6,13 @@ URLRecord::URLRecord(HistoryEntry &&entry, std::vector<VisitEntry> &&visits) :
 {
 }
 
-const QDateTime &URLRecord::getLastVisit() const
+URLRecord::URLRecord(HistoryEntry &&entry) :
+    m_historyEntry(std::move(entry)),
+    m_visits()
+{
+}
+
+const VisitEntry &URLRecord::getLastVisit() const
 {
     return m_historyEntry.LastVisit;
 }
@@ -36,12 +42,12 @@ const std::vector<VisitEntry> &URLRecord::getVisits() const
     return m_visits;
 }
 
-void URLRecord::addVisit(VisitEntry &&entry)
+void URLRecord::addVisit(VisitEntry entry)
 {
     m_historyEntry.NumVisits++;
 
-    if (entry.VisitTime > m_historyEntry.LastVisit)
-        m_historyEntry.LastVisit = entry.VisitTime;
+    if (entry > m_historyEntry.LastVisit)
+        m_historyEntry.LastVisit = entry;
 
-    m_visits.push_back(std::move(entry));
+    m_visits.push_back(entry);
 }

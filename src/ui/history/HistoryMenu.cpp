@@ -6,6 +6,7 @@
 #include <QList>
 #include <QKeySequence>
 #include <QDebug>
+#include <QTimer>
 
 HistoryMenu::HistoryMenu(QWidget *parent) :
     QMenu(parent),
@@ -108,7 +109,7 @@ void HistoryMenu::setup()
 
     addSeparator();
 
-    resetItems();
+    QTimer::singleShot(500, this, &HistoryMenu::resetItems);//resetItems();
 }
 
 void HistoryMenu::clearOldestEntries()

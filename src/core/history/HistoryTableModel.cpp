@@ -84,7 +84,7 @@ void HistoryTableModel::onHistoryFetched(std::vector<URLRecord> &&entries)
         int itemIndex = static_cast<int>(m_commonData.size()) - 1;
         for (const auto &visit : it.getVisits())
         {
-            auto time = visit.VisitTime.toMSecsSinceEpoch();
+            auto time = visit.toMSecsSinceEpoch();
             if (!tmpVisitInfo.contains(time))
                 tmpVisitInfo.insert(time, itemIndex);
         }

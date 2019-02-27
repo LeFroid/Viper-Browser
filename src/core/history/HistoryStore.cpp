@@ -134,6 +134,24 @@ std::vector<URLRecord> HistoryStore::getEntries() const
     return m_entries;
 }
 
+std::vector<VisitEntry> HistoryStore::getVisits(const HistoryEntry &record)
+{
+    std::vector<VisitEntry> result;
+
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) ORDER BY Date ASC"));
+    query.bindValue(QLatin1String(":visitId"), record.VisitID);
+    if (query.exec())
+    {
+        while (query.next())
+        {
+            result.push_back(QDateTime::fromMSecsSinceEpoch(query.value(0).toLongLong()));
+        }
+    }
+
+    return result;
+}
+
 std::deque<HistoryEntry> HistoryStore::getRecentItems()
 {
     std::deque<HistoryEntry> result;
@@ -211,14 +229,14 @@ std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDat
         {
             while (queryVisitDates.next())
             {
-                VisitEntry visit;
-                visit.VisitID = entry.VisitID;
-                visit.VisitTime = QDateTime::fromMSecsSinceEpoch(queryVisitDates.value(0).toLongLong());
+                VisitEntry visit = QDateTime::fromMSecsSinceEpoch(queryVisitDates.value(0).toLongLong());
+                //visit.VisitID = entry.VisitID;
+                //visit.VisitTime = QDateTime::fromMSecsSinceEpoch(queryVisitDates.value(0).toLongLong());
                 visits.push_back(visit);
             }
         }
 
-        entry.LastVisit = visits.at(visits.size() - 1).VisitTime;
+        entry.LastVisit = visits.at(visits.size() - 1);
         entry.NumVisits = static_cast<int>(visits.size());
         result.push_back( URLRecord{ std::move(entry), std::move(visits) } );
     }
@@ -336,13 +354,13 @@ void HistoryStore::load()
     // Load current state of history entries from the DB
     QSqlQuery query(m_database);
     QSqlQuery queryRecentVisit(m_database);
-    QSqlQuery queryAllVisits(m_database);
+    //QSqlQuery queryAllVisits(m_database);
 
     queryRecentVisit.prepare(
                 QLatin1String("SELECT MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
                               "FROM Visits WHERE VisitID = (:visitId)"));
 
-    queryAllVisits.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) ORDER BY Date ASC"));
+    //queryAllVisits.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) ORDER BY Date ASC"));
 
     // Clear history entries that are not referenced by any specific visits
     if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
@@ -372,6 +390,7 @@ void HistoryStore::load()
                 entry.NumVisits = queryRecentVisit.value(1).toInt();
             }
 
+            /*
             std::vector<VisitEntry> visits;
             visits.reserve(entry.NumVisits);
 
@@ -385,9 +404,9 @@ void HistoryStore::load()
                     visit.VisitTime = QDateTime::fromMSecsSinceEpoch(queryAllVisits.value(0).toULongLong());
                     visits.push_back(visit);
                 }
-            }
+            }*/
 
-            m_entries.push_back(URLRecord{ std::move(entry), std::move(visits) });
+            m_entries.push_back(URLRecord{ std::move(entry) });
         }
     }
     else
