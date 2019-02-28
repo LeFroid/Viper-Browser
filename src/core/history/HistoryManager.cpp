@@ -192,7 +192,7 @@ HistoryEntry HistoryManager::getEntry(const QUrl &url) const
     return result;
 }
 
-void HistoryManager::getTimesVisitedHost(const QString &host, std::function<void(int)> callback)
+void HistoryManager::getTimesVisitedHost(const QUrl &host, std::function<void(int)> callback)
 {
     m_taskScheduler.post([=](){
         callback(m_historyStore->getTimesVisitedHost(host));

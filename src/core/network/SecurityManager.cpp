@@ -86,7 +86,7 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
     auto certIt = m_certChains.find(hostStripped);
     if (isHttps && certIt != m_certChains.end())
     {
-        m_securityDialog->setWebsite(hostStripped, certIt.value());
+        m_securityDialog->setWebsite(url, hostStripped, certIt.value());
     }
     else
     {
@@ -104,7 +104,7 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
             return;
         }
 
-        m_securityDialog->setWebsite(hostStripped);
+        m_securityDialog->setWebsite(url, hostStripped);
     }
 
     m_securityDialog->show();
@@ -156,7 +156,7 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
         m_needShowDialog = false;
         m_replyUrlTarget = QUrl();
 
-        m_securityDialog->setWebsite(hostStripped, certChain);
+        m_securityDialog->setWebsite(reply->url(), hostStripped, certChain);
         m_securityDialog->show();
         m_securityDialog->raise();
         m_securityDialog->activateWindow();

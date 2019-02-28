@@ -246,19 +246,14 @@ std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDat
 
 int HistoryStore::getTimesVisitedHost(const QUrl &url) const
 {
-    int timesVisited = 0;
     QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT h.VisitID, v.NumVisits FROM History AS h "
-                                "INNER JOIN (SELECT VisitID, COUNT(VisitID) AS NumVisits "
-                                "FROM Visits GROUP BY VisitID) AS v "
-                                "ON h.VisitID = v.VisitID WHERE h.URL LIKE (:url)"));
-    query.bindValue(QLatin1String(":url"), QString("%%1%").arg(url.host().toLower()));
-    if (!query.exec())
-        return timesVisited;
-    while (query.next())
-        timesVisited += query.value(1).toInt();
-
-    return timesVisited;
+    query.prepare(QLatin1String("SELECT COUNT(NumVisits) FROM (SELECT VisitID, COUNT(VisitID) AS NumVisits "
+                                "FROM Visits GROUP BY VisitID ) WHERE VisitID IN (SELECT VisitID FROM History "
+                                "WHERE URL LIKE (:url))"));
+    query.bindValue(QLatin1String(":url"), QString("%%1%").arg(url.host().remove(QRegularExpression("^www\\.")).toLower()));
+    if (query.exec() && query.first())
+        return query.value(0).toInt();
+    return 0;
 }
 
 int HistoryStore::getTimesVisited(const QUrl &url) const

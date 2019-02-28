@@ -185,6 +185,8 @@ bool URLSuggestionWorker::isMatchForSmallSearchTerm(const QString &title, const 
     {
         QString urlMutable = url;
         urlMutable = urlMutable.mid(prefix + 3);
+        if (m_searchTerm.at(0) != QLatin1Char('W') && urlMutable.startsWith(QLatin1String("WWW.")))
+            urlMutable = urlMutable.mid(4);
         return urlMutable.startsWith(m_searchTerm);
     }
     return url.startsWith(m_searchTerm);

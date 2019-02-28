@@ -92,7 +92,7 @@ public:
 
     /// Fetches the number of times the host was visited, passing it to the given callback when the
     /// result has been retrieved
-    void getTimesVisitedHost(const QString &host, std::function<void(int)> callback);
+    void getTimesVisitedHost(const QUrl &host, std::function<void(int)> callback);
 
     /// Returns the number of times that the given URL has been visited
     int getTimesVisited(const QUrl &url) const;

@@ -24,7 +24,7 @@ SecurityInfoDialog::~SecurityInfoDialog()
     delete ui;
 }
 
-void SecurityInfoDialog::setWebsite(const QString &host, const QList<QSslCertificate> &chain)
+void SecurityInfoDialog::setWebsite(const QUrl &url, const QString &host, const QList<QSslCertificate> &chain)
 {
     if (host.isEmpty() || host.isNull())
         return;
@@ -64,7 +64,7 @@ void SecurityInfoDialog::setWebsite(const QString &host, const QList<QSslCertifi
     }
 
     BrowserApplication *app = sBrowserApplication;
-    app->getHistoryManager()->getTimesVisitedHost(host, [=](int numVisits){
+    app->getHistoryManager()->getTimesVisitedHost(url, [=](int numVisits){
         ui->labelTimesVisited->setText(numVisits > 0 ? QString("Yes, %1 times.").arg(numVisits) : QString("No"));
     });
     //int numVisits = app->getHistoryManager()->getTimesVisitedHost(host);
