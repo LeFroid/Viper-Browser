@@ -67,8 +67,6 @@ void SecurityInfoDialog::setWebsite(const QUrl &url, const QString &host, const 
     app->getHistoryManager()->getTimesVisitedHost(url, [=](int numVisits){
         ui->labelTimesVisited->setText(numVisits > 0 ? QString("Yes, %1 times.").arg(numVisits) : QString("No"));
     });
-    //int numVisits = app->getHistoryManager()->getTimesVisitedHost(host);
-    //ui->labelTimesVisited->setText(numVisits > 0 ? QString("Yes, %1 times.").arg(numVisits) : QString("No"));
 
     // Check if website is storing cookies
     auto cookieJar = app->getCookieJar();

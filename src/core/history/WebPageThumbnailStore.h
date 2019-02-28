@@ -47,6 +47,9 @@ public slots:
     void onPageLoaded(bool ok);
 
 protected:
+    /// Called on a regular interval to save thumbnails
+    void timerEvent(QTimerEvent *event) override;
+
     /// Returns true if the thumbnail database contains the table structures needed for it to function properly,
     /// false if else.
     bool hasProperStructure() override;
@@ -67,6 +70,9 @@ private:
     void onMostVisitedPagesLoaded(std::vector<WebPageInformation> &&results);
 
 private:
+    /// Identifier of the timer that is periodically invoked to call the save() method
+    int m_timerId;
+
     /// Hashmap of web hostnames to their corresponding thumbnails
     QHash<QString, QImage> m_thumbnails;
 

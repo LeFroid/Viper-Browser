@@ -39,7 +39,6 @@ void CertificateViewer::setCertificateChain(const QList<QSslCertificate> &chain)
     m_certChain = chain;
 
     // Attempt to find values and populate certificate info labels in general tab
-    QString notFoundText(tr("<Not Part Of Certificate>"));
     const QSslCertificate &cert = m_certChain.at(0);
     if (cert.isNull())
     {
@@ -228,6 +227,8 @@ void CertificateViewer::onCertFieldSelected()
 void CertificateViewer::setupDetailTab()
 {
     QVBoxLayout *tabLayout = new QVBoxLayout;
+    if (QLayout *oldLayout = ui->tabDetails->layout())
+        delete oldLayout;
     ui->tabDetails->setLayout(tabLayout);
 
     labelCertHierarchyStatic = new QLabel(tr("Certificate Hierarchy"), ui->tabDetails);

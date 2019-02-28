@@ -14,7 +14,6 @@
 #include <QWebEngineHttpRequest>
 #include <QWebEngineProfile>
 #include <QWheelEvent>
-#include <QVBoxLayout>
 #include <QQuickWidget>
 
 #include "BrowserApplication.h"

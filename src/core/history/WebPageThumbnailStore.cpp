@@ -18,23 +18,28 @@
 #include <QSqlRecord>
 #include <QSqlQuery>
 #include <QTimer>
+#include <QTimerEvent>
 
 #include <QDebug>
 
 WebPageThumbnailStore::WebPageThumbnailStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent) :
     QObject(parent),
     DatabaseWorker(databaseFile, QLatin1String("ThumbnailDB")),
+    m_timerId(0),
     m_thumbnails(),
     m_bookmarkManager(serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager")),
     m_historyManager(serviceLocator.getServiceAs<HistoryManager>("HistoryManager")),
     m_mimeDatabase()
 {
     setObjectName(QLatin1String("WebPageThumbnailStore"));
+
+    // Save thumbnails every 10 minutes
+    m_timerId = startTimer(1000 * 60 * 10);
 }
 
 WebPageThumbnailStore::~WebPageThumbnailStore()
 {
-    save();
+    killTimer(m_timerId);
 }
 
 QImage WebPageThumbnailStore::getThumbnail(const QUrl &url)
@@ -123,6 +128,11 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
             }
         }
     });
+}
+
+void WebPageThumbnailStore::timerEvent(QTimerEvent */*event*/)
+{
+    save();
 }
 
 bool WebPageThumbnailStore::hasProperStructure()
