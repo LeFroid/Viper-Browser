@@ -19,9 +19,12 @@ Licensed under GPLv3
 *   Granular control over browser settings and web permissions
 *   Gives the user control over their data, no invasions of privacy like other browsers are known to do..
 *   GreaseMonkey-style UserScript support
+*   Multiple options for home page- any URL, blank page, or a card layout page with favorite and most visited websites
 *   PDF.js embedded into the browser
 *   Save and restore browsing sessions, local tab history, pinned tabs
 *   Secure AutoFill manager (disabled by default)
+*   Tab drag-and-drop support for HTML links, local files, other browser window tabs, etc
+*   Tab hibernation / wake up support
 *   Traditional browser UI design instead of WebUI and chromium-based interfaces
 
 ## Building
