@@ -105,7 +105,10 @@ private:
     /// Queue of recently visited items
     std::deque<HistoryEntry> m_recentItems;
 
-    /// Prepared query for an individual HistoryEntry entry
+    /// Prepared query to update the title of a history entry
+    QSqlQuery *m_queryUpdateHistoryItem;
+
+    /// Prepared query to insert or replace an individual HistoryEntry entry
     QSqlQuery *m_queryHistoryItem;
 
     /// Prepared query for a visit entry regarding a HistoryEntry

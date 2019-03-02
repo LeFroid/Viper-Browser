@@ -1,10 +1,12 @@
 #include "FindTextWidget.h"
 #include "ui_FindTextWidget.h"
 #include "ITextFinder.h"
-#include "WebView.h"
 
+#include <QIcon>
+#include <QPainter>
 #include <QPaintEvent>
 #include <QPlainTextEdit>
+#include <QString>
 #include <QStyle>
 #include <QTextCharFormat>
 #include <QTextCursor>
@@ -23,7 +25,8 @@ FindTextWidget::FindTextWidget(QWidget *parent) :
     // Set icons
     ui->pushButtonPrev->setIcon(style()->standardIcon(QStyle::SP_ArrowUp));
     ui->pushButtonNext->setIcon(style()->standardIcon(QStyle::SP_ArrowDown));
-    ui->pushButtonHide->setIcon(style()->standardIcon(QStyle::SP_DialogCloseButton));
+    ui->pushButtonHide->setIcon(QIcon(QLatin1String(":/window-close.png")));
+    //ui->pushButtonHide->setIcon(style()->standardIcon(QStyle::SP_DialogCloseButton));
 }
 
 FindTextWidget::~FindTextWidget()

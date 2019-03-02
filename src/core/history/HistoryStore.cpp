@@ -23,6 +23,7 @@ HistoryStore::HistoryStore(const QString &databaseFile) :
     m_lastVisitID(0),
     m_entries(),
     m_recentItems(),
+    m_queryUpdateHistoryItem(nullptr),
     m_queryHistoryItem(nullptr),
     m_queryVisit(nullptr),
     m_queryGetEntryByUrl(nullptr)
@@ -37,8 +38,11 @@ HistoryStore::~HistoryStore()
         m_queryGetEntryByUrl = nullptr;
     }
 
-    if (m_queryHistoryItem != nullptr)
+    if (m_queryUpdateHistoryItem != nullptr)
     {
+        delete m_queryUpdateHistoryItem;
+        m_queryUpdateHistoryItem = nullptr;
+
         delete m_queryHistoryItem;
         m_queryHistoryItem = nullptr;
 
@@ -274,8 +278,12 @@ int HistoryStore::getTimesVisited(const QUrl &url) const
 
 void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl)
 {
-    if (m_queryHistoryItem == nullptr)
+    if (m_queryUpdateHistoryItem == nullptr)
     {
+        m_queryUpdateHistoryItem = new QSqlQuery(m_database);
+        m_queryUpdateHistoryItem->prepare(
+                    QLatin1String("UPDATE History SET Title = (:title) WHERE VisitID = (:visitId)"));
+
         m_queryHistoryItem = new QSqlQuery(m_database);
         m_queryHistoryItem->prepare(
                     QLatin1String("INSERT OR REPLACE INTO History(VisitID, URL, Title) "
@@ -288,12 +296,23 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
 
     auto existingEntry = getEntry(url);
     qulonglong visitId = existingEntry.VisitID >= 0 ? existingEntry.VisitID : ++m_lastVisitID;
-    m_queryHistoryItem->bindValue(QLatin1String(":visitId"), visitId);
-    m_queryHistoryItem->bindValue(QLatin1String(":url"), url);
-    m_queryHistoryItem->bindValue(QLatin1String(":title"), title);
-    if (!m_queryHistoryItem->exec())
-        qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
-                   << m_queryHistoryItem->lastError().text();
+    if (existingEntry.VisitID >= 0)
+    {
+        m_queryUpdateHistoryItem->bindValue(QLatin1String(":title"), title);
+        m_queryUpdateHistoryItem->bindValue(QLatin1String(":visitId"), existingEntry.VisitID);
+        if (!m_queryUpdateHistoryItem->exec())
+            qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
+                       << m_queryUpdateHistoryItem->lastError().text();
+    }
+    else
+    {
+        m_queryHistoryItem->bindValue(QLatin1String(":visitId"), visitId);
+        m_queryHistoryItem->bindValue(QLatin1String(":url"), url);
+        m_queryHistoryItem->bindValue(QLatin1String(":title"), title);
+        if (!m_queryHistoryItem->exec())
+            qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
+                       << m_queryHistoryItem->lastError().text();
+    }
 
     const quint64 visitTimeInMSec = visitTime.toMSecsSinceEpoch();
     m_queryVisit->bindValue(QLatin1String(":visitId"), visitId);
@@ -304,20 +323,10 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
 
     if (!url.matches(requestedUrl, QUrl::RemoveScheme | QUrl::RemoveAuthority))
     {
-        existingEntry = getEntry(requestedUrl);
-        visitId = existingEntry.VisitID >= 0 ? existingEntry.VisitID : ++m_lastVisitID;
-        m_queryHistoryItem->bindValue(QLatin1String(":visitId"), visitId);
-        m_queryHistoryItem->bindValue(QLatin1String(":url"), requestedUrl);
-        m_queryHistoryItem->bindValue(QLatin1String(":title"), title);
-        if (!m_queryHistoryItem->exec())
-            qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
-                       << m_queryHistoryItem->lastError().text();
-
-        m_queryVisit->bindValue(QLatin1String(":visitId"), visitId);
-        m_queryVisit->bindValue(QLatin1String(":date"), std::min(visitTimeInMSec, quint64(visitTimeInMSec - 100)));
-        if (!m_queryVisit->exec())
-            qWarning() << "HistoryStore::addVisit - could not save visit to database. Error: "
-                       << m_queryVisit->lastError().text();
+        QDateTime requestDateTime = visitTime.addMSecs(-100);
+        if (!requestDateTime.isValid())
+            requestDateTime = visitTime;
+        addVisit(requestedUrl, title, requestDateTime, requestedUrl);
     }
 }
 
@@ -384,22 +393,6 @@ void HistoryStore::load()
                 entry.LastVisit = QDateTime::fromMSecsSinceEpoch(queryRecentVisit.value(0).toULongLong());
                 entry.NumVisits = queryRecentVisit.value(1).toInt();
             }
-
-            /*
-            std::vector<VisitEntry> visits;
-            visits.reserve(entry.NumVisits);
-
-            queryAllVisits.bindValue(QLatin1String(":visitId"), entry.VisitID);
-            if (queryAllVisits.exec())
-            {
-                while (queryAllVisits.next())
-                {
-                    VisitEntry visit;
-                    visit.VisitID = entry.VisitID;
-                    visit.VisitTime = QDateTime::fromMSecsSinceEpoch(queryAllVisits.value(0).toULongLong());
-                    visits.push_back(visit);
-                }
-            }*/
 
             m_entries.push_back(URLRecord{ std::move(entry) });
         }

@@ -11,6 +11,7 @@
         <file alias="stop.png">images/stop.png</file>
         <file alias="logo.png">images/logo.png</file>
         <file alias="new-tab.png">images/new-tab.png</file>
+        <file alias="window-close.png">images/window-close.png</file>
         <file alias="plus_icon.png">images/plus_icon.png</file>
         <file alias="not_bookmarked.png">images/not_bookmarked.png</file>
         <file alias="bookmarked.png">images/bookmarked.png</file>

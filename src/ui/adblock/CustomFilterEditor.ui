@@ -82,8 +82,8 @@
   </action>
   <action name="actionClose">
    <property name="icon">
-    <iconset theme="window-close">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset resource="../../app/assets/application.qrc">
+     <normaloff>:/window-close.png</normaloff>:/window-close.png</iconset>
    </property>
    <property name="text">
     <string>Close</string>
