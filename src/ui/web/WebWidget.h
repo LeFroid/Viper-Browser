@@ -16,6 +16,7 @@ class HttpRequest;
 class MainWindow;
 class WebHistory;
 class WebInspector;
+class WebLoadObserver;
 class WebPage;
 class WebView;
 class WebWidget;
@@ -207,6 +208,9 @@ private:
 
     /// The web page inspector associated with this widget
     WebInspector *m_inspector;
+
+    /// Listens for the loadFinished signal if this web widget is not associated with a private browsing profile
+    WebLoadObserver *m_pageLoadObserver;
 
     /// Pointer to the widget's parent window
     MainWindow *m_mainWindow;

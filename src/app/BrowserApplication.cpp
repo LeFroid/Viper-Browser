@@ -13,6 +13,7 @@
 #include "FaviconStore.h"
 #include "FavoritePagesManager.h"
 #include "HistoryManager.h"
+#include "HistoryStore.h"
 #include "MainWindow.h"
 #include "SearchEngineManager.h"
 #include "Settings.h"
@@ -23,6 +24,7 @@
 #include "ViperSchemeHandler.h"
 #include "WebPage.h"
 #include "WebPageThumbnailStore.h"
+#include "WebSettings.h"
 
 #include <vector>
 #include <QDesktopServices>
@@ -31,6 +33,7 @@
 #include <QDebug>
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
+#include <QWebEngineSettings>
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
 
@@ -71,6 +74,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();
     m_cookieJar = new CookieJar(enableCookies, false);
     m_cookieJar->setThirdPartyCookiesEnabled(m_settings->getValue(BrowserSetting::EnableThirdPartyCookies).toBool());
+    if (!m_serviceLocator.addService(m_cookieJar->objectName().toStdString(), m_cookieJar))
+        qWarning() << "Could not register Cookie Jar with service registry";
 
     m_cookieUI = new CookieWidget();
     if (!m_serviceLocator.addService(m_cookieUI->objectName().toStdString(), m_cookieUI))
@@ -103,7 +108,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     m_databaseScheduler.addWorker("HistoryStore",
                                   std::bind(DatabaseFactory::createDBWorker<HistoryStore>, m_settings->getPathValue(BrowserSetting::HistoryPath)));
     m_historyMgr = new HistoryManager(m_serviceLocator, m_databaseScheduler);
-                                      //DatabaseFactory::createWorker<HistoryManager>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::HistoryPath));
     if (!m_serviceLocator.addService(m_historyMgr->objectName().toStdString(), m_historyMgr))
         qWarning() << "Could not register History Manager with service registry";
 
@@ -123,6 +127,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Setup user agent manager before settings
     m_userAgentMgr = new UserAgentManager(m_settings);
+    if (!m_serviceLocator.addService(m_userAgentMgr->objectName().toStdString(), m_userAgentMgr))
+        qWarning() << "Could not register User Agent Manager with service registry";
 
     // Setup user script manager
     m_userScriptMgr = new UserScriptManager(m_settings);
@@ -138,7 +144,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     installGlobalWebScripts();
 
     // Apply web settings
-    m_settings->applyWebSettings();
+    m_webSettings = new WebSettings(m_serviceLocator, QWebEngineSettings::defaultSettings(), QWebEngineProfile::defaultProfile());
 
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(BrowserSetting::SearchEnginesFile));
@@ -175,6 +181,7 @@ BrowserApplication::~BrowserApplication()
     delete m_favoritePagesMgr;
     delete m_historyMgr;
     delete m_adBlockManager;
+    delete m_webSettings;
     delete m_settings;
 }
 

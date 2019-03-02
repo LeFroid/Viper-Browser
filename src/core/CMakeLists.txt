@@ -48,6 +48,7 @@ set(viper_src
     session/SessionManager.cpp
     settings/AppInitSettings.cpp
     settings/Settings.cpp
+    settings/WebSettings.cpp
     text_finder/ITextFinder.cpp
     text_finder/TextEditorTextFinder.cpp
     text_finder/WebPageTextFinder.cpp

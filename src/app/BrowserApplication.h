@@ -12,6 +12,7 @@
 #include "DatabaseTaskScheduler.h"
 #include "ServiceLocator.h"
 #include "SessionManager.h"
+#include "Settings.h"
 
 class AdBlockManager;
 class AutoFill;
@@ -33,19 +34,9 @@ class UserAgentManager;
 class UserScriptManager;
 class ViperSchemeHandler;
 class WebPageThumbnailStore;
+class WebSettings;
 
 class QWebEngineProfile;
-
-/// Potential modes of operation for the browser startup routine (ie load a home page, restore session, etc)
-enum class StartupMode
-{
-    LoadHomePage   = 0,
-    LoadBlankPage  = 1,
-    LoadNewTabPage = 2,
-    RestoreSession = 3
-};
-
-Q_DECLARE_METATYPE(StartupMode)
 
 /**
  * @class BrowserApplication
@@ -143,6 +134,9 @@ private:
 private:
     /// Application settings
     Settings *m_settings;
+
+    /// Web-related settings manager
+    WebSettings *m_webSettings;
 
     /// Bookmark storage class
     std::unique_ptr<BookmarkStore> m_bookmarkStore;

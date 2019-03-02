@@ -1,7 +1,7 @@
 #include "GeneralTab.h"
 #include "ui_GeneralTab.h"
 
-#include "BrowserApplication.h"
+#include "BrowserSetting.h"
 
 #include <QDir>
 

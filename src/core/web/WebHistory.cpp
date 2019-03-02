@@ -76,25 +76,6 @@ std::vector<WebHistoryEntry> WebHistory::getBackEntries(int maxEntries) const
         result.push_back(WebHistoryEntry{entry});
 
     return result;
-    /*const bool respectLimit = maxEntries >= 0;
-
-    std::vector<WebHistoryEntry> result;
-    if (maxEntries == 0 || m_currentPos <= 0)
-        return result;
-
-    int startPos = 0;
-    if (respectLimit && maxEntries < m_currentPos)
-        startPos = m_currentPos - maxEntries;
-
-    auto startItr = m_entries.begin() + startPos;
-    auto endItr = m_entries.begin() + m_currentPos;
-    while (startItr != endItr)
-    {
-        result.push_back(*startItr);
-        ++startItr;
-    }
-
-    return result;*/
 }
 
 std::vector<WebHistoryEntry> WebHistory::getForwardEntries(int maxEntries) const

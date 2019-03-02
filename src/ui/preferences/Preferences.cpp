@@ -120,9 +120,6 @@ void Preferences::onCloseWithSave()
     m_settings->setValue(BrowserSetting::EnableThirdPartyCookies, ui->tabPrivacy->areThirdPartyCookiesEnabled());
     m_settings->setValue(BrowserSetting::SendDoNotTrack, ui->tabPrivacy->isDoNotTrackEnabled());
 
-    // Apply web settings to web brower engine
-    m_settings->applyWebSettings();
-
     // Application initialization-related settings (requires restart to take effect)
     AppInitSettings initSettings;
     std::string processModel = ui->tabAdvanced->getProcessModel().toStdString();

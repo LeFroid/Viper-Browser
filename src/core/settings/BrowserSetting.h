@@ -1,6 +1,15 @@
 #ifndef BROWSERSETTING_H
 #define BROWSERSETTING_H
 
+/// Potential modes of operation for the browser startup routine (ie load a home page, restore session, etc)
+enum class StartupMode
+{
+    LoadHomePage   = 0,
+    LoadBlankPage  = 1,
+    LoadNewTabPage = 2,
+    RestoreSession = 3
+};
+
 /// List of configurable browser settings
 enum class BrowserSetting
 {

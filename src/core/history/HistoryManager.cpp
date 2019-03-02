@@ -1,7 +1,6 @@
 #include "HistoryManager.h"
 #include "HistoryStore.h"
 #include "Settings.h"
-#include "WebWidget.h"
 
 #include <array>
 #include <QBuffer>
@@ -103,6 +102,9 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 
 void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl)
 {
+    if (m_storagePolicy == HistoryStoragePolicy::Never)
+        return;
+
     m_taskScheduler.post([=](){
         m_historyStore->addVisit(url, title, visitTime, requestedUrl);
     });
@@ -160,6 +162,8 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
 
     while (m_recentItems.size() > 15)
         m_recentItems.pop_back();
+
+    emit pageVisited(url, title);
 }
 
 void HistoryManager::getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate, std::function<void(std::vector<URLRecord>)> callback)
@@ -176,9 +180,9 @@ void HistoryManager::getHistoryFrom(const QDateTime &startDate, std::function<vo
     });
 }
 
-bool HistoryManager::historyContains(const QString &url) const
+bool HistoryManager::contains(const QUrl &url) const
 {
-    return (m_historyItems.find(url.toUpper()) != m_historyItems.end());
+    return (m_historyItems.find(url.toString().toUpper()) != m_historyItems.end());
 }
 
 HistoryEntry HistoryManager::getEntry(const QUrl &url) const
@@ -219,38 +223,6 @@ void HistoryManager::setStoragePolicy(HistoryStoragePolicy policy)
 
     if (policy == HistoryStoragePolicy::Never)
         clearAllHistory();
-}
-
-void HistoryManager::onPageLoaded(bool ok)
-{
-    if (!ok || m_storagePolicy == HistoryStoragePolicy::Never)
-        return;
-
-    WebWidget *ww = qobject_cast<WebWidget*>(sender());
-    if (!ww)
-        return;
-
-    const QUrl url = ww->url();
-    const QUrl originalUrl = ww->getOriginalUrl();
-    const QString scheme = url.scheme().toLower();
-
-    // Check if we should ignore this page
-    const std::array<QString, 2> ignoreSchemes { QLatin1String("qrc"), QLatin1String("viper") };
-    if (url.isEmpty() || originalUrl.isEmpty() || scheme.isEmpty())
-        return;
-
-    for (const QString &ignoreScheme : ignoreSchemes)
-    {
-        if (scheme == ignoreScheme)
-            return;
-    }
-
-    // Find or create a new history entry
-    const QDateTime visitTime = QDateTime::currentDateTime();
-    const QString title = ww->getTitle();
-    addVisit(url, title, visitTime, originalUrl);
-
-    emit pageVisited(url, title);
 }
 
 void HistoryManager::onSettingChanged(BrowserSetting setting, const QVariant &value)

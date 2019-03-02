@@ -47,9 +47,6 @@ public:
     /// Returns true if the settings have been created in this session, false if else
     bool firstRun() const;
 
-    /// Applies the web engine settings to the QWebSettings instance
-    void applyWebSettings();
-
 signals:
     /// Emitted whenever a setting is changed to the given value
     void settingChanged(BrowserSetting setting, const QVariant &value);

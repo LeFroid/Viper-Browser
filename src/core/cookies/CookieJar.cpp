@@ -21,6 +21,8 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
     m_exemptParties(),
     m_mutex()
 {
+    setObjectName(QLatin1String("CookieJar"));
+
     if (!m_privateJar)
         m_store = QWebEngineProfile::defaultProfile()->cookieStore();
     else

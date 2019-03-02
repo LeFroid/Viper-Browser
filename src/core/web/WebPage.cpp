@@ -9,7 +9,6 @@
 #include "FaviconStore.h"
 #include "FaviconStoreBridge.h"
 #include "FavoritePagesManager.h"
-#include "HistoryManager.h"
 #include "MainWindow.h"
 #include "SecurityManager.h"
 #include "Settings.h"

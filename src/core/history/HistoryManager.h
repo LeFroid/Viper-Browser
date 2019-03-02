@@ -4,9 +4,7 @@
 #include "ClearHistoryOptions.h"
 #include "DatabaseTaskScheduler.h"
 #include "FavoritePagesManager.h"
-#include "HistoryStore.h"
 #include "ServiceLocator.h"
-#include "Settings.h"
 #include "ISettingsObserver.h"
 #include "URLRecord.h"
 
@@ -20,6 +18,8 @@
 #include <deque>
 #include <mutex>
 #include <vector>
+
+class HistoryStore;
 
 /// Available policies for storage of browsing history data
 enum class HistoryStoragePolicy
@@ -78,7 +78,7 @@ public:
 
     /// Returns true if the history contains the given url, false if else. Will return
     /// false if private browsing mode is enabled
-    bool historyContains(const QString &url) const;
+    bool contains(const QUrl &url) const;
 
     /// Returns a history record corresponding to the given URL, or an empty record if it was not found in the
     /// database
@@ -113,10 +113,6 @@ signals:
 
     /// Emitted when some or all of the history collection has been erased
     void historyCleared();
-
-public slots:
-    /// Called when a (non-private profile) page has finished loading
-    void onPageLoaded(bool ok);
 
 private slots:
     /// Listens for any settings changes that affect the history manager

@@ -7,6 +7,7 @@
 #include "WebWidget.h"
 #include "WebHistory.h"
 #include "WebInspector.h"
+#include "WebLoadObserver.h"
 #include "WebPage.h"
 #include "WebPageThumbnailStore.h"
 #include "WebView.h"
@@ -24,6 +25,7 @@ WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode
     m_page(nullptr),
     m_view(nullptr),
     m_inspector(nullptr),
+    m_pageLoadObserver(nullptr),
     m_mainWindow(nullptr),
     m_privateMode(privateMode),
     m_contextMenuPosGlobal(),
@@ -54,7 +56,7 @@ WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode
     if (!m_privateMode)
     {
         if (HistoryManager *historyMgr = serviceLocator.getServiceAs<HistoryManager>("HistoryManager"))
-            connect(this, &WebWidget::loadFinished, historyMgr, &HistoryManager::onPageLoaded);
+            m_pageLoadObserver = new WebLoadObserver(historyMgr, this);
 
         if (WebPageThumbnailStore *thumbnailStore = serviceLocator.getServiceAs<WebPageThumbnailStore>("WebPageThumbnailStore"))
             connect(this, &WebWidget::loadFinished, thumbnailStore, &WebPageThumbnailStore::onPageLoaded);

@@ -97,7 +97,7 @@ void FavoritePagesManager::addFavorite(const QUrl &url)
 {
     if (!m_historyManager
             || !m_thumbnailStore
-            || !m_historyManager->historyContains(url.toString())
+            || !m_historyManager->contains(url)
             || isPresent(url))
         return;
 

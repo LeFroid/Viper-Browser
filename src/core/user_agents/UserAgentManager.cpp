@@ -20,6 +20,7 @@ UserAgentManager::UserAgentManager(Settings *settings, QObject *parent) :
     m_addAgentDialog(nullptr),
     m_userAgentsWindow(nullptr)
 {
+    setObjectName(QLatin1String("UserAgentManager"));
     load();
 }
 

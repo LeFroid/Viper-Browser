@@ -92,23 +92,6 @@ struct HistoryEntry
 };
 
 /**
- * @struct VisitEntry
- * @brief Keeps a record of a single visit to a URL in a \ref HistoryEntry at a distinct point in time.
- */
-/*
-struct VisitEntry
-{
-    /// Identifier of the unique \ref HistoryEntry to which this visit references.
-    int VisitID;
-
-    /// Distinct time of the visit
-    QDateTime VisitTime;
-
-    /// Default constructor
-    VisitEntry() : VisitID(0), VisitTime() {}
-};*/
-
-/**
  * @class URLRecord
  * @brief Contains a full record of a URL in the history database,
  *        including its \ref HistoryEntry and all \ref VisitEntry records.

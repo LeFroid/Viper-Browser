@@ -1,14 +1,9 @@
 #include "Settings.h"
 
-#include "BrowserApplication.h"
-#include "CookieJar.h"
 #include "HistoryManager.h"
-#include "UserAgentManager.h"
-#include "WebPage.h"
 
 #include <QDir>
 #include <QFileInfo>
-#include <QWebEngineProfile>
 #include <QWebEngineSettings>
 #include <QtWebEngineCoreVersion>
 
@@ -71,6 +66,9 @@ QVariant Settings::getValue(BrowserSetting key)
 
 void Settings::setValue(BrowserSetting key, const QVariant &value)
 {
+    if (getValue(key) == value)
+        return;
+
     m_settings.setValue(m_settingMap.value(key, QLatin1String("unknown")), value);
 
     emit settingChanged(key, value);
@@ -79,59 +77,6 @@ void Settings::setValue(BrowserSetting key, const QVariant &value)
 bool Settings::firstRun() const
 {
     return m_firstRun;
-}
-
-//todo: create a WebSettings class that subscribes to the settingChanged() signal and performs these actions accordingly
-//      in its constructor, simply set initial values based on app init config
-void Settings::applyWebSettings()
-{
-    QWebEngineSettings *settings = QWebEngineSettings::defaultSettings();
-    settings->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
-    settings->setAttribute(QWebEngineSettings::JavascriptEnabled,        m_settings.value(QLatin1String("EnableJavascript"), true).toBool());
-    settings->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, m_settings.value(QLatin1String("EnableJavascriptPopups"), false).toBool());
-    settings->setAttribute(QWebEngineSettings::AutoLoadImages,           m_settings.value(QLatin1String("AutoLoadImages"), true).toBool());
-    settings->setAttribute(QWebEngineSettings::PluginsEnabled,           m_settings.value(QLatin1String("EnablePlugins"), false).toBool());
-    settings->setAttribute(QWebEngineSettings::XSSAuditingEnabled,       m_settings.value(QLatin1String("EnableXSSAudit"), true).toBool());
-    settings->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled,    m_settings.value(QLatin1String("ScrollAnimatorEnabled"), false).toBool());
-
-    settings->setAttribute(QWebEngineSettings::LocalStorageEnabled,      true);
-
-    settings->setFontFamily(QWebEngineSettings::StandardFont,       m_settings.value(QLatin1String("StandardFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::SerifFont,          m_settings.value(QLatin1String("SerifFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::SansSerifFont,      m_settings.value(QLatin1String("SansSerifFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::CursiveFont,        m_settings.value(QLatin1String("CursiveFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::FantasyFont,        m_settings.value(QLatin1String("FantasyFont")).toString());
-    settings->setFontFamily(QWebEngineSettings::FixedFont,          m_settings.value(QLatin1String("FixedFont")).toString());
-
-    settings->setFontSize(QWebEngineSettings::DefaultFontSize,      m_settings.value(QLatin1String("StandardFontSize")).toInt());
-    settings->setFontSize(QWebEngineSettings::DefaultFixedFontSize, m_settings.value(QLatin1String("FixedFontSize")).toInt());
-
-//#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    // can cause issues on some websites, will keep disabled until a fix is found
-    //settings->setAttribute(QWebEngineSettings::PlaybackRequiresUserGesture, true);
-//#endif
-
-    CookieJar *cookieJar = sBrowserApplication->getCookieJar();
-    cookieJar->setCookiesEnabled(m_settings.value(QLatin1String("EnableCookies")).toBool());
-    cookieJar->setThirdPartyCookiesEnabled(m_settings.value(QLatin1String("EnableThirdPartyCookies")).toBool());
-
-    QWebEngineProfile::PersistentCookiesPolicy cookiesPolicy = QWebEngineProfile::AllowPersistentCookies;
-    if (m_settings.value(QLatin1String("CookiesDeleteWithSession")).toBool())
-        cookiesPolicy = QWebEngineProfile::NoPersistentCookies;
-
-    auto defaultProfile = QWebEngineProfile::defaultProfile();
-    defaultProfile->setPersistentCookiesPolicy(cookiesPolicy);
-
-    QDir cachePath(QDir::homePath() + QDir::separator() + QStringLiteral(".cache") + QDir::separator() + QStringLiteral("Vaccarelli"));
-    if (!cachePath.exists())
-        cachePath.mkpath(cachePath.absolutePath());
-    
-    defaultProfile->setCachePath(cachePath.absolutePath());
-    defaultProfile->setPersistentStoragePath(cachePath.absolutePath());
-
-    // Check if custom user agent is used
-    if (m_settings.value(QLatin1String("CustomUserAgent")).toBool())
-        defaultProfile->setHttpUserAgent(sBrowserApplication->getUserAgentManager()->getUserAgent().Value);
 }
 
 void Settings::setDefaults()
