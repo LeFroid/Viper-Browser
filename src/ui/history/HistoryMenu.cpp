@@ -10,13 +10,19 @@
 
 HistoryMenu::HistoryMenu(QWidget *parent) :
     QMenu(parent),
+    m_historyManager(nullptr),
+    m_faviconStore(nullptr),
     m_actionShowHistory(nullptr),
     m_actionClearHistory(nullptr)
 {
 }
 
 HistoryMenu::HistoryMenu(const QString &title, QWidget *parent) :
-    QMenu(title, parent)
+    QMenu(title, parent),
+    m_historyManager(nullptr),
+    m_faviconStore(nullptr),
+    m_actionShowHistory(nullptr),
+    m_actionClearHistory(nullptr)
 {
 }
 
