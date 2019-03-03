@@ -4,6 +4,8 @@
 #include <QMenu>
 #include <QUrl>
 
+class BookmarkManager;
+
 /**
  * @class BookmarkMenu
  * @brief Manages the browser's bookmark menu, contained in the \ref MainWindow menu bar
@@ -22,6 +24,10 @@ public:
 
     /// Destroys the menu
     virtual ~BookmarkMenu();
+
+    /// Sets the pointer to the user's bookmark manager. After this
+    /// method is called, the bookmark menu can be built
+    void setBookmarkManager(BookmarkManager *bookmarkManager);
 
     /**
      * @brief Sets the bookmark status of the current tab's web page
@@ -57,6 +63,9 @@ private:
 
     /// Action used to remove the current tab's page to the bookmark collection
     QAction *m_removePageBookmarks;
+
+    /// Points to the user's bookmark manager
+    BookmarkManager *m_bookmarkManager;
 };
 
 #endif // BOOKMARKMENU_H

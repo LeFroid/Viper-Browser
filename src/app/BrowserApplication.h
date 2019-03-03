@@ -62,12 +62,6 @@ public:
     /// Returns a pointer to the AutoFill manager
     AutoFill *getAutoFill();
 
-    /// Returns a pointer to the bookmark manager
-    BookmarkManager *getBookmarkManager();
-
-    /// Returns the cookie jar used for standard (non-private) browsing mode
-    CookieJar *getCookieJar();
-
     /// Returns a pointer to the application settings object
     Settings *getSettings();
 
@@ -85,9 +79,6 @@ public:
 
     /// Returns a pointer to the user agent manager
     UserAgentManager *getUserAgentManager();
-
-    /// Returns a pointer to the web page thumbnail storage manager
-    WebPageThumbnailStore *getWebPageThumbnailStore();
 
     /// Searches for a window with the given identifier, returning a pointer to the
     /// MainWindow if found, or a nullptr otherwise.

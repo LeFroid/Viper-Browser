@@ -1,4 +1,3 @@
-#include "BrowserApplication.h"
 #include "FaviconStore.h"
 #include "WebHistory.h"
 #include "WebPage.h"
@@ -9,20 +8,26 @@
 
 const QString WebHistory::SerializationVersion = QStringLiteral("WebHistory_2.0");
 
-WebHistoryEntry::WebHistoryEntry(const WebHistoryEntryImpl &impl) :
+WebHistoryEntry::WebHistoryEntry(FaviconStore *faviconStore, const WebHistoryEntryImpl &impl) :
     icon(),
     title(impl.title()),
     url(impl.url()),
     visitTime(impl.lastVisited()),
     impl(impl)
 {
-    const QUrl iconUrl = impl.iconUrl();
-    if (!iconUrl.isEmpty() && iconUrl.isValid())
-        icon = sBrowserApplication->getFaviconStore()->getFavicon(iconUrl);
+    if (faviconStore)
+    {
+        const QUrl iconUrl = impl.iconUrl();
+        if (!iconUrl.isEmpty() && iconUrl.isValid())
+            icon = faviconStore->getFavicon(iconUrl);
+        else if (!url.isEmpty() && url.isValid())
+            icon = faviconStore->getFavicon(url);
+    }
 }
 
-WebHistory::WebHistory(WebPage *parent) :
+WebHistory::WebHistory(const ViperServiceLocator &serviceLocator, WebPage *parent) :
     QObject(parent),
+    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
     m_page(parent),
     m_impl(nullptr)
 {
@@ -73,7 +78,7 @@ std::vector<WebHistoryEntry> WebHistory::getBackEntries(int maxEntries) const
 
     auto backEntries = maxEntries > 0 ? m_impl->backItems(maxEntries) : m_impl->backItems(10);
     for (const auto &entry : backEntries)
-        result.push_back(WebHistoryEntry{entry});
+        result.push_back(WebHistoryEntry(m_faviconStore,entry));
 
     return result;
 }
@@ -86,7 +91,7 @@ std::vector<WebHistoryEntry> WebHistory::getForwardEntries(int maxEntries) const
 
     auto forwardEntries = maxEntries > 0 ? m_impl->forwardItems(maxEntries) : m_impl->forwardItems(10);
     for (const auto &entry : forwardEntries)
-        result.push_back(WebHistoryEntry{entry});
+        result.push_back(WebHistoryEntry(m_faviconStore,entry));
 
     return result;
 }

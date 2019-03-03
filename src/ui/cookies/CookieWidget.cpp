@@ -1,11 +1,8 @@
-#include "BrowserApplication.h"
-#include "CookieJar.h"
 #include "CookieWidget.h"
 #include "ui_CookieWidget.h"
 #include "CookieModifyDialog.h"
 #include "CookieTableModel.h"
 #include "DetailedCookieTableModel.h"
-#include "NetworkAccessManager.h"
 
 #include <QList>
 #include <QMessageBox>
@@ -150,8 +147,6 @@ void CookieWidget::onCookieDialogFinished(int result)
     if (result == QDialog::Rejected)
         return;
 
-    //CookieTableModel *model = static_cast<CookieTableModel*>(ui->tableViewCookies->model());
-    //CookieJar *jar = sBrowserApplication->getCookieJar();
     auto cookieStore = QWebEngineProfile::defaultProfile()->cookieStore();
     QNetworkCookie cookie = m_cookieDialog->getCookie();
     cookieStore->setCookie(cookie);

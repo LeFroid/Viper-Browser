@@ -8,6 +8,7 @@ namespace Ui {
     class Preferences;
 }
 
+class CookieJar;
 class Settings;
 
 /**
@@ -20,8 +21,9 @@ class Preferences : public QWidget
     Q_OBJECT
 
 public:
-    /// Constructs the preferences widget given a pointer to the global settings object and an optional parent
-    explicit Preferences(Settings *settings, QWidget *parent = nullptr);
+    /// Constructs the preferences widget given a pointer to the global settings object,
+    /// the user's cookie jar, and an optional parent
+    explicit Preferences(Settings *settings, CookieJar *cookieJar, QWidget *parent = nullptr);
 
     /// Preferences destructor
     ~Preferences();

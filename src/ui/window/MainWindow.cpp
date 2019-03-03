@@ -10,9 +10,10 @@
 #include "BookmarkNode.h"
 #include "BookmarkManager.h"
 #include "BookmarkWidget.h"
-#include "CodeEditor.h"
-#include "FaviconStore.h"
 #include "ClearHistoryDialog.h"
+#include "CodeEditor.h"
+#include "CookieJar.h"
+#include "FaviconStore.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
 #include "HttpRequest.h"
@@ -487,7 +488,8 @@ void MainWindow::openClearHistoryDialog()
 
 void MainWindow::openPreferences()
 {
-    Preferences *preferences = new Preferences(m_settings);
+    CookieJar *cookieJar = m_serviceLocator.getServiceAs<CookieJar>("CookieJar");
+    Preferences *preferences = new Preferences(m_settings, cookieJar);
 
     connect(preferences, &Preferences::clearHistoryRequested, this, &MainWindow::openClearHistoryDialog);
     connect(preferences, &Preferences::viewHistoryRequested,  this, &MainWindow::onShowAllHistory);
@@ -495,6 +497,8 @@ void MainWindow::openPreferences()
     connect(preferences, &Preferences::viewAutoFillExceptionsRequested, this, &MainWindow::openAutoFillExceptionsView);
 
     preferences->show();
+    preferences->raise();
+    preferences->activateWindow();
 }
 
 void MainWindow::openFileInBrowser()

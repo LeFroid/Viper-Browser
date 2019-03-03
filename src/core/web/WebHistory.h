@@ -1,6 +1,8 @@
 #ifndef WEBHISTORY_H
 #define WEBHISTORY_H
 
+#include "ServiceLocator.h"
+
 #include <QByteArray>
 #include <QDateTime>
 #include <QIcon>
@@ -13,6 +15,7 @@
 #include <vector>
 
 class QAction;
+class FaviconStore;
 class WebPage;
 
 using WebHistoryEntryImpl = QWebEngineHistoryItem;
@@ -39,11 +42,8 @@ struct WebHistoryEntry
     /// Implementation of the web history entry
     WebHistoryEntryImpl impl;
 
-    /// Default constructor
-    WebHistoryEntry() = default;
-
     /// Constructs the history entry given a reference to the history entry implementation class
-    WebHistoryEntry(const WebHistoryEntryImpl &impl);
+    WebHistoryEntry(FaviconStore *faviconStore, const WebHistoryEntryImpl &impl);
 };
 
 /**
@@ -59,7 +59,7 @@ class WebHistory : public QObject
 
 public:
     /// Constructs the WebHistory with a given parent
-    explicit WebHistory(WebPage *parent);
+    explicit WebHistory(const ViperServiceLocator &serviceLocator, WebPage *parent);
 
     /// Destructor
     ~WebHistory();
@@ -105,6 +105,9 @@ public slots:
     void goToEntry(const WebHistoryEntry &entry);
 
 private:
+    /// Points to the favicon store
+    FaviconStore *m_faviconStore;
+
     /// Pointer to the web page
     WebPage *m_page;
 

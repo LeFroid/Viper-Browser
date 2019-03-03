@@ -185,16 +185,6 @@ AutoFill *BrowserApplication::getAutoFill()
     return m_autoFill;
 }
 
-BookmarkManager *BrowserApplication::getBookmarkManager()
-{
-    return m_bookmarkStore->getNodeManager();
-}
-
-CookieJar *BrowserApplication::getCookieJar()
-{
-    return m_cookieJar;
-}
-
 Settings *BrowserApplication::getSettings()
 {
     return m_settings;
@@ -223,11 +213,6 @@ QWebEngineProfile *BrowserApplication::getPrivateBrowsingProfile()
 UserAgentManager *BrowserApplication::getUserAgentManager()
 {
     return m_userAgentMgr;
-}
-
-WebPageThumbnailStore *BrowserApplication::getWebPageThumbnailStore()
-{
-    return m_thumbnailStore.get();
 }
 
 MainWindow *BrowserApplication::getWindowById(WId windowId) const

@@ -1,12 +1,12 @@
 #include "ExemptThirdPartyCookieDialog.h"
 #include "ui_ExemptThirdPartyCookieDialog.h"
 
-#include "BrowserApplication.h"
 #include "CookieJar.h"
 
-ExemptThirdPartyCookieDialog::ExemptThirdPartyCookieDialog(QWidget *parent) :
+ExemptThirdPartyCookieDialog::ExemptThirdPartyCookieDialog(CookieJar *cookieJar, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ExemptThirdPartyCookieDialog),
+    m_cookieJar(cookieJar),
     m_hostsToAdd(),
     m_hostsToDelete()
 {
@@ -29,7 +29,7 @@ ExemptThirdPartyCookieDialog::~ExemptThirdPartyCookieDialog()
 
 void ExemptThirdPartyCookieDialog::loadHosts()
 {
-    auto exemptHosts = sBrowserApplication->getCookieJar()->getExemptThirdPartyHosts();
+    auto exemptHosts = m_cookieJar->getExemptThirdPartyHosts();
     if (exemptHosts.empty())
     {
         ui->pushButtonRemoveHost->setEnabled(false);
@@ -97,16 +97,14 @@ void ExemptThirdPartyCookieDialog::onDialogButtonClicked(QAbstractButton *button
 {
     if (button == ui->buttonBox->button(QDialogButtonBox::Save))
     {
-        CookieJar *cookieJar = sBrowserApplication->getCookieJar();
-
         for (const auto &host : m_hostsToAdd)
         {
-            cookieJar->addThirdPartyExemption(host);
+            m_cookieJar->addThirdPartyExemption(host);
         }
 
         for (const auto &host : m_hostsToDelete)
         {
-            cookieJar->removeThirdPartyExemption(host);
+            m_cookieJar->removeThirdPartyExemption(host);
         }
     }
 

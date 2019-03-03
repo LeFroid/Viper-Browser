@@ -9,6 +9,8 @@ namespace Ui {
     class PrivacyTab;
 }
 
+class CookieJar;
+
 /**
  * @class PrivacyTab
  * @brief Contains the web browser settings for privacy-related matters including
@@ -24,6 +26,9 @@ public:
 
     /// Privacy tab destructor
     ~PrivacyTab();
+
+    /// Sets the pointer to the user's cookie jar. Needed by the \ref ExemptThirdPartyCookieDialog
+    void setCookieJar(CookieJar *cookieJar);
 
     /// Returns the user set history storage policy
     HistoryStoragePolicy getHistoryStoragePolicy() const;
@@ -85,6 +90,9 @@ private slots:
 private:
     /// Pointer to the UI form elements
     Ui::PrivacyTab *ui;
+
+    /// User's cookie jar
+    CookieJar *m_cookieJar;
 };
 
 #endif // PRIVACYTAB_H

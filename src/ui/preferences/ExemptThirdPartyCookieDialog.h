@@ -9,6 +9,8 @@ namespace Ui {
     class ExemptThirdPartyCookieDialog;
 }
 
+class CookieJar;
+
 class QAbstractButton;
 
 /**
@@ -22,7 +24,7 @@ class ExemptThirdPartyCookieDialog : public QWidget
 
 public:
     /// Constructs the dialog
-    explicit ExemptThirdPartyCookieDialog(QWidget *parent = nullptr);
+    explicit ExemptThirdPartyCookieDialog(CookieJar *cookieJar, QWidget *parent = nullptr);
 
     /// Dialog destructor
     ~ExemptThirdPartyCookieDialog();
@@ -47,6 +49,9 @@ private slots:
 private:
     /// Pointer to the UI elements
     Ui::ExemptThirdPartyCookieDialog *ui;
+
+    /// User's cookie jar
+    CookieJar *m_cookieJar;
 
     /// Set of hosts the user chose to add to the exempt list
     QSet<QUrl> m_hostsToAdd;

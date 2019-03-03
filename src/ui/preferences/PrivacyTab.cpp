@@ -1,3 +1,4 @@
+#include "CookieJar.h"
 #include "ExemptThirdPartyCookieDialog.h"
 #include "PrivacyTab.h"
 #include "ui_PrivacyTab.h"
@@ -5,7 +6,8 @@
 //todo: add controls for AutoFill settings
 PrivacyTab::PrivacyTab(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::PrivacyTab)
+    ui(new Ui::PrivacyTab),
+    m_cookieJar(nullptr)
 {
     ui->setupUi(this);
 
@@ -29,6 +31,11 @@ PrivacyTab::PrivacyTab(QWidget *parent) :
 PrivacyTab::~PrivacyTab()
 {
     delete ui;
+}
+
+void PrivacyTab::setCookieJar(CookieJar *cookieJar)
+{
+    m_cookieJar = cookieJar;
 }
 
 HistoryStoragePolicy PrivacyTab::getHistoryStoragePolicy() const
@@ -101,6 +108,8 @@ void PrivacyTab::setDoNotTrackEnabled(bool value)
 
 void PrivacyTab::onManageCookieExceptionsClicked()
 {
-    ExemptThirdPartyCookieDialog *dialog = new ExemptThirdPartyCookieDialog;
+    ExemptThirdPartyCookieDialog *dialog = new ExemptThirdPartyCookieDialog(m_cookieJar);
     dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
 }

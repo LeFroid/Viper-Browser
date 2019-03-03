@@ -1,5 +1,4 @@
 #include "BookmarkMenu.h"
-#include "BrowserApplication.h"
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 
@@ -8,21 +7,27 @@
 BookmarkMenu::BookmarkMenu(QWidget *parent) :
     QMenu(parent),
     m_addPageBookmarks(new QAction(tr("Bookmark this page"), parent)),
-    m_removePageBookmarks(new QAction(tr("Remove this bookmark"), parent))
+    m_removePageBookmarks(new QAction(tr("Remove this bookmark"), parent)),
+    m_bookmarkManager(nullptr)
 {
-    setup();
 }
 
 BookmarkMenu::BookmarkMenu(const QString &title, QWidget *parent) :
     QMenu(title, parent),
     m_addPageBookmarks(new QAction(tr("Bookmark this page"), parent)),
-    m_removePageBookmarks(new QAction(tr("Remove this bookmark"), parent))
+    m_removePageBookmarks(new QAction(tr("Remove this bookmark"), parent)),
+    m_bookmarkManager(nullptr)
 {
-    setup();
 }
 
 BookmarkMenu::~BookmarkMenu()
 {
+}
+
+void BookmarkMenu::setBookmarkManager(BookmarkManager *bookmarkManager)
+{
+    m_bookmarkManager = bookmarkManager;
+    setup();
 }
 
 void BookmarkMenu::setCurrentPageBookmarked(bool state)
@@ -47,7 +52,7 @@ void BookmarkMenu::resetMenu()
 
     // Iteratively load bookmark data into menu
     std::deque< std::pair<BookmarkNode*, QMenu*> > folders;
-    folders.push_back({ sBrowserApplication->getBookmarkManager()->getRoot(), this });
+    folders.push_back({ m_bookmarkManager->getRoot(), this });
 
     while (!folders.empty())
     {
@@ -82,8 +87,7 @@ void BookmarkMenu::setup()
     connect(m_addPageBookmarks,    &QAction::triggered, [=](){ emit addPageToBookmarks(); });
     connect(m_removePageBookmarks, &QAction::triggered, [=](){ emit removePageFromBookmarks(false); });
 
-    connect(sBrowserApplication->getBookmarkManager(), &BookmarkManager::bookmarksChanged,
-            this, &BookmarkMenu::resetMenu);
+    connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged, this, &BookmarkMenu::resetMenu);
 
     resetMenu();
 }

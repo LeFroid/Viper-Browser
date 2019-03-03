@@ -16,7 +16,6 @@
 #include <QUrl>
 
 #include <deque>
-#include <mutex>
 #include <vector>
 
 class HistoryStore;

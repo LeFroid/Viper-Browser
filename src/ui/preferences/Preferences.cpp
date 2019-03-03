@@ -3,11 +3,13 @@
 
 #include "AdBlockManager.h"
 #include "AppInitSettings.h"
+#include "CookieJar.h"
 #include "HistoryManager.h"
 #include "Settings.h"
+
 #include <QDir>
 
-Preferences::Preferences(Settings *settings, QWidget *parent) :
+Preferences::Preferences(Settings *settings, CookieJar *cookieJar, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Preferences),
     m_settings(settings)
@@ -22,6 +24,7 @@ Preferences::Preferences(Settings *settings, QWidget *parent) :
     connect(ui->tabPrivacy, &PrivacyTab::clearHistoryRequested, this, &Preferences::clearHistoryRequested);
     connect(ui->tabPrivacy, &PrivacyTab::viewHistoryRequested, this, &Preferences::viewHistoryRequested);
 
+    ui->tabPrivacy->setCookieJar(cookieJar);
     connect(ui->tabPrivacy, &PrivacyTab::viewSavedCredentialsRequested, this, &Preferences::viewSavedCredentialsRequested);
     connect(ui->tabPrivacy, &PrivacyTab::viewAutoFillExceptionsRequested, this, &Preferences::viewAutoFillExceptionsRequested);
 
