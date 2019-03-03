@@ -11,6 +11,7 @@
 #include <QTextLayout>
 #include <QUrl>
 
+class BookmarkManager;
 class BookmarkNode;
 class MainWindow;
 class URLSuggestionWidget;
@@ -110,6 +111,11 @@ protected:
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
 private:
+    /// Called in the onInputEntered() method, this checks the \ref BookmarkManager 's bookmark collection
+    /// to see if the user input matches a shortcut or shortcut pattern for any bookmarks.
+    /// If there is a match, this emits loadRequested(shortcutUrl) and returns true
+    bool isInputForBookmarkShortcut(const QString &input);
+
     /// Sets the bookmark icon at the right side of the line edit widget
     void setBookmarkIcon(BookmarkIcon iconType);
 
@@ -131,6 +137,10 @@ private:
 
     /// URL suggestion widget
     URLSuggestionWidget *m_suggestionWidget;
+
+    /// Points to the bookmark manager. Used to check for bookmark shortcuts and url patterns when a user enters some text
+    /// in this widget
+    BookmarkManager *m_bookmarkManager;
 
     /// Pointer to the bookmark node of the page associated with the current URL, or a null pointer if the page is not bookmarked
     BookmarkNode *m_bookmarkNode;

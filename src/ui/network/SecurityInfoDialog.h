@@ -1,6 +1,8 @@
 #ifndef SECURITYINFODIALOG_H
 #define SECURITYINFODIALOG_H
 
+#include "ServiceLocator.h"
+
 #include <QList>
 #include <QSslCertificate>
 #include <QWidget>
@@ -10,6 +12,8 @@ namespace Ui {
 }
 
 class CertificateViewer;
+class CookieJar;
+class HistoryManager;
 class QSslCertificate;
 
 /**
@@ -22,8 +26,8 @@ class SecurityInfoDialog : public QWidget
     Q_OBJECT
 
 public:
-    /// Constructs the dialog with an optional parent widget
-    explicit SecurityInfoDialog(QWidget *parent = nullptr);
+    /// Constructs the dialog given a pointer to the \ref CookieJar and \ref HistoryManager
+    explicit SecurityInfoDialog(CookieJar *cookieJar, HistoryManager *historyManager);
 
     /// SecurityInfoDialog destructor
     ~SecurityInfoDialog();
@@ -39,6 +43,12 @@ private:
 
     /// Widget used to display detailed certificate information regarding the website being inspected
     CertificateViewer *m_certViewer;
+
+    /// Main profile's cookie jar
+    CookieJar *m_cookieJar;
+
+    /// Main profile's history manager
+    HistoryManager *m_historyManager;
 };
 
 #endif // SECURITYINFODIALOG_H

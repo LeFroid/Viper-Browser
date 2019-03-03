@@ -1,6 +1,5 @@
 #include "BookmarkNode.h"
 #include "BookmarkManager.h"
-#include "BrowserApplication.h"
 #include "MainWindow.h"
 #include "SchemeRegistry.h"
 #include "SecurityManager.h"
@@ -9,6 +8,7 @@
 #include "WebWidget.h"
 
 #include <array>
+#include <QCoreApplication>
 #include <QIcon>
 #include <QResizeEvent>
 #include <QSize>
@@ -23,6 +23,7 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_userTextMap(),
     m_activeWebView(nullptr),
     m_suggestionWidget(nullptr),
+    m_bookmarkManager(nullptr),
     m_bookmarkNode(nullptr)
 {
     setObjectName(QLatin1String("urlLineEdit"));
@@ -209,6 +210,7 @@ void URLLineEdit::setTextFormat(const std::vector<QTextLayout::FormatRange> &for
 
 void URLLineEdit::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
+    m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
     m_suggestionWidget->setServiceLocator(serviceLocator);
 }
 
@@ -216,7 +218,7 @@ void URLLineEdit::removeMappedView(WebWidget *view)
 {
     auto it = m_userTextMap.find(view);
     if (it != m_userTextMap.end())
-        m_userTextMap.erase(it);
+        it = m_userTextMap.erase(it);
 }
 
 void URLLineEdit::onSuggestedURLChosen(const QUrl &url)
@@ -244,29 +246,44 @@ void URLLineEdit::onInputEntered()
     if (delimIdx > 0)
         urlTextStart = urlTextStart.left(delimIdx);
 
-    BookmarkManager *bookmarkMgr = sBrowserApplication->getBookmarkManager();
-    for (auto it : *bookmarkMgr)
+    if (isInputForBookmarkShortcut(urlText))
+        return;
+
+    setURL(location);
+    emit loadRequested(location);
+}
+
+bool URLLineEdit::isInputForBookmarkShortcut(const QString &input)
+{
+    if (!m_bookmarkManager)
+        return false;
+
+    QString urlText = input,
+            urlTextStart = input;
+
+    int delimIdx = urlTextStart.indexOf(QLatin1Char(' '));
+    if (delimIdx > 0)
+        urlTextStart = urlTextStart.left(delimIdx);
+
+    for (auto it : *m_bookmarkManager)
     {
         if (it->getType() == BookmarkNode::Bookmark
                 && (urlTextStart.compare(it->getShortcut()) == 0 || urlText.compare(it->getShortcut()) == 0))
         {
             QString bookmarkUrl = it->getURL().toString(QUrl::FullyEncoded);
             if (delimIdx > 0 && bookmarkUrl.contains(QLatin1String("%25s")))
-            {
                 urlText = bookmarkUrl.replace(QLatin1String("%25s"), urlText.mid(delimIdx + 1));
-            }
             else
                 urlText = bookmarkUrl;
 
-            location = QUrl::fromUserInput(urlText);
+            QUrl location = QUrl::fromUserInput(urlText);
             setURL(location);
             emit loadRequested(location);
-            return;
+            return true;
         }
     }
 
-    setURL(location);
-    emit loadRequested(location);
+    return false;
 }
 
 void URLLineEdit::onTextEdited(const QString &text)

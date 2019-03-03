@@ -1,4 +1,6 @@
-#include "BrowserApplication.h"
+#include "CookieJar.h"
+#include "HistoryManager.h"
+#include "NetworkAccessManager.h"
 #include "SecurityManager.h"
 #include "SecurityInfoDialog.h"
 #include "NetworkAccessManager.h"
@@ -12,6 +14,9 @@
 
 SecurityManager::SecurityManager(QObject *parent) :
     QObject(parent),
+    m_cookieJar(nullptr),
+    m_historyManager(nullptr),
+    m_networkAccessManager(nullptr),
     m_insecureHosts(),
     m_exemptInsecureHosts(),
     m_certChains(),
@@ -19,11 +24,6 @@ SecurityManager::SecurityManager(QObject *parent) :
     m_needShowDialog(false),
     m_replyUrlTarget()
 {
-    BrowserApplication *app = sBrowserApplication;
-    NetworkAccessManager *netAccessMgr = app->getNetworkAccessManager();
-
-    connect(netAccessMgr, &NetworkAccessManager::finished, this, &SecurityManager::onNetworkReply);
-    connect(netAccessMgr, &NetworkAccessManager::sslErrors, this, &SecurityManager::onSSLErrors);
 }
 
 SecurityManager::~SecurityManager()
@@ -71,13 +71,23 @@ bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certi
     return false;
 }
 
+void SecurityManager::setServiceLocator(const ViperServiceLocator &serviceLocator)
+{
+    m_cookieJar = serviceLocator.getServiceAs<CookieJar>("CookieJar");
+    m_historyManager = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
+    m_networkAccessManager = serviceLocator.getServiceAs<NetworkAccessManager>("NetworkAccessManager");
+
+    connect(m_networkAccessManager, &NetworkAccessManager::finished,  this, &SecurityManager::onNetworkReply);
+    connect(m_networkAccessManager, &NetworkAccessManager::sslErrors, this, &SecurityManager::onSSLErrors);
+}
+
 void SecurityManager::showSecurityInfo(const QUrl &url)
 {
     if (url.isEmpty())
         return;
 
     if (!m_securityDialog)
-        m_securityDialog = new SecurityInfoDialog;
+        m_securityDialog = new SecurityInfoDialog(m_cookieJar, m_historyManager);
 
     const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
 
@@ -90,13 +100,13 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
     }
     else
     {
-        if (isHttps)
+        if (isHttps && m_networkAccessManager != nullptr)
         {
             m_needShowDialog = true;
             m_replyUrlTarget = url;
 
             QNetworkRequest request(url);
-            QNetworkReply *reply = sBrowserApplication->getNetworkAccessManager()->get(request);
+            QNetworkReply *reply = m_networkAccessManager->get(request);
             connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
             connect(reply, static_cast<void(QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), [reply](QNetworkReply::NetworkError){
                 reply->deleteLater();

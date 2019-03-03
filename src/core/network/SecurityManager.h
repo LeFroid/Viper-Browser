@@ -1,6 +1,8 @@
 #ifndef SECURITYMANAGER_H
 #define SECURITYMANAGER_H
 
+#include "ServiceLocator.h"
+
 #include <QHash>
 #include <QObject>
 #include <QSet>
@@ -8,6 +10,9 @@
 #include <QUrl>
 #include <QWebEngineCertificateError>
 
+class CookieJar;
+class HistoryManager;
+class NetworkAccessManager;
 class SecurityInfoDialog;
 class QNetworkReply;
 class QSslCertificate;
@@ -38,6 +43,10 @@ public:
     /// Called by a \ref WebPage when the given certificate error has been encountered during a page load
     bool onCertificateError(const QWebEngineCertificateError &certificateError, QWidget *window);
 
+    /// Sets a reference to the service locator, which is used to fetch the
+    /// \ref CookieJar , \ref HistoryManager, and \ref NetworkAccessManager
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
+
 public slots:
     /// Shows a dialog containing the certificate information (or lack thereof) for the host of the given url
     void showSecurityInfo(const QUrl &url);
@@ -51,6 +60,15 @@ private slots:
     void onSSLErrors(QNetworkReply *reply, const QList<QSslError> &errors);
 
 private:
+    /// Main profile's cookie jar
+    CookieJar *m_cookieJar;
+
+    /// Main profile's history manager
+    HistoryManager *m_historyManager;
+
+    /// Global network access manager
+    NetworkAccessManager *m_networkAccessManager;
+
     /// List of known insecure hosts with invalid certificates
     QSet<QString> m_insecureHosts;
 

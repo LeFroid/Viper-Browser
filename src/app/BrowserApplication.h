@@ -77,9 +77,6 @@ public:
     /// Returns the favicon storage manager
     FaviconStore *getFaviconStore();
 
-    /// Returns the history manager
-    HistoryManager *getHistoryManager();
-
     /// Returns the network access manager
     NetworkAccessManager *getNetworkAccessManager();
 
@@ -126,6 +123,9 @@ protected:
 private:
     /// Installs core browser scripts into the script collection
     void installGlobalWebScripts();
+
+    /// Registers a service with the \ref ViperServiceLocator
+    void registerService(QObject *service);
 
     /// Initializes the standard and private web profiles used by the browser.
     /// This includes instantiation of request interceptors and custom scheme handlers.

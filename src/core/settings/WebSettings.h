@@ -20,7 +20,7 @@ class QWebEngineSettings;
  *        specified in the \ref Settings class, and the settings management
  *        system of the web engine module
  */
-class WebSettings : public QObject, ISettingsObserver
+class WebSettings : public QObject, public ISettingsObserver
 {
     Q_OBJECT
 

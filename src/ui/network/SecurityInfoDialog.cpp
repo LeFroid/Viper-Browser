@@ -1,16 +1,18 @@
 #include "SecurityInfoDialog.h"
 #include "ui_SecurityInfoDialog.h"
 
-#include "BrowserApplication.h"
 #include "CertificateViewer.h"
 #include "CookieJar.h"
 #include "HistoryManager.h"
+
 #include <QSslCertificate>
 
-SecurityInfoDialog::SecurityInfoDialog(QWidget *parent) :
-    QWidget(parent),
+SecurityInfoDialog::SecurityInfoDialog(CookieJar *cookieJar, HistoryManager *historyManager) :
+    QWidget(nullptr),
     ui(new Ui::SecurityInfoDialog),
-    m_certViewer(new CertificateViewer)
+    m_certViewer(new CertificateViewer),
+    m_cookieJar(cookieJar),
+    m_historyManager(historyManager)
 {
     ui->setupUi(this);
 
@@ -63,14 +65,12 @@ void SecurityInfoDialog::setWebsite(const QUrl &url, const QString &host, const 
                                                 "information transmitted over a webpage secure and away from prying eyes."));
     }
 
-    BrowserApplication *app = sBrowserApplication;
-    app->getHistoryManager()->getTimesVisitedHost(url, [=](int numVisits){
+    m_historyManager->getTimesVisitedHost(url, [=](int numVisits){
         ui->labelTimesVisited->setText(numVisits > 0 ? QString("Yes, %1 times.").arg(numVisits) : QString("No"));
     });
 
     // Check if website is storing cookies
-    auto cookieJar = app->getCookieJar();
-    if (cookieJar->hasCookiesFor(host))
+    if (m_cookieJar->hasCookiesFor(host))
     {
         ui->labelUsingCookies->setText(tr("Yes"));
         ui->pushButtonSiteCookies->show();
