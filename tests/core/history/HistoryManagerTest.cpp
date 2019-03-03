@@ -3,8 +3,10 @@
 #include "HistoryStore.h"
 #include "ServiceLocator.h"
 
+#include <QDateTime>
 #include <QFile>
 #include <QObject>
+#include <QSignalSpy>
 #include <QString>
 #include <QTest>
 
@@ -16,7 +18,8 @@ class HistoryManagerTest : public QObject
 public:
     HistoryManagerTest() :
         QObject(nullptr),
-        m_dbFile(QLatin1String("HistoryManagerTest.db"))
+        m_dbFile(QLatin1String("HistoryManagerTest.db")),
+        m_historyManager(nullptr)
     {
     }
 
@@ -39,6 +42,12 @@ private slots:
     /// the HistoryStore instance
     void cleanup()
     {
+        if (m_historyManager)
+        {
+            delete m_historyManager;
+            m_historyManager = nullptr;
+        }
+
         if (QFile::exists(m_dbFile))
             QFile::remove(m_dbFile);
         QSqlDatabase::removeDatabase(QLatin1String("HistoryDB"));
@@ -47,105 +56,167 @@ private slots:
     /// Tests that entries can be added to the history store
     void testAddVisits()
     {
-        /*
         DatabaseTaskScheduler taskScheduler;
         taskScheduler.addWorker("HistoryStore", std::bind(DatabaseFactory::createDBWorker<HistoryStore>, "HistoryManagerTest.db"));
 
         ViperServiceLocator serviceLocator;
 
-        HistoryManager historyManager(serviceLocator, taskScheduler);
+        m_historyManager = new HistoryManager(serviceLocator, taskScheduler);
 
         taskScheduler.run();
 
         QUrl firstUrl { QUrl::fromUserInput("https://viper-browser.com") }, firstUrlRequested { QUrl::fromUserInput("viper-browser.com") };
         QDateTime firstDate  = QDateTime::currentDateTime();
-        historyManager.addVisit(firstUrl, QLatin1String("Viper Browser"), firstDate, firstUrlRequested);
+        m_historyManager->addVisit(firstUrl, QLatin1String("Viper Browser"), firstDate, firstUrlRequested);
 
         QUrl secondUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, secondUrlRequested { QUrl::fromUserInput("website.net") };
-        historyManager.addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
+        m_historyManager->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
 
-        QVERIFY(historyManager.contains(firstUrl));
-        QVERIFY(historyManager.contains(secondUrl));
-        QVERIFY(historyManager.contains(secondUrlRequested));
+        QVERIFY(m_historyManager->contains(firstUrl));
+        QVERIFY(m_historyManager->contains(secondUrl));
+        QVERIFY(m_historyManager->contains(secondUrlRequested));
 
-        HistoryEntry entry = historyManager.getEntry(firstUrl);
+        HistoryEntry entry = m_historyManager->getEntry(firstUrl);
         QCOMPARE(entry.URL, firstUrl);
         QCOMPARE(entry.Title, QLatin1String("Viper Browser"));
         QCOMPARE(entry.NumVisits, 1);
-        QCOMPARE(entry.LastVisit, firstDate);*/
+        QCOMPARE(entry.LastVisit, firstDate);
     }
 
-    // Instantiating the history manager:
-    //DatabaseTaskScheduler taskScheduler;
-    //taskScheduler.addWorker("HistoryStore", std::bind(DatabaseFactory::createDBWorker<HistoryStore>, "HistoryManagerTest.db"));
-    //ViperServiceLocator serviceLocator;
-    //HistoryManager *historyManager = new HistoryManager(serviceLocator, taskScheduler);
-    //taskScheduler.run();
-    /*explicit HistoryManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler);
+    /// Tests that the browsing history can be cleared
+    void testClearingHistory()
+    {
+        DatabaseTaskScheduler taskScheduler;
+        taskScheduler.addWorker("HistoryStore", std::bind(DatabaseFactory::createDBWorker<HistoryStore>, "HistoryManagerTest.db"));
 
-    /// Returns a const_iterator to the first element in the history hash map
-    const_iterator begin() const { return m_historyItems.cbegin(); }
+        ViperServiceLocator serviceLocator;
 
-    /// Returns a const_iterator to the end of the history hash map
-    const_iterator end() const { return m_historyItems.cend(); }
+        m_historyManager = new HistoryManager(serviceLocator, taskScheduler);
 
-    /// Clears all browsing history
-    void clearAllHistory();
+        taskScheduler.run();
 
-    /// Clears history stored from the given start time to the present
-    void clearHistoryFrom(const QDateTime &start);
+        // Let initialization routine complete
+        QTest::qWait(1500);
 
-    /// Clears history within the given {start,end} date-time pair
-    void clearHistoryInRange(std::pair<QDateTime, QDateTime> range);
+        QUrl firstUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, firstUrlRequested { QUrl::fromUserInput("website.net") };
+        m_historyManager->addVisit(firstUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), firstUrlRequested);
 
-    /// Adds an entry to the history data store, given the URL, page title, time of visit, and the requested URL
-    void addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl);
+        QVERIFY(m_historyManager->contains(firstUrl));
+        QVERIFY(m_historyManager->contains(firstUrlRequested));
 
-    /// Loads a list of all \ref URLRecord visited between the given start date and end dates, passing them on to
-    /// the callback once the data has been fetched
-    void getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate, std::function<void(std::vector<URLRecord>)> callback);
+        m_historyManager->clearAllHistory();
 
-    /// Loads a list of all \ref URLRecord visited from the given start date to the present, passing them on to
-    /// the callback once the data has been fetched
-    void getHistoryFrom(const QDateTime &startDate, std::function<void(std::vector<URLRecord>)> callback);
+        QVERIFY2(!m_historyManager->contains(firstUrl), "HistoryManager::clearAllHistory did not remove the entry");
+        QVERIFY2(!m_historyManager->contains(firstUrlRequested), "HistoryManager::clearAllHistory did not remove the entry");
 
-    /// Returns true if the history contains the given url, false if else. Will return
-    /// false if private browsing mode is enabled
-    bool historyContains(const QString &url) const;
+        QDateTime firstDate  = QDateTime::currentDateTime().addDays(-5);
+        QDateTime secondDate = QDateTime::currentDateTime();
+        const QUrl secondUrl { QUrl::fromUserInput("https://viper-browser.com") }, secondUrlRequested { QUrl::fromUserInput("viper-browser.com") };
 
-    /// Returns a history record corresponding to the given URL, or an empty record if it was not found in the
-    /// database
-    HistoryEntry getEntry(const QUrl &url) const;
+        m_historyManager->addVisit(firstUrl, QLatin1String("Some Website"), firstDate, firstUrlRequested);
+        m_historyManager->addVisit(secondUrl, QLatin1String("Viper Browser"), secondDate, secondUrlRequested);
 
-    /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
-    const std::deque<HistoryEntry> &getRecentItems() const { return m_recentItems; }
+        QVERIFY(m_historyManager->contains(firstUrl));
+        QVERIFY(m_historyManager->contains(secondUrl));
 
-    /// Returns a list of all visited URLs
-    QList<QString> getVisitedURLs() const { return m_historyItems.keys(); }
+        // Use signal spy to make sure the clear history call makes its way to the history store
+        QSignalSpy spy(m_historyManager, &HistoryManager::historyCleared);
+        m_historyManager->clearHistoryInRange({firstDate, QDateTime::currentDateTime().addDays(-1)});
 
-    /// Fetches the number of times the host was visited, passing it to the given callback when the
-    /// result has been retrieved
-    void getTimesVisitedHost(const QUrl &host, std::function<void(int)> callback);
+        QVERIFY(spy.wait(2500));
+        QCOMPARE(spy.count(), 1);
 
-    /// Returns the number of times that the given URL has been visited
-    int getTimesVisited(const QUrl &url) const;
+        QVERIFY2(!m_historyManager->contains(firstUrl), "HistoryManager::clearHistoryInRange did not remove the entry");
+        QVERIFY2(m_historyManager->contains(secondUrl), "HistoryManager::clearHistoryInRange removed an entry outside of the given range");
 
-    /// Returns the history manager's storage policy
-    HistoryStoragePolicy getStoragePolicy() const;
+        m_historyManager->clearHistoryFrom(QDateTime::currentDateTime().addDays(-1));
 
-    /// Sets the policy to be followed for storing browsing history
-    void setStoragePolicy(HistoryStoragePolicy policy);
+        QVERIFY2(!m_historyManager->contains(secondUrl), "HistoryManager::clearHistoryFrom did not remove the entry");
 
-    /// Fetches the set of most frequently visited web pages, up to the given limit. This is used to
-    /// determine which web pages' thumbnails to retrieve for the "New Tab" page
-    void loadMostVisitedEntries(int limit, std::function<void(std::vector<WebPageInformation>)> callback);*/
+        QVERIFY(spy.wait(2500));
+        QCOMPARE(spy.count(), 2);
+    }
+
+    /// Tests that the reported visit count matches the expected values
+    void testVisitCount()
+    {
+        DatabaseTaskScheduler taskScheduler;
+        taskScheduler.addWorker("HistoryStore", std::bind(DatabaseFactory::createDBWorker<HistoryStore>, "HistoryManagerTest.db"));
+
+        ViperServiceLocator serviceLocator;
+
+        m_historyManager = new HistoryManager(serviceLocator, taskScheduler);
+
+        taskScheduler.run();
+
+        // Let initialization routine complete
+        QTest::qWait(500);
+
+        QUrl firstUrl { QUrl::fromUserInput("https://viper-browser.com") }, firstUrlRequested { QUrl::fromUserInput("viper-browser.com") };
+        QUrl secondUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, secondUrlRequested { QUrl::fromUserInput("website.net") };
+        m_historyManager->addVisit(firstUrl, QLatin1String("Viper Browser"), QDateTime::currentDateTime(), firstUrlRequested);
+        m_historyManager->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
+
+        QCOMPARE(m_historyManager->getTimesVisited(firstUrl), 1);
+        QCOMPARE(m_historyManager->getTimesVisited(secondUrl), 1);
+
+        m_historyManager->getTimesVisitedHost(firstUrl, [](int count){
+            QCOMPARE(count, 1);
+        });
+        m_historyManager->getTimesVisitedHost(secondUrl, [](int count){
+            QCOMPARE(count, 1);
+        });
+        m_historyManager->getTimesVisitedHost(secondUrlRequested, [](int count){
+            QCOMPARE(count, 2);
+        });
+
+        QTest::qWait(300);
+    }
+
+    /// Tests the call to getHistoryFrom(const QDateTime &startDate)
+    void testGetHistoryFrom()
+    {
+        DatabaseTaskScheduler taskScheduler;
+        taskScheduler.addWorker("HistoryStore", std::bind(DatabaseFactory::createDBWorker<HistoryStore>, "HistoryManagerTest.db"));
+
+        ViperServiceLocator serviceLocator;
+
+        m_historyManager = new HistoryManager(serviceLocator, taskScheduler);
+
+        taskScheduler.run();
+
+        // Let initialization routine complete
+        QTest::qWait(500);
+
+        QUrl firstUrl { QUrl::fromUserInput("https://viper-browser.com") }, firstUrlRequested { QUrl::fromUserInput("viper-browser.com") };
+        QDateTime firstDate  = QDateTime::currentDateTime().addDays(-1);
+        m_historyManager->addVisit(firstUrl, QLatin1String("Viper Browser"), firstDate, firstUrlRequested);
+
+        QUrl secondUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, secondUrlRequested { QUrl::fromUserInput("website.net") };
+        m_historyManager->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
+
+        m_historyManager->getHistoryFrom(firstDate, [=](std::vector<URLRecord> records){
+            const URLRecord &firstRecord = records.at(0);
+            QCOMPARE(firstRecord.getUrl(), firstUrl);
+            QCOMPARE(firstRecord.getLastVisit(), firstDate);
+
+            QCOMPARE(records.at(1).getUrl(), secondUrlRequested);
+        });
+
+        QTest::qWait(1500);
+    }
 
 private:
     /// Database file name used for tests
     QString m_dbFile;
+
+    /// Points to the history manager. This is recreated on every test case.
+    /// Must instantiate this on heap since its dependencies must be created before this,
+    /// yet the history manager must also be the last thing to be destroyed after a test
+    HistoryManager *m_historyManager;
 };
 
-QTEST_APPLESS_MAIN(HistoryManagerTest)
+QTEST_GUILESS_MAIN(HistoryManagerTest)
 
 #include "HistoryManagerTest.moc"
 

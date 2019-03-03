@@ -2,6 +2,7 @@
 #include "HistoryStore.h"
 #include "Settings.h"
 
+#include <algorithm>
 #include <array>
 #include <QBuffer>
 #include <QCryptographicHash>
@@ -15,7 +16,6 @@
 #include <QSqlRecord>
 #include <QtConcurrent>
 #include <QUrl>
-#include <QDebug>
 
 HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler) :
     QObject(nullptr),
@@ -37,7 +37,6 @@ HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, Databa
     else
         qWarning() << "Could not fetch application settings in history manager!";
 
-    //m_threadManager.initHistoryStore(databaseFile);
     m_taskScheduler.onInit([this](){
         m_historyStore = static_cast<HistoryStore*>(m_taskScheduler.getWorker("HistoryStore"));
     });
@@ -74,30 +73,37 @@ void HistoryManager::clearAllHistory()
 
 void HistoryManager::clearHistoryFrom(const QDateTime &start)
 {
-    m_taskScheduler.post([=](){
-        m_historyItems.clear();
-        m_recentItems.clear();
-
-        m_historyStore->clearHistoryFrom(start);
-
-        m_recentItems = m_historyStore->getRecentItems();
-        onHistoryRecordsLoaded(m_historyStore->getEntries());
-        emit historyCleared();
-    });
+    clearHistoryInRange({start, QDateTime::currentDateTime()});
 }
 
 void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
-{   
+{
     m_taskScheduler.post([=](){
-        m_historyItems.clear();
         m_recentItems.clear();
 
         m_historyStore->clearHistoryInRange(range);
 
-        m_recentItems = m_historyStore->getRecentItems();
-        onHistoryRecordsLoaded(m_historyStore->getEntries());
+        onRecentItemsLoaded(m_historyStore->getRecentItems());
         emit historyCleared();
     });
+
+    for (auto it = m_historyItems.begin(); it != m_historyItems.end();)
+    {
+        std::vector<VisitEntry> &visits = it->m_visits;
+        visits.erase(std::remove_if(visits.begin(), visits.end(), [&range](VisitEntry v){
+            return v >= range.first && v <= range.second;
+        }), visits.end());
+
+        if (visits.empty())
+        {
+            it = m_historyItems.erase(it);
+            continue;
+        }
+
+        it->m_historyEntry.NumVisits = static_cast<int>(visits.size());
+        it->m_historyEntry.LastVisit = visits.at(visits.size() - 1);
+        ++it;
+    }
 }
 
 void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl)

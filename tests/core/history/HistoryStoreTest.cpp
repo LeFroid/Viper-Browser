@@ -125,7 +125,6 @@ private slots:
         historyStore->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
 
         std::vector<URLRecord> records = historyStore->getHistoryFrom(firstDate);
-        //QCOMPARE(static_cast<int>(records.size()), 3);
 
         const URLRecord &firstRecord = records.at(0);
         QCOMPARE(firstRecord.getUrl(), firstUrl);

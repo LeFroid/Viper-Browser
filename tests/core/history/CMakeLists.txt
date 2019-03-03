@@ -3,6 +3,11 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+set(BrowserDependencies_src
+    ${CMAKE_SOURCE_DIR}/src/app/BrowserApplication.cpp
+    ${CMAKE_SOURCE_DIR}/src/app/BrowserScripts.cpp
+)
+
 set(HistoryManagerTest_src
     HistoryManagerTest.cpp
 )
@@ -10,7 +15,7 @@ set(HistoryStoreTest_src
     HistoryStoreTest.cpp
 )
 
-add_executable(HistoryManagerTest ${HistoryManagerTest_src})
+add_executable(HistoryManagerTest ${HistoryManagerTest_src} ${BrowserDependencies_src})
 add_executable(HistoryStoreTest ${HistoryStoreTest_src})
 
 target_link_libraries(HistoryManagerTest viper-core viper-ui Qt5::Test Threads::Threads)
