@@ -162,6 +162,7 @@ void MainWindow::setupBookmarks()
 {
     connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged, this, &MainWindow::checkPageForBookmark);
 
+    ui->menuBookmarks->setBookmarkManager(m_bookmarkManager);
     connect(ui->menuBookmarks, &BookmarkMenu::manageBookmarkRequest,   this, &MainWindow::openBookmarkWidget);
     connect(ui->menuBookmarks, &BookmarkMenu::loadUrlRequest,          this, &MainWindow::loadUrl);
     connect(ui->menuBookmarks, &BookmarkMenu::addPageToBookmarks,      this, &MainWindow::addPageToBookmarks);
