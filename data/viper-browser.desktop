@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Viper Browser
+Comment=Fast and lightweight Qt web browser
+Exec=viper-browser %u
+Terminal=false
+X-MultipleArgs=false
+Categories=Network;WebBrowser;
+Icon=viper-browser
+MimeType=text/html;text/xml;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;

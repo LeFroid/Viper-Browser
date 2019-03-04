@@ -86,3 +86,8 @@ if (ENABLE_TESTING)
     enable_testing(true)
     add_subdirectory(tests)
 endif()
+
+if(UNIX AND NOT APPLE)
+    install(FILES data/viper-browser.png DESTINATION share/icons/hicolor/64x64/viper-browser.png)
+    install(FILES data/viper-browser.desktop DESTINATION share/applications)
+endif()
