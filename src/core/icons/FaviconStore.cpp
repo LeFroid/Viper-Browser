@@ -18,7 +18,6 @@ FaviconStore::FaviconStore(const QString &databaseFile) :
     m_originMap(),
     m_iconDataMap(),
     m_webPageMap(),
-    m_favicons(),
     m_newFaviconID(1),
     m_newDataID(1),
     m_queryMap()
@@ -32,6 +31,9 @@ FaviconStore::~FaviconStore()
 
 int FaviconStore::getFaviconId(const QUrl &url)
 {
+    if (url.isEmpty())
+        return -1;
+
     auto it = m_webPageMap.find(url);
     if (it != m_webPageMap.end())
         return *it;
@@ -63,6 +65,14 @@ int FaviconStore::getFaviconIdForIconUrl(const QUrl &url)
     {
         if (url.matches(it.second, QUrl::RemoveScheme | QUrl::RemoveQuery | QUrl::RemoveFragment))
             return it.first;
+    }
+
+    QSqlQuery idQuery(m_database);
+    idQuery.prepare(QLatin1String("SELECT FaviconID FROM Favicons WHERE URL = (:url)"));
+    idQuery.bindValue(QLatin1String(":url"), url);
+    if (idQuery.exec() && idQuery.first())
+    {
+        return idQuery.value(0).toInt();
     }
 
     int id = m_newFaviconID++;
@@ -131,7 +141,7 @@ void FaviconStore::addPageMapping(const QUrl &webPageUrl, int faviconId)
         m_webPageMap.insert(webPageUrl, faviconId);
 
     QSqlQuery query(m_database);
-    query.prepare(QLatin1String("INSERT OR IGNORE INTO FaviconMap(PageURL, FaviconID) VALUES(:pageUrl, :iconId)"));
+    query.prepare(QLatin1String("INSERT OR REPLACE INTO FaviconMap(PageURL, FaviconID) VALUES(:pageUrl, :iconId)"));
     query.bindValue(QLatin1String(":pageUrl"), webPageUrl);
     query.bindValue(QLatin1String(":iconId"), faviconId);
     if (!query.exec())

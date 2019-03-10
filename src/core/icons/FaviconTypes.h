@@ -65,29 +65,5 @@ using FaviconDataMap = std::unordered_map<int, FaviconData>;
 /// Represents the \ref FaviconMap as a hash map. Key = URL of the web page, value = unique identifier of the favicon.
 using WebPageIconMap = QHash<QUrl, int>;
 
-// old structure:
-
-/// Stores information about a favicon
-struct FaviconInfo
-{
-    /// The icon's FaviconID from the Favicons table (which stores the URL of the favicon on the host server)
-    int iconID;
-
-    /// The icon's DataID from the FaviconData table (used to access the icon)
-    int dataID;
-
-    // The favicon
-    QIcon icon;
-
-    /// Icon in the form of a byte array
-    QByteArray iconData;
-
-    /// Set of URLs the user has visited in the most recent session that use the favicon
-    QSet<QString> urls;
-
-    /// Default constructor
-    FaviconInfo() : iconID(-1), dataID(-1), /*icon(),*/ iconData(), urls() {}
-};
-
 #endif // FAVICONTYPES_H
 

@@ -90,11 +90,6 @@ private:
     /// Mapping of visited URLs to their corresponding favicon IDs
     WebPageIconMap m_webPageMap;
 
-    //==
-
-    /// Hash map of favicon URLs to their data in a \ref FaviconInfo structure
-    QHash<QUrl, FaviconInfo> m_favicons;
-
     /// Used when adding new records to the favicon table
     int m_newFaviconID;
 
@@ -103,16 +98,6 @@ private:
 
     /// Map of query types to pointers of commonly used prepared statements
     std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
-
-    /*
-/// Represents the \ref FaviconOrigin structure as a map. Key = favicon Id, value = URL of icon
-using FaviconOriginMap = std::map<int, QUrl>;
-
-/// Represents the \ref FaviconData structure as a map. Key = favicon Id (same as FaviconOriginMap), value = FaviconData structure
-using FaviconDataMap = std::map<int, FaviconData>;
-
-/// Represents the \ref FaviconMap as a hash map. Key = URL of the web page, value = unique identifier of the favicon.
-using WebPageIconMap = QHash<QUrl, int>;*/
 };
 
 #endif // FAVICONSTORAGE_H

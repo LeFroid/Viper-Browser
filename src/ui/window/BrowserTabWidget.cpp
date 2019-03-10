@@ -449,6 +449,9 @@ void BrowserTabWidget::onUrlChanged(const QUrl &url)
     WebWidget *ww = qobject_cast<WebWidget*>(sender());
     if (ww == m_activeView && !url.isEmpty())
         emit urlChanged(url);
+
+    if (!url.isEmpty())
+        setTabIcon(indexOf(ww), m_faviconManager->getFavicon(url));
 }
 
 void BrowserTabWidget::onViewCloseRequested()

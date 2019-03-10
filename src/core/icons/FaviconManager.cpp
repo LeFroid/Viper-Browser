@@ -62,8 +62,11 @@ QIcon FaviconManager::getFavicon(const QUrl &url)
     auto it = m_iconMap.find(iconId);
     if (it == m_iconMap.end())
     {
-        QByteArray iconData = m_faviconStore->getIconData(iconId);
-        QIcon icon = CommonUtil::iconFromBase64(iconData);
+        auto &record = m_faviconStore->getDataRecord(iconId);
+        if (record.iconData.isEmpty())
+            return QIcon(QLatin1String(":/blank_favicon.png"));
+
+        QIcon icon = CommonUtil::iconFromBase64(record.iconData);
         auto result = m_iconMap.emplace(std::make_pair(iconId, icon));
         if (result.second)
             it = result.first;
