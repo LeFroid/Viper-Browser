@@ -13,7 +13,6 @@
 #include "ClearHistoryDialog.h"
 #include "CodeEditor.h"
 #include "CookieJar.h"
-#include "FaviconStore.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
 #include "HttpRequest.h"
@@ -64,7 +63,6 @@ MainWindow::MainWindow(const ViperServiceLocator &serviceLocator, bool privateWi
     m_settings(serviceLocator.getServiceAs<Settings>("Settings")),
     m_serviceLocator(serviceLocator),
     m_bookmarkManager(serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager")),
-    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
     m_clearHistoryDialog(nullptr),
     m_tabWidget(nullptr),
     m_bookmarkDialog(nullptr),

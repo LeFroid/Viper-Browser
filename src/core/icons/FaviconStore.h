@@ -2,11 +2,11 @@
 #define FAVICONSTORAGE_H
 
 #include "DatabaseWorker.h"
+#include "FaviconTypes.h"
 #include "LRUCache.h"
 
 #include <map>
 #include <memory>
-#include <mutex>
 #include <QHash>
 #include <QIcon>
 #include <QSet>
@@ -14,68 +14,45 @@
 #include <QString>
 #include <QUrl>
 
-class NetworkAccessManager;
-class QNetworkReply;
-
-/// Stores information about a favicon
-struct FaviconInfo
-{
-    /// The icon's FaviconID from the Favicons table (which stores the URL of the favicon on the host server)
-    int iconID;
-
-    /// The icon's DataID from the FaviconData table (used to access the icon)
-    int dataID;
-
-    /// The favicon
-    QIcon icon;
-
-    /// Set of URLs the user has visited in the most recent session that use the favicon
-    QSet<QString> urlSet;
-};
-
 /**
  * @class FaviconStore
  * @brief Maintains a record of favicons from websites frequented by the user
  */
-class FaviconStore : public QObject, private DatabaseWorker
+class FaviconStore : public DatabaseWorker
 {
     friend class DatabaseFactory;
-
-    Q_OBJECT
 
 public:
     /**
      * @brief FaviconStore Constructs the Favicon storage object
      * @param databaseFile Path of the favicon database file
      */
-    FaviconStore(const QString &databaseFile, QObject *parent = nullptr);
+    FaviconStore(const QString &databaseFile);
 
     /// Destroys the favicon storage object, saving data to the favicon database
-    virtual ~FaviconStore();
+    ~FaviconStore();
 
-    /// Returns the favicon associated with the given URL if found in the database, otherwise
-    /// returns an empty icon. If useCache is set to true, the url:icon mapping is stored in a LRUCache
-    QIcon getFavicon(const QUrl &url, bool useCache = false);
+    /// Returns the Id of the favicon associated with the given URL
+    int getFaviconId(const QUrl &url);
 
-    /**
-     * @brief Attempts to update favicon for a specific URL in the database.
-     * @param iconHRef The location in which the favicon is stored.
-     * @param pageUrl The URL of the page displaying the favicon.
-     * @param pageIcon The favicon on the page.
-     */
-    void updateIcon(const QString &iconHRef, const QUrl &pageUrl, QIcon pageIcon = QIcon());
+    /// Returns the identifier of the favicon associated with the given data URL (ie the URL of the icon itself)
+    int getFaviconIdForIconUrl(const QUrl &url);
 
-private slots:
-    /// Called after the request for a favicon has been completed
-    void onReplyFinished();
+    /// Returns the icon data for the favicon with the given identifier, or an empty
+    /// byte array if it could not be found
+    QByteArray getIconData(int faviconId) const;
+
+    /// Returns a reference to the icon data structure associated with the given favicon ID,
+    /// inserting a new record if it was not found.
+    FaviconData &getDataRecord(int faviconId);
+
+    /// Saves the given record to the database
+    void saveDataRecord(FaviconData &dataRecord);
+
+    /// Maps the given web page to a favicon, referenced by its unique ID
+    void addPageMapping(const QUrl &webPageUrl, int faviconId);
 
 private:
-    /// Converts the given url into a string that is of a consistent format across the favicon storage system
-    QString getUrlAsString(const QUrl &url) const;
-
-    /// Saves the specific favicon with its URL and data structure into the database
-    void saveToDB(const QString &faviconUrl, const FaviconInfo &favicon);
-
     /// Instantiates the stored query objects
     void setupQueries();
 
@@ -104,14 +81,19 @@ private:
     };
 
 private:
-    /// Network access manager - used to fetch favicons
-    NetworkAccessManager *m_accessMgr;
+    /// Mapping of unique favicon IDs to their respective data URLs
+    FaviconOriginMap m_originMap;
 
-    /// Network reply pointer for favicon requests
-    QNetworkReply *m_reply;
+    /// Mapping of unique favicon IDs to their icon data containers
+    FaviconDataMap m_iconDataMap;
+
+    /// Mapping of visited URLs to their corresponding favicon IDs
+    WebPageIconMap m_webPageMap;
+
+    //==
 
     /// Hash map of favicon URLs to their data in a \ref FaviconInfo structure
-    QHash<QString, FaviconInfo> m_favicons;
+    QHash<QUrl, FaviconInfo> m_favicons;
 
     /// Used when adding new records to the favicon table
     int m_newFaviconID;
@@ -122,11 +104,15 @@ private:
     /// Map of query types to pointers of commonly used prepared statements
     std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
 
-    /// Cache of most recently visited URLs and the icons associated with those pages
-    LRUCache<std::string, QIcon> m_iconCache;
+    /*
+/// Represents the \ref FaviconOrigin structure as a map. Key = favicon Id, value = URL of icon
+using FaviconOriginMap = std::map<int, QUrl>;
 
-    /// Mutex
-    mutable std::mutex m_mutex;
+/// Represents the \ref FaviconData structure as a map. Key = favicon Id (same as FaviconOriginMap), value = FaviconData structure
+using FaviconDataMap = std::map<int, FaviconData>;
+
+/// Represents the \ref FaviconMap as a hash map. Key = URL of the web page, value = unique identifier of the favicon.
+using WebPageIconMap = QHash<QUrl, int>;*/
 };
 
 #endif // FAVICONSTORAGE_H

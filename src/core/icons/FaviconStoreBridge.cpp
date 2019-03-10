@@ -1,12 +1,13 @@
 #include "BrowserApplication.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "FaviconStoreBridge.h"
 #include "WebPage.h"
+#include <QUrl>
 
-FaviconStoreBridge::FaviconStoreBridge(FaviconStore *faviconStore, WebPage *parent) :
+FaviconStoreBridge::FaviconStoreBridge(FaviconManager *faviconManager, WebPage *parent) :
     QObject(parent),
     m_page(parent),
-    m_faviconStore(faviconStore)
+    m_faviconManager(faviconManager)
 {
 }
 
@@ -19,5 +20,5 @@ void FaviconStoreBridge::updateIconUrl(const QString &faviconUrl)
     if (faviconUrl.isEmpty())
         return;
 
-    m_faviconStore->updateIcon(faviconUrl, m_page->url(), m_page->icon());
+    m_faviconManager->updateIcon(QUrl(faviconUrl), m_page->url(), m_page->icon());
 }

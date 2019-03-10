@@ -1,4 +1,4 @@
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "WebHistory.h"
 #include "WebPage.h"
 #include "WebView.h"
@@ -8,26 +8,26 @@
 
 const QString WebHistory::SerializationVersion = QStringLiteral("WebHistory_2.0");
 
-WebHistoryEntry::WebHistoryEntry(FaviconStore *faviconStore, const WebHistoryEntryImpl &impl) :
+WebHistoryEntry::WebHistoryEntry(FaviconManager *faviconManager, const WebHistoryEntryImpl &impl) :
     icon(),
     title(impl.title()),
     url(impl.url()),
     visitTime(impl.lastVisited()),
     impl(impl)
 {
-    if (faviconStore)
+    if (faviconManager)
     {
-        const QUrl iconUrl = impl.iconUrl();
-        if (!iconUrl.isEmpty() && iconUrl.isValid())
-            icon = faviconStore->getFavicon(iconUrl);
-        else if (!url.isEmpty() && url.isValid())
-            icon = faviconStore->getFavicon(url);
+        QUrl iconUrl = impl.iconUrl();
+        if (iconUrl.isEmpty() || !iconUrl.isValid())
+            iconUrl = url;
+
+        icon = faviconManager->getFavicon(iconUrl);
     }
 }
 
 WebHistory::WebHistory(const ViperServiceLocator &serviceLocator, WebPage *parent) :
     QObject(parent),
-    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
+    m_faviconManager(serviceLocator.getServiceAs<FaviconManager>("FaviconManager")),
     m_page(parent),
     m_impl(nullptr)
 {
@@ -78,7 +78,7 @@ std::vector<WebHistoryEntry> WebHistory::getBackEntries(int maxEntries) const
 
     auto backEntries = maxEntries > 0 ? m_impl->backItems(maxEntries) : m_impl->backItems(10);
     for (const auto &entry : backEntries)
-        result.push_back(WebHistoryEntry(m_faviconStore,entry));
+        result.push_back(WebHistoryEntry(m_faviconManager, entry));
 
     return result;
 }
@@ -91,7 +91,7 @@ std::vector<WebHistoryEntry> WebHistory::getForwardEntries(int maxEntries) const
 
     auto forwardEntries = maxEntries > 0 ? m_impl->forwardItems(maxEntries) : m_impl->forwardItems(10);
     for (const auto &entry : forwardEntries)
-        result.push_back(WebHistoryEntry(m_faviconStore,entry));
+        result.push_back(WebHistoryEntry(m_faviconManager, entry));
 
     return result;
 }

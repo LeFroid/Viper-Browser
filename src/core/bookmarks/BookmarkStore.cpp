@@ -1,7 +1,7 @@
 #include "BookmarkNode.h"
 #include "BookmarkManager.h"
 #include "BookmarkStore.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 
 #include <deque>
 #include <iterator>
@@ -18,9 +18,9 @@ BookmarkStore::BookmarkStore(const ViperServiceLocator &serviceLocator, const QS
     DatabaseWorker(databaseFile, QLatin1String("Bookmarks")),
     m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks"))),
     m_nodeManager(new BookmarkManager(serviceLocator, this)),
-    m_faviconStore(nullptr)
+    m_faviconManager(nullptr)
 {
-    m_faviconStore = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+    m_faviconManager = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
 
     setObjectName(QLatin1String("BookmarkStore"));
 
@@ -174,7 +174,7 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
                 case BookmarkNode::Bookmark:
                     subNode->setURL(query.value(3).toString());
                     subNode->setShortcut(query.value(4).toString());
-                    subNode->setIcon(m_faviconStore ? m_faviconStore->getFavicon(subNode->m_url) : QIcon());
+                    subNode->setIcon(m_faviconManager ? m_faviconManager->getFavicon(subNode->m_url) : QIcon());
                     break;
             }
         }

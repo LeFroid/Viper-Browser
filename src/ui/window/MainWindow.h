@@ -30,7 +30,6 @@ class BookmarkDialog;
 class BookmarkWidget;
 class BrowserTabWidget;
 class ClearHistoryDialog;
-class FaviconStore;
 class HttpRequest;
 class SearchEngineLineEdit;
 class URLLineEdit;
@@ -230,9 +229,6 @@ private:
 
     /// Bookmark manager
     BookmarkManager *m_bookmarkManager;
-
-    /// Pointer to the favicon store
-    FaviconStore *m_faviconStore;
 
     /// Dialog used to clear recent history, cookies, etc.
     ClearHistoryDialog *m_clearHistoryDialog;

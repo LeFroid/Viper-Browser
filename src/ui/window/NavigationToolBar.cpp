@@ -3,7 +3,7 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BrowserTabWidget.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "MainWindow.h"
 #include "NavigationToolBar.h"
 #include "SearchEngineLineEdit.h"
@@ -26,8 +26,7 @@ NavigationToolBar::NavigationToolBar(const QString &title, QWidget *parent) :
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
     m_splitter(nullptr),
-    m_adBlockButton(nullptr),
-    m_faviconStore(nullptr)
+    m_adBlockButton(nullptr)
 {
     setupUI();
 }
@@ -40,8 +39,7 @@ NavigationToolBar::NavigationToolBar(QWidget *parent) :
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
     m_splitter(nullptr),
-    m_adBlockButton(nullptr),
-    m_faviconStore(nullptr)
+    m_adBlockButton(nullptr)
 {
     setupUI();
 }
@@ -77,7 +75,7 @@ void NavigationToolBar::setMinHeights(int size)
 
 void NavigationToolBar::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
-    m_faviconStore = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+    m_searchEngineLineEdit->setFaviconManager(serviceLocator.getServiceAs<FaviconManager>("FaviconManager"));
 
     m_adBlockButton->setAdBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
     m_urlInput->setServiceLocator(serviceLocator);

@@ -34,6 +34,7 @@ set(viper_src
     history/HistoryTableModel.cpp
     history/URLRecord.cpp
     history/WebPageThumbnailStore.cpp
+    icons/FaviconManager.cpp
     icons/FaviconStore.cpp
     icons/FaviconStoreBridge.cpp
     network/BlockedSchemeHandler.cpp

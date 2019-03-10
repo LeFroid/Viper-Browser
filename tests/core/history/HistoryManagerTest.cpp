@@ -31,13 +31,6 @@ private slots:
             QFile::remove(m_dbFile);
     }
 
-    /// Called before every test function. Instantiates the history manager since this
-    /// requires a fair amount of code and would otherwise be too repetitive.
-    void init()
-    {
-
-    }
-
     /// Called after every test function. This closes the DB connection and deallocates / clears
     /// the HistoryStore instance
     void cleanup()

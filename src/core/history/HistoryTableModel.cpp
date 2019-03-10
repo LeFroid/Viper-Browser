@@ -1,13 +1,13 @@
 #include "HistoryTableModel.h"
 #include "HistoryManager.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 
 #include <utility>
 
 HistoryTableModel::HistoryTableModel(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QAbstractTableModel(parent),
     m_historyManager(serviceLocator.getServiceAs<HistoryManager>("HistoryManager")),
-    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
+    m_faviconManager(serviceLocator.getServiceAs<FaviconManager>("FaviconManager")),
     m_targetDate(),
     m_loadedDate(),
     m_commonData(),
@@ -78,7 +78,7 @@ void HistoryTableModel::onHistoryFetched(std::vector<URLRecord> &&entries)
         HistoryTableItem tableItem;
         tableItem.Title = it.getTitle();
         tableItem.URL = it.getUrl().toString();
-        tableItem.Favicon = m_faviconStore->getFavicon(it.getUrl()).pixmap(16, 16);
+        tableItem.Favicon = m_faviconManager->getFavicon(it.getUrl()).pixmap(16, 16);
         m_commonData.push_back(tableItem);
 
         int itemIndex = static_cast<int>(m_commonData.size()) - 1;

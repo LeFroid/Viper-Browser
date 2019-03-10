@@ -1,5 +1,5 @@
 #include "HistoryMenu.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "HistoryManager.h"
 
 #include <QAction>
@@ -11,7 +11,7 @@
 HistoryMenu::HistoryMenu(QWidget *parent) :
     QMenu(parent),
     m_historyManager(nullptr),
-    m_faviconStore(nullptr),
+    m_faviconManager(nullptr),
     m_actionShowHistory(nullptr),
     m_actionClearHistory(nullptr)
 {
@@ -20,7 +20,7 @@ HistoryMenu::HistoryMenu(QWidget *parent) :
 HistoryMenu::HistoryMenu(const QString &title, QWidget *parent) :
     QMenu(title, parent),
     m_historyManager(nullptr),
-    m_faviconStore(nullptr),
+    m_faviconManager(nullptr),
     m_actionShowHistory(nullptr),
     m_actionClearHistory(nullptr)
 {
@@ -33,7 +33,7 @@ HistoryMenu::~HistoryMenu()
 void HistoryMenu::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
     m_historyManager = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
-    m_faviconStore   = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+    m_faviconManager = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
 
     setup();
 }
@@ -89,17 +89,25 @@ void HistoryMenu::resetItems()
     clearItems();
 
     const std::deque<HistoryEntry> &historyItems = m_historyManager->getRecentItems();
-    for (auto &it : historyItems)
+    for (auto it = historyItems.begin(); it != historyItems.end(); ++it)
     {
-        if (!it.Title.isEmpty())
-            addHistoryItem(it.URL, it.Title, m_faviconStore ? m_faviconStore->getFavicon(it.URL) : QIcon());
+        if (it->Title.isEmpty())
+            continue;
+
+        if (m_faviconManager)
+            addHistoryItem(it->URL, it->Title, m_faviconManager->getFavicon(it->URL));
     }
 }
 
 void HistoryMenu::onPageVisited(const QUrl &url, const QString &title)
 {
-    QIcon favicon = m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon();
-    prependHistoryItem(url, title, favicon);
+    if (!m_faviconManager)
+    {
+        prependHistoryItem(url, title, QIcon());
+        return;
+    }
+
+    prependHistoryItem(url, title, m_faviconManager->getFavicon(url));
 }
 
 void HistoryMenu::setup()

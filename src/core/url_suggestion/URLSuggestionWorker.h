@@ -15,7 +15,7 @@
 #include <QStringList>
 
 class BookmarkManager;
-class FaviconStore;
+class FaviconManager;
 class HistoryManager;
 
 /**
@@ -95,7 +95,7 @@ private:
     BookmarkManager *m_bookmarkManager;
 
     /// Gathers icons which are sent in the suggestion results
-    FaviconStore *m_faviconStore;
+    FaviconManager *m_faviconManager;
 
     /// Used to determine history-based matches
     HistoryManager *m_historyManager;

@@ -23,7 +23,7 @@ class CookieJar;
 class CookieWidget;
 class DownloadManager;
 class ExtStorage;
-class FaviconStore;
+class FaviconManager;
 class FavoritePagesManager;
 class HistoryManager;
 class MainWindow;
@@ -68,8 +68,8 @@ public:
     /// Returns the download manager
     DownloadManager *getDownloadManager();
 
-    /// Returns the favicon storage manager
-    FaviconStore *getFaviconStore();
+    /// Returns a pointer to the favicon manager
+    FaviconManager *getFaviconManager();
 
     /// Returns the network access manager
     NetworkAccessManager *getNetworkAccessManager();
@@ -144,8 +144,8 @@ private:
     /// Download manager
     DownloadManager *m_downloadMgr;
 
-    /// Favicon storage manager
-    std::unique_ptr<FaviconStore> m_faviconStorage;
+    /// Favicon manager
+    FaviconManager *m_faviconMgr;
 
     /// Web history manager
     HistoryManager *m_historyMgr;
@@ -189,7 +189,7 @@ private:
     /// Web page thumbnail storage manager
     std::unique_ptr<WebPageThumbnailStore> m_thumbnailStore;
 
-    /// Service locator - stores the bookmark manager, history manager, favicon store, and other important services
+    /// Service locator - stores the bookmark manager, history manager, favicon manager, and other important services
     ViperServiceLocator m_serviceLocator;
 
     /// Database worker task scheduler

@@ -1,7 +1,9 @@
 #include "BrowserApplication.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "HttpRequest.h"
 #include "SearchEngineLineEdit.h"
+
+#include <functional>
 
 #include <QMenu>
 #include <QResizeEvent>
@@ -31,9 +33,6 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
                           "QLineEdit:focus { border: 1px solid #6c91ff; }").arg(m_searchButton->sizeHint().width() + 6));
     setPlaceholderText(tr("Search"));
 
-    // Load search engines
-    loadSearchEngines();
-
     // Set behavior of line edit
     connect(this, &SearchEngineLineEdit::returnPressed, [=](){
         QString term = text();
@@ -51,21 +50,25 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
     connect(manager, &SearchEngineManager::engineRemoved, this, &SearchEngineLineEdit::removeSearchEngine);
 }
 
+void SearchEngineLineEdit::setFaviconManager(FaviconManager *faviconManager)
+{
+    m_faviconManager = faviconManager;
+    loadSearchEngines();
+}
+
 void SearchEngineLineEdit::loadSearchEngines()
 {
     m_searchEngineMenu = new QMenu(this);
 
-    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
     SearchEngineManager &manager = SearchEngineManager::instance();
     QList<QString> searchEngines = manager.getSearchEngineNames();
 
     // Add search engines to the options menu
     for (auto engineName : searchEngines)
     {
-        QIcon menuIcon = faviconStore->getFavicon(QUrl(manager.getQueryString(engineName)));
-
         // Add search engine to the options menu
-        QAction *action = m_searchEngineMenu->addAction(menuIcon, engineName);
+        QIcon icon = m_faviconManager->getFavicon(QUrl(manager.getQueryString(engineName)));
+        QAction *action = m_searchEngineMenu->addAction(icon, engineName);
         connect(action, &QAction::triggered, [=]() {
             setSearchEngine(action->text());
         });
@@ -90,11 +93,11 @@ void SearchEngineLineEdit::setSearchEngine(const QString &name)
 
 void SearchEngineLineEdit::addSearchEngine(const QString &name)
 {
-    FaviconStore *faviconStore = sBrowserApplication->getFaviconStore();
-    QIcon menuIcon = faviconStore->getFavicon(QUrl(SearchEngineManager::instance().getQueryString(name)));
+    if (!m_faviconManager)
+        return;
 
-    // Add search engine to the options menu
-    QAction *action = m_searchEngineMenu->addAction(menuIcon, name);
+    QIcon icon = m_faviconManager->getFavicon(QUrl(SearchEngineManager::instance().getQueryString(name)));
+    QAction *action = m_searchEngineMenu->addAction(icon, name);
     connect(action, &QAction::triggered, [=]() {
         setSearchEngine(action->text());
     });

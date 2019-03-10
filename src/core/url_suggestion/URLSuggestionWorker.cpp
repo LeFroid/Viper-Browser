@@ -1,7 +1,7 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "FastHash.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "HistoryManager.h"
 #include "URLSuggestionWorker.h"
 
@@ -23,7 +23,7 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     m_differenceHash(0),
     m_searchTermHash(0),
     m_bookmarkManager(nullptr),
-    m_faviconStore(nullptr),
+    m_faviconManager(nullptr),
     m_historyManager(nullptr)
 {
     m_suggestionWatcher = new QFutureWatcher<void>(this);
@@ -55,7 +55,7 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
 void URLSuggestionWorker::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
     m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
-    m_faviconStore    = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+    m_faviconManager  = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
     m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
 }
 
@@ -64,7 +64,7 @@ void URLSuggestionWorker::searchForHits()
     m_working.store(true);
     m_suggestions.clear();
 
-    if (!m_bookmarkManager || !m_faviconStore || !m_historyManager)
+    if (!m_bookmarkManager || !m_faviconManager || !m_historyManager)
     {
         m_working.store(false);
         return;
@@ -116,7 +116,7 @@ void URLSuggestionWorker::searchForHits()
 
         if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
         {
-            auto suggestion = URLSuggestion(m_faviconStore->getFavicon(it.getUrl()), it.getTitle(), url, false, it.getNumVisits());
+            auto suggestion = URLSuggestion(m_faviconManager->getFavicon(it.getUrl()), it.getTitle(), url, false, it.getNumVisits());
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)

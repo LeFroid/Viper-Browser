@@ -10,6 +10,7 @@
 #include "DatabaseFactory.h"
 #include "DownloadManager.h"
 #include "ExtStorage.h"
+#include "FaviconManager.h"
 #include "FaviconStore.h"
 #include "FavoritePagesManager.h"
 #include "HistoryManager.h"
@@ -59,8 +60,12 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     registerService(m_settings);
 
     // Initialize favicon storage module
-    m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
-    registerService(m_faviconStorage.get());
+    //m_databaseScheduler.addWorker("FaviconStore",
+    //                              std::bind(DatabaseFactory::createDBWorker<FaviconStore>, m_settings->getPathValue(BrowserSetting::FaviconPath)));
+    m_faviconMgr = new FaviconManager(m_settings->getPathValue(BrowserSetting::FaviconPath));
+    registerService(m_faviconMgr);
+    //m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
+    //registerService(m_faviconStorage.get());
 
     // Initialize bookmarks store 
     m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::BookmarkPath));
@@ -114,6 +119,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     registerService(m_networkAccessMgr);
 
     m_downloadMgr->setNetworkAccessManager(m_networkAccessMgr);
+    m_faviconMgr->setNetworkAccessManager(m_networkAccessMgr);
 
     // Setup user agent manager before settings
     m_userAgentMgr = new UserAgentManager(m_settings);
@@ -172,6 +178,7 @@ BrowserApplication::~BrowserApplication()
     delete m_historyMgr;
     delete m_adBlockManager;
     delete m_webSettings;
+    delete m_faviconMgr;
     delete m_settings;
 }
 
@@ -195,9 +202,9 @@ DownloadManager *BrowserApplication::getDownloadManager()
     return m_downloadMgr;
 }
 
-FaviconStore *BrowserApplication::getFaviconStore()
+FaviconManager *BrowserApplication::getFaviconManager()
 {
-    return m_faviconStorage.get();
+    return m_faviconMgr;
 }
 
 NetworkAccessManager *BrowserApplication::getNetworkAccessManager()
@@ -403,6 +410,12 @@ void BrowserApplication::beforeBrowserQuit()
 
     if (!windows.empty() && mode == StartupMode::RestoreSession && !m_sessionMgr.alreadySaved())
         m_sessionMgr.saveState(windows);
+
+    for (QPointer<MainWindow> &win : m_browserWindows)
+    {
+        if (!win.isNull())
+            win->close();
+    }
 }
 
 void BrowserApplication::maybeSaveSession()

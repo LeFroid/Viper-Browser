@@ -7,6 +7,7 @@
 #include <QLineEdit>
 #include <QUrl>
 
+class FaviconManager;
 class HttpRequest;
 class QMenu;
 class QToolButton;
@@ -20,9 +21,13 @@ class QToolButton;
 class SearchEngineLineEdit : public QLineEdit
 {
     Q_OBJECT
+
 public:
     /// Constructs the search engine line edit with a given parent widget
     explicit SearchEngineLineEdit(QWidget *parent = nullptr);
+
+    /// Sets the pointer to the favicon manager
+    void setFaviconManager(FaviconManager *faviconManager);
 
 signals:
     /// Emitted when the user enters a search term and the current browser tab should load the given request
@@ -54,6 +59,9 @@ private:
     void loadSearchEngines();
 
 private:
+    /// Favicon manager
+    FaviconManager *m_faviconManager;
+
     /// Button indicating that the line edit is used for querying a selected search engine
     QToolButton *m_searchButton;
 

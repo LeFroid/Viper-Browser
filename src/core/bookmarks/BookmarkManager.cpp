@@ -1,7 +1,7 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BookmarkStore.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 
 #include <deque>
 #include <memory>
@@ -12,7 +12,7 @@ BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, QObj
     QObject(parent),
     m_rootNode(nullptr),
     m_bookmarkBar(nullptr),
-    m_faviconStore(nullptr),
+    m_faviconManager(nullptr),
     m_lookupCache(24),
     m_nodeList(),
     m_canUpdateList(true),
@@ -21,7 +21,7 @@ BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, QObj
     m_nodeListFuture(),
     m_mutex()
 {
-    m_faviconStore = serviceLocator.getServiceAs<FaviconStore>("FaviconStore");
+    m_faviconManager = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
     setObjectName(QLatin1String("BookmarkManager"));
 }
 
@@ -116,7 +116,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, Bookm
     BookmarkNode *bookmark = folder->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name));
     bookmark->setUniqueId(bookmarkId);
     bookmark->setURL(url);
-    bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
+    bookmark->setIcon(m_faviconManager ? m_faviconManager->getFavicon(url) : QIcon());
 
     m_numBookmarks++;
 
@@ -142,7 +142,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QUrl &url, Bookm
     BookmarkNode *bookmark = folder->insertNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, name), position);
     bookmark->setUniqueId(bookmarkId);
     bookmark->setURL(url);
-    bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
+    bookmark->setIcon(m_faviconManager ? m_faviconManager->getFavicon(url) : QIcon());
 
     m_numBookmarks++;
 
@@ -367,7 +367,7 @@ void BookmarkManager::setBookmarkURL(BookmarkNode *bookmark, const QUrl &url)
         m_lookupCache.put(oldUrlStr, nullptr);
 
     bookmark->setURL(url);
-    bookmark->setIcon(m_faviconStore ? m_faviconStore->getFavicon(url) : QIcon());
+    bookmark->setIcon(m_faviconManager ? m_faviconManager->getFavicon(url) : QIcon());
 
     emit bookmarkChanged(bookmark);
 }

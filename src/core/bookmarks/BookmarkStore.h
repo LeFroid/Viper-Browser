@@ -16,7 +16,7 @@
 
 class BookmarkNode;
 class BookmarkManager;
-class FaviconStore;
+class FaviconManager;
 
 /**
  * @defgroup Bookmarks Bookmark System
@@ -86,8 +86,8 @@ private:
     /// Handles in-app management of bookmarks
     BookmarkManager *m_nodeManager;
 
-    /// Pointer to the favicon store
-    FaviconStore *m_faviconStore;
+    /// Pointer to the favicon manager
+    FaviconManager *m_faviconManager;
 };
 
 #endif // BOOKMARKSTORE_H

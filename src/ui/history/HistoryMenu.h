@@ -7,7 +7,7 @@
 #include <QMenu>
 #include <QUrl>
 
-class FaviconStore;
+class FaviconManager;
 class HistoryManager;
 
 /**
@@ -31,7 +31,7 @@ public:
     virtual ~HistoryMenu();
 
     /// Passes a reference to the service locator, which allows the history menu
-    /// to gather its dependencies on the \ref HistoryManager and \ref FaviconStore
+    /// to gather its dependencies on the \ref HistoryManager and \ref FaviconManager
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
     /// Adds an item to the history menu, given a name, title and favicon
@@ -66,8 +66,8 @@ protected:
     /// History manager
     HistoryManager *m_historyManager;
 
-    /// Favicon store
-    FaviconStore *m_faviconStore;
+    /// Favicon manager
+    FaviconManager *m_faviconManager;
 
     /// "Show all history" menu action
     QAction *m_actionShowHistory;

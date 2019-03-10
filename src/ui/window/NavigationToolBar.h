@@ -5,7 +5,6 @@
 #include <QToolBar>
 
 class AdBlockButton;
-class FaviconStore;
 class MainWindow;
 class SearchEngineLineEdit;
 class URLLineEdit;
@@ -49,7 +48,7 @@ signals:
     void clickedAdBlockButton();
 
 protected:
-    /// Passes a reference to the browser service locator, used to fetch instances of the \ref AdBlockManager and \ref FaviconStore
+    /// Passes a reference to the browser service locator, used to fetch instances of the \ref AdBlockManager and \ref FaviconManager
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
 private:
@@ -93,9 +92,6 @@ private:
 
     /// Button that is used to show information about advertisements being blocked on the current page
     AdBlockButton *m_adBlockButton;
-
-    /// Favicon store - needed to assign icons to the history button menus
-    FaviconStore *m_faviconStore;
 };
 
 #endif // NAVIGATIONTOOLBAR_H

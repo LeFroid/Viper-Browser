@@ -20,7 +20,6 @@
 HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler) :
     QObject(nullptr),
     m_taskScheduler(taskScheduler),
-    m_lastVisitID(0),
     m_historyItems(),
     m_recentItems(),
     m_storagePolicy(HistoryStoragePolicy::Remember),

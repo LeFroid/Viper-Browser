@@ -11,7 +11,7 @@
 #include <QUrl>
 
 class BrowserTabBar;
-class FaviconStore;
+class FaviconManager;
 class HttpRequest;
 class MainWindow;
 class QMenu;
@@ -174,8 +174,8 @@ private:
     /// Service locator
     const ViperServiceLocator &m_serviceLocator;
 
-    /// Pointer to the favicon store
-    FaviconStore *m_faviconStore;
+    /// Pointer to the favicon manager
+    FaviconManager *m_faviconManager;
 
     /// Private browsing flag
     bool m_privateBrowsing;

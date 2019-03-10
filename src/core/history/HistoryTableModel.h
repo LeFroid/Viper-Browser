@@ -12,7 +12,7 @@
 #include <QUrl>
 
 class HistoryManager;
-class FaviconStore;
+class FaviconManager;
 
 /**
  * @struct HistoryTableItem
@@ -88,8 +88,8 @@ private:
     /// History manager
     HistoryManager *m_historyManager;
 
-    /// Favicon store
-    FaviconStore *m_faviconStore;
+    /// Favicon manager
+    FaviconManager *m_faviconManager;
 
     /// Date-time requested from the last call to loadFromDate(..) - when the date is older than 24 hours, it is loaded incrementially
     QDateTime m_targetDate;

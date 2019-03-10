@@ -13,7 +13,7 @@
 #include <QObject>
 
 class BookmarkNode;
-class FaviconStore;
+class FaviconManager;
 
 /**
  * @class BookmarkManager
@@ -149,8 +149,8 @@ private:
     /// Holds a pointer to the bookmark bar node in the bookmark tree
     BookmarkNode *m_bookmarkBar;
 
-    /// Pointer to the favicon store
-    FaviconStore *m_faviconStore;
+    /// Pointer to the favicon manager
+    FaviconManager *m_faviconManager;
 
     /// Cache of bookmark nodes that were recently searched for within the application
     LRUCache<std::string, BookmarkNode*> m_lookupCache;

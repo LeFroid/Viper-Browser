@@ -128,9 +128,6 @@ private:
     /// Reference to the task scheduler. Needed to queue work for the \ref HistoryStore
     DatabaseTaskScheduler &m_taskScheduler;
 
-    /// Stores the last visit ID that has been used to record browsing history. Auto increments for each new history item
-    uint64_t m_lastVisitID;
-
     /// Hash map of history URL strings to their corresponding data structure
     QHash<QString, URLRecord> m_historyItems;
 

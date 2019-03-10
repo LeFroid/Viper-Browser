@@ -2,7 +2,7 @@
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "BrowserTabBar.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "MainWindow.h"
 #include "WebPage.h"
 #include "WebView.h"
@@ -18,7 +18,7 @@ BrowserTabWidget::BrowserTabWidget(const ViperServiceLocator &serviceLocator, bo
     QTabWidget(parent),
     m_settings(serviceLocator.getServiceAs<Settings>("Settings")),
     m_serviceLocator(serviceLocator),
-    m_faviconStore(serviceLocator.getServiceAs<FaviconStore>("FaviconStore")),
+    m_faviconManager(serviceLocator.getServiceAs<FaviconManager>("FaviconManager")),
     m_privateBrowsing(privateMode),
     m_activeView(nullptr),
     m_tabBar(new BrowserTabBar(this)),
@@ -232,7 +232,7 @@ WebWidget *BrowserTabWidget::createWebWidget()
     if (!m_privateBrowsing)
     {
         connect(ww, &WebWidget::iconUrlChanged, [=](const QUrl &url) {
-            m_faviconStore->updateIcon(url.toString(QUrl::FullyEncoded), ww->url(), ww->getIcon());
+            m_faviconManager->updateIcon(url, ww->url(), ww->getIcon());
         });
     }
 
@@ -320,10 +320,10 @@ void BrowserTabWidget::onIconChanged(const QIcon &icon)
     if (tabIndex < 0 || !ww)
         return;
 
-    if (!icon.isNull())
-        setTabIcon(tabIndex, icon);
+    if (icon.isNull())
+        setTabIcon(tabIndex, m_faviconManager->getFavicon(ww->url()));
     else
-        setTabIcon(tabIndex, m_faviconStore->getFavicon(ww->url(), true));
+        setTabIcon(tabIndex, icon);
 }
 
 
@@ -412,9 +412,10 @@ void BrowserTabWidget::onLoadFinished(bool ok)
     const QString pageTitle = ww->getTitle();
     QIcon icon = ww->getIcon();
     if (icon.isNull())
-        icon = m_faviconStore->getFavicon(ww->url(), true);
+        setTabIcon(tabIndex, m_faviconManager->getFavicon(ww->url()));
+    else
+        setTabIcon(tabIndex, icon);
 
-    setTabIcon(tabIndex, icon);
     setTabText(tabIndex, pageTitle);
     setTabToolTip(tabIndex, pageTitle);
 

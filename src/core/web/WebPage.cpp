@@ -6,7 +6,7 @@
 #include "BrowserTabWidget.h"
 #include "CommonUtil.h"
 #include "ExtStorage.h"
-#include "FaviconStore.h"
+#include "FaviconManager.h"
 #include "FaviconStoreBridge.h"
 #include "FavoritePagesManager.h"
 #include "MainWindow.h"
@@ -70,7 +70,7 @@ void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
     channel->registerObject(QLatin1String("extStorage"), serviceLocator.getServiceAs<ExtStorage>("storage"));
     channel->registerObject(QLatin1String("favoritePageManager"), serviceLocator.getServiceAs<FavoritePagesManager>("favoritePageManager"));
     channel->registerObject(QLatin1String("autofill"), new AutoFillBridge(autoFillManager, this));
-    channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(serviceLocator.getServiceAs<FaviconStore>("FaviconStore"), this));
+    channel->registerObject(QLatin1String("favicons"), new FaviconStoreBridge(serviceLocator.getServiceAs<FaviconManager>("FaviconManager"), this));
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
     connect(this, &WebPage::authenticationRequired,      this, &WebPage::onAuthenticationRequired);

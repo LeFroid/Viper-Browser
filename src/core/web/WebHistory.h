@@ -15,7 +15,7 @@
 #include <vector>
 
 class QAction;
-class FaviconStore;
+class FaviconManager;
 class WebPage;
 
 using WebHistoryEntryImpl = QWebEngineHistoryItem;
@@ -43,7 +43,7 @@ struct WebHistoryEntry
     WebHistoryEntryImpl impl;
 
     /// Constructs the history entry given a reference to the history entry implementation class
-    WebHistoryEntry(FaviconStore *faviconStore, const WebHistoryEntryImpl &impl);
+    WebHistoryEntry(FaviconManager *faviconManager, const WebHistoryEntryImpl &impl);
 };
 
 /**
@@ -105,8 +105,8 @@ public slots:
     void goToEntry(const WebHistoryEntry &entry);
 
 private:
-    /// Points to the favicon store
-    FaviconStore *m_faviconStore;
+    /// Points to the favicon manager
+    FaviconManager *m_faviconManager;
 
     /// Pointer to the web page
     WebPage *m_page;
