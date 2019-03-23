@@ -153,9 +153,11 @@ int main(int argc, char *argv[])
 
     std::string disableGpu = initSettings.getValue(AppInitKey::DisableGPU);
     std::vector<char> disableGpuBuffer(disableGpu.begin(), disableGpu.end());
+    disableGpuBuffer.resize(disableGpu.size() + 1);
 
     std::string processModel = initSettings.getValue(AppInitKey::ProcessModel);
     std::vector<char> processModelBuffer(processModel.begin(), processModel.end());
+    processModelBuffer.resize(processModel.size() + 1);
 
     if (!disableGpu.empty())
     {

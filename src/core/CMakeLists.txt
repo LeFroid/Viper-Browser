@@ -90,6 +90,7 @@ target_link_libraries(viper-core
     Qt5::QuickWidgets
     Qt5::Widgets
     Qt5::WebChannel
+    Qt5::WebEngineCore
     Qt5::WebEngineWidgets
 )
 

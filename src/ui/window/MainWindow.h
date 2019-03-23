@@ -46,6 +46,7 @@ class MainWindow : public QMainWindow
     friend class BrowserTabWidget;
     friend class NavigationToolBar;
     friend class SessionManager;
+    friend class TabBarMimeDelegate;
     friend class URLLineEdit;
     friend class WebPage;
     friend class WebView;

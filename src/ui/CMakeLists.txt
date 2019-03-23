@@ -54,6 +54,7 @@ set(viper_ui_src
     window/MainWindow.cpp
     window/NavigationToolBar.cpp
     window/SearchEngineLineEdit.cpp
+    window/TabBarMimeDelegate.cpp
     window/ToolMenu.cpp
     window/URLLineEdit.cpp
 )

@@ -33,7 +33,6 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
 
     if (!m_privateJar)
         loadExemptThirdParties();
-
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     connect(sBrowserApplication, &BrowserApplication::aboutToQuit, this, [this]() {
         if (m_store)
@@ -89,27 +88,29 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
 {
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     if (value)
+    {
         m_store->setCookieFilter(nullptr);
-    else
-        //matchDomain(domain, cookieDomain)
-        m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) {
-            if (request.thirdParty && m_enableCookies)
-            {
-                const QString originHost = request.origin.host();
-                for (auto &url : m_exemptParties)
-                {
-                    const QString urlHost = url.host();
-                    if (urlHost == originHost)
-                        return true;
+        return;
+    }
 
-                    const int domainIndex = originHost.indexOf(urlHost);
-                    if (domainIndex > 0 && originHost.at(domainIndex - 1) == QLatin1Char('.'))
-                        return true;
-                }
-                return false;
+    m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) -> bool {
+        if (request.thirdParty && m_enableCookies)
+        {
+            const QString originHost = request.origin.host();
+            for (auto &url : m_exemptParties)
+            {
+                const QString urlHost = url.host();
+                if (urlHost == originHost)
+                    return true;
+
+                const int domainIndex = originHost.indexOf(urlHost);
+                if (domainIndex > 0 && originHost.at(domainIndex - 1) == QLatin1Char('.'))
+                    return true;
             }
-            return m_enableCookies;
-        });
+            return false;
+        }
+        return m_enableCookies;
+    });
 #endif
 }
 

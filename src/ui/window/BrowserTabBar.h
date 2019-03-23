@@ -1,6 +1,7 @@
 #ifndef BROWSERTABBAR_H
 #define BROWSERTABBAR_H
 
+#include "TabBarMimeDelegate.h"
 #include "WebWidget.h"
 
 #include <map>
@@ -8,40 +9,6 @@
 #include <QUrl>
 
 class QToolButton;
-
-/// Used during BrowserTabBar's dragMoveEvent when a file is being dragged over the bar.
-/// A drop indicator arrow will be rendered in one of the following areas relative
-/// to the nearest tab.
-enum class DropIndicatorLocation
-{
-    Center,
-    Left,
-    Right
-};
-
-/**
- * @struct ExternalDropInfo
- * @brief Stores information about an external resource that's
- *        potentially going to be dropped onto the tab bar
- */
-struct ExternalDropInfo
-{
-    /// Location relative to the nearest tab
-    DropIndicatorLocation Location;
-
-    /// Index of the nearest tab
-    int NearestTabIndex;
-
-    /// Default constructor
-    ExternalDropInfo() : Location(DropIndicatorLocation::Center), NearestTabIndex(-1) {}
-
-    /// Constructs the object with a specific location and nearest tab index
-    ExternalDropInfo(DropIndicatorLocation location, int nearestTabIndex) :
-        Location(location),
-        NearestTabIndex(nearestTabIndex)
-    {
-    }
-};
 
 /**
  * @class BrowserTabBar
@@ -51,12 +18,17 @@ class BrowserTabBar : public QTabBar
 {
     Q_OBJECT
 
+    friend class TabBarMimeDelegate;
+
 public:
     /// Constructs the tab bar with a given parent widget
-    explicit BrowserTabBar(QWidget *parent = nullptr);
+    explicit BrowserTabBar(QWidget *parent);
 
     /// Returns true if the tab at the given index is pinned, false if else
     bool isTabPinned(int tabIndex) const;
+
+    /// Returns a pointer to the new tab button on the tab bar
+    QToolButton *getNewTabButton() const;
 
 signals:
     /// Emitted when the user chooses to duplicate the tab at the given index
@@ -125,12 +97,12 @@ protected:
     /// Resizes elements and shifts positions in the tab bar on resize events
     void resizeEvent(QResizeEvent *event) override;
 
+    /// Forces a repaint by changing the width of the tab bar by 1 pixel, then restoring to the original size
+    void forceRepaint();
+
 private:
     /// Moves the "New Tab" button so that it is aligned to the right of the last tab in the tab bar
     void moveNewTabButton();
-
-    /// Forces a repaint by changing the width of the tab bar by 1 pixel, then restoring to the original size
-    void forceRepaint();
 
 private:
     /// The "New Tab" button to the right of the last tab in the tab bar
@@ -150,6 +122,9 @@ private:
 
     /// Information about a drag and drop event from a resource external to the browser
     ExternalDropInfo m_externalDropInfo;
+
+    /// Handles drag-and-drop operations, and mouse events, that involve the transfer of MIME data
+    TabBarMimeDelegate m_mimeDelegate;
 
     /// Map of tab indexes to their pinned/unpinned state. If the value is true, the tab is pinned.
     std::map<int, bool> m_tabPinMap;

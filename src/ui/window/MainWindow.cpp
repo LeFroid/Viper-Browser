@@ -768,6 +768,9 @@ void MainWindow::dropEvent(QDropEvent *event)
         webWidget->setHibernation(event->mimeData()->property("tab-hibernating").toBool());
         webWidget->setWebState(std::move(webState));
         win->onTabChanged(0);
+
+        const int tabIndex = event->mimeData()->property("tab-index").toInt();
+        m_tabWidget->closeTab(tabIndex);
     }
     else
     {
