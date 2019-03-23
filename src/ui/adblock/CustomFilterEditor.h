@@ -24,6 +24,9 @@ public:
     /// CustomFilterEditor destructor
     ~CustomFilterEditor();
 
+    /// Loads the user blocking filters into the editor
+    void loadUserFilters();
+
 signals:
     /// Emitted when the user-specified filters have been modified and the editor is closed or is closing.
     /// Will result in a reload of the user's blocking filters
@@ -51,10 +54,6 @@ protected:
     /// Handles close events. If the filters have been modified without being saved, a dialog will appear
     /// asking if the user wishes to save their changes
     void closeEvent(QCloseEvent *event) override;
-
-private:
-    /// Loads the user blocking filters into the editor
-    void loadUserFilters();
 
 private:
     /// UI elements

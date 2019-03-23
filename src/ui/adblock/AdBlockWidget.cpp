@@ -100,6 +100,7 @@ void AdBlockWidget::editUserFilters()
     CustomFilterEditor *editor = new CustomFilterEditor;
     connect(editor, &CustomFilterEditor::createUserSubscription, m_adBlockManager, &AdBlockManager::createUserSubscription);
     connect(editor, &CustomFilterEditor::filtersModified, m_adBlockManager, &AdBlockManager::reloadSubscriptions);
+    editor->loadUserFilters();
     editor->show();
 }
 

@@ -38,8 +38,6 @@ CustomFilterEditor::CustomFilterEditor(QWidget *parent) :
     connect(ui->actionSave, &QAction::triggered, this, &CustomFilterEditor::saveFilters);
     connect(ui->actionFind, &QAction::triggered, this, &CustomFilterEditor::toggleFindTextWidget);
     connect(ui->actionClose, &QAction::triggered, this, &CustomFilterEditor::close);
-
-    loadUserFilters();
 }
 
 CustomFilterEditor::~CustomFilterEditor()
