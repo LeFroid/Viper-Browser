@@ -1,6 +1,7 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BookmarkStore.h"
+#include "CommonUtil.h"
 #include "FaviconManager.h"
 
 #include <deque>
@@ -58,7 +59,7 @@ BookmarkNode *BookmarkManager::getBookmark(const QUrl &url)
     for (BookmarkNode *node : m_nodeList)
     {
         if (node->getType() == BookmarkNode::Bookmark
-                && node->getURL() == url)
+                && CommonUtil::doUrlsMatch(url, node->getURL(), true))
             return node;
     }
 
@@ -85,13 +86,14 @@ bool BookmarkManager::isBookmarked(const QUrl &url)
             BookmarkNode *childNode = node.get();
             if (!childNode)
                 continue;
+
             if (childNode->getType() == BookmarkNode::Folder)
             {
                 queue.push_back(childNode);
                 continue;
             }
 
-            if (childNode->getURL() == url)
+            if (CommonUtil::doUrlsMatch(url, childNode->getURL(), true))
             {
                 m_lookupCache.put(urlStdStr, childNode);
                 return true;
@@ -197,7 +199,7 @@ void BookmarkManager::removeBookmark(const QUrl &url)
             continue;
 
         // Bookmark URLs are unique, once match is found, remove bookmark and return
-        if (node->getURL() == url)
+        if (CommonUtil::doUrlsMatch(url, node->getURL(), true))
         {
             removeBookmark(node);
             return;

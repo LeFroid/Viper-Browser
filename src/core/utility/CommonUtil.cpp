@@ -145,4 +145,27 @@ namespace CommonUtil
         converted.append(path);
         return QRegularExpression(converted);
     }
+
+    bool doUrlsMatch(const QUrl &a, const QUrl &b, bool ignoreScheme)
+    {
+        QString aString = a.toString().toLower(), bString = b.toString().toLower();
+
+        if (ignoreScheme)
+        {
+            QRegularExpression schemeExpr{QLatin1String("^[a-zA-Z]+://")};
+            aString.remove(schemeExpr);
+            bString.remove(schemeExpr);
+        }
+
+        QRegularExpression userInfoExpr{QLatin1String("^.*:.*@")};
+        aString.remove(userInfoExpr);
+        bString.remove(userInfoExpr);
+
+        if (aString.endsWith(QLatin1Char('/')))
+            aString = aString.left(aString.size() - 1);
+        if (bString.endsWith(QLatin1Char('/')))
+            bString = bString.left(bString.size() - 1);
+
+        return (aString.compare(bString) == 0);
+    }
 }

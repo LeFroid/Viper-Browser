@@ -7,6 +7,7 @@
 #include <QRegularExpression>
 #include <QString>
 #include <QtGlobal>
+#include <QUrl>
 
 /// Collection of common utility functions
 namespace CommonUtil
@@ -26,6 +27,9 @@ namespace CommonUtil
     /// Converts the match pattern into a QRegularExpression that can be applied to URLs
     /// See https://developer.chrome.com/extensions/match_patterns for match pattern specification
     QRegularExpression getRegExpForMatchPattern(const QString &str);
+
+    /// Returns true if the two URLs are the same, false otherwise.
+    bool doUrlsMatch(const QUrl &a, const QUrl &b, bool ignoreScheme = false);
 }
 
 #endif // COMMONUTIL_H

@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "CommonUtil.h"
 #include "HistoryStore.h"
 #include "Settings.h"
 #include "WebWidget.h"
@@ -321,7 +322,7 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
         qWarning() << "HistoryStore::addVisit - could not save visit to database. Error: "
                    << m_queryVisit->lastError().text();
 
-    if (!url.matches(requestedUrl, QUrl::RemoveScheme | QUrl::RemoveAuthority))
+    if (!CommonUtil::doUrlsMatch(url, requestedUrl, true))
     {
         QDateTime requestDateTime = visitTime.addMSecs(-100);
         if (!requestDateTime.isValid())

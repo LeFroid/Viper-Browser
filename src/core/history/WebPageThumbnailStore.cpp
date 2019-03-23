@@ -1,5 +1,6 @@
 #include "BookmarkNode.h"
 #include "BookmarkManager.h"
+#include "CommonUtil.h"
 #include "FavoritePagesManager.h"
 #include "HistoryManager.h"
 #include "WebPageThumbnailStore.h"
@@ -103,7 +104,7 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     }
 
     std::vector<QUrl> urls { originalUrl };
-    if (originalUrl.adjusted(QUrl::RemoveScheme) != url.adjusted(QUrl::RemoveScheme))
+    if (!CommonUtil::doUrlsMatch(originalUrl, url, true))
         urls.push_back(url);
 
     // Wait one second before trying to get the thumbnails, otherwise

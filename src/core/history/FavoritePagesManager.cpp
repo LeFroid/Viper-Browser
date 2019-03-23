@@ -188,7 +188,7 @@ void FavoritePagesManager::loadFromHistory()
     const int numResults = 10 + static_cast<int>(m_excludedPages.size());
     m_historyManager->loadMostVisitedEntries(numResults, [=](std::vector<WebPageInformation> &&results){
         int itemPosition = static_cast<int>(m_favoritePages.size());
-        m_mostVisitedPages = results;
+        m_mostVisitedPages = std::move(results);
         for (auto it = m_mostVisitedPages.begin(); it != m_mostVisitedPages.end();)
         {
             if (std::find(m_excludedPages.begin(), m_excludedPages.end(), it->URL) != m_excludedPages.end())

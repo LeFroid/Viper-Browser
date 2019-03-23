@@ -1,3 +1,4 @@
+#include "CommonUtil.h"
 #include "HistoryManager.h"
 #include "HistoryStore.h"
 #include "Settings.h"
@@ -138,7 +139,7 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
         m_recentItems.push_front(entry);
     }
 
-    if (!url.matches(requestedUrl, QUrl::RemoveScheme | QUrl::RemoveAuthority))
+    if (!CommonUtil::doUrlsMatch(requestedUrl, url))
     {
         visit = visitTime.addSecs(-1);
         //visit.VisitID = -1;

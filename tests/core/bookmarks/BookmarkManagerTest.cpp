@@ -31,6 +31,8 @@ private slots:
 
     void testChangingBookmarkParent();
 
+    void testBookmarkCheckWithTrailingSlash();
+
 private:
     /// Root node/folder used in bookmark management tests
     std::unique_ptr<BookmarkNode> m_root;
@@ -220,6 +222,15 @@ void BookmarkManagerTest::testChangingBookmarkParent()
     miscFolder = m_manager->setBookmarkParent(miscFolder, linkFolder);
     QVERIFY2(miscFolder->getParent() == m_root.get(), "Misc folder parent should be root");
     QVERIFY2(linkFolder->getParent() == miscFolder, "Link folder parent should be Misc folder");
+}
+
+void BookmarkManagerTest::testBookmarkCheckWithTrailingSlash()
+{
+    QUrl bookmarkUrl { QLatin1String("https://viper-browser.com/") };
+    QUrl compareToUrl { QLatin1String("https://viper-browser.com") };
+
+    m_manager->appendBookmark(QLatin1String("Viper Browser"), bookmarkUrl, m_root.get());
+    QVERIFY2(m_manager->isBookmarked(compareToUrl), "Bookmark manager should ignore trailing slashes when checking if a URL is bookmarked");
 }
 
 QTEST_APPLESS_MAIN(BookmarkManagerTest)

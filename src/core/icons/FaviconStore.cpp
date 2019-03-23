@@ -1,3 +1,4 @@
+#include "CommonUtil.h"
 #include "FaviconStore.h"
 #include "NetworkAccessManager.h"
 #include "URL.h"
@@ -63,6 +64,8 @@ int FaviconStore::getFaviconIdForIconUrl(const QUrl &url)
 {
     for (const auto &it : m_originMap)
     {
+        if (CommonUtil::doUrlsMatch(url, it.second, true))
+            return it.first;
         if (url.matches(it.second, QUrl::RemoveScheme | QUrl::RemoveQuery | QUrl::RemoveFragment))
             return it.first;
     }
