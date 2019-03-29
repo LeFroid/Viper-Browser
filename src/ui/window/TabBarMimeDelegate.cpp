@@ -114,6 +114,7 @@ bool TabBarMimeDelegate::onDrop(QDropEvent *dropEvent)
         if (static_cast<qulonglong>(m_window->winId()) != mimeData->property("tab-origin-window-id").toULongLong())
         {
             m_window->dropEvent(dropEvent);
+            m_draggedWebWidget = nullptr;
             return true;
         }
 
@@ -140,6 +141,8 @@ bool TabBarMimeDelegate::onDrop(QDropEvent *dropEvent)
             m_tabBar->setCurrentIndex(tabIndexAtPos);
             m_tabBar->forceRepaint();
         }
+
+        m_draggedWebWidget = nullptr;
 
         dropEvent->acceptProposedAction();
         return true;
