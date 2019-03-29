@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <mutex>
 
 #include <QHash>
 #include <QIcon>
@@ -68,6 +69,9 @@ private:
 
     /// Cache of most recently visited URLs and the icons associated with those pages
     LRUCache<std::string, QIcon> m_iconCache;
+
+    /// Used when updating the LRU cache for thread safety
+    mutable std::mutex m_mutex;
 };
 
 #endif // FAVICONMANAGER_H

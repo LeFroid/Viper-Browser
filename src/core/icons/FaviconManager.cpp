@@ -21,7 +21,8 @@ FaviconManager::FaviconManager(const QString &databaseFile) :
     m_faviconStore(nullptr),
     m_networkAccessManager(nullptr),
     m_iconMap(),
-    m_iconCache(64)
+    m_iconCache(64),
+    m_mutex()
 {
     setObjectName(QLatin1String("FaviconManager"));
     m_faviconStore = DatabaseFactory::createWorker<FaviconStore>(databaseFile);
@@ -74,7 +75,16 @@ QIcon FaviconManager::getFavicon(const QUrl &url)
             return icon;
     }
 
-    m_iconCache.put(urlStdStr, it->second);
+    try
+    {
+        std::lock_guard<std::mutex> _(m_mutex);
+        m_iconCache.put(urlStdStr, it->second);
+    }
+    catch (std::out_of_range &err)
+    {
+        qDebug() << "FaviconManager::getFavicon - caught error while updating icon cache. Error: " << err.what();
+    }
+
     return it->second;
 }
 
@@ -94,11 +104,12 @@ void FaviconManager::updateIcon(const QUrl &iconUrl, const QUrl &pageUrl, const 
     {
         try
         {
+            std::lock_guard<std::mutex> _(m_mutex);
             m_iconCache.put(urlStdStr, pageIcon);
         }
         catch (std::out_of_range &err)
         {
-            qDebug() << "FaviconManager::getFavicon - caught error while fetching icon from cache. Error: " << err.what();
+            qDebug() << "FaviconManager::updateIcon - caught error while updating icon cache. Error: " << err.what();
         }
     }
 
