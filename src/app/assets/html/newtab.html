@@ -16,6 +16,38 @@
             a:hover {
                 color:blue;
             }
+            #addPageDialog {
+                display: none;
+                width: 240px;
+                height: 240px;
+                position: absolute;
+                top: 120px;
+                right: 20%;
+                z-index: 999;
+                background-color: #ffffff;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-shadow: 0 3px 7px rgba(0, 0, 0, 0.6);
+                padding: 10px 16px;
+            }
+            #addPageDialog #closeDialog {
+                color: #aaa;
+                position: absolute;
+                right: 5px;
+                top: 5px;
+                padding-top: 3px;
+                background: #fff;
+                font-size: 16px;
+                width: 25px;
+                height: 25px;
+                font-weight: bold;
+                text-align: center;
+                cursor: pointer;
+            }
+            #closeDialog:hover { color: #333; }
+            .addPageInputs {
+                padding-top: 16px;
+            }
             .addItem {
                 float: right;
                 font-weight: 800;
@@ -62,6 +94,12 @@
             .gridHeading {
                 padding-bottom: 1rem;
             }
+            input {
+                margin: 8px 0 8px 0;
+                padding: 2.5px 2.5px;
+                width: 100%;
+            }
+            
             .thumbnailContainer {
                 margin: 7.5% auto 0 auto;
                 width: 87.5%;
@@ -86,10 +124,23 @@
         </style>
     </head>
     <body>
+        <div id="addPageDialog">
+            <span title="Close" id="closeDialog">&#10005;</span>
+            <span class="welcomeText">Add Website</span>
+            <div class="addPageInputs">
+                <form id="formAddPage">
+                    <label for="inputUrl">Page URL:</label>
+                    <input id="inputUrl" type="text" name="url" placeholder="URL">
+                    <label for="inputTitle">Page Title:</label>
+                    <input id="inputTitle" type="text" name="title" placeholder="Title">
+                    <input type="submit" value="Save">
+                </form>
+            </div>
+        </div>
         <div class="content">
             <div class="gridHeading">
                 <span class="welcomeText">Top Websites</span>
-                <span title="Add a web page" class="addItem">+</span>
+                <span title="Add a web page" id="addItem" class="addItem">+</span>
             </div>
             <div id="mainGrid" class="thumbnailGrid">
             </div>

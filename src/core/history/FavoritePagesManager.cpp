@@ -6,6 +6,7 @@
 #include <QByteArray>
 #include <QBuffer>
 #include <QFile>
+#include <QSet>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -93,21 +94,24 @@ QVariantList FavoritePagesManager::getFavorites() const
     return result;
 }
 
-void FavoritePagesManager::addFavorite(const QUrl &url)
+void FavoritePagesManager::addFavorite(const QUrl &url, const QString &title)
 {
     if (!m_historyManager
             || !m_thumbnailStore
-            || !m_historyManager->contains(url)
             || isPresent(url))
         return;
-
-    HistoryEntry record = m_historyManager->getEntry(url);
 
     WebPageInformation pageInfo;
     pageInfo.Position = static_cast<int>(m_favoritePages.size());
     pageInfo.URL = url;
-    pageInfo.Title = record.Title;
+    pageInfo.Title = title;
     pageInfo.Thumbnail = m_thumbnailStore->getThumbnail(url);
+
+    if (title.isEmpty())
+    {
+        HistoryEntry record = m_historyManager->getEntry(url);
+        pageInfo.Title = record.Title;
+    }
 
     m_favoritePages.push_back(pageInfo);
 }
@@ -155,6 +159,8 @@ void FavoritePagesManager::loadFavorites()
 
     QJsonObject rootObject = doc.object();
 
+    QSet<QUrl> favoritedUrls;
+
     // Load from the two arrays: the favorite page array, and the excluded pages array
     QJsonArray favoriteArray = rootObject.value(QLatin1String("favorites")).toArray();
     for (auto it = favoriteArray.begin(); it != favoriteArray.end(); ++it)
@@ -168,13 +174,15 @@ void FavoritePagesManager::loadFavorites()
         pageInfo.Thumbnail = m_thumbnailStore->getThumbnail(pageInfo.URL);
 
         m_favoritePages.push_back(pageInfo);
+        favoritedUrls.insert(pageInfo.URL);
     }
 
     QJsonArray excludedArray = rootObject.value(QLatin1String("excludes")).toArray();
     for (auto it = excludedArray.begin(); it != excludedArray.end(); ++it)
     {
         QUrl url = QUrl(it->toString());
-        m_excludedPages.push_back(url);
+        if (!favoritedUrls.contains(url))
+            m_excludedPages.push_back(url);
     }
 }
 

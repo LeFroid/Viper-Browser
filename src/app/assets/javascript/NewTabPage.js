@@ -24,6 +24,33 @@ var getFavoritePages = function() {
 var pageList = [];
 var nextItem = 0;
 
+const addPageElem = document.getElementById('addItem'),
+    addPageDialog = document.getElementById('addPageDialog'),
+    closeDialogElem = document.getElementById('closeDialog'),
+    formAddPageElem = document.getElementById('formAddPage'),
+    inputPageUrl = document.getElementById('inputUrl'),
+    inputPageTitle = document.getElementById('inputTitle');
+
+addPageElem.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    let newStyle = 'block';
+    let computedDisplay = window.getComputedStyle(addPageDialog).getPropertyValue('display');
+    if (computedDisplay == 'block') {
+        newStyle = 'none';
+    } else {
+        inputPageTitle.value = '';
+        inputPageUrl.value = '';
+    }
+    
+    addPageDialog.style.display = newStyle;
+});
+
+closeDialogElem.addEventListener('click', function(e) {
+    e.preventDefault();
+    addPageDialog.style.display = 'none';
+});
+
 const cellTemplate = '<div class="cell" draggable="true"><div class="closeContainer"><span data-elemid="{{id}}" class="close">&times;</span>'
             + '</div><div class="thumbnailContainer"><a href="{{url}}"><img class="thumbnail" src="{{imgSrc}}" alt="{{title}}">'
             + '<div class="titleContainer"><div class="titleTextWrapper"><span class="title">{{title}}</span></div></div></a></div></div>';
@@ -31,6 +58,44 @@ const cellTemplateNoThumbnail = '<div class="cell" draggable="true"><div class="
             + '<span data-elemid="{{id}}" class="close">&times;</span></div><div class="thumbnailContainer"><a href="{{url}}">'
             + '<div class="thumbnail thumbnailMock"></div><div class="titleContainer"><div class="titleTextWrapper">'
             + '<span class="title">{{title}}</span></div></div></a></div></div>';
+
+// Callback when user pins a page to the set
+formAddPageElem.onsubmit = function(e) {
+    e.preventDefault();
+    
+    let cardInfo = {
+        url: inputPageUrl.value,
+        title: inputPageTitle.value,
+        thumbnail: ''
+    };
+    
+    if (cardInfo.url == '')
+        return;
+    
+    for (let page of pageList) {
+        if (page.url === cardInfo.url)
+            return;
+    }
+    
+    window.viper.favoritePageManager.addFavorite(cardInfo.url, cardInfo.title);
+    
+    let cardId = pageList.unshift(cardInfo);
+    pageList.pop();
+    
+    // Update the DOM
+    let cardHtml = cellTemplateNoThumbnail.replace(/{{id}}/g, cardId)
+                                          .replace(/{{url}}/g, cardInfo.url)
+                                          .replace(/{{title}}/g, cardInfo.title)
+                                          .replace(/{{imgSrc}}/g, cardInfo.thumbnail);
+    
+    let mainContainer = document.getElementById('mainGrid');
+    mainContainer.removeChild(mainContainer.lastChild);
+    
+    let currentHtml = mainContainer.innerHTML;
+    mainContainer.innerHTML = cardHtml + currentHtml;
+    
+    addPageDialog.style.display = 'none';
+};
 
 // Allow for user to modify the cards on the page
 document.addEventListener('click', function(e) {

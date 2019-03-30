@@ -62,7 +62,7 @@ public slots:
     QVariantList getFavorites() const;
 
     /// Adds an item to the list of favorited (pinned) web pages
-    void addFavorite(const QUrl &url);
+    void addFavorite(const QUrl &url, const QString &title);
 
     /// Removes an item from the collection of top/favorite pages
     void removeEntry(const QUrl &url);
