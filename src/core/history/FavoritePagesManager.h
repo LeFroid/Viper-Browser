@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <QDateTime>
 #include <QImage>
 #include <QMetaType>
 #include <QObject>
@@ -32,6 +33,22 @@ struct WebPageInformation
 
     /// Returns the thumbnail as a base-64 encoded string
     QString getThumbnailInBase64() const;
+};
+
+/// Stores information about an entry that the user removed from the New Tab page
+struct NewTabHiddenEntry
+{
+    /// Url of the hidden entry
+    QUrl URL;
+
+    /// Date and time when the entry expires from the list of hidden pages
+    QDateTime ExpiresOn;
+
+    /// Default constructor
+    NewTabHiddenEntry() : URL(), ExpiresOn() {}
+
+    /// Constructs the entry with a URL and expiry time
+    NewTabHiddenEntry(const QUrl &url, QDateTime expiresOn) : URL(url), ExpiresOn(expiresOn) {}
 };
 
 /**
@@ -72,6 +89,13 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
+    /**
+     * @brief Determines if the given URL is in the set of web pages that have been hidden by the user
+     * @param url URL in question
+     * @return True if the URL is flagged as being hidden, false otherwise
+     */
+    bool isUrlHidden(const QUrl &url);
+
     /// Loads the user's favorite pages based on their input
     void loadFavorites();
 
@@ -89,7 +113,7 @@ private:
     QString m_dataFileName;
 
     /// Contains a list of URLs that the user removed from the new tab page
-    std::vector<QUrl> m_excludedPages;
+    std::vector<NewTabHiddenEntry> m_excludedPages;
 
     /// Contains pages that have been explicitly "favorited" or pinned by the user
     /// on the new tab page

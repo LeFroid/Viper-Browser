@@ -1,4 +1,5 @@
 #include "BrowserApplication.h"
+#include "CommonUtil.h"
 #include "FavoritePagesManager.h"
 #include "HistoryManager.h"
 #include "WebPageThumbnailStore.h"
@@ -13,7 +14,7 @@
 #include <QJsonValue>
 #include <QVariantMap>
 
-const QString FavoritePagesManager::Version = QStringLiteral("1.0");
+const QString FavoritePagesManager::Version = QStringLiteral("1.1");
 
 QString WebPageInformation::getThumbnailInBase64() const
 {
@@ -118,8 +119,12 @@ void FavoritePagesManager::addFavorite(const QUrl &url, const QString &title)
 
 void FavoritePagesManager::removeEntry(const QUrl &url)
 {
-    if (std::find(m_excludedPages.begin(), m_excludedPages.end(), url) == m_excludedPages.end())
-        m_excludedPages.push_back(url);
+    if (!isUrlHidden(url))
+    {
+        // Add and then automatically remove entry from exclusion list after 3 weeks
+        NewTabHiddenEntry entry { url, QDateTime::currentDateTime().addDays(21)};
+        m_excludedPages.push_back(entry);
+    }
 
     auto removeFromContainer = [&](std::vector<WebPageInformation> &pageContainer) {
         for (auto it = pageContainer.begin(); it != pageContainer.end();)
@@ -138,6 +143,15 @@ void FavoritePagesManager::removeEntry(const QUrl &url)
 void FavoritePagesManager::timerEvent(QTimerEvent */*event*/)
 {
     loadFromHistory();
+}
+
+bool FavoritePagesManager::isUrlHidden(const QUrl &url)
+{
+    auto it = std::find_if(m_excludedPages.begin(), m_excludedPages.end(), [url](const NewTabHiddenEntry &entry) {
+        return CommonUtil::doUrlsMatch(entry.URL, url, false);
+    });
+
+    return it != m_excludedPages.end();
 }
 
 void FavoritePagesManager::loadFavorites()
@@ -159,6 +173,8 @@ void FavoritePagesManager::loadFavorites()
 
     QJsonObject rootObject = doc.object();
 
+    const QString savedVersion = rootObject.value(QLatin1String("version")).toString();
+
     QSet<QUrl> favoritedUrls;
 
     // Load from the two arrays: the favorite page array, and the excluded pages array
@@ -178,11 +194,36 @@ void FavoritePagesManager::loadFavorites()
     }
 
     QJsonArray excludedArray = rootObject.value(QLatin1String("excludes")).toArray();
+    const bool arrayWithUrlsOnly = savedVersion.compare(QLatin1String("1.0")) == 0;
+    const QDateTime currentTime = QDateTime::currentDateTime();
     for (auto it = excludedArray.begin(); it != excludedArray.end(); ++it)
     {
-        QUrl url = QUrl(it->toString());
-        if (!favoritedUrls.contains(url))
-            m_excludedPages.push_back(url);
+        if (arrayWithUrlsOnly)
+        {
+            QUrl url = QUrl(it->toString());
+            if (!favoritedUrls.contains(url))
+            {
+                NewTabHiddenEntry entry { url, QDateTime::currentDateTime().addDays(21) };
+                m_excludedPages.push_back(entry);
+            }
+        }
+        else
+        {
+            QJsonObject pageInfo = it->toObject();
+
+            NewTabHiddenEntry entry;
+            entry.URL = QUrl(pageInfo.value(QLatin1String("url")).toString());
+
+            if (favoritedUrls.contains(entry.URL))
+                continue;
+
+            entry.ExpiresOn = QDateTime::fromString(
+                                pageInfo.value(QLatin1String("expiresOn")).toString(),
+                                Qt::ISODate);
+
+            if (entry.ExpiresOn > currentTime)
+                m_excludedPages.push_back(entry);
+        }
     }
 }
 
@@ -199,7 +240,7 @@ void FavoritePagesManager::loadFromHistory()
         m_mostVisitedPages = std::move(results);
         for (auto it = m_mostVisitedPages.begin(); it != m_mostVisitedPages.end();)
         {
-            if (std::find(m_excludedPages.begin(), m_excludedPages.end(), it->URL) != m_excludedPages.end())
+            if (isUrlHidden(it->URL))
                 it = m_mostVisitedPages.erase(it);
             else
             {
@@ -237,9 +278,17 @@ void FavoritePagesManager::save()
 
     // Save array of excluded pages
     QJsonArray excludedArray;
-    for (const QUrl &url : m_excludedPages)
-        excludedArray.append(QJsonValue(url.toString()));
+    const QDateTime currentTime = QDateTime::currentDateTime();
+    for (const NewTabHiddenEntry &entry : m_excludedPages)
+    {
+        if (currentTime >= entry.ExpiresOn)
+            continue;
+        QJsonObject hiddenPage;
+        hiddenPage.insert(QLatin1String("url"), entry.URL.toString());
+        hiddenPage.insert(QLatin1String("expiresOn"), entry.ExpiresOn.toString(Qt::ISODate));
 
+        excludedArray.append(QJsonValue(hiddenPage));
+    }
     rootObject.insert(QLatin1String("excludes"), QJsonValue(excludedArray));
 
     // Format root object as a document, and write to the file
