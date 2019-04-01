@@ -182,26 +182,38 @@ bool AdBlockFilterParser::isStylesheetRule(const QString &rule, AdBlockFilter *f
 {
     int pos = 0;
 
-    // Ignore uBlock HTML filters
-    if (rule.indexOf(QStringLiteral("##^")) >= 0)
-        return true;
+    // Ignore uBlock HTML filters and unsupported AdGuard directives
+    //TODO: support #$# cosmetic filters (these, rather than adding "display: none!important;", include their own CSS rule(s)).
+    //      Example: site.com#$#.someDiv { width: 1px!important; }
+    const std::array<QString, 5> unsupportedTypes = { QStringLiteral("##^"), QStringLiteral("#%#"),
+                                                    QStringLiteral("#@%#"), QStringLiteral("#$#"),
+                                                    QStringLiteral("#@$#") };
+    for (const QString &unsupported : unsupportedTypes)
+    {
+        if (rule.indexOf(unsupported) >= 0)
+            return true;
+    }
 
     // Check if CSS rule
-    if ((pos = rule.indexOf(QStringLiteral("##"))) >= 0)
+    const std::array<QString, 2> supportedTypes = { QStringLiteral("##"), QStringLiteral("#?#") };
+    for (const QString &supportedRule : supportedTypes)
     {
-        filter->m_category = FilterCategory::Stylesheet;
+        if ((pos = rule.indexOf(supportedRule)) >= 0)
+        {
+            filter->m_category = FilterCategory::Stylesheet;
 
-        // Fill domain blacklist
-        if (pos > 0)
-            parseDomains(rule.left(pos), QChar(','), filter);
+            // Fill domain blacklist
+            if (pos > 0)
+                parseDomains(rule.left(pos), QChar(','), filter);
 
-        filter->setEvalString(rule.mid(pos + 2));
+            filter->setEvalString(rule.mid(pos + supportedRule.size()));
 
-        // Check for custom stylesheets, cosmetic options, and/or script injection filter rules
-        if (parseCustomStylesheet(filter) || parseCosmeticOptions(filter) || parseScriptInjection(filter))
+            // Check for custom stylesheets, cosmetic options, and/or script injection filter rules
+            if (parseCustomStylesheet(filter) || parseCosmeticOptions(filter) || parseScriptInjection(filter))
+                return true;
+
             return true;
-
-        return true;
+        }
     }
 
     // Check if CSS exception
@@ -228,27 +240,15 @@ bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
         return false;
 
     // Replace -abp- terms with uBlock versions
+    //filter->m_evalString.replace(QStringLiteral(":-abp-properties"), QStringLiteral(":has")); // too expensive to process this one
     filter->m_evalString.replace(QStringLiteral(":-abp-contains"), QStringLiteral(":has-text"));
     filter->m_evalString.replace(QStringLiteral(":-abp-has"), QStringLiteral(":if"));
 
-    // **commented out**  - with uBlock 1.15.0, :has is same as :if which can be chained
-    // Check for :has(..)
-    /*int hasIdx = filter->m_evalString.indexOf(QStringLiteral(":has("));
-    if (hasIdx >= 0)
+    if (filter->m_evalString.indexOf(QStringLiteral(":-abp-")) >= 0)
     {
-        QString hasArg = filter->m_evalString.mid(hasIdx + 5);
-        hasArg = hasArg.left(hasArg.size() - 1);
-
-        filter->m_evalString = filter->m_evalString.left(hasIdx);
-        if (filter->m_evalString.isEmpty())
-            return false;
-
-        filter->m_evalString = QString("hideIfHas('%1', '%2'); ").arg(filter->m_evalString).arg(hasArg);
-        filter->m_category = FilterCategory::StylesheetJS;
-
-        // :has cannot be chained, so exit the method at this point
-        return true;
-    }*/
+        filter->m_category = FilterCategory::None;
+        return false;
+    }
 
     // Search for each chainable type and handle the first one to appear, as any other
     // chainable filter options will appear as an argument of the first
@@ -267,10 +267,14 @@ bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
     evalArg = evalArg.left(evalArg.lastIndexOf(QChar(')')));
 
     evalStr = evalStr.left(std::get<0>(p));
+
+    /*
     if (std::get<1>(p) == CosmeticFilter::XPath && evalStr.isEmpty())
         evalStr = QStringLiteral("document");
     else if (evalStr.isEmpty())
-        return false;
+        return false;*/
+    if (evalStr.isEmpty())
+        evalStr = QStringLiteral("*");
 
     switch (std::get<1>(p))
     {

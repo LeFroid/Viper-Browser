@@ -7,10 +7,31 @@ var addScopeIfNeeded = function(str) {
     }
     return str;
 };
+var hideIfHasAsync = async function(subject, target) {
+    var nodes = document.querySelectorAll(subject);
+    var i = 0;
+    for (; i < nodes.length; ++i) {
+        if (nodes[i++].nodeName === 'BODY')
+            break;
+    }
+    for (i = 0; i < nodes.length; ++i) {
+        let currNode = nodes[i];
+        let compStyle = window.getComputedStyle(currNode);
+        if (compStyle.cssText && compStyle.cssText.indexOf(target) >= 0) {
+            currNode.style.cssText = 'display: none !important;';
+        }
+    }
+};
 /// Handles the :has(...) cosmetic filter option
 var hideIfHas = function (subject, target) {
     target = addScopeIfNeeded(target);
 
+    if (subject === '*') {
+        (async(sub, tar) => {
+            hideIfHasAsync(sub, tar);
+        })(subject, target);
+        return;
+    }
     var nodes = document.querySelectorAll(subject), i;
     for (i = 0; i < nodes.length; ++i) {
         if (nodes[i].querySelector(target) !== null) {
@@ -18,10 +39,31 @@ var hideIfHas = function (subject, target) {
         }
     }
 };
+var hideIfNotHasAsync = async function(subject, target) {
+    var nodes = document.querySelectorAll(subject);
+    var i = 0;
+    for (; i < nodes.length; ++i) {
+        if (nodes[i++].nodeName === 'BODY')
+            break;
+    }
+    for (; i < nodes.length; ++i) {
+        let currNode = nodes[i];
+        let compStyle = window.getComputedStyle(currNode);
+        if (compStyle.cssText && compStyle.cssText.indexOf(target) >= 0) {
+            currNode.style.cssText = 'display: none !important;';
+        }
+    }
+};
 /// Handles :if-not(...) cosmetic filter option if it does not have any nested cosmetic filter options
 var hideIfNotHas = function (subject, target) {
     target = addScopeIfNeeded(target);
 
+    if (subject === '*') {
+        (async(sub, tar) => {
+            hideIfNotHasAsync(sub, tar);
+        })(subject, target);
+        return;
+    }
     var nodes = document.querySelectorAll(subject), i;
     for (i = 0; i < nodes.length; ++i) {
         if (nodes[i].querySelector(target) === null) {
