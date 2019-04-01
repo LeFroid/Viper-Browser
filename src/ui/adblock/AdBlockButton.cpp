@@ -1,13 +1,16 @@
 #include "AdBlockButton.h"
 #include "AdBlockManager.h"
 #include "MainWindow.h"
+#include "Settings.h"
 #include "WebView.h"
 #include "WebWidget.h"
 
 #include <algorithm>
+#include <QContextMenuEvent>
 #include <QFont>
 #include <QFontMetrics>
 #include <QIcon>
+#include <QMenu>
 #include <QPixmap>
 #include <QUrl>
 #include <QWidget>
@@ -15,6 +18,7 @@
 AdBlockButton::AdBlockButton(QWidget *parent) :
     QToolButton(parent),
     m_adBlockManager(nullptr),
+    m_settings(nullptr),
     m_icon(QLatin1String(":/AdBlock.svg")),
     m_timer(),
     m_lastCount(0)
@@ -30,6 +34,11 @@ AdBlockButton::AdBlockButton(QWidget *parent) :
 void AdBlockButton::setAdBlockManager(AdBlockManager *adBlockManager)
 {
     m_adBlockManager = adBlockManager;
+}
+
+void AdBlockButton::setSettings(Settings *settings)
+{
+    m_settings = settings;
 }
 
 void AdBlockButton::updateCount()
@@ -91,4 +100,25 @@ void AdBlockButton::updateCount()
             setToolTip(QString("%1 ads blocked on this page").arg(numAdsBlocked));
         }
     }
+}
+
+void AdBlockButton::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu *menu = new QMenu(this);
+    menu->addAction(tr("Manage Subscriptions"), this, [this](){
+        emit manageSubscriptionsRequest();
+    });
+    menu->addAction(tr("View Logs"), this, [this](){
+        emit viewLogsRequest();
+    });
+    if (m_settings)
+    {
+        menu->addSeparator();
+        const bool isAdBlockEnabled = m_settings->getValue(BrowserSetting::AdBlockPlusEnabled).toBool();
+        const QString toggleText = isAdBlockEnabled ? tr("Disable Advertisement Blocker") : tr("Enable Advertisement Blocker");
+        menu->addAction(toggleText, this, [this, isAdBlockEnabled](){
+            m_settings->setValue(BrowserSetting::AdBlockPlusEnabled, !isAdBlockEnabled);
+        });
+    }
+    menu->exec(event->globalPos());
 }

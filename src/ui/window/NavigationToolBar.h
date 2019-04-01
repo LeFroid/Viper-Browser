@@ -47,6 +47,9 @@ signals:
     /// Emitted when the ad block button is clicked
     void clickedAdBlockButton();
 
+    /// Emitted when the user requests to manage their ad block filter subscriptions
+    void requestManageAdBlockSubscriptions();
+
 protected:
     /// Passes a reference to the browser service locator, used to fetch instances of the \ref AdBlockManager and \ref FaviconManager
     void setServiceLocator(const ViperServiceLocator &serviceLocator);

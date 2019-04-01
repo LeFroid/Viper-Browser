@@ -6,6 +6,7 @@
 #include <QToolButton>
 
 class AdBlockManager;
+class Settings;
 
 /**
  * @class AdBlockButton
@@ -23,13 +24,33 @@ public:
     /// Sets the pointer to the advertisement blocking system manager
     void setAdBlockManager(AdBlockManager *adBlockManager);
 
+    /// Sets the pointer to the application-level settings handler
+    void setSettings(Settings *settings);
+
+signals:
+    /// Emitted when the user wants to enable or disable the ad block system
+    void toggleAdBlockEnabledRequest();
+
+    /// Emitted when the user requests to view and/or manage their filter subscriptions
+    void manageSubscriptionsRequest();
+
+    /// Emitted when the user requests to view the ad block system logs
+    void viewLogsRequest();
+
 public slots:
     /// Updates the region of the button's icon containing the number of ads being blocked on the active page
     void updateCount();
 
+protected:
+    /// Displays a menu with various options related to the ad-block system, when the user right clicks on this button
+    void contextMenuEvent(QContextMenuEvent *event) override;
+
 private:
     /// Advertisement blocking system manager
     AdBlockManager *m_adBlockManager;
+
+    /// Application settings
+    Settings *m_settings;
 
     /// Base icon shown in the button
     QIcon m_icon;

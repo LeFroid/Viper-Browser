@@ -7,6 +7,7 @@
 #include "MainWindow.h"
 #include "NavigationToolBar.h"
 #include "SearchEngineLineEdit.h"
+#include "Settings.h"
 #include "URLLineEdit.h"
 #include "WebHistory.h"
 #include "WebPage.h"
@@ -78,6 +79,7 @@ void NavigationToolBar::setServiceLocator(const ViperServiceLocator &serviceLoca
     m_searchEngineLineEdit->setFaviconManager(serviceLocator.getServiceAs<FaviconManager>("FaviconManager"));
 
     m_adBlockButton->setAdBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
+    m_adBlockButton->setSettings(serviceLocator.getServiceAs<Settings>("Settings"));
     m_urlInput->setServiceLocator(serviceLocator);
 }
 
@@ -162,6 +164,8 @@ void NavigationToolBar::setupUI()
     // Ad block button
     m_adBlockButton = new AdBlockButton;
     connect(m_adBlockButton, &AdBlockButton::clicked, this, &NavigationToolBar::clickedAdBlockButton);
+    connect(m_adBlockButton, &AdBlockButton::viewLogsRequest, this, &NavigationToolBar::clickedAdBlockButton);
+    connect(m_adBlockButton, &AdBlockButton::manageSubscriptionsRequest, this, &NavigationToolBar::requestManageAdBlockSubscriptions);
     addWidget(m_adBlockButton);
 }
 
