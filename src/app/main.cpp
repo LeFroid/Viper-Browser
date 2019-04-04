@@ -33,10 +33,8 @@
 
 void _handleCrash(int s, siginfo_t * /*siginfo*/, void * /*context*/)
 {
-    std::cout << "handleCrash (1)\n";
     if (s != SIGSEGV)
         return;
-    std::cout << "handleCrash (2)\n";
     void *buffer[BT_BUF_SIZE];
 
     int nptrs = backtrace(buffer, BT_BUF_SIZE);
@@ -76,6 +74,8 @@ void _handleCrash(int s, siginfo_t * /*siginfo*/, void * /*context*/)
         std::cout << "Could not save crash log to file" << std::endl;
 
     free(strings);
+
+    exit(EXIT_FAILURE);
 }
 
 #undef BT_BUF_SIZE
