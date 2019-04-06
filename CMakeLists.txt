@@ -42,6 +42,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/app
     ${CMAKE_SOURCE_DIR}/src/core/adblock
+    ${CMAKE_SOURCE_DIR}/src/core/app
     ${CMAKE_SOURCE_DIR}/src/core/autofill
     ${CMAKE_SOURCE_DIR}/src/core/bookmarks
     ${CMAKE_SOURCE_DIR}/src/core/cache

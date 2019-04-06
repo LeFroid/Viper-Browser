@@ -6,8 +6,6 @@ include_directories(${CMAKE_SOURCE_DIR}/src/app/assets)
 qt5_add_resources(viper_qrc assets/application.qrc)
 
 set(viper_browser_src
-    BrowserApplication.cpp
-    BrowserScripts.cpp
     main.cpp
 )
 

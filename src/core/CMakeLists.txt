@@ -10,6 +10,8 @@ set(viper_src
     adblock/AdBlockModel.cpp
     adblock/AdBlockRequestHandler.cpp
     adblock/AdBlockSubscription.cpp
+    app/BrowserApplication.cpp
+    app/BrowserScripts.cpp
     autofill/AutoFill.cpp
     autofill/AutoFillBridge.cpp
     bookmarks/BookmarkExporter.cpp
