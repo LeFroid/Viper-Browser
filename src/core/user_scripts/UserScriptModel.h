@@ -8,6 +8,8 @@
 #include <vector>
 #include <QAbstractTableModel>
 
+class DownloadManager;
+
 /**
  * @class UserScriptModel
  * @brief Acts as an abstraction to allow for storage, viewing and modification of user scripts
@@ -19,8 +21,13 @@ class UserScriptModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    /// Constructs the user script model with the given parent
-    explicit UserScriptModel(Settings *settings, QObject *parent = nullptr);
+    /**
+     * @brief UserScriptModel Constructs the user script model
+     * @param downloadManager Network download manager
+     * @param settings Application settings instance
+     * @param parent Parent of the model
+     */
+    explicit UserScriptModel(DownloadManager *downloadManager, Settings *settings, QObject *parent = nullptr);
 
     /// Saves user script information before destruction of the model
     virtual ~UserScriptModel();
@@ -91,6 +98,9 @@ protected:
     bool m_enabled;
 
 private:
+    /// Network download manager
+    DownloadManager *m_downloadManager;
+
     /// Application settings
     Settings *m_settings;
 };

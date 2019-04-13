@@ -126,7 +126,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     registerService(m_userAgentMgr);
 
     // Setup user script manager
-    m_userScriptMgr = new UserScriptManager(m_settings);
+    m_userScriptMgr = new UserScriptManager(m_downloadMgr, m_settings);
     registerService(m_userScriptMgr);
 
     // Setup extension storage manager

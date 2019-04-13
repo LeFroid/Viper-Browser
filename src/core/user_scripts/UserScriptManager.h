@@ -3,6 +3,7 @@
 
 #include "Settings.h"
 #include "ISettingsObserver.h"
+
 #include "UserScript.h"
 
 #include <memory>
@@ -12,6 +13,7 @@
 #include <QUrl>
 #include <QWebEngineScript>
 
+class DownloadManager;
 class UserScriptModel;
 
 /**
@@ -21,9 +23,15 @@ class UserScriptModel;
 class UserScriptManager : public QObject, public ISettingsObserver
 {
     Q_OBJECT
+
 public:
     /// Constructs the user script manager, given a shared pointer to the application settings object and an optional parent object
-    explicit UserScriptManager(Settings *settings, QObject *parent = nullptr);
+    /**
+     * @brief UserScriptManager Constructs the GreaseMonkey compatible web script manager
+     * @param downloadManager Pointer to the network download manager
+     * @param settings Pointer to the application settings instance
+     */
+    explicit UserScriptManager(DownloadManager *downloadManager, Settings *settings);
 
     /// Saves user script information (i.e. which scripts are enabled) before destruction
     virtual ~UserScriptManager();
@@ -71,6 +79,9 @@ private slots:
     void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
 private:
+    /// Network download manager
+    DownloadManager *m_downloadManager;
+
     /// Pointer to the user scripts model
     UserScriptModel *m_model;
 };

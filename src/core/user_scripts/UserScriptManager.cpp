@@ -1,20 +1,19 @@
+#include "DownloadManager.h"
 #include "UserScriptManager.h"
 #include "UserScriptModel.h"
-#include "BrowserApplication.h"
-#include "DownloadManager.h"
 #include "InternalDownloadItem.h"
 #include "WebEngineScriptAdapter.h"
 
 #include <QDir>
 #include <QFile>
-
 #include <QRegularExpression>
-#include <QUrl>
 #include <QNetworkRequest>
+#include <QUrl>
 
-UserScriptManager::UserScriptManager(Settings *settings, QObject *parent) :
-    QObject(parent),
-    m_model(new UserScriptModel(settings, this))
+UserScriptManager::UserScriptManager(DownloadManager *downloadManager, Settings *settings) :
+    QObject(nullptr),
+    m_downloadManager(downloadManager),
+    m_model(new UserScriptModel(downloadManager, settings, this))
 {
     setObjectName(QLatin1String("UserScriptManager"));
     connect(settings, &Settings::settingChanged, this, &UserScriptManager::onSettingChanged);
@@ -127,14 +126,13 @@ std::vector<QWebEngineScript> UserScriptManager::getAllScriptsFor(const QUrl &ur
 
 void UserScriptManager::installScript(const QUrl &url)
 {
-    if (!url.isValid())
+    if (!url.isValid() || !m_downloadManager)
         return;
 
     QNetworkRequest request;
     request.setUrl(url);
 
-    DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
-    InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_model->m_userScriptDir, false);
+    InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_model->m_userScriptDir, false);
     connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
         UserScript script;
         if (script.load(filePath, m_model->m_scriptTemplate))

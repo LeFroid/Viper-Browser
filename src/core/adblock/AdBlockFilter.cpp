@@ -1,9 +1,10 @@
-#include <algorithm>
-#include <array>
 #include "AdBlockFilter.h"
 #include "Bitfield.h"
 #include "FastHash.h"
 #include "URL.h"
+
+#include <algorithm>
+#include <array>
 
 AdBlockFilter::AdBlockFilter(const QString &rule) :
     m_category(FilterCategory::None),

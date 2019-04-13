@@ -1,6 +1,5 @@
-#include "UserScriptModel.h"
-#include "BrowserApplication.h"
 #include "DownloadManager.h"
+#include "UserScriptModel.h"
 #include "InternalDownloadItem.h"
 
 #include <QDir>
@@ -14,12 +13,13 @@
 #include <QUrl>
 #include <QNetworkRequest>
 
-UserScriptModel::UserScriptModel(Settings *settings, QObject *parent) :
+UserScriptModel::UserScriptModel(DownloadManager *downloadManager, Settings *settings, QObject *parent) :
     QAbstractTableModel(parent),
     m_scripts(),
     m_scriptTemplate(),
     m_scriptDepDir(),
     m_enabled(false),
+    m_downloadManager(downloadManager),
     m_settings(settings)
 {
     m_enabled = settings->getValue(BrowserSetting::UserScriptsEnabled).toBool();
@@ -267,11 +267,12 @@ void UserScriptModel::loadDependencies(int scriptIdx)
         QFile f(localFilePath);
         if (!f.exists() || !f.open(QIODevice::ReadOnly))
         {
-            DownloadManager *downloadMgr = sBrowserApplication->getDownloadManager();
+            if (!m_downloadManager)
+                return;
 
             QNetworkRequest request;
             request.setUrl(QUrl(depFile));
-            InternalDownloadItem *item = downloadMgr->downloadInternal(request, m_scriptDepDir, false);
+            InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_scriptDepDir, false);
             connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
                 QFile tmp(filePath);
                 QByteArray tmpData;
