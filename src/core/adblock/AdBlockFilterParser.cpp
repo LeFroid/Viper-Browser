@@ -7,6 +7,9 @@
 #include <QRegularExpression>
 #include <QDebug>
 
+namespace adblock
+{
+
 QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("script"), ElementType::Script },                 { QStringLiteral("image"), ElementType::Image },
     { QStringLiteral("stylesheet"), ElementType::Stylesheet },         { QStringLiteral("object"), ElementType::Object },
@@ -21,20 +24,20 @@ QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("other"), ElementType::Other }
 };
 
-AdBlockFilterParser::AdBlockFilterParser(AdBlockManager *adBlockManager) :
+FilterParser::FilterParser(AdBlockManager *adBlockManager) :
     m_adBlockManager(adBlockManager)
 {
 }
 
-std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) const
+std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
 {
-    auto filter = std::make_unique<AdBlockFilter>(rule);
+    auto filter = std::make_unique<Filter>(rule);
 
     // Make sure filter is able to be parsed
     if (rule.isEmpty() || rule.startsWith('!'))
         return filter;
 
-    AdBlockFilter *filterPtr = filter.get();
+    Filter *filterPtr = filter.get();
 
     // Check if CSS rule
     if (isStylesheetRule(rule, filterPtr))
@@ -156,7 +159,7 @@ std::unique_ptr<AdBlockFilter> AdBlockFilterParser::makeFilter(QString rule) con
     return filter;
 }
 
-bool AdBlockFilterParser::isDomainRule(const QString &rule) const
+bool FilterParser::isDomainRule(const QString &rule) const
 {
     // looping through string of format: "||inner_rule_text^", indices 0,1, and len-1 ignored
     for (int i = 2; i < rule.size() - 1; ++i)
@@ -178,7 +181,7 @@ bool AdBlockFilterParser::isDomainRule(const QString &rule) const
     return true;
 }
 
-bool AdBlockFilterParser::isStylesheetRule(const QString &rule, AdBlockFilter *filter) const
+bool FilterParser::isStylesheetRule(const QString &rule, Filter *filter) const
 {
     int pos = 0;
 
@@ -234,7 +237,7 @@ bool AdBlockFilterParser::isStylesheetRule(const QString &rule, AdBlockFilter *f
     return false;
 }
 
-bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
+bool FilterParser::parseCosmeticOptions(Filter *filter) const
 {
     if (!filter->hasDomainRules())
         return false;
@@ -344,7 +347,7 @@ bool AdBlockFilterParser::parseCosmeticOptions(AdBlockFilter *filter) const
     return true;
 }
 
-bool AdBlockFilterParser::parseCustomStylesheet(AdBlockFilter *filter) const
+bool FilterParser::parseCustomStylesheet(Filter *filter) const
 {
     int styleIdx = filter->m_evalString.indexOf(QStringLiteral(":style("));
     if (styleIdx < 0)
@@ -360,7 +363,7 @@ bool AdBlockFilterParser::parseCustomStylesheet(AdBlockFilter *filter) const
     return true;
 }
 
-bool AdBlockFilterParser::parseScriptInjection(AdBlockFilter *filter) const
+bool FilterParser::parseScriptInjection(Filter *filter) const
 {
     // Check if filter is used for script injection, and has at least 1 domain option    
     if (!filter->hasDomainRules())
@@ -408,7 +411,7 @@ bool AdBlockFilterParser::parseScriptInjection(AdBlockFilter *filter) const
     return true;
 }
 
-CosmeticJSCallback AdBlockFilterParser::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters) const
+CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters) const
 {
     auto result = CosmeticJSCallback();
 
@@ -456,7 +459,7 @@ CosmeticJSCallback AdBlockFilterParser::getTranslation(const QString &evalArg, c
     return result;
 }
 
-std::vector< std::tuple<int, CosmeticFilter, int> > AdBlockFilterParser::getChainableFilters(const QString &evalStr) const
+std::vector< std::tuple<int, CosmeticFilter, int> > FilterParser::getChainableFilters(const QString &evalStr) const
 {
     // Only search for chainable types
     std::vector< std::tuple<int, CosmeticFilter, int> > filters;
@@ -480,7 +483,7 @@ std::vector< std::tuple<int, CosmeticFilter, int> > AdBlockFilterParser::getChai
     return filters;
 }
 
-void AdBlockFilterParser::parseForCSP(AdBlockFilter *filter) const
+void FilterParser::parseForCSP(Filter *filter) const
 {
     std::vector<QString> cspDirectives;
 
@@ -530,7 +533,7 @@ void AdBlockFilterParser::parseForCSP(AdBlockFilter *filter) const
     }
 }
 
-void AdBlockFilterParser::parseDomains(const QString &domainString, QChar delimiter, AdBlockFilter *filter) const
+void FilterParser::parseDomains(const QString &domainString, QChar delimiter, Filter *filter) const
 {
     QStringList domainList = domainString.split(delimiter, QString::SkipEmptyParts);
 	if (domainList.isEmpty())
@@ -549,7 +552,7 @@ void AdBlockFilterParser::parseDomains(const QString &domainString, QChar delimi
     }
 }
 
-void AdBlockFilterParser::parseOptions(const QString &optionString, AdBlockFilter *filter) const
+void FilterParser::parseOptions(const QString &optionString, Filter *filter) const
 {
     QStringList optionsList = optionString.split(QChar(','), QString::SkipEmptyParts);
     for (const QString &option : optionsList)
@@ -611,7 +614,7 @@ void AdBlockFilterParser::parseOptions(const QString &optionString, AdBlockFilte
     }
 }
 
-QString AdBlockFilterParser::parseRegExp(const QString &regExpString) const
+QString FilterParser::parseRegExp(const QString &regExpString) const
 {
     int strSize = regExpString.size();
 
@@ -669,4 +672,6 @@ QString AdBlockFilterParser::parseRegExp(const QString &regExpString) const
         }
     }
     return replacement;
+}
+
 }

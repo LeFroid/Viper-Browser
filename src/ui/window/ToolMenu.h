@@ -4,7 +4,10 @@
 #include "ServiceLocator.h"
 #include <QMenu>
 
-class AdBlockManager;
+namespace adblock {
+    class AdBlockManager;
+}
+
 class CookieWidget;
 class DownloadManager;
 class UserAgentMenu;
@@ -55,7 +58,7 @@ private:
 // Dependencies
 private:
     /// Points to the advertisement blocking system manager
-    AdBlockManager *m_adBlockManager;
+    adblock::AdBlockManager *m_adBlockManager;
 
     /// Points to the cookie jar management window
     CookieWidget *m_cookieWidget;

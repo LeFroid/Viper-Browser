@@ -6,7 +6,10 @@
 #include <QTextStream>
 #include <QDebug>
 
-AdBlockSubscription::AdBlockSubscription() :
+namespace adblock
+{
+
+Subscription::Subscription() :
     m_enabled(true),
     m_filePath(),
     m_name(),
@@ -17,7 +20,7 @@ AdBlockSubscription::AdBlockSubscription() :
 {
 }
 
-AdBlockSubscription::AdBlockSubscription(const QString &dataFile) :
+Subscription::Subscription(const QString &dataFile) :
     m_enabled(true),
     m_filePath(dataFile),
     m_name(),
@@ -28,7 +31,7 @@ AdBlockSubscription::AdBlockSubscription(const QString &dataFile) :
 {
 }
 
-AdBlockSubscription::AdBlockSubscription(AdBlockSubscription &&other) :
+Subscription::Subscription(Subscription &&other) :
     m_enabled(other.m_enabled),
     m_filePath(other.m_filePath),
     m_name(other.m_name),
@@ -39,25 +42,7 @@ AdBlockSubscription::AdBlockSubscription(AdBlockSubscription &&other) :
 {
 }
 
-/*
-AdBlockSubscription &AdBlockSubscription::operator =(const AdBlockSubscription &other)
-{
-    if (this != &other)
-    {
-        m_enabled = other.m_enabled;
-        m_filePath = other.m_filePath;
-        m_name = other.m_name;
-        m_sourceUrl = other.m_sourceUrl;
-        m_lastUpdate = other.m_lastUpdate;
-        m_nextUpdate = other.m_nextUpdate;
-        // don't copy filters
-    }
-
-    return *this;
-}
-*/
-
-AdBlockSubscription &AdBlockSubscription::operator =(AdBlockSubscription &&other)
+Subscription &Subscription::operator =(Subscription &&other)
 {
     if (this != &other)
     {
@@ -73,41 +58,41 @@ AdBlockSubscription &AdBlockSubscription::operator =(AdBlockSubscription &&other
     return *this;
 }
 
-AdBlockSubscription::~AdBlockSubscription()
+Subscription::~Subscription()
 {
 }
 
-bool AdBlockSubscription::isEnabled() const
+bool Subscription::isEnabled() const
 {
     return m_enabled;
 }
 
-void AdBlockSubscription::setEnabled(bool value)
+void Subscription::setEnabled(bool value)
 {
     m_enabled = value;
 }
 
-const QString &AdBlockSubscription::getName() const
+const QString &Subscription::getName() const
 {
     return m_name;
 }
 
-const QUrl &AdBlockSubscription::getSourceUrl() const
+const QUrl &Subscription::getSourceUrl() const
 {
     return m_sourceUrl;
 }
 
-const QDateTime &AdBlockSubscription::getLastUpdate() const
+const QDateTime &Subscription::getLastUpdate() const
 {
     return m_lastUpdate;
 }
 
-const QDateTime &AdBlockSubscription::getNextUpdate() const
+const QDateTime &Subscription::getNextUpdate() const
 {
     return m_nextUpdate;
 }
 
-void AdBlockSubscription::load(AdBlockManager *adBlockManager)
+void Subscription::load(AdBlockManager *adBlockManager)
 {
     if (!m_enabled || m_filePath.isEmpty())
         return;
@@ -119,7 +104,7 @@ void AdBlockSubscription::load(AdBlockManager *adBlockManager)
 
     m_filters.clear();
 
-    AdBlockFilterParser parser(adBlockManager);
+    FilterParser parser(adBlockManager);
 
     QString line;
     QTextStream stream(&subFile);
@@ -157,7 +142,6 @@ void AdBlockSubscription::load(AdBlockManager *adBlockManager)
         else if (line.isEmpty() || line.compare(QStringLiteral("#")) == 0 || line.startsWith(QStringLiteral("# ")) || line.startsWith(QStringLiteral("[Adblock")))
             continue;
 
-        //m_filters.push_back(std::make_unique<AdBlockFilter>(line));
         m_filters.push_back(parser.makeFilter(line));
     }
 
@@ -169,22 +153,22 @@ void AdBlockSubscription::load(AdBlockManager *adBlockManager)
     }
 }
 
-void AdBlockSubscription::setLastUpdate(const QDateTime &date)
+void Subscription::setLastUpdate(const QDateTime &date)
 {
     m_lastUpdate = date;
 }
 
-void AdBlockSubscription::setNextUpdate(const QDateTime &date)
+void Subscription::setNextUpdate(const QDateTime &date)
 {
     m_nextUpdate = date;
 }
 
-void AdBlockSubscription::setSourceUrl(const QUrl &source)
+void Subscription::setSourceUrl(const QUrl &source)
 {
     m_sourceUrl = source;
 }
 
-int AdBlockSubscription::getNumFilters() const
+int Subscription::getNumFilters() const
 {
     if (!m_enabled)
         return 0;
@@ -192,7 +176,7 @@ int AdBlockSubscription::getNumFilters() const
     return static_cast<int>(m_filters.size());
 }
 
-AdBlockFilter *AdBlockSubscription::getFilter(int index)
+Filter *Subscription::getFilter(int index)
 {
     if (!m_enabled)
         return nullptr;
@@ -202,12 +186,14 @@ AdBlockFilter *AdBlockSubscription::getFilter(int index)
     return m_filters[index].get();
 }
 
-const QString &AdBlockSubscription::getFilePath() const
+const QString &Subscription::getFilePath() const
 {
     return m_filePath;
 }
 
-void AdBlockSubscription::setFilePath(const QString &filePath)
+void Subscription::setFilePath(const QString &filePath)
 {
     m_filePath = filePath;
+}
+
 }

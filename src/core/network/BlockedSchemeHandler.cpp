@@ -11,13 +11,13 @@ BlockedSchemeHandler::BlockedSchemeHandler(const ViperServiceLocator &serviceLoc
     m_adBlockManager(nullptr),
     m_serviceLocator(serviceLocator)
 {
-    m_adBlockManager = serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
+    m_adBlockManager = serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager");
 }
 
 void BlockedSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
 {
     if (!m_adBlockManager)
-        m_adBlockManager = m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
+        m_adBlockManager = m_serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager");
 
     QString resourceName = request->requestUrl().toString();
     resourceName = resourceName.mid(8);

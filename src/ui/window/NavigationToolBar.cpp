@@ -78,7 +78,7 @@ void NavigationToolBar::setServiceLocator(const ViperServiceLocator &serviceLoca
 {
     m_searchEngineLineEdit->setFaviconManager(serviceLocator.getServiceAs<FaviconManager>("FaviconManager"));
 
-    m_adBlockButton->setAdBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
+    m_adBlockButton->setAdBlockManager(serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager"));
     m_adBlockButton->setSettings(serviceLocator.getServiceAs<Settings>("Settings"));
     m_urlInput->setServiceLocator(serviceLocator);
 }

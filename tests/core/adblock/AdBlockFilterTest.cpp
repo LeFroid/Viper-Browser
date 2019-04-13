@@ -6,6 +6,8 @@
 #include <QtTest>
 #include <QUrl>
 
+using namespace adblock;
+
 class AdBlockFilterTest : public QObject
 {
     Q_OBJECT
@@ -21,19 +23,19 @@ private Q_SLOTS:
     void testRedirectFilterMatch();
 
 private:
-    std::unique_ptr<AdBlockFilter> domainCSSFilter;
+    std::unique_ptr<Filter> domainCSSFilter;
 
-    std::unique_ptr<AdBlockFilter> blockDomainRule;
-    std::unique_ptr<AdBlockFilter> allowDomainRule;
+    std::unique_ptr<Filter> blockDomainRule;
+    std::unique_ptr<Filter> allowDomainRule;
 
-    std::unique_ptr<AdBlockFilter> redirectScriptRule;
+    std::unique_ptr<Filter> redirectScriptRule;
 
-    std::unique_ptr<AdBlockFilter> blockScriptDomainRule;
+    std::unique_ptr<Filter> blockScriptDomainRule;
 };
 
 AdBlockFilterTest::AdBlockFilterTest()
 {
-    AdBlockFilterParser parser(nullptr);
+    FilterParser parser(nullptr);
     domainCSSFilter = parser.makeFilter(QLatin1String("slashdot.org##.ntv-sponsored"));
 
     blockDomainRule = parser.makeFilter(QLatin1String("|https://$image,media,script,third-party,domain=watchvid.com"));

@@ -456,7 +456,7 @@ void MainWindow::onFindTextAction()
 
 void MainWindow::openAdBlockLogDisplay()
 {
-    AdBlockLogDisplay *logDisplay = new AdBlockLogDisplay(m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager"));
+    AdBlockLogDisplay *logDisplay = new AdBlockLogDisplay(m_serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager"));
     logDisplay->setLogTableFor(m_tabWidget->currentWebWidget()->url().adjusted(QUrl::RemoveFragment));
     logDisplay->show();
     logDisplay->raise();

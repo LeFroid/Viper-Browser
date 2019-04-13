@@ -6,7 +6,10 @@
 #include <memory>
 #include <QWebEngineUrlRequestInterceptor>
 
-class AdBlockManager;
+namespace adblock {
+    class AdBlockManager;
+}
+
 class Settings;
 
 /**
@@ -36,8 +39,8 @@ private:
     /// Service locator
     const ViperServiceLocator &m_serviceLocator;
 
-    /// AdBlockManager
-    AdBlockManager *m_adBlockManager;
+    /// Advertisement blocking system manager
+    adblock::AdBlockManager *m_adBlockManager;
 };
 
 #endif // REQUESTINTERCEPTOR_H 

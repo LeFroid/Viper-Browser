@@ -14,7 +14,7 @@
 #include <QResizeEvent>
 #include <QUrl>
 
-AdBlockWidget::AdBlockWidget(AdBlockManager *adBlockManager) :
+AdBlockWidget::AdBlockWidget(adblock::AdBlockManager *adBlockManager) :
     QWidget(nullptr),
     ui(new Ui::AdBlockWidget),
     m_adBlockManager(adBlockManager)
@@ -98,8 +98,8 @@ void AdBlockWidget::addSubscriptionFromURL()
 void AdBlockWidget::editUserFilters()
 {
     CustomFilterEditor *editor = new CustomFilterEditor;
-    connect(editor, &CustomFilterEditor::createUserSubscription, m_adBlockManager, &AdBlockManager::createUserSubscription);
-    connect(editor, &CustomFilterEditor::filtersModified, m_adBlockManager, &AdBlockManager::reloadSubscriptions);
+    connect(editor, &CustomFilterEditor::createUserSubscription, m_adBlockManager, &adblock::AdBlockManager::createUserSubscription);
+    connect(editor, &CustomFilterEditor::filtersModified, m_adBlockManager, &adblock::AdBlockManager::reloadSubscriptions);
     editor->loadUserFilters();
     editor->show();
 }
@@ -130,7 +130,7 @@ void AdBlockWidget::deleteSelectedSubscriptions()
     std::sort(selectedRows.begin(), selectedRows.end(), std::greater<int>());
 
     // Remove subscriptions
-    AdBlockModel *model = qobject_cast<AdBlockModel*>(ui->tableView->model());
+    adblock::AdBlockModel *model = qobject_cast<adblock::AdBlockModel*>(ui->tableView->model());
     for (int row : selectedRows)
         model->removeRow(row);
 }

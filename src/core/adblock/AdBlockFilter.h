@@ -2,6 +2,7 @@
 #define ADBLOCKFILTER_H
 
 #include "Bitfield.h"
+
 #include <cstdint>
 #include <memory>
 #include <tuple>
@@ -47,8 +48,9 @@ struct EnableBitfield<ElementType>
     static constexpr bool enabled = true;
 };
 
-/// Mapping of option name strings to their corresponding \ref ElementType
-extern QHash<QString, ElementType> eOptionMap;
+
+namespace adblock
+{
 
 /**
  * @ingroup AdBlock
@@ -87,34 +89,34 @@ enum class CosmeticFilter
 };
 
 /**
- * @class AdBlockFilter
+ * @class Filter
  * @ingroup AdBlock
  * @brief An implementation of an AdBlock Plus filter for network content
  */
-class AdBlockFilter
+class Filter
 {
-    friend class AdBlockFilterContainer;
-    friend class AdBlockFilterParser;
+    friend class FilterContainer;
+    friend class FilterParser;
     friend class AdBlockManager;
 
 public:
     /// Constructs the filter given the corresponding rule (a line in an adblock plus-formatted file)
-    explicit AdBlockFilter(const QString &rule);
+    explicit Filter(const QString &rule);
 
     /// Copy constructor
-    AdBlockFilter(const AdBlockFilter &other);
+    Filter(const Filter &other);
 
     /// Move constructor
-    AdBlockFilter(AdBlockFilter &&other);
+    Filter(Filter &&other);
 
     /// Copy assignment operator
-    AdBlockFilter &operator =(const AdBlockFilter &other);
+    Filter &operator =(const Filter &other);
 
     /// Move assignment operator
-    AdBlockFilter &operator =(AdBlockFilter &&other);
+    Filter &operator =(Filter &&other);
 
     /// Destructor
-    ~AdBlockFilter();
+    ~Filter();
 
     /// Returns the category of this filter
     FilterCategory getCategory() const;
@@ -247,5 +249,7 @@ private:
     /// Wide-string used in rabin-karp string matching algorithm
     std::wstring m_needleWStr;
 };
+
+}
 
 #endif // ADBLOCKFILTER_H

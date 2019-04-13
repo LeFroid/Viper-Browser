@@ -1,6 +1,9 @@
 #include "AdBlockModel.h"
 #include "AdBlockManager.h"
 
+namespace adblock
+{
+
 AdBlockModel::AdBlockModel(AdBlockManager *parent) :
     QAbstractTableModel(parent),
     m_adBlockManager(parent)
@@ -42,7 +45,7 @@ QVariant AdBlockModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() >= rowCount())
         return QVariant();
 
-    const AdBlockSubscription *sub = m_adBlockManager->getSubscription(index.row());
+    const Subscription *sub = m_adBlockManager->getSubscription(index.row());
     if (sub == nullptr)
         return QVariant();
 
@@ -101,4 +104,6 @@ bool AdBlockModel::removeRows(int row, int count, const QModelIndex &parent)
     endRemoveRows();
 
     return true;
+}
+
 }

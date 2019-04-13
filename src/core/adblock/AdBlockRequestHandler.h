@@ -13,15 +13,18 @@
 #include <QString>
 #include <QWebEngineUrlRequestInfo>
 
+namespace adblock
+{
+
 class AdBlockLog;
 
 /**
- * @class AdBlockRequestHandler
- * @brief Handles network requests, checking for any matching filters
- *        to allow a request, block it, or redirect to something else.
+ * @class RequestHandler
+ * @brief Examines network requests to see if they should be blocked, whitelisted or redirected based
+ *        on a filter rule
  * @ingroup AdBlock
  */
-class AdBlockRequestHandler : public QObject
+class RequestHandler : public QObject
 {
     friend class AdBlockManager;
 
@@ -29,7 +32,7 @@ class AdBlockRequestHandler : public QObject
 
 public:
     /// Constructs the request handler with the given parent
-    explicit AdBlockRequestHandler(AdBlockFilterContainer &filterContainer, AdBlockLog *log, QObject *parent);
+    explicit RequestHandler(FilterContainer &filterContainer, AdBlockLog *log, QObject *parent);
 
     /// Returns the number of ads that were blocked on the page with the given URL during its last page load
     int getNumberAdsBlocked(const QUrl &url) const;
@@ -53,7 +56,7 @@ private:
 
 private:
     /// Reference to the filter container
-    AdBlockFilterContainer &m_filterContainer;
+    FilterContainer &m_filterContainer;
 
     /// Logging instance
     AdBlockLog *m_log;
@@ -64,5 +67,7 @@ private:
     /// Hash map of URLs to the number of requests that were blocked on that given URL
     QHash<QUrl, int> m_pageAdBlockCount;
 };
+
+}
 
 #endif //ADBLOCKREQUESTHANDLER_H

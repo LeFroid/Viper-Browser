@@ -18,6 +18,9 @@
 
 #include <QDebug>
 
+namespace adblock
+{
+
 AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QObject(parent),
     m_filterContainer(),
@@ -62,7 +65,7 @@ AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObjec
     m_log = new AdBlockLog(this);
 
     // Instantiate the network request handler
-    m_requestHandler = new AdBlockRequestHandler(m_filterContainer, m_log, this);
+    m_requestHandler = new RequestHandler(m_filterContainer, m_log, this);
 }
 
 AdBlockManager::~AdBlockManager()
@@ -93,7 +96,7 @@ void AdBlockManager::updateSubscriptions()
     // Check if subscription should be updated
     for (size_t i = 0; i < m_subscriptions.size(); ++i)
     {
-        AdBlockSubscription *subPtr = &(m_subscriptions[i]);
+        Subscription *subPtr = &(m_subscriptions[i]);
         if (!subPtr)
             continue;
         const QDateTime &updateTime = subPtr->getNextUpdate();
@@ -145,7 +148,7 @@ void AdBlockManager::installSubscription(const QUrl &url)
 
     InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_subscriptionDir, false);
     connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
-        AdBlockSubscription subscription(filePath);
+        Subscription subscription(filePath);
         subscription.setSourceUrl(url);
 
         // Update ad block model
@@ -173,7 +176,7 @@ void AdBlockManager::createUserSubscription()
     userFile.append(QLatin1String("custom.txt"));
     QString userFileUrl = QString("file://%1").arg(QFileInfo(userFile).absoluteFilePath());
 
-    AdBlockSubscription subscription(userFile);
+    Subscription subscription(userFile);
     subscription.setSourceUrl(QUrl(userFileUrl));
 
     // Update AdBlockModel if it is instantiated
@@ -239,8 +242,8 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
 
     QString stylesheet;
     int numStylesheetRules = 0;
-    std::vector<AdBlockFilter*> domainBasedHidingFilters = m_filterContainer.getDomainBasedHidingFilters(domain);
-    for (AdBlockFilter *filter : domainBasedHidingFilters)
+    std::vector<Filter*> domainBasedHidingFilters = m_filterContainer.getDomainBasedHidingFilters(domain);
+    for (Filter *filter : domainBasedHidingFilters)
     {
         stylesheet.append(filter->getEvalString() + QChar(','));
         if (numStylesheetRules > 1000)
@@ -260,7 +263,7 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
 
     // Check for custom stylesheet rules
     domainBasedHidingFilters = m_filterContainer.getDomainBasedCustomHidingFilters(domain);
-    for (AdBlockFilter *filter : domainBasedHidingFilters)
+    for (Filter *filter : domainBasedHidingFilters)
     {
         stylesheet.append(filter->getEvalString());
     }
@@ -313,16 +316,16 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     QString javascript;
     std::vector<QString> cspDirectives;
 
-    std::vector<AdBlockFilter*> domainBasedScripts = m_filterContainer.getDomainBasedScriptInjectionFilters(domain);
-    for (AdBlockFilter *filter : domainBasedScripts)
+    std::vector<Filter*> domainBasedScripts = m_filterContainer.getDomainBasedScriptInjectionFilters(domain);
+    for (Filter *filter : domainBasedScripts)
         javascript.append(filter->getEvalString());
 
-    const AdBlockFilter *inlineScriptBlockingRule = m_filterContainer.findInlineScriptBlockingFilter(requestUrl, domain);
+    const Filter *inlineScriptBlockingRule = m_filterContainer.findInlineScriptBlockingFilter(requestUrl, domain);
     if (inlineScriptBlockingRule != nullptr)
         cspDirectives.push_back(QLatin1String("script-src 'unsafe-eval' * blob: data:"));
 
-    std::vector<AdBlockFilter*> cspFilters = m_filterContainer.getMatchingCSPFilters(requestUrl, domain);
-    for (AdBlockFilter *filter : cspFilters)
+    std::vector<Filter*> cspFilters = m_filterContainer.getMatchingCSPFilters(requestUrl, domain);
+    for (Filter *filter : cspFilters)
         cspDirectives.push_back(filter->getContentSecurityPolicy());
 
     QString result;
@@ -382,7 +385,7 @@ int AdBlockManager::getNumSubscriptions() const
     return static_cast<int>(m_subscriptions.size());
 }
 
-const AdBlockSubscription *AdBlockManager::getSubscription(int index) const
+const Subscription *AdBlockManager::getSubscription(int index) const
 {
     if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
         return nullptr;
@@ -395,7 +398,7 @@ void AdBlockManager::toggleSubscriptionEnabled(int index)
     if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
         return;
 
-    AdBlockSubscription &sub = m_subscriptions.at(index);
+    Subscription &sub = m_subscriptions.at(index);
     sub.setEnabled(!sub.isEnabled());
 
     // Reset filter data
@@ -559,7 +562,7 @@ void AdBlockManager::loadSubscriptions()
             m_requestHandler->setTotalNumberOfBlockedRequests(it.value().toString().toULongLong());
             continue;
         }
-        AdBlockSubscription subscription(key);
+        Subscription subscription(key);
 
         subscriptionObj = it.value().toObject();
         subscription.setEnabled(subscriptionObj.value(QLatin1String("enabled")).toBool());
@@ -604,7 +607,7 @@ void AdBlockManager::clearFilters()
 
 void AdBlockManager::extractFilters()
 {
-    for (AdBlockSubscription &s : m_subscriptions)
+    for (Subscription &s : m_subscriptions)
     {
         // calling load() does nothing if subscription is disabled
         s.load(this);
@@ -649,4 +652,6 @@ void AdBlockManager::save()
     QJsonDocument configDoc(configObj);
     configFile.write(configDoc.toJson());
     configFile.close();
+}
+
 }

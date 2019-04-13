@@ -4,7 +4,10 @@
 #include "ServiceLocator.h"
 #include <QWebEngineUrlSchemeHandler>
 
-class AdBlockManager;
+namespace adblock {
+    class AdBlockManager;
+}
+
 class QIODevice;
 class QWebEngineUrlRequestJob;
 
@@ -27,7 +30,7 @@ public:
 
 private:
     /// Advertisement blocker
-    AdBlockManager *m_adBlockManager;
+    adblock::AdBlockManager *m_adBlockManager;
 
     /// Service locator
     const ViperServiceLocator &m_serviceLocator;

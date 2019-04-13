@@ -5,7 +5,10 @@
 #include <QTimer>
 #include <QToolButton>
 
-class AdBlockManager;
+namespace adblock {
+    class AdBlockManager;
+}
+
 class Settings;
 
 /**
@@ -22,7 +25,7 @@ public:
     explicit AdBlockButton(QWidget *parent = nullptr);
 
     /// Sets the pointer to the advertisement blocking system manager
-    void setAdBlockManager(AdBlockManager *adBlockManager);
+    void setAdBlockManager(adblock::AdBlockManager *adBlockManager);
 
     /// Sets the pointer to the application-level settings handler
     void setSettings(Settings *settings);
@@ -47,7 +50,7 @@ protected:
 
 private:
     /// Advertisement blocking system manager
-    AdBlockManager *m_adBlockManager;
+    adblock::AdBlockManager *m_adBlockManager;
 
     /// Application settings
     Settings *m_settings;

@@ -18,10 +18,14 @@
 #include <deque>
 #include <vector>
 
-class AdBlockLog;
-class AdBlockModel;
-class AdBlockRequestHandler;
+class BrowserApplication;
 class DownloadManager;
+
+namespace adblock
+{
+    class AdBlockLog;
+    class AdBlockModel;
+    class RequestHandler;
 
 /**
  * @defgroup AdBlock Advertisement Blocking System
@@ -37,11 +41,9 @@ class DownloadManager;
  */
 class AdBlockManager : public QObject, public ISettingsObserver
 {
-    friend class AdBlockFilterParser;
+    friend class FilterParser;
     friend class AdBlockModel;
-    friend class AdBlockWidget;
-    friend class BrowserApplication;
-    friend class BlockedSchemeHandler;
+    friend class ::BrowserApplication;
 
     Q_OBJECT
 
@@ -79,6 +81,12 @@ public:
     /// Returns the number of ads that were blocked on the page with the given URL during its last page load
     int getNumberAdsBlocked(const QUrl &url) const;
 
+    /// Searches for and returns the value from the resource map that is associated with the given key. Returns an empty string if not found
+    QString getResource(const QString &key) const;
+
+    /// Returns the content type of the resource with the given key. Returns an empty string if the key is not found
+    QString getResourceContentType(const QString &key) const;
+
 public slots:
     /// Attempt to update ad block subscriptions
     void updateSubscriptions();
@@ -95,19 +103,14 @@ public slots:
      */
     void installSubscription(const QUrl &url);
 
-    /// Creates and registers new \ref AdBlockSubscription to be associated with user-set filter rules
+    /// Creates and registers new \ref Subscription to be associated with user-set filter rules
     void createUserSubscription();
 
     /// Informs the AdBlockManager to begin keeping track of the number of ads that were blocked on the page with the given url
     void loadStarted(const QUrl &url);
 
-// Called by AdBlockFilterParser and BlockedSchemeHandler:
-protected:
-    /// Searches for and returns the value from the resource map that is associated with the given key. Returns an empty string if not found
-    QString getResource(const QString &key) const;
-
-    /// Returns the content type of the resource with the given key. Returns an empty string if the key is not found
-    QString getResourceContentType(const QString &key) const;
+    /// Reloads the filter list subscriptions
+    void reloadSubscriptions();
 
 // Called by AdBlockModel:
 protected:
@@ -115,18 +118,13 @@ protected:
     int getNumSubscriptions() const;
 
     /// Returns a pointer to the subscription at the given index, or a nullptr if the index is out of range
-    const AdBlockSubscription *getSubscription(int index) const;
+    const Subscription *getSubscription(int index) const;
 
     /// Toggles the state of the subscription at the given index (enabled <--> disabled)
     void toggleSubscriptionEnabled(int index);
 
     /// Removes the subscription at the given index, if the index is within range, and reloads existing subscriptions
     void removeSubscription(int index);
-
-// Called by AdBlockWidget:
-protected slots:
-    /// Reloads the ad blocking subscriptions
-    void reloadSubscriptions();
 
 // Called by BrowserApplication:
 protected:
@@ -161,7 +159,7 @@ private:
 
 private:
     /// Stores the union of all subscription list filters
-    AdBlockFilterContainer m_filterContainer;
+    FilterContainer m_filterContainer;
 
     /// Download manager, required to update subscription lists
     DownloadManager *m_downloadManager;
@@ -179,7 +177,7 @@ private:
     QString m_cosmeticJSTemplate;
 
     /// Container of content blocking subscriptions
-    std::vector<AdBlockSubscription> m_subscriptions;
+    std::vector<Subscription> m_subscriptions;
 
     /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
     QHash<QString, QString> m_resourceMap;
@@ -203,7 +201,9 @@ private:
     AdBlockLog *m_log;
 
     /// Performs network request matching to filters, and keeps count of the number of blocked requests (total + per URL)
-    AdBlockRequestHandler *m_requestHandler;
+    RequestHandler *m_requestHandler;
 };
+
+}
 
 #endif // ADBLOCKMANAGER_H

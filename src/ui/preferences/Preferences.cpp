@@ -1,7 +1,6 @@
 #include "Preferences.h"
 #include "ui_Preferences.h"
 
-#include "AdBlockManager.h"
 #include "AppInitSettings.h"
 #include "CookieJar.h"
 #include "HistoryManager.h"

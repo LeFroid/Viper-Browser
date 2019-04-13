@@ -31,7 +31,7 @@ AdBlockButton::AdBlockButton(QWidget *parent) :
     m_timer.start(500);
 }
 
-void AdBlockButton::setAdBlockManager(AdBlockManager *adBlockManager)
+void AdBlockButton::setAdBlockManager(adblock::AdBlockManager *adBlockManager)
 {
     m_adBlockManager = adBlockManager;
 }

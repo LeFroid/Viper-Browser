@@ -5,18 +5,21 @@
 #include <QAbstractTableModel>
 #include <vector>
 
+namespace adblock
+{
+
 /**
- * @class AdBlockLogTableModel
+ * @class LogTableModel
  * @brief Interacts with a table view to display the logs from the AdBlock system
  * @ingroup AdBlock
  */
-class AdBlockLogTableModel : public QAbstractTableModel
+class LogTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
     /// Constructs the table model with a pointer to its parent
-    explicit AdBlockLogTableModel(QObject *parent = nullptr);
+    explicit LogTableModel(QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -29,7 +32,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     /// Sets the log entry data to be shown in the table
-    void setLogEntries(const std::vector<AdBlockLogEntry> &entries);
+    void setLogEntries(const std::vector<LogEntry> &entries);
 
 private:
     /// Returns the element typemask as a formatted string ("type1[, type2, ..., typeN]")
@@ -37,7 +40,9 @@ private:
 
 private:
     /// Logs stored in the table model
-    std::vector<AdBlockLogEntry> m_logEntries;
+    std::vector<LogEntry> m_logEntries;
 };
+
+}
 
 #endif // ADBLOCKLOGTABLEMODEL_H

@@ -1,4 +1,3 @@
-#include "AdBlockManager.h"
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "BrowserTabBar.h"

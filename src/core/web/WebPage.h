@@ -15,7 +15,10 @@
 #include <QWebEngineRegisterProtocolHandlerRequest>
 #endif
 
-class AdBlockManager;
+namespace adblock {
+    class AdBlockManager;
+}
+
 class UserScriptManager;
 class WebHistory;
 
@@ -113,7 +116,7 @@ private:
 
 private:
     /// Advertisement blocking system manager
-    AdBlockManager *m_adBlockManager;
+    adblock::AdBlockManager *m_adBlockManager;
 
     /// User script system manager
     UserScriptManager *m_userScriptManager;

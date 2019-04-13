@@ -33,7 +33,7 @@
 
 WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEnginePage(parent),
-    m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
+    m_adBlockManager(serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager")),
     m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),
@@ -47,7 +47,7 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
 
 WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent) :
     QWebEnginePage(profile, parent),
-    m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
+    m_adBlockManager(serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager")),
     m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),

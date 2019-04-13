@@ -14,6 +14,9 @@
 
 #include <QDebug>
 
+namespace adblock
+{
+
 class AdBlockModel
 {
 public:
@@ -133,7 +136,7 @@ int AdBlockManager::getNumSubscriptions() const
     return static_cast<int>(m_subscriptions.size());
 }
 
-const AdBlockSubscription *AdBlockManager::getSubscription(int index) const
+const Subscription *AdBlockManager::getSubscription(int index) const
 {
     if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
         return nullptr;
@@ -146,7 +149,7 @@ void AdBlockManager::toggleSubscriptionEnabled(int index)
     if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
         return;
 
-    AdBlockSubscription &sub = m_subscriptions.at(index);
+    Subscription &sub = m_subscriptions.at(index);
     sub.setEnabled(!sub.isEnabled());
 
     // Reset filter data
@@ -298,7 +301,7 @@ void AdBlockManager::loadSubscriptions()
         {
             continue;
         }
-        AdBlockSubscription subscription(key);
+        Subscription subscription(key);
 
         subscriptionObj = it.value().toObject();
         subscription.setEnabled(subscriptionObj.value(QLatin1String("enabled")).toBool());
@@ -335,7 +338,7 @@ void AdBlockManager::clearFilters()
 
 void AdBlockManager::extractFilters()
 {
-    for (AdBlockSubscription &s : m_subscriptions)
+    for (Subscription &s : m_subscriptions)
     {
         // calling load() does nothing if subscription is disabled
         s.load(this);
@@ -345,6 +348,8 @@ void AdBlockManager::extractFilters()
 
 void AdBlockManager::save()
 {
+}
+
 }
 
 #include "moc_AdBlockManager.cpp"

@@ -44,7 +44,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 {
     QCoreApplication::setOrganizationName(QLatin1String("Vaccarelli"));
     QCoreApplication::setApplicationName(QLatin1String("Viper Browser"));
-    QCoreApplication::setApplicationVersion(QLatin1String("0.9"));
+    QCoreApplication::setApplicationVersion(QLatin1String("0.9.1"));
 
     setAttribute(Qt::AA_EnableHighDpiScaling, true);
     setAttribute(Qt::AA_UseHighDpiPixmaps, true);
@@ -98,7 +98,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     connect(m_privateProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
 
     // Initialize advertisement blocking system
-    m_adBlockManager = new AdBlockManager(m_serviceLocator, m_settings);
+    m_adBlockManager = new adblock::AdBlockManager(m_serviceLocator, m_settings);
     registerService(m_adBlockManager);
 
     // Instantiate the history manager and related systems

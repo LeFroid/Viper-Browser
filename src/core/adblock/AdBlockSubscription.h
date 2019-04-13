@@ -8,40 +8,43 @@
 #include <QString>
 #include <QUrl>
 
+namespace adblock
+{
+
 class AdBlockManager;
 
 /**
- * @class AdBlockSubscription
+ * @class Subscription
  * @ingroup AdBlock
  * @brief Manages a list of ad block filters
  */
-class AdBlockSubscription
+class Subscription
 {
-    friend class AdBlockFilterContainer;
+    friend class FilterContainer;
     friend class AdBlockManager;
     friend class AdBlockRequestHandler;
 
 public:
-    /// Constructs the AdBlockSubscription object
-    AdBlockSubscription();
+    /// Constructs the Subscription object
+    Subscription();
 
-    /// Constructs the AdBlockSubscription with the path to its data file
-    AdBlockSubscription(const QString &dataFile);
+    /// Constructs the Subscription with the path to its data file
+    Subscription(const QString &dataFile);
 
     /// Copy constructor (forbid)
-    AdBlockSubscription(const AdBlockSubscription &other) = delete;
+    Subscription(const Subscription &other) = delete;
 
     /// Move constructor
-    AdBlockSubscription(AdBlockSubscription &&other);
+    Subscription(Subscription &&other);
 
     /// Copy assignment operator
-    AdBlockSubscription &operator =(const AdBlockSubscription &other) = delete;
+    Subscription &operator =(const Subscription &other) = delete;
 
     /// Move assignment operator
-    AdBlockSubscription &operator =(AdBlockSubscription &&other);
+    Subscription &operator =(Subscription &&other);
 
     /// Destructor
-    ~AdBlockSubscription();
+    ~Subscription();
 
     /// Returns true if the subscription is enabled, false if disabled
     bool isEnabled() const;
@@ -81,7 +84,7 @@ protected:
     int getNumFilters() const;
 
     /// Returns the filter at the given index
-    AdBlockFilter *getFilter(int index);
+    Filter *getFilter(int index);
 
     /// Returns the absolute path of the subscription file
     const QString &getFilePath() const;
@@ -109,7 +112,9 @@ private:
     QDateTime m_nextUpdate;
 
     /// Container of AdBlock Filters that belong to the subscription
-    std::vector< std::unique_ptr<AdBlockFilter> > m_filters;
+    std::vector< std::unique_ptr<Filter> > m_filters;
 };
+
+}
 
 #endif // ADBLOCKSUBSCRIPTION_H

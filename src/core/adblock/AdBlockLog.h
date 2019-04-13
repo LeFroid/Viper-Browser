@@ -9,8 +9,11 @@
 
 #include <vector>
 
+namespace adblock
+{
+
 /// The types of actions that can be done to a network request by an ad block filter
-enum class AdBlockFilterAction
+enum class FilterAction
 {
     Allow,
     Block,
@@ -18,14 +21,14 @@ enum class AdBlockFilterAction
 };
 
 /**
- * @struct AdBlockLogEntry
+ * @struct LogEntry
  * @brief Contains information about a network request that was affected by an \ref AdBlockFilter
  * @ingroup AdBlock
  */
-struct AdBlockLogEntry
+struct LogEntry
 {
     /// The action that was done to the request
-    AdBlockFilterAction Action;
+    FilterAction Action;
 
     /// The source from which the request was made
     QUrl FirstPartyUrl;
@@ -69,15 +72,15 @@ public:
      * @param rule The filter rule that was applied to the request
      * @param timestamp The time of the network action
      */
-    void addEntry(AdBlockFilterAction action, const QUrl &firstPartyUrl, const QUrl &requestUrl,
+    void addEntry(FilterAction action, const QUrl &firstPartyUrl, const QUrl &requestUrl,
                   ElementType resourceType, const QString &rule, const QDateTime &timestamp);
 
     /// Returns all log entries
-    std::vector<AdBlockLogEntry> getAllEntries() const;
+    std::vector<LogEntry> getAllEntries() const;
 
     /// Returns all log entries associated with the given first party request url, or
     /// an empty container if no entries are found
-    const std::vector<AdBlockLogEntry> &getEntriesFor(const QUrl &firstPartyUrl);
+    const std::vector<LogEntry> &getEntriesFor(const QUrl &firstPartyUrl);
 
 protected:
     /// Called on a regular interval to prune older log entries
@@ -89,10 +92,12 @@ private slots:
 
 private:
     /// Hashmap of first party URLs associated with requests, to containers of their associated log entries
-    QHash<QUrl, std::vector<AdBlockLogEntry>> m_entries;
+    QHash<QUrl, std::vector<LogEntry>> m_entries;
 
     /// Unique identifier of the log pruning timer
     int m_timerId;
 };
+
+}
 
 #endif // ADBLOCKLOG_H

@@ -6,7 +6,10 @@
 #include <algorithm>
 #include <array>
 
-AdBlockFilter::AdBlockFilter(const QString &rule) :
+namespace adblock
+{
+
+Filter::Filter(const QString &rule) :
     m_category(FilterCategory::None),
     m_ruleString(rule),
     m_evalString(),
@@ -29,7 +32,7 @@ AdBlockFilter::AdBlockFilter(const QString &rule) :
 {
 }
 
-AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
+Filter::Filter(const Filter &other) :
     m_category(other.m_category),
     m_ruleString(other.m_ruleString),
     m_evalString(other.m_evalString),
@@ -52,7 +55,7 @@ AdBlockFilter::AdBlockFilter(const AdBlockFilter &other) :
 {
 }
 
-AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
+Filter::Filter(Filter &&other) :
     m_category(other.m_category),
     m_ruleString(other.m_ruleString),
     m_evalString(other.m_evalString),
@@ -75,7 +78,7 @@ AdBlockFilter::AdBlockFilter(AdBlockFilter &&other) :
 {
 }
 
-AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
+Filter &Filter::operator =(const Filter &other)
 {
     if (this != &other)
     {
@@ -103,7 +106,7 @@ AdBlockFilter &AdBlockFilter::operator =(const AdBlockFilter &other)
     return *this;
 }
 
-AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
+Filter &Filter::operator =(Filter &&other)
 {
     if (this != &other)
     {
@@ -130,61 +133,61 @@ AdBlockFilter &AdBlockFilter::operator =(AdBlockFilter &&other)
     return *this;
 }
 
-AdBlockFilter::~AdBlockFilter()
+Filter::~Filter()
 {
 }
 
-FilterCategory AdBlockFilter::getCategory() const
+FilterCategory Filter::getCategory() const
 {
     return m_category;
 }
 
-void AdBlockFilter::setRule(const QString &rule)
+void Filter::setRule(const QString &rule)
 {
     m_ruleString = rule;
 }
 
-const QString &AdBlockFilter::getRule() const
+const QString &Filter::getRule() const
 {
     return m_ruleString;
 }
 
-const QString &AdBlockFilter::getEvalString() const
+const QString &Filter::getEvalString() const
 {
     return m_evalString;
 }
 
-const QString &AdBlockFilter::getContentSecurityPolicy() const
+const QString &Filter::getContentSecurityPolicy() const
 {
     return m_contentSecurityPolicy;
 }
 
-bool AdBlockFilter::isException() const
+bool Filter::isException() const
 {
     return m_exception;
 }
 
-bool AdBlockFilter::isImportant() const
+bool Filter::isImportant() const
 {
     return m_important;
 }
 
-bool AdBlockFilter::hasDomainRules() const
+bool Filter::hasDomainRules() const
 {
     return !m_domainBlacklist.empty() || !m_domainWhitelist.empty();
 }
 
-bool AdBlockFilter::isRedirect() const
+bool Filter::isRedirect() const
 {
     return m_redirect;
 }
 
-const QString &AdBlockFilter::getRedirectName() const
+const QString &Filter::getRedirectName() const
 {
     return m_redirectName;
 }
 
-bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask) const
+bool Filter::isMatch(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask) const
 {
     if (m_disabled)
         return false;
@@ -273,7 +276,7 @@ bool AdBlockFilter::isMatch(const QString &baseUrl, const QString &requestUrl, c
     return match;
 }
 
-bool AdBlockFilter::isDomainStyleMatch(const QString &domain) const
+bool Filter::isDomainStyleMatch(const QString &domain) const
 {
     if (m_disabled || domain.isEmpty())
         return false;
@@ -295,22 +298,22 @@ bool AdBlockFilter::isDomainStyleMatch(const QString &domain) const
     return false;
 }
 
-void AdBlockFilter::addDomainToWhitelist(const QString &domainStr)
+void Filter::addDomainToWhitelist(const QString &domainStr)
 {
     m_domainWhitelist.insert(domainStr);
 }
 
-void AdBlockFilter::addDomainToBlacklist(const QString &domainStr)
+void Filter::addDomainToBlacklist(const QString &domainStr)
 {
     m_domainBlacklist.insert(domainStr);
 }
 
-void AdBlockFilter::setEvalString(const QString &evalString)
+void Filter::setEvalString(const QString &evalString)
 {
     m_evalString = evalString;
 }
 
-bool AdBlockFilter::isDomainMatch(QString base, const QString &domainStr) const
+bool Filter::isDomainMatch(QString base, const QString &domainStr) const
 {
     // Check if domain match is being performed on an entity filter
     if (domainStr.endsWith(QChar('.')))
@@ -326,7 +329,7 @@ bool AdBlockFilter::isDomainMatch(QString base, const QString &domainStr) const
     return (evalIdx > 0 && base.at(evalIdx - 1) == QChar('.'));
 }
 
-bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const
+bool Filter::isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const
 {
     Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
     int matchIdx = requestUrl.indexOf(m_evalString, 0, caseSensitivity);
@@ -339,7 +342,7 @@ bool AdBlockFilter::isDomainStartMatch(const QString &requestUrl, const QString 
     return false;
 }
 
-void AdBlockFilter::hashEvalString()
+void Filter::hashEvalString()
 {
     if (m_matchAll || m_evalString.isEmpty())
         return;
@@ -349,7 +352,9 @@ void AdBlockFilter::hashEvalString()
     m_evalStringHash = FastHash::getNeedleHash(m_needleWStr);
 }
 
-void AdBlockFilter::setContentSecurityPolicy(const QString &csp)
+void Filter::setContentSecurityPolicy(const QString &csp)
 {
     m_contentSecurityPolicy = csp;
+}
+
 }

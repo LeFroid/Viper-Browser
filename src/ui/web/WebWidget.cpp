@@ -21,7 +21,7 @@
 WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QWidget(parent),
     m_serviceLocator(serviceLocator),
-    m_adBlockManager(serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager")),
+    m_adBlockManager(serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager")),
     m_page(nullptr),
     m_view(nullptr),
     m_inspector(nullptr),

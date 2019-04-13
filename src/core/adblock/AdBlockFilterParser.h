@@ -6,6 +6,9 @@
 #include <memory>
 #include <QString>
 
+namespace adblock
+{
+
 class AdBlockManager;
 
 /// Mapping of option name strings to their corresponding \ref ElementType
@@ -34,19 +37,19 @@ struct CosmeticJSCallback
 };
 
 /**
- * @class AdBlockFilterParser
+ * @class FilterParser
  * @ingroup AdBlock
- * @brief Instantiates \ref AdBlockFilter objects from rule strings formatted
+ * @brief Instantiates \ref Filter objects from rule strings formatted
  *        as per the AdBlock Plus or uBlock Origin specifications
  */
-class AdBlockFilterParser
+class FilterParser
 {
 public:
     /// Constructs the filter parser
-    AdBlockFilterParser(AdBlockManager *adBlockManager);
+    FilterParser(AdBlockManager *adBlockManager);
 
-    /// Instantiates and returns an AdBlockFilter given a filter string
-    std::unique_ptr<AdBlockFilter> makeFilter(QString rule) const;
+    /// Instantiates and returns an Filter given a filter rule
+    std::unique_ptr<Filter> makeFilter(QString rule) const;
 
 private:
     /// Returns true if the given rule string is able to be interpreted as a domain anchor rule with no regular expressions.
@@ -55,16 +58,16 @@ private:
     bool isDomainRule(const QString &rule) const;
 
     /// Returns true if, while parsing the filter rule, its category is determined to be of type Stylesheet or StylesheetJS. Otherwise returns false.
-    bool isStylesheetRule(const QString &rule, AdBlockFilter *filter) const;
+    bool isStylesheetRule(const QString &rule, Filter *filter) const;
 
     /// Parses the rule string for uBlock Origin style cosmetic filter options, returning true if category is StylesheetJS, false if else
-    bool parseCosmeticOptions(AdBlockFilter *filter) const;
+    bool parseCosmeticOptions(Filter *filter) const;
 
     /// Handles the :style option for stylesheet filters, returning true if category is StylesheetCustom, false if else
-    bool parseCustomStylesheet(AdBlockFilter *filter) const;
+    bool parseCustomStylesheet(Filter *filter) const;
 
     /// Checks for and handles the script:inject(...) filter option, returning true if found, false if else
-    bool parseScriptInjection(AdBlockFilter *filter) const;
+    bool parseScriptInjection(Filter *filter) const;
 
     /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type-string len filter information pairs
     CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters) const;
@@ -73,14 +76,14 @@ private:
     std::vector< std::tuple<int, CosmeticFilter, int> > getChainableFilters(const QString &evalStr) const;
 
     /// Checks for blob: and data: type filter rules, converting them into the appropriate CSP filter types
-    void parseForCSP(AdBlockFilter *filter) const;
+    void parseForCSP(Filter *filter) const;
 
     /// Parses a list of domains, separated with the given delimiter, and placing them into
     /// either the domain blacklist or whitelist of the filter depending on the syntax (~ = whitelist, default = blacklist)
-    void parseDomains(const QString &domainString, QChar delimiter, AdBlockFilter *filter) const;
+    void parseDomains(const QString &domainString, QChar delimiter, Filter *filter) const;
 
     /// Parses a comma separated list of options contained within the given string
-    void parseOptions(const QString &optionString, AdBlockFilter *filter) const;
+    void parseOptions(const QString &optionString, Filter *filter) const;
 
     /// Parses the given AdBlock Plus -formatted regular expression, returning the equivalent string used for a QRegularExpression
     QString parseRegExp(const QString &regExpString) const;
@@ -89,5 +92,7 @@ private:
     /// Pointer to the ad blocker
     AdBlockManager *m_adBlockManager;
 };
+
+}
 
 #endif // ADBLOCKFILTERPARSER_H

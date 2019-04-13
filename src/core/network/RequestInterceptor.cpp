@@ -22,7 +22,7 @@ void RequestInterceptor::fetchServices()
         });
     }
     if (!m_adBlockManager)
-        m_adBlockManager = m_serviceLocator.getServiceAs<AdBlockManager>("AdBlockManager");
+        m_adBlockManager = m_serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager");
 }
 
 void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)

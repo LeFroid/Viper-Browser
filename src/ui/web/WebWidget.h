@@ -10,7 +10,10 @@
 #include <QUrl>
 #include <QWidget>
 
-class AdBlockManager;
+namespace adblock {
+    class AdBlockManager;
+}
+
 class BrowserTabWidget;
 class HttpRequest;
 class MainWindow;
@@ -198,7 +201,7 @@ private:
     const ViperServiceLocator &m_serviceLocator;
 
     /// Pointer to the advertisement blocking system manager
-    AdBlockManager *m_adBlockManager;
+    adblock::AdBlockManager *m_adBlockManager;
 
     /// The web page being shown by the web widget, unless the page is hibernating
     WebPage *m_page;

@@ -3,6 +3,9 @@
 
 #include <QAbstractTableModel>
 
+namespace adblock
+{
+
 class AdBlockManager;
 
 /**
@@ -49,5 +52,7 @@ private:
     /// Pointer to the ad block manager
     AdBlockManager *m_adBlockManager;
 };
+
+}
 
 #endif // ADBLOCKMODEL_H

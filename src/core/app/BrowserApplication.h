@@ -14,7 +14,10 @@
 #include "SessionManager.h"
 #include "Settings.h"
 
-class AdBlockManager;
+namespace adblock {
+    class AdBlockManager;
+}
+
 class AutoFill;
 class BlockedSchemeHandler;
 class BookmarkManager;
@@ -132,8 +135,8 @@ private:
     /// Bookmark storage class
     std::unique_ptr<BookmarkStore> m_bookmarkStore;
 
-    /// Advertisement blocking system
-    AdBlockManager *m_adBlockManager;
+    /// Advertisement blocking system manager
+    adblock::AdBlockManager *m_adBlockManager;
 
     /// AutoFill manager
     AutoFill *m_autoFill;
@@ -171,7 +174,7 @@ private:
     /// viper scheme handler
     ViperSchemeHandler *m_viperSchemeHandler;
 
-    /// AdBlock redirect scheme handler
+    /// Ad-block request redirection scheme handler
     BlockedSchemeHandler *m_blockedSchemeHandler;
 
     /// Private browsing profile

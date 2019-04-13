@@ -2,13 +2,16 @@
 
 #include <QString>
 
-AdBlockLogTableModel::AdBlockLogTableModel(QObject *parent) :
+namespace adblock
+{
+
+LogTableModel::LogTableModel(QObject *parent) :
     QAbstractTableModel(parent),
     m_logEntries()
 {
 }
 
-QVariant AdBlockLogTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant LogTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation != Qt::Horizontal)
         return QVariant();
@@ -29,7 +32,7 @@ QVariant AdBlockLogTableModel::headerData(int section, Qt::Orientation orientati
     return QVariant();
 }
 
-int AdBlockLogTableModel::rowCount(const QModelIndex &parent) const
+int LogTableModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
@@ -37,7 +40,7 @@ int AdBlockLogTableModel::rowCount(const QModelIndex &parent) const
     return static_cast<int>(m_logEntries.size());
 }
 
-int AdBlockLogTableModel::columnCount(const QModelIndex &parent) const
+int LogTableModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return 0;
@@ -46,7 +49,7 @@ int AdBlockLogTableModel::columnCount(const QModelIndex &parent) const
     return 6;
 }
 
-QVariant AdBlockLogTableModel::data(const QModelIndex &index, int role) const
+QVariant LogTableModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() >= static_cast<int>(m_logEntries.size()))
         return QVariant();
@@ -54,7 +57,7 @@ QVariant AdBlockLogTableModel::data(const QModelIndex &index, int role) const
     if (role != Qt::DisplayRole)
         return QVariant();
 
-    const AdBlockLogEntry &entry = m_logEntries.at(index.row());
+    const LogEntry &entry = m_logEntries.at(index.row());
     switch (index.column())
     {
         // Timestamp column
@@ -67,11 +70,11 @@ QVariant AdBlockLogTableModel::data(const QModelIndex &index, int role) const
         {
             switch (entry.Action)
             {
-                case AdBlockFilterAction::Allow:
+                case FilterAction::Allow:
                     return tr("Allow");
-                case AdBlockFilterAction::Block:
+                case FilterAction::Block:
                     return tr("Block");
-                case AdBlockFilterAction::Redirect:
+                case FilterAction::Redirect:
                     return tr("Redirected");
             }
         }
@@ -92,7 +95,7 @@ QVariant AdBlockLogTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QString AdBlockLogTableModel::elementTypeToString(ElementType type) const
+QString LogTableModel::elementTypeToString(ElementType type) const
 {
     if (type == ElementType::None)
         return QString();
@@ -157,9 +160,11 @@ QString AdBlockLogTableModel::elementTypeToString(ElementType type) const
     return result;
 }
 
-void AdBlockLogTableModel::setLogEntries(const std::vector<AdBlockLogEntry> &entries)
+void LogTableModel::setLogEntries(const std::vector<LogEntry> &entries)
 {
     beginResetModel();
     m_logEntries = entries;
     endResetModel();
+}
+
 }

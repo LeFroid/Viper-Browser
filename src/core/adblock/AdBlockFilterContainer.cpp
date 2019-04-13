@@ -1,7 +1,10 @@
 #include "AdBlockFilterContainer.h"
 #include "URL.h"
 
-AdBlockFilter *AdBlockFilterContainer::findImportantBlockingFilter(
+namespace adblock
+{
+
+Filter *FilterContainer::findImportantBlockingFilter(
         const QString &baseUrl,
         const QString &requestUrl,
         const QString &requestDomain,
@@ -9,7 +12,7 @@ AdBlockFilter *AdBlockFilterContainer::findImportantBlockingFilter(
 {
     for (auto it = m_importantBlockFilters.begin(); it != m_importantBlockFilters.end(); ++it)
     {
-        AdBlockFilter *filter = *it;
+        Filter *filter = *it;
         if (filter->isMatch(baseUrl, requestUrl, requestDomain, typeMask))
         {
             it = m_importantBlockFilters.erase(it);
@@ -22,18 +25,18 @@ AdBlockFilter *AdBlockFilterContainer::findImportantBlockingFilter(
     return nullptr;
 }
 
-AdBlockFilter *AdBlockFilterContainer::findBlockingRequestFilter(
+Filter *FilterContainer::findBlockingRequestFilter(
         const QString &requestSecondLevelDomain,
         const QString &baseUrl,
         const QString &requestUrl,
         const QString &requestDomain,
         ElementType typeMask)
 {
-    AdBlockFilter *matchingBlockFilter = nullptr;
-    auto checkFiltersForMatch = [&](std::deque<AdBlockFilter*> &filterContainer) {
+    Filter *matchingBlockFilter = nullptr;
+    auto checkFiltersForMatch = [&](std::deque<Filter*> &filterContainer) {
         for (auto it = filterContainer.begin(); it != filterContainer.end(); ++it)
         {
-            AdBlockFilter *filter = *it;
+            Filter *filter = *it;
             if (filter->isMatch(baseUrl, requestUrl, requestDomain, typeMask))
             {
                 matchingBlockFilter = filter;
@@ -57,9 +60,9 @@ AdBlockFilter *AdBlockFilterContainer::findBlockingRequestFilter(
     return matchingBlockFilter;
 }
 
-AdBlockFilter *AdBlockFilterContainer::findWhitelistingFilter(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
+Filter *FilterContainer::findWhitelistingFilter(const QString &baseUrl, const QString &requestUrl, const QString &requestDomain, ElementType typeMask)
 {
-    for (AdBlockFilter *filter : m_allowFilters)
+    for (Filter *filter : m_allowFilters)
     {
         if (filter->isMatch(baseUrl, requestUrl, requestDomain, typeMask))
         {
@@ -70,9 +73,9 @@ AdBlockFilter *AdBlockFilterContainer::findWhitelistingFilter(const QString &bas
     return nullptr;
 }
 
-bool AdBlockFilterContainer::hasGenericHideFilter(const QString &requestUrl, const QString &secondLevelDomain) const
+bool FilterContainer::hasGenericHideFilter(const QString &requestUrl, const QString &secondLevelDomain) const
 {
-    for (AdBlockFilter *filter : m_genericHideFilters)
+    for (Filter *filter : m_genericHideFilters)
     {
         if (filter->isMatch(requestUrl, requestUrl, secondLevelDomain, ElementType::Other))
             return true;
@@ -81,15 +84,15 @@ bool AdBlockFilterContainer::hasGenericHideFilter(const QString &requestUrl, con
     return false;
 }
 
-const QString &AdBlockFilterContainer::getCombinedFilterStylesheet() const
+const QString &FilterContainer::getCombinedFilterStylesheet() const
 {
     return m_stylesheet;
 }
 
-std::vector<AdBlockFilter*> AdBlockFilterContainer::getDomainBasedHidingFilters(const QString &domain) const
+std::vector<Filter*> FilterContainer::getDomainBasedHidingFilters(const QString &domain) const
 {
-    std::vector<AdBlockFilter*> result;
-    for (AdBlockFilter *filter : m_domainStyleFilters)
+    std::vector<Filter*> result;
+    for (Filter *filter : m_domainStyleFilters)
     {
         if (filter->isDomainStyleMatch(domain) && !filter->isException())
             result.push_back(filter);
@@ -97,10 +100,10 @@ std::vector<AdBlockFilter*> AdBlockFilterContainer::getDomainBasedHidingFilters(
     return result;
 }
 
-std::vector<AdBlockFilter*> AdBlockFilterContainer::getDomainBasedCustomHidingFilters(const QString &domain) const
+std::vector<Filter*> FilterContainer::getDomainBasedCustomHidingFilters(const QString &domain) const
 {
-    std::vector<AdBlockFilter*> result;
-    for (AdBlockFilter *filter : m_customStyleFilters)
+    std::vector<Filter*> result;
+    for (Filter *filter : m_customStyleFilters)
     {
         if (filter->isDomainStyleMatch(domain))
             result.push_back(filter);
@@ -108,10 +111,10 @@ std::vector<AdBlockFilter*> AdBlockFilterContainer::getDomainBasedCustomHidingFi
     return result;
 }
 
-std::vector<AdBlockFilter*> AdBlockFilterContainer::getDomainBasedScriptInjectionFilters(const QString &domain) const
+std::vector<Filter*> FilterContainer::getDomainBasedScriptInjectionFilters(const QString &domain) const
 {
-    std::vector<AdBlockFilter*> result;
-    for (AdBlockFilter *filter : m_domainJSFilters)
+    std::vector<Filter*> result;
+    for (Filter *filter : m_domainJSFilters)
     {
         if (filter->isDomainStyleMatch(domain))
             result.push_back(filter);
@@ -119,10 +122,10 @@ std::vector<AdBlockFilter*> AdBlockFilterContainer::getDomainBasedScriptInjectio
     return result;
 }
 
-std::vector<AdBlockFilter*> AdBlockFilterContainer::getMatchingCSPFilters(const QString &requestUrl, const QString &domain) const
+std::vector<Filter*> FilterContainer::getMatchingCSPFilters(const QString &requestUrl, const QString &domain) const
 {
-    std::vector<AdBlockFilter*> result;
-    for (AdBlockFilter *filter : m_cspFilters)
+    std::vector<Filter*> result;
+    for (Filter *filter : m_cspFilters)
     {
         if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
         {
@@ -132,10 +135,10 @@ std::vector<AdBlockFilter*> AdBlockFilterContainer::getMatchingCSPFilters(const 
     return result;
 }
 
-const AdBlockFilter *AdBlockFilterContainer::findInlineScriptBlockingFilter(const QString &requestUrl, const QString &domain) const
+const Filter *FilterContainer::findInlineScriptBlockingFilter(const QString &requestUrl, const QString &domain) const
 {
-    auto filterCSPCheck = [&](const std::deque<AdBlockFilter*> &filterContainer) -> const AdBlockFilter* {
-        for (const AdBlockFilter *filter : filterContainer)
+    auto filterCSPCheck = [&](const std::deque<Filter*> &filterContainer) -> const Filter* {
+        for (const Filter *filter : filterContainer)
         {
             if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript)
                     && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
@@ -146,7 +149,7 @@ const AdBlockFilter *AdBlockFilterContainer::findInlineScriptBlockingFilter(cons
         return nullptr;
     };
 
-    const AdBlockFilter *result = filterCSPCheck(m_importantBlockFilters);
+    const Filter *result = filterCSPCheck(m_importantBlockFilters);
 
     if (!result)
     {
@@ -166,7 +169,7 @@ const AdBlockFilter *AdBlockFilterContainer::findInlineScriptBlockingFilter(cons
     return result;
 }
 
-void AdBlockFilterContainer::clearFilters()
+void FilterContainer::clearFilters()
 {
     m_importantBlockFilters.clear();
     m_allowFilters.clear();
@@ -181,11 +184,11 @@ void AdBlockFilterContainer::clearFilters()
     m_cspFilters.clear();
 }
 
-void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &subscriptions)
+void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
 {
     // Used to store css rules for the global stylesheet and domain-specific stylesheets
-    QHash<QString, AdBlockFilter*> stylesheetFilterMap;
-    QHash<QString, AdBlockFilter*> stylesheetExceptionMap;
+    QHash<QString, Filter*> stylesheetFilterMap;
+    QHash<QString, Filter*> stylesheetExceptionMap;
 
     // Used to remove bad filters (badfilter option from uBlock)
     QSet<QString> badFilters, badHideFilters;
@@ -193,13 +196,13 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
     // Setup global stylesheet string
     m_stylesheet = QLatin1String("<style>");
 
-    for (AdBlockSubscription &sub : subscriptions)
+    for (Subscription &sub : subscriptions)
     {
         // Add filters to appropriate containers
         const int numFilters = sub.getNumFilters();
         for (int i = 0; i < numFilters; ++i)
         {
-            AdBlockFilter *filter = sub.getFilter(i);
+            Filter *filter = sub.getFilter(i);
             if (!filter)
                 continue;
 
@@ -258,7 +261,7 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
                     }
                     else
                     {
-                        std::deque<AdBlockFilter*> queue;
+                        std::deque<Filter*> queue;
                         queue.push_back(filter);
                         m_blockFiltersByDomain.insert(filterDomain, queue);
                     }
@@ -272,7 +275,7 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
     }
 
     // Remove bad filters from all applicable filter containers
-    auto removeBadFiltersFromVector = [&badFilters](std::vector<AdBlockFilter*> &filterContainer) {
+    auto removeBadFiltersFromVector = [&badFilters](std::vector<Filter*> &filterContainer) {
         for (auto it = filterContainer.begin(); it != filterContainer.end();)
         {
             if (badFilters.contains((*it)->getRule()))
@@ -281,7 +284,7 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
                 ++it;
         }
     };
-    auto removeBadFiltersFromDeque = [&badFilters](std::deque<AdBlockFilter*> &filterContainer) {
+    auto removeBadFiltersFromDeque = [&badFilters](std::deque<Filter*> &filterContainer) {
         for (auto it = filterContainer.begin(); it != filterContainer.end();)
         {
             if (badFilters.contains((*it)->getRule()))
@@ -296,7 +299,7 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
     removeBadFiltersFromDeque(m_blockFilters);
     removeBadFiltersFromDeque(m_blockFiltersByPattern);
 
-    for (std::deque<AdBlockFilter*> &queue : m_blockFiltersByDomain)
+    for (std::deque<Filter*> &queue : m_blockFiltersByDomain)
     {
         removeBadFiltersFromDeque(queue);
     }
@@ -305,7 +308,7 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
     removeBadFiltersFromVector(m_genericHideFilters);
 
     // Parse stylesheet exceptions
-    QHashIterator<QString, AdBlockFilter*> it(stylesheetExceptionMap);
+    QHashIterator<QString, Filter*> it(stylesheetExceptionMap);
     while (it.hasNext())
     {
         it.next();
@@ -314,17 +317,17 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
         if (!stylesheetFilterMap.contains(it.key()))
             continue;
 
-        AdBlockFilter *filter = it.value();
+        Filter *filter = it.value();
         stylesheetFilterMap.value(it.key())->m_domainWhitelist.unite(filter->m_domainBlacklist);
     }
 
     // Parse stylesheet blocking rules
-    it = QHashIterator<QString, AdBlockFilter*>(stylesheetFilterMap);
+    it = QHashIterator<QString, Filter*>(stylesheetFilterMap);
     int numStylesheetRules = 0;
     while (it.hasNext())
     {
         it.next();
-        AdBlockFilter *filter = it.value();
+        Filter *filter = it.value();
 
         if (filter->hasDomainRules())
         {
@@ -350,4 +353,6 @@ void AdBlockFilterContainer::extractFilters(std::vector<AdBlockSubscription> &su
         m_stylesheet.append(QLatin1String("{ display: none !important; } "));
     }
     m_stylesheet.append(QLatin1String("</style>"));
+}
+
 }

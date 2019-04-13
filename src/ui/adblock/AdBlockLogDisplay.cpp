@@ -7,12 +7,12 @@
 
 #include <QSortFilterProxyModel>
 
-AdBlockLogDisplay::AdBlockLogDisplay(AdBlockManager *adBlockManager) :
+AdBlockLogDisplay::AdBlockLogDisplay(adblock::AdBlockManager *adBlockManager) :
     QWidget(nullptr),
     ui(new Ui::AdBlockLogDisplay),
     m_adBlockManager(adBlockManager),
     m_proxyModel(new QSortFilterProxyModel(this)),
-    m_sourceModel(new AdBlockLogTableModel(this)),
+    m_sourceModel(new adblock::LogTableModel(this)),
     m_logSource(LogSourcePageUrl),
     m_sourceUrl()
 {
