@@ -38,6 +38,8 @@
 #include <QWebEngineSettings>
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
+#include <QtGlobal>
+#include <QtWebEngineCoreVersion>
 
 BrowserApplication::BrowserApplication(int &argc, char **argv) :
     QApplication(argc, argv)
@@ -378,17 +380,21 @@ void BrowserApplication::setupWebProfiles()
 
     // Instantiate request interceptor
     m_requestInterceptor = new RequestInterceptor(m_serviceLocator, this);
+    registerService(m_requestInterceptor);
 
     // Instantiate scheme handlers
     m_viperSchemeHandler = new ViperSchemeHandler(this);
     m_blockedSchemeHandler = new BlockedSchemeHandler(m_serviceLocator, this);
 
     // Attach request interceptor and scheme handlers to web profiles
+#if (QTWEBENGINECORE_VERSION < QT_VERSION_CHECK(5, 13, 0))
     webProfile->setRequestInterceptor(m_requestInterceptor);
+    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
+#endif
+
     webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
     webProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
 
-    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
     m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
     m_privateProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
 }

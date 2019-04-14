@@ -10,6 +10,7 @@
 #include "FaviconStoreBridge.h"
 #include "FavoritePagesManager.h"
 #include "MainWindow.h"
+#include "RequestInterceptor.h"
 #include "SecurityManager.h"
 #include "Settings.h"
 #include "URL.h"
@@ -64,6 +65,11 @@ WebPage::~WebPage()
 
 void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
 {
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
+    if (RequestInterceptor *interceptor = serviceLocator.getServiceAs<RequestInterceptor>("RequestInterceptor"))
+        setUrlRequestInterceptor(interceptor);
+#endif
+
     AutoFill *autoFillManager = serviceLocator.getServiceAs<AutoFill>("AutoFill");
 
     QWebChannel *channel = new QWebChannel(this);

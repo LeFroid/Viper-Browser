@@ -10,6 +10,7 @@ RequestInterceptor::RequestInterceptor(const ViperServiceLocator &serviceLocator
     m_serviceLocator(serviceLocator),
     m_adBlockManager(nullptr)
 {
+    setObjectName(QLatin1String("RequestInterceptor"));
 }
 
 void RequestInterceptor::fetchServices()
