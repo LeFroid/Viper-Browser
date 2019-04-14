@@ -269,7 +269,7 @@ MainWindow *BrowserApplication::getNewWindow()
                 w->loadUrl(QUrl(QLatin1String("viper://newtab")));
                 break;
             case StartupMode::RestoreSession:
-                m_sessionMgr.restoreSession(w);
+                m_sessionMgr.restoreSession(w, this);
                 break;
         }
 

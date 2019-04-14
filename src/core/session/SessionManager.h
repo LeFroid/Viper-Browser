@@ -4,6 +4,7 @@
 #include <QString>
 #include <vector>
 
+class BrowserApplication;
 class MainWindow;
 
 /**
@@ -28,9 +29,12 @@ public:
 
     /**
      * @brief restoreSession Restores the previous browsing session
-     * @param firstWindow Pointer to the first browsing window, which is automatically opened when the application initializes
+     * @param firstWindow Pointer to the first browsing window, which is opened prior to this call
+     *        while the application is initializing.
+     * @param browserApplication Pointer to the browser application instance, which is used to spawn
+     *        any windows other than the first.
      */
-    void restoreSession(MainWindow *firstWindow);
+    void restoreSession(MainWindow *firstWindow, BrowserApplication *browserApplication);
 
 private:
     /// Path of the file in which session data is stored

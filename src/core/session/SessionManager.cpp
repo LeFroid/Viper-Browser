@@ -100,7 +100,7 @@ void SessionManager::saveState(std::vector<MainWindow*> &windows)
     m_savedSession = true;
 }
 
-void SessionManager::restoreSession(MainWindow *firstWindow)
+void SessionManager::restoreSession(MainWindow *firstWindow, BrowserApplication *browserApplication)
 {
     QFile dataFile(m_dataFile);
     if (!dataFile.exists() || !dataFile.open(QIODevice::ReadOnly))
@@ -127,9 +127,9 @@ void SessionManager::restoreSession(MainWindow *firstWindow)
     for (auto winIt = winArray.constBegin(); winIt != winArray.constEnd(); ++winIt)
     {
         if (!isFirstWindow)
-            currentWindow = sBrowserApplication->getNewWindow();
-        else
-            isFirstWindow = false;
+            currentWindow = browserApplication->getNewWindow();
+
+        isFirstWindow = false;
 
         QJsonObject winObject = winIt->toObject();
 
