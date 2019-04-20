@@ -42,9 +42,15 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
     }
 
     m_searchTerm = text.toUpper();
+
+    // Remove any http or https prefix from the term, since we do not want to
+    // do a string check on URLs and potentially remove an HTTPS match because
+    // the user only entered HTTP 
+    QRegularExpression httpExpr(QLatin1String("^HTTP(S?)://"));
+    m_searchTerm.replace(httpExpr, QString());
+
     m_searchWords = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
-    m_searchTermHasScheme = (m_searchTerm.startsWith(QLatin1String("HTTP"))
-            || m_searchTerm.startsWith(QLatin1String("FILE"))
+    m_searchTermHasScheme = (m_searchTerm.startsWith(QLatin1String("FILE"))
             || m_searchTerm.startsWith(QLatin1String("VIPER")));
     hashSearchTerm();
 
