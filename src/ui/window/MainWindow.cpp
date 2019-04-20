@@ -666,6 +666,7 @@ void MainWindow::onMouseMoveFullscreen(int y)
     }
 }
 
+//TODO: move printTabContents & onPrintPreviewRequested functionality into a PrintHandler class
 void MainWindow::printTabContents()
 {
     WebPage *page = qobject_cast<WebPage*>(sender());

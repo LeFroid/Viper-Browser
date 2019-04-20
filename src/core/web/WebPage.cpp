@@ -197,6 +197,8 @@ QVariant WebPage::runJavaScriptBlocking(const QString &scriptSource)
 
 void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId)
 {
+    // level = info, warning or error
+    //TODO: create class named WebPageConsoleLog that stores this info. Can then tie the logs into a console widget, similar to the ad block log
     QWebEnginePage::javaScriptConsoleMessage(level, message, lineId, sourceId);
     //std::cout << "[JS Console] [Source " << sourceId.toStdString() << "] Line " << lineId << ", message: " << message.toStdString() << std::endl;
 }

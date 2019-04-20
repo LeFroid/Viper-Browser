@@ -10,6 +10,36 @@
 #include <QSet>
 #include <QUrl>
 
+// Used to sort results by relevance in the URLSuggestionWorker
+bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
+{
+    // Account for these factors, in order
+    // 1) Number of times the URL was previously typed into the URL bar (ignore this check if a and b have never been typed into the bar)
+    // 2) Closeness of the url to the user input (ex: search="viper.com", a="vipers-are-cool.com", b="viper.com/faq", choose b)
+    // 3) Number of visits to the urls
+    // 4) Most recent visit
+    // 5) Alphabetical ordering
+
+    //TODO: Check (1)
+    // In order to do the first check, we need to start recording / persisting the user entry info when the
+    // enter event is triggered in the url bar
+
+    // Check (2)
+    if (a.IsHostMatch != b.IsHostMatch)
+        return a.IsHostMatch;
+
+    // Check (3)
+    if (a.VisitCount != b.VisitCount)
+        return a.VisitCount > b.VisitCount;
+
+    // Check (4)
+    if (a.LastVisit != b.LastVisit)
+        return a.LastVisit > b.LastVisit;
+
+    // Check (5)
+    return a.URL > b.URL;
+}
+
 URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     QObject(parent),
     m_working(false),
@@ -83,6 +113,8 @@ void URLSuggestionWorker::searchForHits()
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
 
+    const bool inputStartsWithWww = m_searchTerm.size() > 4 && m_searchTerm.startsWith(QLatin1String("WWW."));
+
     for (auto it : *m_bookmarkManager)
     {
         if (!m_working.load())
@@ -94,7 +126,16 @@ void URLSuggestionWorker::searchForHits()
         const QString url = it->getURL().toString();
         if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
         {
-            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), url, true, m_historyManager->getTimesVisited(url));
+            HistoryEntry historyInfo = m_historyManager->getEntry(it->getURL());
+
+            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), url, historyInfo.LastVisit, true,
+                                            historyInfo.NumVisits);
+
+            QString suggestionHost = it->getURL().host().toUpper();
+            if (!inputStartsWithWww)
+                suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
+            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
+
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
 
@@ -103,9 +144,7 @@ void URLSuggestionWorker::searchForHits()
         }
     }
 
-    std::sort(m_suggestions.begin(), m_suggestions.end(), [](const URLSuggestion &a, const URLSuggestion &b) {
-        return a.VisitCount > b.VisitCount;
-    });
+    std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
 
     if (!m_working.load())
         return;
@@ -120,9 +159,18 @@ void URLSuggestionWorker::searchForHits()
         if (hits.contains(url))
             continue;
 
+        const QUrl &urlObj = it.getUrl();
+
         if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
         {
-            auto suggestion = URLSuggestion(m_faviconManager->getFavicon(it.getUrl()), it.getTitle(), url, false, it.getNumVisits());
+            auto suggestion = URLSuggestion(m_faviconManager->getFavicon(urlObj), it.getTitle(), url,
+                                            it.getLastVisit(), false, it.getNumVisits());
+
+            QString suggestionHost = urlObj.host().toUpper();
+            if (!inputStartsWithWww)
+                suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
+            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
+
             histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)
@@ -130,10 +178,7 @@ void URLSuggestionWorker::searchForHits()
         }
     }
 
-    std::sort(histSuggestions.begin(), histSuggestions.end(),
-              [](const URLSuggestion &a, const URLSuggestion &b) {
-        return a.VisitCount > b.VisitCount;
-    });
+    std::sort(histSuggestions.begin(), histSuggestions.end(), compareUrlSuggestions);
 
     if (histSuggestions.size() > 25)
         histSuggestions.erase(histSuggestions.begin() + 25, histSuggestions.end());

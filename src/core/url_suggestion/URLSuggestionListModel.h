@@ -2,7 +2,9 @@
 #define URLSUGGESTIONLISTMODEL_H
 
 #include <vector>
+
 #include <QAbstractListModel>
+#include <QDateTime>
 #include <QIcon>
 #include <QString>
 
@@ -12,15 +14,33 @@
  */
 struct URLSuggestion
 {
+    /// Icon associated with the url
     QIcon Favicon;
+
+    /// Last known title of the page with this url
     QString Title;
+    
+    /// URL of the page, in string form
     QString URL;
+
+    /// Date and time of the last visit to this url
+    QDateTime LastVisit;
+    
+    /// Flag indicating whether or not this url is bookmarked
     bool IsBookmark;
+
+    /// Number of visits to the page with this url
     int VisitCount;
 
+    /// Flag indicating whether or not the host of this url starts with the user input string
+    bool IsHostMatch;
+
+    /// Default constructor
     URLSuggestion() = default;
 
-    URLSuggestion(const QIcon &icon, const QString &title, const QString &url, bool isBookmark, int visitCount);
+    /// Constructs the url suggestion with all of the data it needs to store
+    URLSuggestion(const QIcon &icon, const QString &title, const QString &url, 
+            QDateTime lastVisit, bool isBookmark, int visitCount);
 };
 
 /**
