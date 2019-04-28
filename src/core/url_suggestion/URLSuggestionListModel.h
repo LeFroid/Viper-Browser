@@ -35,6 +35,9 @@ struct URLSuggestion
     /// Flag indicating whether or not the host of this url starts with the user input string
     bool IsHostMatch;
 
+    /// Number of times the URL was explicitly entered by the user
+    int URLTypedCount;
+
     /// Default constructor
     URLSuggestion() = default;
 

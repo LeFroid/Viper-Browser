@@ -106,22 +106,24 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
     }
 }
 
-void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl)
+void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser)
 {
     if (m_storagePolicy == HistoryStoragePolicy::Never)
         return;
 
+    //todo: handle wasTypedByUser
     m_taskScheduler.post([=](){
-        m_historyStore->addVisit(url, title, visitTime, requestedUrl);
+        m_historyStore->addVisit(url, title, visitTime, requestedUrl, wasTypedByUser);
     });
 
     VisitEntry visit = visitTime;
-    //visit.VisitTime = visitTime;
 
     auto it = m_historyItems.find(url.toString().toUpper());
     if (it != m_historyItems.end())
     {
-        //visit.VisitID = it->getVisitId();
+        if (wasTypedByUser)
+            it->m_historyEntry.URLTypedCount++;
+
         it->addVisit(visit);
 
         m_recentItems.push_front(it->m_historyEntry);
@@ -134,6 +136,7 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
         entry.LastVisit = visitTime;
         entry.Title = title;
         entry.URL = url;
+        entry.URLTypedCount = wasTypedByUser ? 1 : 0;
         std::vector<VisitEntry> visits {visit};
         m_historyItems.insert(url.toString().toUpper(), URLRecord(std::move(entry), std::move(visits)));
         m_recentItems.push_front(entry);
@@ -142,13 +145,13 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
     if (!CommonUtil::doUrlsMatch(requestedUrl, url))
     {
         visit = visitTime.addSecs(-1);
-        //visit.VisitID = -1;
-        //visit.VisitTime = visitTime;
 
         it = m_historyItems.find(requestedUrl.toString().toUpper());
         if (it != m_historyItems.end())
         {
-            //visit.VisitID = it->getVisitId();
+            if (wasTypedByUser)
+                it->m_historyEntry.URLTypedCount++;
+
             it->addVisit(visit);
             m_recentItems.push_front(it->m_historyEntry);
         }
@@ -160,6 +163,7 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
             entry.LastVisit = visitTime;
             entry.Title = title;
             entry.URL = requestedUrl;
+            entry.URLTypedCount = wasTypedByUser ? 1 : 0;
             std::vector<VisitEntry> visits {visit};
             m_historyItems.insert(requestedUrl.toString().toUpper(), URLRecord(std::move(entry), std::move(visits)));
             m_recentItems.push_front(entry);

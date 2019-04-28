@@ -32,7 +32,8 @@ WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode
     m_contextMenuPosRelative(),
     m_viewFocusProxy(nullptr),
     m_hibernating(false),
-    m_savedState()
+    m_savedState(),
+    m_lastTypedUrl()
 {
     setObjectName(QLatin1String("webWidget"));
 
@@ -131,10 +132,13 @@ const WebState &WebWidget::getState()
     return m_savedState;
 }
 
-void WebWidget::load(const QUrl &url)
+void WebWidget::load(const QUrl &url, bool wasEnteredByUser)
 {
     if (m_hibernating)
         setHibernation(false);
+
+    if (wasEnteredByUser)
+        m_lastTypedUrl = url;
 
     m_view->load(url);
 }
@@ -224,6 +228,16 @@ void WebWidget::setWebState(WebState &&state)
     }
     else
         emit loadFinished(false);
+}
+
+const QUrl &WebWidget::getLastTypedUrl() const
+{
+    return m_lastTypedUrl;
+}
+
+void WebWidget::clearLastTypedUrl()
+{
+    m_lastTypedUrl = QUrl();
 }
 
 WebHistory *WebWidget::getHistory() const

@@ -20,9 +20,9 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
     // 4) Most recent visit
     // 5) Alphabetical ordering
 
-    //TODO: Check (1)
-    // In order to do the first check, we need to start recording / persisting the user entry info when the
-    // enter event is triggered in the url bar
+    // Check (1)
+    if (!a.URLTypedCount != !b.URLTypedCount)
+        return a.URLTypedCount > b.URLTypedCount;
 
     // Check (2)
     if (a.IsHostMatch != b.IsHostMatch)
@@ -135,6 +135,7 @@ void URLSuggestionWorker::searchForHits()
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
             suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
+            suggestion.URLTypedCount = historyInfo.URLTypedCount;
 
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
@@ -170,6 +171,8 @@ void URLSuggestionWorker::searchForHits()
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
             suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
+
+            suggestion.URLTypedCount = it.getUrlTypedCount();
 
             histSuggestions.push_back(suggestion);
 

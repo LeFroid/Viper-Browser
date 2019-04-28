@@ -354,11 +354,20 @@ void BrowserTabWidget::openLinkInNewWindow(const QUrl &url, bool privateWindow)
 
 void BrowserTabWidget::loadUrl(const QUrl &url)
 {
-    if (m_activeView)
-    {
-        m_activeView->load(url);
-        m_activeView->setFocus();
-    }
+    if (!m_activeView)
+        return;
+
+    m_activeView->load(url);
+    m_activeView->setFocus();
+}
+
+void BrowserTabWidget::loadUrlFromUrlBar(const QUrl &url)
+{
+    if (!m_activeView)
+        return;
+
+    m_activeView->load(url, true);
+    m_activeView->setFocus();
 }
 
 void BrowserTabWidget::resetZoomCurrentView()

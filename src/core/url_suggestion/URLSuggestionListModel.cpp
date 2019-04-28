@@ -8,7 +8,8 @@ URLSuggestion::URLSuggestion(const QIcon &icon, const QString &title, const QStr
     LastVisit(lastVisit),
     IsBookmark(isBookmark),
     VisitCount(visitCount),
-    IsHostMatch(false)
+    IsHostMatch(false),
+    URLTypedCount(0)
 {
 }
 

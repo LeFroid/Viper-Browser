@@ -75,7 +75,7 @@ public:
     std::vector<WebPageInformation> loadMostVisitedEntries(int limit = 10);
 
     /// Adds an entry to the history data store, given the URL, page title, time of visit, and the requested URL
-    void addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl);
+    void addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser);
 
 protected:
     /// Returns true if the history database contains the table structures needed for it to function properly,
@@ -92,6 +92,9 @@ protected:
     void save() override;
 
 private:
+    /// Called during the load() routine, this checks if any of the table structures need to be updated
+    void checkForUpdate();
+
     /// Removes history items that are more than six months old
     void purgeOldEntries();
 

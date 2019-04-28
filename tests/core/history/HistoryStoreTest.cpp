@@ -41,10 +41,10 @@ private slots:
 
         QUrl firstUrl { QUrl::fromUserInput("https://viper-browser.com") }, firstUrlRequested { QUrl::fromUserInput("viper-browser.com") };
         QDateTime firstDate  = QDateTime::currentDateTime();
-        historyStore->addVisit(firstUrl, QLatin1String("Viper Browser"), firstDate, firstUrlRequested);
+        historyStore->addVisit(firstUrl, QLatin1String("Viper Browser"), firstDate, firstUrlRequested, false);
 
         QUrl secondUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, secondUrlRequested { QUrl::fromUserInput("website.net") };
-        historyStore->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
+        historyStore->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested, false);
 
         QVERIFY(historyStore->contains(firstUrl));
         //Don't test first url requested, QUrl::fromUserInput translates to http://viper-browser.com, while history store
@@ -65,7 +65,7 @@ private slots:
         std::unique_ptr<HistoryStore> historyStore = DatabaseFactory::createWorker<HistoryStore>(m_dbFile);
 
         QUrl firstUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, firstUrlRequested { QUrl::fromUserInput("website.net") };
-        historyStore->addVisit(firstUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), firstUrlRequested);
+        historyStore->addVisit(firstUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), firstUrlRequested, false);
 
         QVERIFY(historyStore->contains(firstUrl));
         QVERIFY(historyStore->contains(firstUrlRequested));
@@ -79,8 +79,8 @@ private slots:
         QDateTime secondDate = QDateTime::currentDateTime();
         QUrl secondUrl { QUrl::fromUserInput("https://viper-browser.com") }, secondUrlRequested { QUrl::fromUserInput("viper-browser.com") };
 
-        historyStore->addVisit(firstUrl, QLatin1String("Some Website"), firstDate, firstUrlRequested);
-        historyStore->addVisit(secondUrl, QLatin1String("Viper Browser"), secondDate, secondUrlRequested);
+        historyStore->addVisit(firstUrl, QLatin1String("Some Website"), firstDate, firstUrlRequested, true);
+        historyStore->addVisit(secondUrl, QLatin1String("Viper Browser"), secondDate, secondUrlRequested, true);
 
         QVERIFY(historyStore->contains(firstUrl));
         QVERIFY(historyStore->contains(secondUrl));
@@ -101,8 +101,8 @@ private slots:
 
         QUrl firstUrl { QUrl::fromUserInput("https://viper-browser.com") }, firstUrlRequested { QUrl::fromUserInput("viper-browser.com") };
         QUrl secondUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, secondUrlRequested { QUrl::fromUserInput("website.net") };
-        historyStore->addVisit(firstUrl, QLatin1String("Viper Browser"), QDateTime::currentDateTime(), firstUrlRequested);
-        historyStore->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
+        historyStore->addVisit(firstUrl, QLatin1String("Viper Browser"), QDateTime::currentDateTime(), firstUrlRequested, true);
+        historyStore->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested, true);
 
         QCOMPARE(historyStore->getTimesVisited(firstUrl), 1);
         QCOMPARE(historyStore->getTimesVisited(secondUrl), 1);
@@ -119,10 +119,10 @@ private slots:
 
         QUrl firstUrl { QUrl::fromUserInput("https://viper-browser.com") }, firstUrlRequested { QUrl::fromUserInput("viper-browser.com") };
         QDateTime firstDate  = QDateTime::currentDateTime().addDays(-1);
-        historyStore->addVisit(firstUrl, QLatin1String("Viper Browser"), firstDate, firstUrlRequested);
+        historyStore->addVisit(firstUrl, QLatin1String("Viper Browser"), firstDate, firstUrlRequested, true);
 
         QUrl secondUrl { QUrl::fromUserInput("https://a.datacenter.website.net/landing") }, secondUrlRequested { QUrl::fromUserInput("website.net") };
-        historyStore->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested);
+        historyStore->addVisit(secondUrl, QLatin1String("Some Website"), QDateTime::currentDateTime(), secondUrlRequested, false);
 
         std::vector<URLRecord> records = historyStore->getHistoryFrom(firstDate);
 

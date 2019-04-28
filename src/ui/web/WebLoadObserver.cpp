@@ -1,3 +1,4 @@
+#include "CommonUtil.h"
 #include "HistoryManager.h"
 #include "WebLoadObserver.h"
 #include "WebWidget.h"
@@ -34,6 +35,12 @@ void WebLoadObserver::onLoadFinished(bool ok)
             return;
     }
 
+    const QUrl &lastTypedUrl = m_webWidget->getLastTypedUrl();
+    const bool wasTypedByUser = !lastTypedUrl.isEmpty()
+            && (CommonUtil::doUrlsMatch(originalUrl, lastTypedUrl) || CommonUtil::doUrlsMatch(url, lastTypedUrl));
+    if (wasTypedByUser)
+        m_webWidget->clearLastTypedUrl();
+
     // Notify the history manager
-    m_historyManager->addVisit(url, m_webWidget->getTitle(), QDateTime::currentDateTime(), originalUrl);
+    m_historyManager->addVisit(url, m_webWidget->getTitle(), QDateTime::currentDateTime(), originalUrl, wasTypedByUser);
 }

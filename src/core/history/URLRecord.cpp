@@ -22,6 +22,11 @@ int URLRecord::getNumVisits() const
     return m_historyEntry.NumVisits;
 }
 
+int URLRecord::getUrlTypedCount() const
+{
+    return m_historyEntry.URLTypedCount;
+}
+
 const QUrl &URLRecord::getUrl() const
 {
     return m_historyEntry.URL;

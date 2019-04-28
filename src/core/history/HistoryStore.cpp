@@ -106,7 +106,8 @@ HistoryEntry HistoryStore::getEntry(const QUrl &url)
     if (!m_queryGetEntryByUrl)
     {
         m_queryGetEntryByUrl = new QSqlQuery(m_database);
-        m_queryGetEntryByUrl->prepare(QLatin1String("SELECT Visits.VisitID, Visits.Date, MostRecentVisit.NumVisits, History.Title FROM "
+        m_queryGetEntryByUrl->prepare(QLatin1String("SELECT Visits.VisitID, Visits.Date, MostRecentVisit.NumVisits,"
+                              " History.Title, History.URLTypedCount FROM "
                               " (SELECT VisitID, MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
                               " FROM Visits "
                               " GROUP BY VisitID) AS MostRecentVisit "
@@ -129,6 +130,7 @@ HistoryEntry HistoryStore::getEntry(const QUrl &url)
         result.LastVisit = QDateTime::fromMSecsSinceEpoch(m_queryGetEntryByUrl->value(1).toULongLong());
         result.NumVisits = m_queryGetEntryByUrl->value(2).toInt();
         result.Title     = m_queryGetEntryByUrl->value(3).toString();
+        result.URLTypedCount = m_queryGetEntryByUrl->value(4).toInt();
     }
 
     return result;
@@ -162,8 +164,9 @@ std::deque<HistoryEntry> HistoryStore::getRecentItems()
     std::deque<HistoryEntry> result;
 
     QSqlQuery query(m_database);
-    if (!query.exec(QLatin1String("SELECT Visits.VisitID, Visits.Date, History.URL, History.Title FROM Visits "
-                                  "INNER JOIN History ON Visits.VisitID = History.VisitID "
+    if (!query.exec(QLatin1String("SELECT Visits.VisitID, Visits.Date, History.URL, History.Title, "
+                                  "History.URLTypedCount FROM Visits INNER JOIN History ON "
+                                  "Visits.VisitID = History.VisitID "
                                   "ORDER BY Visits.Date DESC LIMIT 15")))
     {
         qWarning() << "HistoryStore - could not load recently visited history entries";
@@ -177,6 +180,7 @@ std::deque<HistoryEntry> HistoryStore::getRecentItems()
         entry.LastVisit = QDateTime::fromMSecsSinceEpoch(query.value(1).toULongLong());
         entry.URL       = query.value(2).toUrl();
         entry.Title     = query.value(3).toString();
+        entry.URLTypedCount = query.value(4).toInt();
         entry.NumVisits = 1;
 
         result.push_back(std::move(entry));
@@ -205,7 +209,7 @@ std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDat
     QSqlQuery queryVisitIds(m_database), queryHistoryItem(m_database), queryVisitDates(m_database);
     queryVisitIds.prepare(QLatin1String("SELECT DISTINCT VisitID FROM Visits WHERE Date >= (:startDate) AND Date <= (:endDate) "
                                         " ORDER BY Date ASC"));
-    queryHistoryItem.prepare(QLatin1String("SELECT URL, Title FROM History WHERE VisitID = (:visitId)"));
+    queryHistoryItem.prepare(QLatin1String("SELECT URL, Title, URLTypedCount FROM History WHERE VisitID = (:visitId)"));
     queryVisitDates.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) AND Date >= "
                                           "(:startDate) AND Date <= (:endDate) ORDER BY Date ASC"));
 
@@ -213,6 +217,7 @@ std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDat
     queryVisitIds.bindValue(QLatin1String(":endDate"), endMSec);
     if (!queryVisitIds.exec())
         qDebug() << "HistoryStore::getHistoryBetween - error executing query. Message: " << queryVisitIds.lastError().text();
+
     while (queryVisitIds.next())
     {
         const int visitId = queryVisitIds.value(0).toInt();
@@ -224,6 +229,7 @@ std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDat
         HistoryEntry entry;
         entry.URL = queryHistoryItem.value(0).toUrl();
         entry.Title = queryHistoryItem.value(1).toString();
+        entry.URLTypedCount = queryHistoryItem.value(2).toInt();
         entry.VisitID = visitId;
 
         std::vector<VisitEntry> visits;
@@ -235,8 +241,6 @@ std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDat
             while (queryVisitDates.next())
             {
                 VisitEntry visit = QDateTime::fromMSecsSinceEpoch(queryVisitDates.value(0).toLongLong());
-                //visit.VisitID = entry.VisitID;
-                //visit.VisitTime = QDateTime::fromMSecsSinceEpoch(queryVisitDates.value(0).toLongLong());
                 visits.push_back(visit);
             }
         }
@@ -277,18 +281,18 @@ int HistoryStore::getTimesVisited(const QUrl &url) const
     return 0;
 }
 
-void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl)
+void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser)
 {
     if (m_queryUpdateHistoryItem == nullptr)
     {
         m_queryUpdateHistoryItem = new QSqlQuery(m_database);
         m_queryUpdateHistoryItem->prepare(
-                    QLatin1String("UPDATE History SET Title = (:title) WHERE VisitID = (:visitId)"));
+                    QLatin1String("UPDATE History SET Title = (:title), URLTypedCount = (:urlTypedCount) WHERE VisitID = (:visitId)"));
 
         m_queryHistoryItem = new QSqlQuery(m_database);
         m_queryHistoryItem->prepare(
-                    QLatin1String("INSERT OR REPLACE INTO History(VisitID, URL, Title) "
-                                  "VALUES(:visitId, :url, :title)"));
+                    QLatin1String("INSERT OR REPLACE INTO History(VisitID, URL, Title, URLTypedCount) "
+                                  "VALUES(:visitId, :url, :title, :urlTypedCount)"));
 
         m_queryVisit = new QSqlQuery(m_database);
         m_queryVisit->prepare(
@@ -299,17 +303,25 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
     qulonglong visitId = existingEntry.VisitID >= 0 ? existingEntry.VisitID : ++m_lastVisitID;
     if (existingEntry.VisitID >= 0)
     {
+        if (wasTypedByUser)
+            existingEntry.URLTypedCount++;
+
         m_queryUpdateHistoryItem->bindValue(QLatin1String(":title"), title);
         m_queryUpdateHistoryItem->bindValue(QLatin1String(":visitId"), existingEntry.VisitID);
+        m_queryUpdateHistoryItem->bindValue(QLatin1String(":urlTypedCount"), existingEntry.URLTypedCount);
+
         if (!m_queryUpdateHistoryItem->exec())
             qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
                        << m_queryUpdateHistoryItem->lastError().text();
     }
     else
     {
+        const int urlTypedCount = wasTypedByUser ? 1 : 0;
+
         m_queryHistoryItem->bindValue(QLatin1String(":visitId"), visitId);
         m_queryHistoryItem->bindValue(QLatin1String(":url"), url);
         m_queryHistoryItem->bindValue(QLatin1String(":title"), title);
+        m_queryHistoryItem->bindValue(QLatin1String(":urlTypedCount"), urlTypedCount);
         if (!m_queryHistoryItem->exec())
             qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
                        << m_queryHistoryItem->lastError().text();
@@ -327,7 +339,7 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
         QDateTime requestDateTime = visitTime.addMSecs(-100);
         if (!requestDateTime.isValid())
             requestDateTime = visitTime;
-        addVisit(requestedUrl, title, requestDateTime, requestedUrl);
+        addVisit(requestedUrl, title, requestDateTime, requestedUrl, wasTypedByUser);
     }
 }
 
@@ -340,7 +352,8 @@ bool HistoryStore::hasProperStructure()
 void HistoryStore::setup()
 {
     QSqlQuery query(m_database);
-    if (!query.exec(QLatin1String("CREATE TABLE History(VisitID INTEGER PRIMARY KEY, URL TEXT UNIQUE NOT NULL, Title TEXT)")))
+    if (!query.exec(QLatin1String("CREATE TABLE History(VisitID INTEGER PRIMARY KEY, URL TEXT UNIQUE NOT NULL, Title TEXT, "
+                                  "URLTypedCount INTEGER DEFAULT 0)")))
     {
         qDebug() << "[Error]: In HistoryStore::setup - unable to create history table. Message: " << query.lastError().text();
     }
@@ -355,6 +368,7 @@ void HistoryStore::load()
 {
     m_entries.clear();
     purgeOldEntries();
+    checkForUpdate();
 
     // Load current state of history entries from the DB
     QSqlQuery query(m_database);
@@ -375,18 +389,20 @@ void HistoryStore::load()
     }
 
     // Now load history entries
-    if (query.exec(QLatin1String("SELECT VisitID, URL, Title FROM History ORDER BY VisitID ASC")))
+    if (query.exec(QLatin1String("SELECT VisitID, URL, Title, URLTypedCount FROM History ORDER BY VisitID ASC")))
     {
         QSqlRecord rec = query.record();
-        int idVisit = rec.indexOf(QLatin1String("VisitID"));
-        int idUrl = rec.indexOf(QLatin1String("URL"));
-        int idTitle = rec.indexOf(QLatin1String("Title"));
+        const int idVisit = rec.indexOf(QLatin1String("VisitID"));
+        const int idUrl = rec.indexOf(QLatin1String("URL"));
+        const int idTitle = rec.indexOf(QLatin1String("Title"));
+        const int idUrlTypedCount = rec.indexOf(QLatin1String("URLTypedCount"));
         while (query.next())
         {
             HistoryEntry entry;
             entry.URL     = query.value(idUrl).toUrl();
             entry.Title   = query.value(idTitle).toString();
             entry.VisitID = query.value(idVisit).toInt();
+            entry.URLTypedCount = query.value(idUrlTypedCount).toInt();
 
             queryRecentVisit.bindValue(QLatin1String(":visitId"), entry.VisitID);
             if (queryRecentVisit.exec() && queryRecentVisit.first())
@@ -408,6 +424,30 @@ void HistoryStore::load()
 
 void HistoryStore::save()
 {
+}
+
+void HistoryStore::checkForUpdate()
+{
+    // Check if table structure needs update before loading
+    QSqlQuery query(m_database);
+    if (query.exec(QLatin1String("PRAGMA table_info(History)")))
+    {
+        bool hasUrlTypeCountColumn = false;
+        const QString urlTypeCountColumn("URLTypedCount");
+
+        while (query.next())
+        {
+            QString columnName = query.value(1).toString();
+            if (columnName.compare(urlTypeCountColumn) == 0)
+                hasUrlTypeCountColumn = true;
+        }
+
+        if (!hasUrlTypeCountColumn)
+        {
+            if (!query.exec(QLatin1String("ALTER TABLE History ADD URLTypedCount INTEGER DEFAULT 0")))
+                qDebug() << "Error updating history table with url typed count column";
+        }
+    }
 }
 
 void HistoryStore::purgeOldEntries()

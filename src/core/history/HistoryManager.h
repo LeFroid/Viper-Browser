@@ -65,7 +65,7 @@ public:
     void clearHistoryInRange(std::pair<QDateTime, QDateTime> range);
 
     /// Adds an entry to the history data store, given the URL, page title, time of visit, and the requested URL
-    void addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl);
+    void addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser);
 
     /// Loads a list of all \ref URLRecord visited between the given start date and end dates, passing them on to
     /// the callback once the data has been fetched

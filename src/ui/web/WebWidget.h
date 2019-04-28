@@ -79,8 +79,8 @@ public:
     /// Returns the state of the web widget, used for serialization
     const WebState &getState();
 
-    /// Loads the specified url and displays it
-    void load(const QUrl &url);
+    /// Loads the specified url and displays its contents in the web view.
+    void load(const QUrl &url, bool wasEnteredByUser = false);
 
     /// Loads the given HTTP request onto the page
     void load(const HttpRequest &request);
@@ -111,6 +111,12 @@ public:
 
     /// Sets the state of the web widget as it was during a hibernation event
     void setWebState(WebState &&state);
+
+    /// Returns the last url that was manually typed by the user, or an empty url if not applicable
+    const QUrl &getLastTypedUrl() const;
+
+    /// Clears the record of the last url that was manually typed by the user.
+    void clearLastTypedUrl();
 
     /// Event filter
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -232,6 +238,9 @@ private:
 
     /// Current state of the web page (icon, page title, url, etc.) in order to transition in and out of hibernation mode, close and re-open a tab, etc
     WebState m_savedState;
+
+    /// Last URL typed by the user
+    QUrl m_lastTypedUrl;
 };
 
 #endif // WEBWIDGET_H

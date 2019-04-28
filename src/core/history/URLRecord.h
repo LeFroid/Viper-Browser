@@ -31,8 +31,11 @@ struct HistoryEntry
     /// The number of visits to this entry
     int NumVisits;
 
+    /// The number of times the URL associated with this entry was typed by the user in the URL bar
+    int URLTypedCount;
+
     /// Default constructor
-    HistoryEntry() : URL(), Title(), VisitID(0), LastVisit(), NumVisits(0) {}
+    HistoryEntry() : URL(), Title(), VisitID(0), LastVisit(), NumVisits(0), URLTypedCount(0) {}
 
     /// Copy constructor
     HistoryEntry(const HistoryEntry &other) :
@@ -40,7 +43,8 @@ struct HistoryEntry
         Title(other.Title),
         VisitID(other.VisitID),
         LastVisit(other.LastVisit),
-        NumVisits(other.NumVisits)
+        NumVisits(other.NumVisits),
+        URLTypedCount(other.URLTypedCount)
     {
     }
 
@@ -50,7 +54,8 @@ struct HistoryEntry
         Title(other.Title),
         VisitID(other.VisitID),
         LastVisit(other.LastVisit),
-        NumVisits(other.NumVisits)
+        NumVisits(other.NumVisits),
+        URLTypedCount(other.URLTypedCount)
     {
     }
 
@@ -64,6 +69,7 @@ struct HistoryEntry
             VisitID = other.VisitID;
             LastVisit = other.LastVisit;
             NumVisits = other.NumVisits;
+            URLTypedCount = other.URLTypedCount;
         }
 
         return *this;
@@ -79,6 +85,7 @@ struct HistoryEntry
             VisitID = other.VisitID;
             LastVisit = other.LastVisit;
             NumVisits = other.NumVisits;
+            URLTypedCount = other.URLTypedCount;
         }
 
         return *this;
@@ -112,6 +119,9 @@ public:
 
     /// Returns the number of visits made to this entry
     int getNumVisits() const;
+
+    /// Returns the number of times this record was typed by the user in the URL bar
+    int getUrlTypedCount() const;
 
     /// Returns the URL associated with the record
     const QUrl &getUrl() const;

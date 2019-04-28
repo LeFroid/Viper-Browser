@@ -95,7 +95,7 @@ MainWindow::MainWindow(const ViperServiceLocator &serviceLocator, bool privateWi
     connect(ui->toolBar, &NavigationToolBar::clickedAdBlockButton, this, &MainWindow::openAdBlockLogDisplay);
     connect(ui->toolBar, &NavigationToolBar::requestManageAdBlockSubscriptions, ui->menuTools, &ToolMenu::openAdBlockManager);
 
-    connect(ui->toolBar->getURLWidget(), &URLLineEdit::loadRequested, this, &MainWindow::loadUrl);
+    connect(ui->toolBar->getURLWidget(), &URLLineEdit::loadRequested, m_tabWidget, &BrowserTabWidget::loadUrlFromUrlBar);
 
     connect(ui->dockWidget, &QDockWidget::visibilityChanged, this, [this](bool visible) {
         if (WebWidget *webWidget = m_tabWidget->currentWebWidget())

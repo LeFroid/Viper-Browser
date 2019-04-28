@@ -131,6 +131,9 @@ public slots:
     /// Loads the given URL in the active tab
     void loadUrl(const QUrl &url);
 
+    /// Loads a URL from the \ref URLLineEdit after the user hits the enter button
+    void loadUrlFromUrlBar(const QUrl &url);
+
     /// Resets the zoom factor of the active tab's \ref WebView to its base value
     void resetZoomCurrentView();
 
