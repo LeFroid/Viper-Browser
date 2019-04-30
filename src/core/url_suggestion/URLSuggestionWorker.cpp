@@ -20,23 +20,18 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
     // 4) Most recent visit
     // 5) Alphabetical ordering
 
-    // Check (1)
     if (!a.URLTypedCount != !b.URLTypedCount)
         return a.URLTypedCount > b.URLTypedCount;
 
-    // Check (2)
     if (a.IsHostMatch != b.IsHostMatch)
         return a.IsHostMatch;
 
-    // Check (3)
     if (a.VisitCount != b.VisitCount)
         return a.VisitCount > b.VisitCount;
 
-    // Check (4)
     if (a.LastVisit != b.LastVisit)
         return a.LastVisit > b.LastVisit;
 
-    // Check (5)
     return a.URL > b.URL;
 }
 
@@ -145,12 +140,12 @@ void URLSuggestionWorker::searchForHits()
         }
     }
 
-    std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
+    //std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
 
     if (!m_working.load())
         return;
 
-    std::vector<URLSuggestion> histSuggestions;
+    //std::vector<URLSuggestion> histSuggestions;
     for (const auto it : *m_historyManager)
     {
         if (!m_working.load())
@@ -174,19 +169,25 @@ void URLSuggestionWorker::searchForHits()
 
             suggestion.URLTypedCount = it.getUrlTypedCount();
 
-            histSuggestions.push_back(suggestion);
+            m_suggestions.push_back(suggestion);
+            hits.insert(suggestion.URL);
+            //histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)
                 break;
         }
     }
 
-    std::sort(histSuggestions.begin(), histSuggestions.end(), compareUrlSuggestions);
+    std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
+    if (m_suggestions.size() > 35)
+        m_suggestions.erase(m_suggestions.begin() + 35, m_suggestions.end());
 
-    if (histSuggestions.size() > 25)
-        histSuggestions.erase(histSuggestions.begin() + 25, histSuggestions.end());
+    //std::sort(histSuggestions.begin(), histSuggestions.end(), compareUrlSuggestions);
 
-    m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
+    //if (histSuggestions.size() > 25)
+    //    histSuggestions.erase(histSuggestions.begin() + 25, histSuggestions.end());
+
+    //m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
 
     m_working.store(false);
 }

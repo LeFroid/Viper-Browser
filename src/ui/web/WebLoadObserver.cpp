@@ -37,7 +37,7 @@ void WebLoadObserver::onLoadFinished(bool ok)
 
     const QUrl &lastTypedUrl = m_webWidget->getLastTypedUrl();
     const bool wasTypedByUser = !lastTypedUrl.isEmpty()
-            && (CommonUtil::doUrlsMatch(originalUrl, lastTypedUrl) || CommonUtil::doUrlsMatch(url, lastTypedUrl));
+            && (CommonUtil::doUrlsMatch(originalUrl, lastTypedUrl, true) || CommonUtil::doUrlsMatch(url, lastTypedUrl, true));
     if (wasTypedByUser)
         m_webWidget->clearLastTypedUrl();
 
