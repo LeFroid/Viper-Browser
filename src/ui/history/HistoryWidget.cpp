@@ -43,6 +43,10 @@ void HistoryWidget::setServiceLocator(const ViperServiceLocator &serviceLocator)
     m_proxyModel->setSourceModel(tableModel);
     ui->tableView->setModel(m_proxyModel);
 
+    // Model will emit the signals in a separate thread, force a queued connection to upadte the UI without resizing the window or hiding/showing the window
+    connect(tableModel, &HistoryTableModel::rowsAboutToBeInserted, m_proxyModel, &QSortFilterProxyModel::rowsAboutToBeInserted, Qt::QueuedConnection);
+    connect(tableModel, &HistoryTableModel::rowsInserted, m_proxyModel, &QSortFilterProxyModel::rowsInserted, Qt::QueuedConnection);
+
     ui->tableView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->tableView, &QTableView::customContextMenuRequested, this, &HistoryWidget::onContextMenuRequested);
 }
