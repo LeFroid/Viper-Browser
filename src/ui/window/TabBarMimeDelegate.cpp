@@ -118,7 +118,7 @@ bool TabBarMimeDelegate::onDrop(QDropEvent *dropEvent)
             return true;
         }
 
-        int originalTabIndex = mimeData->property("tab-index").toInt();
+        int originalTabIndex = m_tabWidget->indexOf(m_draggedWebWidget);//mimeData->property("tab-index").toInt();
         int tabIndexAtPos = m_tabBar->tabAt(dropEvent->pos());
         if (tabIndexAtPos < 0)
         {
