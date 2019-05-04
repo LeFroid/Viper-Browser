@@ -35,13 +35,13 @@ public:
     Subscription(const Subscription &other) = delete;
 
     /// Move constructor
-    Subscription(Subscription &&other);
+    Subscription(Subscription &&other) noexcept;
 
     /// Copy assignment operator
     Subscription &operator =(const Subscription &other) = delete;
 
     /// Move assignment operator
-    Subscription &operator =(Subscription &&other);
+    Subscription &operator =(Subscription &&other) noexcept;
 
     /// Destructor
     ~Subscription();

@@ -55,7 +55,7 @@ Filter::Filter(const Filter &other) :
 {
 }
 
-Filter::Filter(Filter &&other) :
+Filter::Filter(Filter &&other) noexcept :
     m_category(other.m_category),
     m_ruleString(other.m_ruleString),
     m_evalString(other.m_evalString),
@@ -106,7 +106,7 @@ Filter &Filter::operator =(const Filter &other)
     return *this;
 }
 
-Filter &Filter::operator =(Filter &&other)
+Filter &Filter::operator =(Filter &&other) noexcept
 {
     if (this != &other)
     {

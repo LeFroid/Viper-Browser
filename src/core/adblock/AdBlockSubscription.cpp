@@ -31,7 +31,7 @@ Subscription::Subscription(const QString &dataFile) :
 {
 }
 
-Subscription::Subscription(Subscription &&other) :
+Subscription::Subscription(Subscription &&other) noexcept :
     m_enabled(other.m_enabled),
     m_filePath(other.m_filePath),
     m_name(other.m_name),
@@ -42,7 +42,7 @@ Subscription::Subscription(Subscription &&other) :
 {
 }
 
-Subscription &Subscription::operator =(Subscription &&other)
+Subscription &Subscription::operator =(Subscription &&other) noexcept
 {
     if (this != &other)
     {

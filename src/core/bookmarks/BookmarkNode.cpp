@@ -25,7 +25,7 @@ BookmarkNode::BookmarkNode(BookmarkNode::NodeType type, const QString &name) :
 {
 }
 
-BookmarkNode::BookmarkNode(BookmarkNode &&other)
+BookmarkNode::BookmarkNode(BookmarkNode &&other) noexcept
 {
     m_id = other.m_id;
     m_name = other.m_name;

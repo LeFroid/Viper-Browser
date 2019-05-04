@@ -32,7 +32,7 @@ public:
     BookmarkNode(NodeType type, const QString &name);
 
     /// Move constructor
-    BookmarkNode(BookmarkNode &&other);
+    BookmarkNode(BookmarkNode &&other) noexcept;
 
     /// Returns the position of the bookmark node in relation to its siblings
     int getPosition() const;

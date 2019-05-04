@@ -1,12 +1,12 @@
 #include "URLRecord.h"
 
-URLRecord::URLRecord(HistoryEntry &&entry, std::vector<VisitEntry> &&visits) :
+URLRecord::URLRecord(HistoryEntry &&entry, std::vector<VisitEntry> &&visits) noexcept :
     m_historyEntry(std::move(entry)),
     m_visits(std::move(visits))
 {
 }
 
-URLRecord::URLRecord(HistoryEntry &&entry) :
+URLRecord::URLRecord(HistoryEntry &&entry) noexcept :
     m_historyEntry(std::move(entry)),
     m_visits()
 {

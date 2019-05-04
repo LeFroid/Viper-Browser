@@ -107,13 +107,13 @@ public:
     Filter(const Filter &other);
 
     /// Move constructor
-    Filter(Filter &&other);
+    Filter(Filter &&other) noexcept;
 
     /// Copy assignment operator
     Filter &operator =(const Filter &other);
 
     /// Move assignment operator
-    Filter &operator =(Filter &&other);
+    Filter &operator =(Filter &&other) noexcept;
 
     /// Destructor
     ~Filter();

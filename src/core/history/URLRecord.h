@@ -49,7 +49,7 @@ struct HistoryEntry
     }
 
     /// Move constructor
-    HistoryEntry(HistoryEntry &&other) :
+    HistoryEntry(HistoryEntry &&other) noexcept :
         URL(other.URL),
         Title(other.Title),
         VisitID(other.VisitID),
@@ -76,7 +76,7 @@ struct HistoryEntry
     }
 
     /// Move assignment operator
-    HistoryEntry &operator =(HistoryEntry &&other)
+    HistoryEntry &operator =(HistoryEntry &&other) noexcept
     {
         if (this != &other)
         {
@@ -109,10 +109,10 @@ class URLRecord
 
 public:
     /// Constructs the URL record given the associated history entry and a list of visits
-    explicit URLRecord(HistoryEntry &&entry, std::vector<VisitEntry> &&visits);
+    explicit URLRecord(HistoryEntry &&entry, std::vector<VisitEntry> &&visits) noexcept;
 
     /// Constructs the URL record given a history entry
-    explicit URLRecord(HistoryEntry &&entry);
+    explicit URLRecord(HistoryEntry &&entry) noexcept;
 
     /// Returns the last time that the user visited this entry
     const VisitEntry &getLastVisit() const;
