@@ -4,6 +4,7 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFile>
+#include <QFontMetrics>
 #include <QLabel>
 #include <QMenu>
 #include <QMimeData>
@@ -107,6 +108,7 @@ void WebView::load(const QUrl &url)
     if (!m_page->acceptNavigationRequest(url, WebPage::NavigationTypeTyped, true))
         return;
 
+    m_progress = 0;
     setUrl(url);
     //QWebEngineView::load(url);
 }
@@ -116,6 +118,7 @@ void WebView::load(const HttpRequest &request)
     if (!m_page->acceptNavigationRequest(request.getUrl(), WebPage::NavigationTypeTyped, true))
         return;
 
+    m_progress = 0;
     m_page->load(request.toWebEngineRequest());
 }
 
@@ -192,6 +195,9 @@ QString WebView::getContextMenuScript(const QPoint &pos)
 
 void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos)
 {
+    if (m_progress < 100)
+        return;
+
     WebHitTestResult contextMenuData(m_page, getContextMenuScript(relativePos));
 
     const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
@@ -279,8 +285,10 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         }
 
         // Search for current selection menu option
+        QFontMetrics fontMetrics(font());
+        const QString selectedTextInMenu = fontMetrics.elidedText(text, Qt::ElideRight, fontMetrics.width(QChar('R')) * 16);
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
-        menu->addAction(tr("Search %1 for selected text").arg(searchMgr->getDefaultSearchEngine()), [=](){
+        menu->addAction(tr("Search %1 for \"%2\"").arg(searchMgr->getDefaultSearchEngine()).arg(selectedTextInMenu), [=](){
             HttpRequest request = searchMgr->getSearchRequest(text);
             emit openHttpRequestInBackgroundTab(request);
         });
