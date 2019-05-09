@@ -139,7 +139,7 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     installGlobalWebScripts();
 
     // Apply web settings
-    m_webSettings = new WebSettings(m_serviceLocator, QWebEngineSettings::defaultSettings(), QWebEngineProfile::defaultProfile());
+    m_webSettings = new WebSettings(m_serviceLocator, QWebEngineSettings::defaultSettings(), QWebEngineProfile::defaultProfile(), m_privateProfile);
 
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(BrowserSetting::SearchEnginesFile));

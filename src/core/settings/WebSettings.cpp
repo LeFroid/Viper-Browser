@@ -7,13 +7,15 @@
 #include <QString>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
+#include <QtWebEngineCoreVersion>
 
-WebSettings::WebSettings(const ViperServiceLocator &serviceLocator, QWebEngineSettings *webEngineSettings, QWebEngineProfile *webEngineProfile) :
+WebSettings::WebSettings(const ViperServiceLocator &serviceLocator, QWebEngineSettings *webEngineSettings, QWebEngineProfile *webEngineProfile, QWebEngineProfile *privateProfile) :
     QObject(nullptr),
     m_cookieJar(nullptr),
     m_userAgentManager(nullptr),
     m_webEngineSettings(webEngineSettings),
-    m_webEngineProfile(webEngineProfile)
+    m_webEngineProfile(webEngineProfile),
+    m_privateWebProfile(privateProfile)
 {
     m_cookieJar = serviceLocator.getServiceAs<CookieJar>("CookieJar");
     m_userAgentManager = serviceLocator.getServiceAs<UserAgentManager>("UserAgentManager");
@@ -75,6 +77,10 @@ void WebSettings::onSettingChanged(BrowserSetting setting, const QVariant &value
 
             const QString userAgentValue = value.toBool() ? m_userAgentManager->getUserAgent().Value : QString();
             m_webEngineProfile->setHttpUserAgent(userAgentValue);
+
+            if (m_privateWebProfile)
+                m_privateWebProfile->setHttpUserAgent(userAgentValue);
+
             break;
         }
         case BrowserSetting::ScrollAnimatorEnabled:
@@ -155,6 +161,15 @@ void WebSettings::init(Settings *settings)
     if (settings->getValue(BrowserSetting::CustomUserAgent).toBool())
     {
         if (m_userAgentManager != nullptr)
+        {
             m_webEngineProfile->setHttpUserAgent(m_userAgentManager->getUserAgent().Value);
+
+            if (m_privateWebProfile)
+                m_privateWebProfile->setHttpUserAgent(m_userAgentManager->getUserAgent().Value);
+        }
     }
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 13, 0))
+    m_webEngineSettings->setAttribute(QWebEngineSettings::PdfViewerEnabled, true);
+#endif
 }

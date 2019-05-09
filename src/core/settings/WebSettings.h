@@ -28,7 +28,8 @@ public:
     /// Constructs the web settings given a reference to the service locator, a pointer to the web engine settings
     /// that will be managed by this object, and also a pointer to the web engine profile which contains other web-related
     /// variables
-    explicit WebSettings(const ViperServiceLocator &serviceLocator, QWebEngineSettings *webEngineSettings, QWebEngineProfile *webEngineProfile);
+    explicit WebSettings(const ViperServiceLocator &serviceLocator, QWebEngineSettings *webEngineSettings,
+                         QWebEngineProfile *webEngineProfile, QWebEngineProfile *privateProfile);
 
     /// Destructor
     ~WebSettings();
@@ -51,8 +52,11 @@ private:
     /// Web engine settings for the web profile that was passed in the constructor
     QWebEngineSettings *m_webEngineSettings;
 
-    /// Web engine profile being managed by this object
+    /// Primary web engine profile being managed by the web settings
     QWebEngineProfile *m_webEngineProfile;
+
+    /// Secondary web engine profile being managed by the web settings
+    QWebEngineProfile *m_privateWebProfile;
 };
 
 #endif // WEBSETTINGS_H

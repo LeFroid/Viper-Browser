@@ -121,6 +121,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
 
     m_originalUrl = QUrl();
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 13, 0))
     // Check if the request is for a PDF and try to render with PDF.js
     const QString urlString = url.toString(QUrl::FullyEncoded);
     if (urlString.endsWith(QLatin1String(".pdf")))
@@ -140,6 +141,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             return false;
         }
     }
+#endif
 
     if (type == QWebEnginePage::NavigationTypeLinkClicked)
     {
@@ -183,6 +185,10 @@ QVariant WebPage::runJavaScriptBlocking(const QString &scriptSource)
         }
     });
 
+    QTimer::singleShot(1000, loop.data(), [&loop](){
+        if (!loop.isNull() && loop->isRunning())
+            loop->quit();
+    });
     connect(this, &WebPage::renderProcessTerminated, this, [&loop](RenderProcessTerminationStatus terminationStatus, int /*exitCode*/){
         if (!loop.isNull() && terminationStatus != WebPage::NormalTerminationStatus)
             loop->quit();
