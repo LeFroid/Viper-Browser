@@ -376,7 +376,12 @@ void BrowserApplication::setupWebProfiles()
 {
     // Only two profiles for now, standard and private
     auto webProfile = QWebEngineProfile::defaultProfile();
+    webProfile->setObjectName(QLatin1String("PublicWebProfile"));
+    registerService(webProfile);
+
     m_privateProfile = new QWebEngineProfile(this);
+    m_privateProfile->setObjectName(QLatin1String("PrivateWebProfile"));
+    registerService(m_privateProfile);
 
     // Instantiate request interceptor
     m_requestInterceptor = new RequestInterceptor(m_serviceLocator, this);

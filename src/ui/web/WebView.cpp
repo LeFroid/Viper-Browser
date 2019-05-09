@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <string>
+
 #include <QClipboard>
 #include <QContextMenuEvent>
 #include <QDragEnterEvent>
@@ -32,6 +34,7 @@
 WebView::WebView(bool privateView, QWidget *parent) :
     QWebEngineView(parent),
     m_page(nullptr),
+    m_settings(nullptr),
     m_progress(0),
     m_privateView(privateView),
     m_contextMenuHelper(),
@@ -150,7 +153,10 @@ void WebView::setupPage(const ViperServiceLocator &serviceLocator)
     if (m_page != nullptr)
         return;
 
-    QWebEngineProfile *profile = m_privateView ? sBrowserApplication->getPrivateBrowsingProfile() : QWebEngineProfile::defaultProfile();
+    const std::string profileName = m_privateView ? "PrivateWebProfile" : "PublicWebProfile";
+    QWebEngineProfile *profile = serviceLocator.getServiceAs<QWebEngineProfile>(profileName);
+
+    m_settings = serviceLocator.getServiceAs<Settings>("Settings");
 
     m_page = new WebPage(serviceLocator, profile);
     m_page->setParent(this);
@@ -195,12 +201,9 @@ QString WebView::getContextMenuScript(const QPoint &pos)
 
 void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos)
 {
-    if (m_progress < 100)
-        return;
-
     WebHitTestResult contextMenuData(m_page, getContextMenuScript(relativePos));
 
-    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
+    const bool askWhereToSave = m_settings->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
 
     QMenu *menu = new QMenu(this);
 

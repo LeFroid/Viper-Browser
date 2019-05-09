@@ -9,7 +9,9 @@
 #include <QWebEngineView>
 
 class HttpRequest;
+class Settings;
 class WebPage;
+
 class QLabel;
 class QMenu;
 
@@ -144,8 +146,11 @@ private:
     void makeThumbnailOfPage();
 
 private:
-    /// Web page
+    /// Web page behind this view
     WebPage *m_page;
+
+    /// Application settings
+    Settings *m_settings;
 
     /// Load progress
     int m_progress;
