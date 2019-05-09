@@ -14,6 +14,10 @@ DatabaseWorker::DatabaseWorker(const QString &dbFile, const QString &dbName) :
     // Turn synchronous setting off
     if (!exec(QStringLiteral("PRAGMA journal_mode=WAL")))
         qDebug() << "[Error]: In DatabaseWorker constructor - could not set journal mode.";
+
+    // Foreign keys
+    if (!exec(QStringLiteral("PRAGMA foreign_keys=ON")))
+        qDebug() << "In DatabaseWorker constructor - could not enable foreign keys.";
 }
 
 DatabaseWorker::~DatabaseWorker()
