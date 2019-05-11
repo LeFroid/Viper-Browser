@@ -363,7 +363,7 @@ void WebPage::onLoadProgress(int percent)
 
         m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
         if (!m_mainFrameAdBlockScript.isEmpty())
-            runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
+            runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
     }
 
     //if (percent == 100)
@@ -389,7 +389,7 @@ void WebPage::onLoadFinished(bool ok)
         m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
 
     if (!m_mainFrameAdBlockScript.isEmpty())
-        runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
+        runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
 
     m_needInjectAdBlockScript = true;
 }

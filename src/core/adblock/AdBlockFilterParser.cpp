@@ -326,14 +326,12 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
         }
         case CosmeticFilter::MatchesCSSBefore:
         {
-            evalStr.append(QStringLiteral(":before"));
-            filter->m_evalString = QString("hideNodes(matchesCSS, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(matchesCSSBefore, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSSAfter:
         {
-            evalStr.append(QStringLiteral(":after"));
-            filter->m_evalString = QString("hideNodes(matchesCSS, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(matchesCSSAfter, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
         case CosmeticFilter::XPath:
@@ -440,17 +438,20 @@ CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const st
                     result.CallbackName = QStringLiteral("doXPath");
                     break;
                 case CosmeticFilter::MatchesCSS:
+                    result.CallbackName = QStringLiteral("matchesCSS");
+                    break;
                 case CosmeticFilter::MatchesCSSBefore:
+                    result.CallbackName = QStringLiteral("matchesCSSBefore");
+                    break;
                 case CosmeticFilter::MatchesCSSAfter:
-                    result.CallbackName = QStringLiteral("matchesCSS"); break;
-                default: break; // If, IfNot and Has should not be nested
+                    result.CallbackName = QStringLiteral("matchesCSSAfter");
+                    break;
+                default:
+                    // If, IfNot and Has should not be nested
+                    break;
             }
 
             result.CallbackSubject = QString("%1").arg(evalArg.left(colonPos));
-            if (currFilter == CosmeticFilter::MatchesCSSBefore)
-                result.CallbackSubject.append(QStringLiteral(":before"));
-            else if (currFilter == CosmeticFilter::MatchesCSSAfter)
-                result.CallbackSubject.append(QStringLiteral(":after"));
             result.CallbackTarget = evalArg.mid(colonPos + cosmeticLen);
             result.CallbackTarget = result.CallbackTarget.left(result.CallbackTarget.indexOf(QChar(')')));
             return result;

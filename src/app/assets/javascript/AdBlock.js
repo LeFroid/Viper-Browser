@@ -82,10 +82,13 @@ var hasText = function (selector, text, root) {
     });
     return subElems;
 };
-var matchesCSS = function (selector, text, root) {
-    if (root === undefined) {
+var matchesCSS = function (selector, text, root, pseudoSelector) {
+    if (root === undefined)
         root = document;
-    }
+
+    if (pseudoSelector === undefined)
+        pseudoSelector = null;
+
     var output = [];
     var nodes = root.querySelectorAll(selector), i, colonIdx, attrName, attrVal;
     if (!nodes || !nodes.length) { return output; }
@@ -96,12 +99,18 @@ var matchesCSS = function (selector, text, root) {
     attrVal = text.slice(colonIdx + 1).trim();
 
     for (i = 0; i < nodes.length; ++i) {
-        var compStyle = window.getComputedStyle(nodes[i], null);
+        var compStyle = window.getComputedStyle(nodes[i], pseudoSelector);
         if (RegExp(attrVal).test(compStyle[attrName])) {
             output.push(nodes[i]);
         }
     }
     return output;
+};
+var matchesCSSBefore = function(selector, text, root) {
+    return matchesCSS(selector, text, root, ':before');
+};
+var matchesCSSAfter = function(selector, text, root) {
+    return matchesCSS(selector, text, root, ':after');
 };
 /// Handles the :xpath(...) cosmetic filter option, returns an array of elements that match the given criteria
 var doXPath = function (subject, expr, root) {
