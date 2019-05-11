@@ -152,6 +152,9 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
 
     if (type != QWebEnginePage::NavigationTypeReload)
     {
+        URL pageUrl(url);
+        m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
+
         QWebEngineScriptCollection &scriptCollection = scripts();
         scriptCollection.clear();
         auto pageScripts = m_userScriptManager->getAllScriptsFor(url);
@@ -361,7 +364,9 @@ void WebPage::onLoadProgress(int percent)
 
         m_needInjectAdBlockScript = false;
 
-        m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
+        if (m_mainFrameAdBlockScript.isEmpty())
+            m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
+
         if (!m_mainFrameAdBlockScript.isEmpty())
             runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
     }

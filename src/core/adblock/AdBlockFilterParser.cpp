@@ -406,6 +406,13 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
         filter->m_evalString.replace(term, arg);
     }
 
+    const static QString nonThrowingScript = QStringLiteral("try { \n"
+                                                 " %1 \n"
+                                                 "} catch (ex) { \n"
+                                                 "  console.error('[Viper Browser] Error running Advertisement Blocking script: ', ex); \n"
+                                                 "  console.error(ex.stack); \n "
+                                                 "} \n ");
+    filter->m_evalString = nonThrowingScript.arg(filter->m_evalString);
     return true;
 }
 

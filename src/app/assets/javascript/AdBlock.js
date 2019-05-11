@@ -174,13 +174,6 @@ function hideNodes(cb, cbSubj, cbTarget) {
     }
 }
 
-try {
-
 {{ADBLOCK_INTERNAL}}
-
-} catch(ex) {
-    console.error('[Viper Browser] Error running Advertisement Blocking script: ', ex);
-    console.error(ex.stack);
-}
 
 })();

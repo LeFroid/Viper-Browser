@@ -140,8 +140,7 @@ const Filter *FilterContainer::findInlineScriptBlockingFilter(const QString &req
     auto filterCSPCheck = [&](const std::deque<Filter*> &filterContainer) -> const Filter* {
         for (const Filter *filter : filterContainer)
         {
-            if (filter->hasElementType(filter->m_blockedTypes, ElementType::InlineScript)
-                    && filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
+            if (filter->isMatch(requestUrl, requestUrl, domain, ElementType::InlineScript))
             {
                 return filter;
             }
