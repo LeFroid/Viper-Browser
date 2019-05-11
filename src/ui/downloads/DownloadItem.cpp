@@ -88,6 +88,7 @@ void DownloadItem::setupItem()
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 10, 0))
     m_pushButtonPauseResume = new QPushButton(QIcon::fromTheme(QLatin1String("media-playback-pause")), QString(), this);
+    m_pushButtonPauseResume->setFlat(true);
     ui->horizontalLayout->addWidget(m_pushButtonPauseResume, 0, Qt::AlignRight);
 
     connect(m_pushButtonPauseResume, &QPushButton::clicked, this, [this](){
