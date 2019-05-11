@@ -10,6 +10,8 @@ namespace Ui {
 class DownloadItem;
 }
 
+class QPushButton;
+
 /**
  * @class DownloadItem
  * @brief Represents an individual download of some external item
@@ -26,7 +28,17 @@ public:
      * @param parent Pointer to the DownloadManager
      */
     explicit DownloadItem(QWebEngineDownloadItem *item, QWidget *parent = nullptr);
+
+    /// Destructor
     ~DownloadItem();
+
+    /// Returns true if this item is finished downloading (either successful download, canceled, interrupted,
+    /// etc), false otherwise
+    bool isFinished() const;
+
+public slots:
+    /// Cancels the download
+    void cancel();
 
 signals:
     /// Emitted when the user requests the download item to be removed from the visible downloads list
@@ -69,8 +81,8 @@ private:
     /// Total number of bytes received
     qint64 m_bytesReceived;
 
-    /// True if download is currently in progress
-    bool m_inProgress;
+    /// Button used to pause or resume the download (only enabled if QtWebEngine version is >= 5.10)
+    QPushButton *m_pushButtonPauseResume;
 };
 
 #endif // DOWNLOADITEM_H

@@ -90,10 +90,13 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
 
     int downloadRow = m_downloads.size();
     m_downloads.append(dlItem);
-    connect(dlItem, &DownloadItem::removeFromList, [=](){
+    connect(dlItem, &DownloadItem::removeFromList, this, [=](){
         int row = m_downloads.indexOf(dlItem);
         if (row >= 0)
         {
+            if (!dlItem->isFinished())
+                dlItem->cancel();
+
             ui->tableWidget->removeRow(row);
             m_downloads.removeAt(row);
             delete dlItem;
