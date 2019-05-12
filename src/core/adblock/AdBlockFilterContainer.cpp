@@ -1,6 +1,8 @@
 #include "AdBlockFilterContainer.h"
 #include "URL.h"
 
+#include <QHash>
+
 namespace adblock
 {
 
@@ -125,12 +127,27 @@ std::vector<Filter*> FilterContainer::getDomainBasedScriptInjectionFilters(const
 std::vector<Filter*> FilterContainer::getMatchingCSPFilters(const QString &requestUrl, const QString &domain) const
 {
     std::vector<Filter*> result;
+    std::vector<Filter*> matches;
+    QHash<QString, bool> whitelistedCSP;
     for (Filter *filter : m_cspFilters)
     {
+        if (filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
+        {
+            if (filter->isException())
+                whitelistedCSP.insert(filter->getContentSecurityPolicy(), true);
+            else
+                result.push_back(filter);
+        }
+        /*
         if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
         {
             result.push_back(filter);
-        }
+        }*/
+    }
+    for (Filter *filter : matches)
+    {
+        if (whitelistedCSP.constFind(filter->getContentSecurityPolicy()) == whitelistedCSP.constEnd())
+            result.push_back(filter);
     }
     return result;
 }

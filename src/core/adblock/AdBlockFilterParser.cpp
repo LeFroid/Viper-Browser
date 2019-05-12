@@ -279,7 +279,8 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
     if (evalStr.isEmpty())
         evalStr = QStringLiteral("*");
 
-    switch (std::get<1>(p))
+    const auto cosmeticFilterType = std::get<1>(p);
+    switch (cosmeticFilterType)
     {
         case CosmeticFilter::HasText:
         {
@@ -298,7 +299,7 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
         case CosmeticFilter::IfNot:
         case CosmeticFilter::Not:
         {
-            const bool isNegation = (std::get<1>(p) == CosmeticFilter::IfNot || std::get<1>(p) == CosmeticFilter::Not);
+            const bool isNegation = (cosmeticFilterType == CosmeticFilter::IfNot || cosmeticFilterType == CosmeticFilter::Not);
             // Check if anything within the :if(...) is a cosmetic filter, thus requiring the use of callbacks
             if (filters.size() > 1)
             {
