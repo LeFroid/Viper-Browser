@@ -17,5 +17,8 @@
     },
     "EasyPrivacy": {
         "source": "https://easylist.to/easylist/easyprivacy.txt"
+    },
+    "I don't care about cookie warnings": {
+        "source": "https://www.i-dont-care-about-cookies.eu/abp"
     }
 }
