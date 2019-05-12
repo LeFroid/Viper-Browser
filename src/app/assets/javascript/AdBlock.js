@@ -133,6 +133,27 @@ var doXPath = function (subject, expr, root) {
     }
     return output;
 };
+/// Similar to the doXPath function, except this traverses the dom tree without the xpath expression evaluations
+var nthAncestor = function (subject, expr, root) {
+    if (root === undefined)
+        root = document;
+
+    var output = [], i, j;
+    var nodes = root.querySelectorAll(subject), node = null;
+
+    //expr = nth parent
+    for (i = 0; i < nodes.length; ++i) {
+        node = nodes[i];
+        for (j = 0; j < expr; ++j) {
+            node = node.parentElement;
+            if (!node)
+                break;
+        }
+        if (node)
+            output.push(node);
+    }
+    return output
+};
 /// Hides each subject in the document, for which the result of the callback with parameters chainSubject, chainTarget is not null or empty
 function hideIfChain(subject, chainSubject, chainTarget, callback) {
     chainSubject = addScopeIfNeeded(chainSubject);

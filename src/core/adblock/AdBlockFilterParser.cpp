@@ -340,6 +340,11 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
             filter->m_evalString = QString("hideNodes(doXPath, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
+        case CosmeticFilter::NthAncestor:
+        {
+            filter->m_evalString = QString("hideNodes(nthAncestor, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            break;
+        }
         default: return false;
     }
     filter->m_category = FilterCategory::StylesheetJS;
@@ -454,6 +459,8 @@ CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const st
                 case CosmeticFilter::MatchesCSSAfter:
                     result.CallbackName = QStringLiteral("matchesCSSAfter");
                     break;
+                case CosmeticFilter::NthAncestor:
+                    result.CallbackName = QStringLiteral("nthAncestor");
                 default:
                     // If, IfNot and Has should not be nested
                     break;
@@ -481,6 +488,7 @@ std::vector< std::tuple<int, CosmeticFilter, int> > FilterParser::getChainableFi
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-before(")), CosmeticFilter::MatchesCSSBefore, 20));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-after(")), CosmeticFilter::MatchesCSSAfter, 19));
     filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":xpath(")), CosmeticFilter::XPath, 7));
+    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":nth-ancestor(")), CosmeticFilter::NthAncestor, 14));
     filters.erase(std::remove_if(filters.begin(), filters.end(), [](std::tuple<int, CosmeticFilter, int> p){ return std::get<0>(p) < 0; }), filters.end());
     if (filters.empty())
         return filters;
