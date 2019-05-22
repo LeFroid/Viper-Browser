@@ -41,7 +41,7 @@ public:
     quint64 getTotalNumberOfBlockedRequests() const;
 
     /// Returns true if the given request should be blocked, false if else
-    bool shouldBlockRequest(QWebEngineUrlRequestInfo &info);
+    bool shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl);
 
 protected:
     /// Sets the counter that stores the total number of network requests that have been blocked
@@ -52,7 +52,7 @@ protected:
 
 private:
     /// Returns the \ref ElementType of the network request, which is used to check for filter option/type matches
-    ElementType getRequestType(const QWebEngineUrlRequestInfo &info) const;
+    ElementType getRequestType(const QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl) const;
 
 private:
     /// Reference to the filter container

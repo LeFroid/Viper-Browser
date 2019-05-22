@@ -66,8 +66,7 @@ WebPage::~WebPage()
 void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
 {
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
-    if (RequestInterceptor *interceptor = serviceLocator.getServiceAs<RequestInterceptor>("RequestInterceptor"))
-        setUrlRequestInterceptor(interceptor);
+    setUrlRequestInterceptor(new RequestInterceptor(serviceLocator, this));
 #endif
 
     AutoFill *autoFillManager = serviceLocator.getServiceAs<AutoFill>("AutoFill");

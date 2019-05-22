@@ -73,7 +73,7 @@ public:
     const QString &getDomainJavaScript(const URL &url);
 
     /// Returns true if the given request should be blocked, false if else
-    bool shouldBlockRequest(QWebEngineUrlRequestInfo &info);
+    bool shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl);
 
     /// Returns the total number of network requests that have been blocked by the ad blocking system
     quint64 getRequestsBlockedCount() const;

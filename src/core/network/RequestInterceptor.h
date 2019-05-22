@@ -11,6 +11,7 @@ namespace adblock {
 }
 
 class Settings;
+class WebPage;
 
 /**
  * @class RequestInterceptor 
@@ -41,6 +42,9 @@ private:
 
     /// Advertisement blocking system manager
     adblock::AdBlockManager *m_adBlockManager;
+
+    /// Parent web page. Only used with QtWebEngine version 5.13 or greater.
+    WebPage *m_parentPage;
 };
 
 #endif // REQUESTINTERCEPTOR_H 

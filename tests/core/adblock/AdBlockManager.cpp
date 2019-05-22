@@ -106,7 +106,7 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     return m_emptyStr;
 }
 
-bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
+bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl)
 {
     return false;
 }

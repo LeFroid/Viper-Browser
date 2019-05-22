@@ -43,10 +43,9 @@ void RequestHandler::setTotalNumberOfBlockedRequests(quint64 count)
     m_numRequestsBlocked = count;
 }
 
-bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
+bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl)
 {
     // Get request URL and the originating URL
-    const QUrl firstPartyUrl = info.firstPartyUrl();
     const QUrl requestUrl = info.requestUrl();
     const QString requestUrlStr = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
 
@@ -65,7 +64,7 @@ bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
         domain = requestUrlWrapper.getSecondLevelDomain();
 
     // Convert QWebEngine request type to AdBlockFilter request type
-    ElementType elemType = getRequestType(info);
+    ElementType elemType = getRequestType(info, firstPartyUrl);
 
     // Compare to filters
     Filter *matchingBlockFilter = m_filterContainer.findImportantBlockingFilter(baseUrl, requestUrlStr, domain, elemType);
@@ -112,9 +111,9 @@ bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
     return true;
 }
 
-ElementType RequestHandler::getRequestType(const QWebEngineUrlRequestInfo &info) const
+ElementType RequestHandler::getRequestType(const QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl) const
 {
-    const URL firstPartyUrl { info.firstPartyUrl() };
+    const URL firstPartyUrlWrapper { firstPartyUrl };
     const URL requestUrl { info.requestUrl() };
     const QString requestUrlStr = requestUrl.toString(QUrl::FullyEncoded).toLower();
 
@@ -172,7 +171,10 @@ ElementType RequestHandler::getRequestType(const QWebEngineUrlRequestInfo &info)
     }
 
     // Check for third party request type
-    if (firstPartyUrl.isEmpty() || (requestUrl.getSecondLevelDomain() != firstPartyUrl.getSecondLevelDomain()))
+    if (firstPartyUrlWrapper.isEmpty()
+            || (firstPartyUrlWrapper.toString().compare(QLatin1String(".")) == 0)
+            || (firstPartyUrlWrapper.toString().compare(QLatin1String("data;,")) == 0)
+            || (requestUrl.getSecondLevelDomain() != firstPartyUrlWrapper.getSecondLevelDomain()))
         elemType |= ElementType::ThirdParty;
 
     return elemType;

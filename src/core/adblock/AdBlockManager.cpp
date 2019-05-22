@@ -352,12 +352,12 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     return m_jsInjectionCache.get(requestHostStdStr);
 }
 
-bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info)
+bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl)
 {
     if (!m_enabled || SchemeRegistry::isSchemeWhitelisted(info.requestUrl().scheme().toLower()))
         return false;
 
-    return m_requestHandler->shouldBlockRequest(info);
+    return m_requestHandler->shouldBlockRequest(info, firstPartyUrl);
 }
 
 quint64 AdBlockManager::getRequestsBlockedCount() const

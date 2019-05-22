@@ -171,7 +171,9 @@ BrowserApplication::~BrowserApplication()
     delete m_userAgentMgr;
     delete m_userScriptMgr;
     delete m_privateProfile;
+#if (QTWEBENGINECORE_VERSION < QT_VERSION_CHECK(5, 13, 0))
     delete m_requestInterceptor;
+#endif
     delete m_viperSchemeHandler;
     delete m_blockedSchemeHandler;
     delete m_cookieUI;
@@ -383,9 +385,11 @@ void BrowserApplication::setupWebProfiles()
     m_privateProfile->setObjectName(QLatin1String("PrivateWebProfile"));
     registerService(m_privateProfile);
 
+#if (QTWEBENGINECORE_VERSION < QT_VERSION_CHECK(5, 13, 0))
     // Instantiate request interceptor
     m_requestInterceptor = new RequestInterceptor(m_serviceLocator, this);
     registerService(m_requestInterceptor);
+#endif
 
     // Instantiate scheme handlers
     m_viperSchemeHandler = new ViperSchemeHandler(this);
