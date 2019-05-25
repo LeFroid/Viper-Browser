@@ -1,18 +1,5 @@
 #include "URLSuggestionListModel.h"
 
-URLSuggestion::URLSuggestion(const QIcon &icon, const QString &title, const QString &url, 
-        QDateTime lastVisit, bool isBookmark, int visitCount) :
-    Favicon(icon),
-    Title(title),
-    URL(url),
-    LastVisit(lastVisit),
-    IsBookmark(isBookmark),
-    VisitCount(visitCount),
-    IsHostMatch(false),
-    URLTypedCount(0)
-{
-}
-
 URLSuggestionListModel::URLSuggestionListModel(QObject *parent) :
     QAbstractListModel(parent),
     m_suggestions()

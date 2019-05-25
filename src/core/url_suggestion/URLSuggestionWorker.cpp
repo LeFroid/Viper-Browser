@@ -3,6 +3,7 @@
 #include "FastHash.h"
 #include "FaviconManager.h"
 #include "HistoryManager.h"
+#include "URLSuggestion.h"
 #include "URLSuggestionWorker.h"
 
 #include <algorithm>
@@ -121,16 +122,12 @@ void URLSuggestionWorker::searchForHits()
         const QString url = it->getURL().toString();
         if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
         {
-            HistoryEntry historyInfo = m_historyManager->getEntry(it->getURL());
-
-            auto suggestion = URLSuggestion(it->getIcon(), it->getName(), url, historyInfo.LastVisit, true,
-                                            historyInfo.NumVisits);
+            URLSuggestion suggestion { it, m_historyManager->getEntry(it->getURL()) };
 
             QString suggestionHost = it->getURL().host().toUpper();
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
             suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
-            suggestion.URLTypedCount = historyInfo.URLTypedCount;
 
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
@@ -140,13 +137,10 @@ void URLSuggestionWorker::searchForHits()
         }
     }
 
-    //std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
-
     if (!m_working.load())
         return;
 
-    //std::vector<URLSuggestion> histSuggestions;
-    for (const auto it : *m_historyManager)
+    for (const auto &it : *m_historyManager)
     {
         if (!m_working.load())
             return;
@@ -159,15 +153,12 @@ void URLSuggestionWorker::searchForHits()
 
         if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
         {
-            auto suggestion = URLSuggestion(m_faviconManager->getFavicon(urlObj), it.getTitle(), url,
-                                            it.getLastVisit(), false, it.getNumVisits());
+            URLSuggestion suggestion { it, m_faviconManager->getFavicon(urlObj) };
 
             QString suggestionHost = urlObj.host().toUpper();
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
             suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
-
-            suggestion.URLTypedCount = it.getUrlTypedCount();
 
             m_suggestions.push_back(suggestion);
             hits.insert(suggestion.URL);
@@ -181,13 +172,6 @@ void URLSuggestionWorker::searchForHits()
     std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
     if (m_suggestions.size() > 35)
         m_suggestions.erase(m_suggestions.begin() + 35, m_suggestions.end());
-
-    //std::sort(histSuggestions.begin(), histSuggestions.end(), compareUrlSuggestions);
-
-    //if (histSuggestions.size() > 25)
-    //    histSuggestions.erase(histSuggestions.begin() + 25, histSuggestions.end());
-
-    //m_suggestions.insert(m_suggestions.end(), histSuggestions.begin(), histSuggestions.end());
 
     m_working.store(false);
 }
@@ -208,18 +192,19 @@ bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url,
     {
         for (const QString &word : m_searchWords)
         {
-            if (title.contains(word, Qt::CaseSensitive))
+            if (word.size() > 2 && title.contains(word, Qt::CaseSensitive))
                 return true;
         }
     }
 
+    /*
     const int prefix = url.indexOf(QLatin1String("://"));
     if (!m_searchTermHasScheme && prefix >= 0)
     {
         QString urlMutable = url;
         urlMutable = urlMutable.mid(prefix + 3);
         return isStringMatch(urlMutable);
-    }
+    }*/
 
     return isStringMatch(url);
 }
@@ -259,4 +244,3 @@ bool URLSuggestionWorker::isStringMatch(const QString &haystack)
     std::wstring haystackWideStr = haystack.toStdWString();
     return FastHash::isMatch(m_searchTermWideStr, haystackWideStr, m_searchTermHash, m_differenceHash);
 }
-
