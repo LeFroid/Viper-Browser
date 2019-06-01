@@ -59,6 +59,7 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_suggestionWidget = new URLSuggestionWidget;
     m_suggestionWidget->setURLLineEdit(this);
     connect(m_suggestionWidget, &URLSuggestionWidget::urlChosen, this, &URLLineEdit::onSuggestedURLChosen);
+    connect(m_suggestionWidget, &URLSuggestionWidget::noSuggestionChosen, this, &URLLineEdit::tryToFormatInput);
     connect(this, &URLLineEdit::editingFinished, m_suggestionWidget, &URLSuggestionWidget::hide);
 
     // Setup text editing handler
@@ -297,8 +298,15 @@ void URLLineEdit::onTextEdited(const QString &text)
             return;
         }
     }
+
     m_suggestionWidget->suggestForInput(text);
 
+    tryToFormatInput(text);
+}
+
+void URLLineEdit::tryToFormatInput(const QString &text)
+{
+    setText(text);
     QUrl maybeUrl = QUrl::fromUserInput(text);
     if (maybeUrl.isValid()
             && !maybeUrl.scheme().isEmpty())

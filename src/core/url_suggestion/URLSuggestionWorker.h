@@ -2,6 +2,7 @@
 #define URLSUGGESTIONWORKER_H
 
 #include "ServiceLocator.h"
+#include "URLSuggestion.h"
 #include "URLSuggestionListModel.h"
 
 #include <atomic>
@@ -45,6 +46,14 @@ signals:
 private:
     /// The suggestion search operation working in a separate thread
     void searchForHits();
+
+    /// Checks if an item with the given page title, url and optionally shortcut matches the search term, returning
+    /// the corresponding type after evaluating all criteria. Returns MatchType::None when there is no match
+    MatchType getMatchType(const QString &title, const QString &url, const QString &shortcut = QString());
+
+    /// Check if, for a very small search term (< 5 chars), either a part of the page title or URL begins with
+    /// the characters in the search term
+    MatchType getMatchTypeForSmallSearchTerm(const QString &title, const QString &url);
 
     /// Checks if an item with the given page title, url and optionally shortcut matches the search term, returning
     /// true on a match and false if not matching

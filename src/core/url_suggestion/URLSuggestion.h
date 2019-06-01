@@ -10,6 +10,24 @@ struct HistoryEntry;
 class URLRecord;
 
 /**
+ * @enum MatchType
+ * @brief A list of the ways in which a search term could lead to a given suggestion
+ */
+enum class MatchType : int
+{
+    /// No match
+    None = 0,
+    /// The web page's shortcut matches the search term
+    Shortcut = 1,
+    /// The page title matches the search term
+    Title = 2,
+    /// Match is from one or more of the individual words in the search term
+    SearchWords = 3,
+    /// The URL matches the search term
+    URL = 4
+};
+
+/**
  * @struct URLSuggestion
  * @brief Container for the information contained in a single row of data in the \ref URLSuggestionListModel
  */
@@ -18,11 +36,11 @@ struct URLSuggestion
     /// Default constructor
     URLSuggestion() = default;
 
-    /// Constructs the URL suggestion given a bookmark node and its corresponding history entry
-    URLSuggestion(const BookmarkNode *bookmark, const HistoryEntry &historyEntry);
+    /// Constructs the URL suggestion given a bookmark node, its corresponding history entry and the type of search term match
+    URLSuggestion(const BookmarkNode *bookmark, const HistoryEntry &historyEntry, MatchType matchType);
 
-    /// Constructs the URL suggestion from a history record and an icon
-    URLSuggestion(const URLRecord &record, const QIcon &icon);
+    /// Constructs the URL suggestion from a history record, an icon and the type of search term match
+    URLSuggestion(const URLRecord &record, const QIcon &icon, MatchType matchType);
 
     /// Icon associated with the url
     QIcon Favicon;
@@ -47,6 +65,9 @@ struct URLSuggestion
 
     /// Flag indicating whether or not this url is bookmarked
     bool IsBookmark;
+
+    /// Type of matching to the search term
+    MatchType Type;
 };
 
 #endif // URLSUGGESTION_H

@@ -19,7 +19,8 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
     // 2) Closeness of the url to the user input (ex: search="viper.com", a="vipers-are-cool.com", b="viper.com/faq", choose b)
     // 3) Number of visits to the urls
     // 4) Most recent visit
-    // 5) Alphabetical ordering
+    // 5) Type of match to the search term (ex: the page title vs the URL)
+    // 6) Alphabetical ordering
 
     if (!a.URLTypedCount != !b.URLTypedCount)
         return a.URLTypedCount > b.URLTypedCount;
@@ -31,9 +32,12 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
         return a.VisitCount > b.VisitCount;
 
     if (a.LastVisit != b.LastVisit)
-        return a.LastVisit > b.LastVisit;
+        return a.LastVisit < b.LastVisit;
 
-    return a.URL > b.URL;
+    if (a.Type != b.Type)
+        return static_cast<int>(a.Type) < static_cast<int>(b.Type);
+
+    return a.URL < b.URL;
 }
 
 URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
@@ -120,9 +124,11 @@ void URLSuggestionWorker::searchForHits()
             continue;
 
         const QString url = it->getURL().toString();
-        if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
+        //if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
+        MatchType matchType = getMatchType(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper());
+        if (matchType != MatchType::None)
         {
-            URLSuggestion suggestion { it, m_historyManager->getEntry(it->getURL()) };
+            URLSuggestion suggestion { it, m_historyManager->getEntry(it->getURL()), matchType };
 
             QString suggestionHost = it->getURL().host().toUpper();
             if (!inputStartsWithWww)
@@ -151,9 +157,11 @@ void URLSuggestionWorker::searchForHits()
 
         const QUrl &urlObj = it.getUrl();
 
-        if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
+        //if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
+        MatchType matchType = getMatchType(it.getTitle().toUpper(), url.toUpper());
+        if (matchType != MatchType::None)
         {
-            URLSuggestion suggestion { it, m_faviconManager->getFavicon(urlObj) };
+            URLSuggestion suggestion { it, m_faviconManager->getFavicon(urlObj), matchType };
 
             QString suggestionHost = urlObj.host().toUpper();
             if (!inputStartsWithWww)
@@ -174,6 +182,53 @@ void URLSuggestionWorker::searchForHits()
         m_suggestions.erase(m_suggestions.begin() + 35, m_suggestions.end());
 
     m_working.store(false);
+}
+
+MatchType URLSuggestionWorker::getMatchType(const QString &title, const QString &url, const QString &shortcut)
+{
+    if (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut))
+        return MatchType::Shortcut;
+
+    // Special case for small search terms
+    if (m_searchTerm.size() < 5)
+        return getMatchTypeForSmallSearchTerm(title, url);
+
+    if (isStringMatch(title))
+        return MatchType::Title;
+
+    if (m_searchWords.size() > 1)
+    {
+        for (const QString &word : m_searchWords)
+        {
+            if (word.size() > 2 && title.contains(word, Qt::CaseSensitive))
+                return MatchType::SearchWords;
+        }
+    }
+
+    return isStringMatch(url) ? MatchType::URL : MatchType::None;
+}
+
+MatchType URLSuggestionWorker::getMatchTypeForSmallSearchTerm(const QString &title, const QString &url)
+{
+    QStringList nameParts = title.split(QLatin1Char(' '), QString::SkipEmptyParts);
+    if (nameParts.empty())
+        nameParts.push_back(title);
+
+    for (const QString &part : nameParts)
+    {
+        if (part.startsWith(m_searchTerm))
+            return MatchType::Title;
+    }
+
+    QString urlMutable = url;
+    const int prefix = url.indexOf(QLatin1String("://"));
+    if (!m_searchTermHasScheme && prefix >= 0)
+        urlMutable = urlMutable.mid(prefix + 3);
+
+    if (m_searchTerm.at(0) != QLatin1Char('W') && urlMutable.startsWith(QLatin1String("WWW.")))
+        urlMutable = urlMutable.mid(4);
+
+    return urlMutable.startsWith(m_searchTerm) ? MatchType::URL : MatchType::None;
 }
 
 bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url, const QString &shortcut)
@@ -197,15 +252,6 @@ bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url,
         }
     }
 
-    /*
-    const int prefix = url.indexOf(QLatin1String("://"));
-    if (!m_searchTermHasScheme && prefix >= 0)
-    {
-        QString urlMutable = url;
-        urlMutable = urlMutable.mid(prefix + 3);
-        return isStringMatch(urlMutable);
-    }*/
-
     return isStringMatch(url);
 }
 
@@ -214,6 +260,7 @@ bool URLSuggestionWorker::isMatchForSmallSearchTerm(const QString &title, const 
     QStringList nameParts = title.split(QLatin1Char(' '), QString::SkipEmptyParts);
     if (nameParts.empty())
         nameParts.push_back(title);
+
     for (const QString &part : nameParts)
     {
         if (part.startsWith(m_searchTerm))
@@ -221,15 +268,14 @@ bool URLSuggestionWorker::isMatchForSmallSearchTerm(const QString &title, const 
     }
 
     const int prefix = url.indexOf(QLatin1String("://"));
+    QString urlMutable = url;
     if (!m_searchTermHasScheme && prefix >= 0)
-    {
-        QString urlMutable = url;
         urlMutable = urlMutable.mid(prefix + 3);
-        if (m_searchTerm.at(0) != QLatin1Char('W') && urlMutable.startsWith(QLatin1String("WWW.")))
-            urlMutable = urlMutable.mid(4);
-        return urlMutable.startsWith(m_searchTerm);
-    }
-    return url.startsWith(m_searchTerm);
+
+    if (m_searchTerm.at(0) != QLatin1Char('W') && urlMutable.startsWith(QLatin1String("WWW.")))
+        urlMutable = urlMutable.mid(4);
+
+    return urlMutable.startsWith(m_searchTerm);
 }
 
 void URLSuggestionWorker::hashSearchTerm()

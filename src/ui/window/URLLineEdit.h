@@ -99,6 +99,9 @@ private slots:
     /// Called whenever the text within the line edit is edited by the user
     void onTextEdited(const QString &text);
 
+    /// Checks if the user input can be formatted as a URL.
+    void tryToFormatInput(const QString &text);
+
 protected:
     /// Paints the line edit with an icon that shows whether or not the current site is secure
     virtual void resizeEvent(QResizeEvent *event) override;

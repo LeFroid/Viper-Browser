@@ -50,6 +50,12 @@ signals:
     /// Emitted when an item in the suggestion list with the given URL is chosen
     void urlChosen(const QUrl &url);
 
+    /**
+     * @brief Emitted when the widget is hidden before the user chooses any of the suggestions.
+     * @param originalText The text entered by the user before this widget appeared
+     */
+    void noSuggestionChosen(const QString &originalText);
+
 private slots:
     /// Called when an item in the suggestion list at the given index is clicked
     void onSuggestionClicked(const QModelIndex &index);
@@ -66,6 +72,9 @@ private:
 
     /// Pointer to the URL line edit
     URLLineEdit *m_lineEdit;
+
+    /// The term being searched for suggestions
+    QString m_searchTerm;
 };
 
 #endif // URLSUGGESTIONWIDGET_H

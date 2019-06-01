@@ -15,14 +15,17 @@
 #include <vector>
 
 URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent),
+    m_suggestionList(nullptr),
+    m_model(nullptr),
+    m_worker(nullptr),
+    m_lineEdit(nullptr),
+    m_searchTerm()
 {
     setAttribute(Qt::WA_ShowWithoutActivating, true);
     setAttribute(Qt::WA_X11NetWmWindowTypeCombo, true);
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::BypassWindowManagerHint);
     setContentsMargins(0, 0, 0, 0);
-
-    m_lineEdit = nullptr;
 
     // Setup suggestion list view
     m_suggestionList = new QListView(this);
@@ -85,6 +88,7 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
                 case Qt::Key_Escape:
                 {
                     close();
+                    emit noSuggestionChosen(m_searchTerm);
                     return true;
                 }
                 case Qt::Key_End:
@@ -175,6 +179,7 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
             if (!underMouse())
             {
                 close();
+                emit noSuggestionChosen(m_searchTerm);
                 return true;
             }
             return false;
@@ -204,6 +209,7 @@ void URLSuggestionWidget::suggestForInput(const QString &text)
         return;
     }
 
+    m_searchTerm = text;
     m_worker->findSuggestionsFor(text);
 
     if (!isVisible() && m_lineEdit != nullptr)
