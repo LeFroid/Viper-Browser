@@ -412,8 +412,19 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
     // Fetch resource from AdBlockManager and set value as m_evalString
     if (m_adBlockManager != nullptr)
         filter->m_evalString = m_adBlockManager->getResource(resourceName);
+
+    const static QString nonThrowingScript = QStringLiteral("try { \n"
+                                                 " %1 \n"
+                                                 "} catch (ex) { \n"
+                                                 "  console.error('[Viper Browser] Error running Advertisement Blocking script: ', ex); \n"
+                                                 "  console.error(ex.stack); \n "
+                                                 "} \n ");
+
     if (injectionArgs.size() < 2)
+    {
+        filter->m_evalString = nonThrowingScript.arg(filter->m_evalString);
         return true;
+    }
 
     // For each item with index > 0 in injectionArgs list, replace each {{index}}
     // string in resource with injectionArgs[index]
@@ -425,12 +436,6 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
         filter->m_evalString.replace(term, arg);
     }
 
-    const static QString nonThrowingScript = QStringLiteral("try { \n"
-                                                 " %1 \n"
-                                                 "} catch (ex) { \n"
-                                                 "  console.error('[Viper Browser] Error running Advertisement Blocking script: ', ex); \n"
-                                                 "  console.error(ex.stack); \n "
-                                                 "} \n ");
     filter->m_evalString = nonThrowingScript.arg(filter->m_evalString);
     return true;
 }
