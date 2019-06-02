@@ -240,6 +240,25 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     if (m_domainStylesheetCache.has(domainStdStr))
         return m_domainStylesheetCache.get(domainStdStr);
 
+    const static QString styleScript = QStringLiteral("(function() {\n"
+                                       "var doc = document;\n"
+                                       "if (!doc.head) { \n"
+                                       " document.onreadystatechange = function(){ \n"
+                                       "  if (document.readyState == 'interactive') { \n"
+                                       "   var sheet = document.createElement('style');\n"
+                                       "   sheet.type = 'text/css';\n"
+                                       "   sheet.innerHTML = '%1';\n"
+                                       "   document.head.appendChild(sheet);\n"
+                                       "  }\n"
+                                       " }\n"
+                                       " return;\n"
+                                       "}\n"
+                                       "var sheet = document.createElement('style');\n"
+                                       "sheet.type = 'text/css';\n"
+                                       "sheet.innerHTML = '%1';\n"
+                                       "doc.head.appendChild(sheet);\n"
+                                   "})();");
+
     QString stylesheet;
     int numStylesheetRules = 0;
     std::vector<Filter*> domainBasedHidingFilters = m_filterContainer.getDomainBasedHidingFilters(domain);
@@ -252,7 +271,8 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
             stylesheet.append(QLatin1String("{ display: none !important; } "));
             numStylesheetRules = 0;
         }
-        ++numStylesheetRules;
+        else
+            ++numStylesheetRules;
     }
 
     if (numStylesheetRules > 0)
@@ -266,6 +286,12 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     for (Filter *filter : domainBasedHidingFilters)
     {
         stylesheet.append(filter->getEvalString());
+    }
+
+    if (!stylesheet.isEmpty())
+    {
+        stylesheet = stylesheet.replace(QLatin1String("'"), QLatin1String("\\'"));
+        stylesheet = styleScript.arg(stylesheet);
     }
 
     // Insert the stylesheet into cache

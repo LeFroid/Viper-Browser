@@ -160,6 +160,17 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         for (auto &script : pageScripts)
             scriptCollection.insert(script);
 
+        if (!m_mainFrameAdBlockScript.isEmpty())
+        {
+            QWebEngineScript adBlockScript;
+            adBlockScript.setSourceCode(m_mainFrameAdBlockScript);
+            adBlockScript.setName(QLatin1String("viper-content-blocker"));
+            adBlockScript.setRunsOnSubFrames(true);
+            adBlockScript.setWorldId(QWebEngineScript::UserWorld);
+            adBlockScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
+            scriptCollection.insert(adBlockScript);
+        }
+
         if (type != QWebEnginePage::NavigationTypeBackForward)
             m_originalUrl = url;
     }
@@ -348,8 +359,7 @@ void WebPage::onMainFrameUrlChanged(const QUrl &url)
     if (!urlHost.isEmpty() && m_mainFrameHost.compare(urlHost) != 0)
     {
         m_mainFrameHost = urlHost;
-        m_domainFilterStyle = QString("<style>%1</style>").arg(m_adBlockManager->getDomainStylesheet(urlCopy));
-        m_domainFilterStyle.replace("'", "\\'");
+        m_domainFilterStyle = m_adBlockManager->getDomainStylesheet(urlCopy);
     }
 }
 
@@ -363,11 +373,14 @@ void WebPage::onLoadProgress(int percent)
 
         m_needInjectAdBlockScript = false;
 
-        if (m_mainFrameAdBlockScript.isEmpty())
-            m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
+        //if (m_mainFrameAdBlockScript.isEmpty())
+        //    m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
 
-        if (!m_mainFrameAdBlockScript.isEmpty())
-            runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
+        //if (!m_mainFrameAdBlockScript.isEmpty())
+        //    runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
+
+        if (!m_domainFilterStyle.isEmpty())
+            runJavaScript(m_domainFilterStyle, QWebEngineScript::UserWorld);
     }
 
     //if (percent == 100)
@@ -377,7 +390,10 @@ void WebPage::onLoadProgress(int percent)
 void WebPage::onLoadFinished(bool ok)
 {
     if (!ok)
+    {
+        m_needInjectAdBlockScript = true;
         return;
+    }
 
     if (!m_originalUrl.isEmpty())
         m_originalUrl = requestedUrl();
@@ -387,7 +403,6 @@ void WebPage::onLoadFinished(bool ok)
     QString adBlockStylesheet = m_adBlockManager->getStylesheet(pageUrl);
     adBlockStylesheet.replace("'", "\\'");
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(adBlockStylesheet));
-    runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(m_domainFilterStyle));
 
     if (m_needInjectAdBlockScript)
         m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);

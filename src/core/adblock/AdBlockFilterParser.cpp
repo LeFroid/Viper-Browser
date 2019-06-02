@@ -34,7 +34,7 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     auto filter = std::make_unique<Filter>(rule);
 
     // Make sure filter is able to be parsed
-    if (rule.isEmpty() || rule.startsWith('!'))
+    if (rule.isEmpty() || rule.startsWith(QLatin1Char('!')))
         return filter;
 
     Filter *filterPtr = filter.get();
@@ -51,7 +51,7 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     }
 
     // Check if filter options are set
-    int pos = rule.indexOf(QChar('$'));
+    int pos = rule.indexOf(QLatin1Char('$'));
     if (pos >= 0 && pos + 1 < rule.size() && rule.at(pos + 1).isLetter())
     {
         parseOptions(rule.mid(pos + 1), filterPtr);
@@ -59,11 +59,11 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     }
 
     // Check if rule is a 'Match all' type
-    if (rule.size() == 1 && rule.at(0) == QChar('*'))
+    if (rule.size() == 1 && rule.at(0) == QLatin1Char('*'))
         filterPtr->m_matchAll = true;
 
     // Check if rule is a regular expression
-    if (rule.startsWith('/') && rule.endsWith('/'))
+    if (rule.startsWith(QLatin1Char('/')) && rule.endsWith(QLatin1Char('/')))
     {
         filterPtr->m_category = FilterCategory::RegExp;
 
@@ -77,15 +77,15 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     }
 
     // Remove any leading wildcard
-    if (rule.startsWith('*'))
+    if (rule.startsWith(QLatin1Char('*')))
         rule = rule.mid(1);
 
     // Remove trailing wildcard
-    if (rule.endsWith('*'))
+    if (rule.endsWith(QLatin1Char('*')))
         rule = rule.left(rule.size() - 1);
 
     // Check for domain matching rule
-    if (rule.startsWith(QStringLiteral("||")) && rule.endsWith('^') && isDomainRule(rule))
+    if (rule.startsWith(QStringLiteral("||")) && rule.endsWith(QLatin1Char('^')) && isDomainRule(rule))
     {
         rule = rule.mid(2);
         filterPtr->m_evalString = rule.left(rule.size() - 1);
@@ -247,6 +247,20 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
     filter->m_evalString.replace(QStringLiteral(":-abp-contains"), QStringLiteral(":has-text"));
     filter->m_evalString.replace(QStringLiteral(":-abp-has"), QStringLiteral(":if"));
 
+    const static QString adGuardIfDirective = QStringLiteral("[-ext-has=");
+
+    // Translate "[-ext-has=('|")....('|")]" into ":if(....)"
+    int adGuardIndex = filter->m_evalString.indexOf(adGuardIfDirective);
+    if (adGuardIndex >= 0)
+    {
+        const QChar quoteChar = filter->m_evalString.at(adGuardIndex + adGuardIfDirective.size());
+        const int endIndex = filter->m_evalString.indexOf(quoteChar, adGuardIndex + adGuardIfDirective.size() + 1);
+        filter->m_evalString.remove(endIndex + 1, 1);
+        filter->m_evalString.replace(endIndex, 1, QLatin1Char(')'));
+        filter->m_evalString.replace(adGuardIndex + adGuardIfDirective.size(), 1, QLatin1Char('('));
+        filter->m_evalString.replace(adGuardIfDirective, QStringLiteral(":if"));
+    }
+
     if (filter->m_evalString.indexOf(QStringLiteral(":-abp-")) >= 0)
     {
         filter->m_category = FilterCategory::None;
@@ -345,7 +359,6 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
             filter->m_evalString = QString("hideNodes(nthAncestor, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
-        default: return false;
     }
     filter->m_category = FilterCategory::StylesheetJS;
     return true;

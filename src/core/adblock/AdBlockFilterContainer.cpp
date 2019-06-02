@@ -94,9 +94,21 @@ const QString &FilterContainer::getCombinedFilterStylesheet() const
 std::vector<Filter*> FilterContainer::getDomainBasedHidingFilters(const QString &domain) const
 {
     std::vector<Filter*> result;
+    std::vector<Filter*> matches;
+    QHash<QString, bool> whitelistedFilters;
     for (Filter *filter : m_domainStyleFilters)
     {
-        if (filter->isDomainStyleMatch(domain) && !filter->isException())
+        if (filter->isDomainStyleMatch(domain))
+        {
+            if (filter->isException())
+                whitelistedFilters.insert(filter->getEvalString(), true);
+            else
+                matches.push_back(filter);
+        }
+    }
+    for (Filter *filter : matches)
+    {
+        if (whitelistedFilters.constFind(filter->getEvalString()) == whitelistedFilters.constEnd())
             result.push_back(filter);
     }
     return result;
@@ -136,7 +148,7 @@ std::vector<Filter*> FilterContainer::getMatchingCSPFilters(const QString &reque
             if (filter->isException())
                 whitelistedCSP.insert(filter->getContentSecurityPolicy(), true);
             else
-                result.push_back(filter);
+                matches.push_back(filter);
         }
         /*
         if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
