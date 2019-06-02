@@ -38,10 +38,7 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),
-    m_mainFrameHost(),
-    m_domainFilterStyle(),
-    m_mainFrameAdBlockScript(),
-    m_needInjectAdBlockScript(true)
+    m_mainFrameAdBlockScript()
 {
     setupSlots(serviceLocator);
 }
@@ -52,9 +49,7 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *p
     m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),
-    m_mainFrameHost(),
-    m_domainFilterStyle(),
-    m_needInjectAdBlockScript(true)
+    m_mainFrameAdBlockScript()
 {
     setupSlots(serviceLocator);
 }
@@ -80,10 +75,8 @@ void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
 
     connect(this, &WebPage::authenticationRequired,      this, &WebPage::onAuthenticationRequired);
     connect(this, &WebPage::proxyAuthenticationRequired, this, &WebPage::onProxyAuthenticationRequired);
-    connect(this, &WebPage::loadProgress,                this, &WebPage::onLoadProgress);
     connect(this, &WebPage::loadFinished,                this, &WebPage::onLoadFinished);
     connect(this, &WebPage::loadFinished,     autoFillManager, &AutoFill::onPageLoaded);
-    connect(this, &WebPage::urlChanged,                  this, &WebPage::onMainFrameUrlChanged);
     connect(this, &WebPage::featurePermissionRequested,  this, &WebPage::onFeaturePermissionRequested);
     connect(this, &WebPage::renderProcessTerminated,     this, &WebPage::onRenderProcessTerminated);
 
@@ -169,6 +162,17 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             adBlockScript.setWorldId(QWebEngineScript::UserWorld);
             adBlockScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
             scriptCollection.insert(adBlockScript);
+        }
+
+        const QString domainFilterStyle = m_adBlockManager->getDomainStylesheet(pageUrl);
+        if (!domainFilterStyle.isEmpty())
+        {
+            QWebEngineScript adBlockCosmeticScript;
+            adBlockCosmeticScript.setSourceCode(domainFilterStyle);
+            adBlockCosmeticScript.setName(QLatin1String("viper-cosmetic-blocker"));
+            adBlockCosmeticScript.setWorldId(QWebEngineScript::UserWorld);
+            adBlockCosmeticScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
+            scriptCollection.insert(adBlockCosmeticScript);
         }
 
         if (type != QWebEnginePage::NavigationTypeBackForward)
@@ -268,7 +272,6 @@ QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type)
             dialog->show();
             return dialog->getView()->page();
         }
-        default: break;
     }
     return nullptr;
 }
@@ -352,48 +355,10 @@ void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, WebPage::
     setFeaturePermission(securityOrigin, feature, policy);
 }
 
-void WebPage::onMainFrameUrlChanged(const QUrl &url)
-{
-    URL urlCopy(url);
-    QString urlHost = urlCopy.host().toLower();
-    if (!urlHost.isEmpty() && m_mainFrameHost.compare(urlHost) != 0)
-    {
-        m_mainFrameHost = urlHost;
-        m_domainFilterStyle = m_adBlockManager->getDomainStylesheet(urlCopy);
-    }
-}
-
-void WebPage::onLoadProgress(int percent)
-{
-    if (percent > 0 && percent < 100 && m_needInjectAdBlockScript)
-    {
-        URL pageUrl(url());
-        if (pageUrl.host().isEmpty())
-            return;
-
-        m_needInjectAdBlockScript = false;
-
-        //if (m_mainFrameAdBlockScript.isEmpty())
-        //    m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
-
-        //if (!m_mainFrameAdBlockScript.isEmpty())
-        //    runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
-
-        if (!m_domainFilterStyle.isEmpty())
-            runJavaScript(m_domainFilterStyle, QWebEngineScript::UserWorld);
-    }
-
-    //if (percent == 100)
-    //    emit loadFinished(true);
-}
-
 void WebPage::onLoadFinished(bool ok)
 {
     if (!ok)
-    {
-        m_needInjectAdBlockScript = true;
         return;
-    }
 
     if (!m_originalUrl.isEmpty())
         m_originalUrl = requestedUrl();
@@ -404,13 +369,8 @@ void WebPage::onLoadFinished(bool ok)
     adBlockStylesheet.replace("'", "\\'");
     runJavaScript(QString("document.body.insertAdjacentHTML('beforeend', '%1');").arg(adBlockStylesheet));
 
-    if (m_needInjectAdBlockScript)
-        m_mainFrameAdBlockScript = m_adBlockManager->getDomainJavaScript(pageUrl);
-
     if (!m_mainFrameAdBlockScript.isEmpty())
         runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
-
-    m_needInjectAdBlockScript = true;
 }
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))

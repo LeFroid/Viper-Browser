@@ -416,7 +416,7 @@ const Subscription *AdBlockManager::getSubscription(int index) const
     if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
         return nullptr;
 
-    return &m_subscriptions.at(index);
+    return &m_subscriptions.at(static_cast<std::size_t>(index));
 }
 
 void AdBlockManager::toggleSubscriptionEnabled(int index)
@@ -424,7 +424,7 @@ void AdBlockManager::toggleSubscriptionEnabled(int index)
     if (index < 0 || index >= static_cast<int>(m_subscriptions.size()))
         return;
 
-    Subscription &sub = m_subscriptions.at(index);
+    Subscription &sub = m_subscriptions.at(static_cast<std::size_t>(index));
     sub.setEnabled(!sub.isEnabled());
 
     // Reset filter data

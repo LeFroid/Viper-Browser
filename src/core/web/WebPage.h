@@ -84,12 +84,6 @@ private slots:
     /// Handles the feature permission request signal
     void onFeaturePermissionRequested(const QUrl &securityOrigin, Feature feature);
 
-    /// Called when the URL of the main frame has changed
-    void onMainFrameUrlChanged(const QUrl &url);
-
-    /// Called when the page has loaded by the given percent amount
-    void onLoadProgress(int percent);
-
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
 
@@ -127,17 +121,8 @@ private:
     /// Contains the original URL of the current page, as passed to the WebPage in the acceptNavigationRequest method
     QUrl m_originalUrl;
 
-    /// Stores the host of the main frame's URL. Used to prevent excessive requests to fetch the AdBlockManager's domain-specific cosmetic filters
-    QString m_mainFrameHost;
-
-    /// Stores the current page's domain-specific cosmetic filters in string form
-    QString m_domainFilterStyle;
-
     /// Scripts injected by ad block during load progress and load finish
     QString m_mainFrameAdBlockScript;
-
-    /// True if ad block script needs to be injected in the page during load time, false if else
-    bool m_needInjectAdBlockScript;
 };
 
 #endif // WEBPAGE_H
