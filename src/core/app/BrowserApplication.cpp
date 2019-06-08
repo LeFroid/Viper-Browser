@@ -221,11 +221,6 @@ QWebEngineProfile *BrowserApplication::getPrivateBrowsingProfile()
     return m_privateProfile;
 }
 
-UserAgentManager *BrowserApplication::getUserAgentManager()
-{
-    return m_userAgentMgr;
-}
-
 MainWindow *BrowserApplication::getWindowById(WId windowId) const
 {
     for (auto it = m_browserWindows.begin(); it != m_browserWindows.end(); ++it)

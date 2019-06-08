@@ -80,9 +80,6 @@ public:
     /// Returns a pointer to the private web browsing profile
     QWebEngineProfile *getPrivateBrowsingProfile();
 
-    /// Returns a pointer to the user agent manager
-    UserAgentManager *getUserAgentManager();
-
     /// Searches for a window with the given identifier, returning a pointer to the
     /// MainWindow if found, or a nullptr otherwise.
     MainWindow *getWindowById(WId windowId) const;
