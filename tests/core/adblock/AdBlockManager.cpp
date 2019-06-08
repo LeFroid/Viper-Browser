@@ -91,22 +91,22 @@ AdBlockModel *AdBlockManager::getModel()
     return nullptr;
 }
 
-const QString &AdBlockManager::getStylesheet(const URL &url) const
+const QString &AdBlockManager::getStylesheet(const URL &/*url*/) const
 {
     return m_emptyStr;
 }
 
-const QString &AdBlockManager::getDomainStylesheet(const URL &url)
+const QString &AdBlockManager::getDomainStylesheet(const URL &/*url*/)
 {
     return m_emptyStr;
 }
 
-const QString &AdBlockManager::getDomainJavaScript(const URL &url)
+const QString &AdBlockManager::getDomainJavaScript(const URL &/*url*/)
 {
     return m_emptyStr;
 }
 
-bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QUrl &firstPartyUrl)
+bool AdBlockManager::shouldBlockRequest(QWebEngineUrlRequestInfo &/*info*/, const QUrl &/*firstPartyUrl*/)
 {
     return false;
 }
@@ -116,7 +116,7 @@ quint64 AdBlockManager::getRequestsBlockedCount() const
     return 0;
 }
 
-int AdBlockManager::getNumberAdsBlocked(const QUrl &url) const
+int AdBlockManager::getNumberAdsBlocked(const QUrl &/*url*/) const
 {
     return 0;
 }

@@ -1,7 +1,11 @@
 #ifndef USERAGENTMENU_H
 #define USERAGENTMENU_H
 
+#include "ServiceLocator.h"
 #include <QMenu>
+
+class Settings;
+class UserAgentManager;
 
 class QActionGroup;
 
@@ -11,6 +15,8 @@ class QActionGroup;
  */
 class UserAgentMenu : public QMenu
 {
+    friend class ToolMenu;
+
     Q_OBJECT
 
 public:
@@ -23,6 +29,12 @@ public:
     /// Destroys the menu
     virtual ~UserAgentMenu();
 
+protected:
+    /// Passes a reference to the service locator, which allows the menu
+    /// to fetch the instance of the User Agent manager as well as the
+    /// application settings
+    void setServiceLocator(const ViperServiceLocator &serviceLocator);
+
 public slots:
     /// Resets the items belonging to the user agent menu
     void resetItems();
@@ -32,6 +44,12 @@ private:
     void setup();
 
 private:
+    /// Application settings
+    Settings *m_settings;
+
+    /// User agent manager
+    UserAgentManager *m_userAgentManager;
+
     /// Action group for user agent items
     QActionGroup *m_userAgentGroup;
 };

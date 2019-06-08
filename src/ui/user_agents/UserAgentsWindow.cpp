@@ -59,7 +59,7 @@ void UserAgentsWindow::loadUserAgents()
 
     // Load each UA category into the item model
     QStandardItem *parentItem = m_model->invisibleRootItem();
-    for (auto it = m_userAgentManager->getAgentIterBegin(); it != m_userAgentManager->getAgentIterEnd(); ++it)
+    for (auto it = m_userAgentManager->begin(); it != m_userAgentManager->end(); ++it)
     {
         QStandardItem *category = new QStandardItem(it.key());
 

@@ -47,6 +47,8 @@ void ToolMenu::setServiceLocator(const ViperServiceLocator &serviceLocator)
     m_cookieWidget      = serviceLocator.getServiceAs<CookieWidget>("CookieWidget");
     m_userScriptManager = serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager");
     m_downloadManager   = serviceLocator.getServiceAs<DownloadManager>("DownloadManager");
+
+    m_userAgentMenu->setServiceLocator(serviceLocator);
 }
 
 void ToolMenu::openAdBlockManager()
@@ -105,9 +107,6 @@ void ToolMenu::setup()
     addSeparator();
 
     m_actionViewDownloads = addAction(tr("View Downloads"));
-
-    // Load user agent submenu
-    m_userAgentMenu->resetItems();
 
     // Bind action triggered signals to their respective handlers
     connect(m_actionManageAdBlocker,   &QAction::triggered, this, &ToolMenu::openAdBlockManager);

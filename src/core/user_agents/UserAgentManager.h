@@ -32,6 +32,9 @@ class UserAgentManager : public QObject
     friend class UserAgentsWindow;
 
 public:
+    using iterator = QMap<QString,std::vector<UserAgent>>::iterator;
+    using const_iterator = QMap<QString,std::vector<UserAgent>>::const_iterator;
+
     /// Constructs the user agent manager, which will load custom user agents from a JSON data file
     explicit UserAgentManager(Settings *settings, QObject *parent = nullptr);
 
@@ -48,10 +51,10 @@ public:
     void setActiveAgent(const QString &category, const UserAgent &agent);
 
     /// Returns a const_iterator to the first item in the custom user agent map
-    QMap< QString, std::vector<UserAgent> >::const_iterator getAgentIterBegin() const { return m_userAgents.cbegin(); }
+    const_iterator begin() const { return m_userAgents.cbegin(); }
 
     /// Returns a const_iterator to the end of the custom user agent map
-    QMap< QString, std::vector<UserAgent> >::const_iterator getAgentIterEnd() const { return m_userAgents.cend(); }
+    const_iterator end() const { return m_userAgents.cend(); }
 
 protected:
     /// Clears all user agents from the map

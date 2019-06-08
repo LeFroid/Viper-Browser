@@ -162,6 +162,10 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             adBlockScript.setWorldId(QWebEngineScript::UserWorld);
             adBlockScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
             scriptCollection.insert(adBlockScript);
+
+            adBlockScript.setWorldId(QWebEngineScript::ApplicationWorld);
+            adBlockScript.setInjectionPoint(QWebEngineScript::DocumentReady);
+            scriptCollection.insert(adBlockScript);
         }
 
         const QString domainFilterStyle = m_adBlockManager->getDomainStylesheet(pageUrl);

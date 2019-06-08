@@ -22,7 +22,6 @@
 #include "SearchEngineLineEdit.h"
 #include "ToolMenu.h"
 #include "URLLineEdit.h"
-#include "UserAgentManager.h"
 #include "WebInspector.h"
 #include "WebPage.h"
 #include "WebPageTextFinder.h"

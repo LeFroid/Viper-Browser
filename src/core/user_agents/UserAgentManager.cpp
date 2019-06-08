@@ -5,6 +5,7 @@
 
 #include <QByteArray>
 #include <QFile>
+#include <QTimer>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -50,6 +51,10 @@ void UserAgentManager::setActiveAgent(const QString &category, const UserAgent &
     m_activeAgent = agent;
     m_settings->setValue(BrowserSetting::CustomUserAgent, true);
     QWebEngineProfile::defaultProfile()->setHttpUserAgent(m_activeAgent.Value);
+
+    QTimer::singleShot(10, this, [this](){
+        emit updateUserAgents();
+    });
 }
 
 void UserAgentManager::clearUserAgents()
@@ -73,6 +78,8 @@ void UserAgentManager::disableActiveAgent()
     m_activeAgentCategory.clear();
     m_settings->setValue(BrowserSetting::CustomUserAgent, false);
     QWebEngineProfile::defaultProfile()->setHttpUserAgent(QString());
+
+    emit updateUserAgents();
 }
 
 void UserAgentManager::addUserAgent()
