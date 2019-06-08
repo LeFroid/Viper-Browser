@@ -20,13 +20,13 @@ public:
 
     std::vector<QString> getHostNames() override { return std::vector<QString>(); }
 
-    void addCredentials(const WebCredentials &credentials) override {}
+    void addCredentials(const WebCredentials &/*credentials*/) override {}
 
-    std::vector<WebCredentials> getCredentialsFor(const QUrl &url) override { return std::vector<WebCredentials>(); }
+    std::vector<WebCredentials> getCredentialsFor(const QUrl &/*url*/) override { return std::vector<WebCredentials>(); }
 
-    void removeCredentials(const WebCredentials &credentials) override {}
+    void removeCredentials(const WebCredentials &/*credentials*/) override {}
 
-    void updateCredentials(const WebCredentials &credentials) override {}
+    void updateCredentials(const WebCredentials &/*credentials*/) override {}
 };
 
 #endif
