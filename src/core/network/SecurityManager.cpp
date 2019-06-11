@@ -1,4 +1,5 @@
 #include "CookieJar.h"
+#include "CookieWidget.h"
 #include "HistoryManager.h"
 #include "NetworkAccessManager.h"
 #include "SecurityManager.h"
@@ -21,6 +22,7 @@ SecurityManager::SecurityManager(QObject *parent) :
     m_exemptInsecureHosts(),
     m_certChains(),
     m_securityDialog(nullptr),
+    m_cookieWidget(nullptr),
     m_needShowDialog(false),
     m_replyUrlTarget()
 {
@@ -74,6 +76,7 @@ bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certi
 void SecurityManager::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
     m_cookieJar = serviceLocator.getServiceAs<CookieJar>("CookieJar");
+    m_cookieWidget = serviceLocator.getServiceAs<CookieWidget>("CookieWidget");
     m_historyManager = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
     m_networkAccessManager = serviceLocator.getServiceAs<NetworkAccessManager>("NetworkAccessManager");
 
@@ -87,7 +90,7 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
         return;
 
     if (!m_securityDialog)
-        m_securityDialog = new SecurityInfoDialog(m_cookieJar, m_historyManager);
+        m_securityDialog = new SecurityInfoDialog(m_cookieJar, m_cookieWidget, m_historyManager);
 
     const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
 

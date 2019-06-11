@@ -3,21 +3,25 @@
 
 #include "CertificateViewer.h"
 #include "CookieJar.h"
+#include "CookieWidget.h"
 #include "HistoryManager.h"
 
 #include <QSslCertificate>
 
-SecurityInfoDialog::SecurityInfoDialog(CookieJar *cookieJar, HistoryManager *historyManager) :
+SecurityInfoDialog::SecurityInfoDialog(CookieJar *cookieJar, CookieWidget *cookieWidget, HistoryManager *historyManager) :
     QWidget(nullptr),
     ui(new Ui::SecurityInfoDialog),
+    m_hostName(),
     m_certViewer(new CertificateViewer),
     m_cookieJar(cookieJar),
+    m_cookieWidget(cookieWidget),
     m_historyManager(historyManager)
 {
     ui->setupUi(this);
 
     // Connect simple button signals to dialog display slots
     connect(ui->pushButtonCertificate, &QPushButton::clicked, m_certViewer, &CertificateViewer::show);
+    connect(ui->pushButtonSiteCookies, &QPushButton::clicked, this, &SecurityInfoDialog::showCookieWidget);
 }
 
 SecurityInfoDialog::~SecurityInfoDialog()
@@ -31,6 +35,7 @@ void SecurityInfoDialog::setWebsite(const QUrl &url, const QString &host, const 
     if (host.isEmpty() || host.isNull())
         return;
 
+    m_hostName = host;
     ui->labelHostName->setText(host);
 
     // If no certificate chain is available, set the appropriate labels to reflect the lack of an HTTPS connection
@@ -80,4 +85,13 @@ void SecurityInfoDialog::setWebsite(const QUrl &url, const QString &host, const 
         ui->labelUsingCookies->setText(tr("No"));
         ui->pushButtonSiteCookies->hide();
     }
+}
+
+void SecurityInfoDialog::showCookieWidget()
+{
+    m_cookieWidget->resetUI();
+    m_cookieWidget->searchForHost(m_hostName);
+    m_cookieWidget->show();
+    m_cookieWidget->raise();
+    m_cookieWidget->activateWindow();
 }

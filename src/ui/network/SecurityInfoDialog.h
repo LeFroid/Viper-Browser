@@ -13,6 +13,7 @@ namespace Ui {
 
 class CertificateViewer;
 class CookieJar;
+class CookieWidget;
 class HistoryManager;
 class QSslCertificate;
 
@@ -26,8 +27,8 @@ class SecurityInfoDialog : public QWidget
     Q_OBJECT
 
 public:
-    /// Constructs the dialog given a pointer to the \ref CookieJar and \ref HistoryManager
-    explicit SecurityInfoDialog(CookieJar *cookieJar, HistoryManager *historyManager);
+    /// Constructs the dialog given a pointer to the \ref CookieJar , \ref CookieWidget and the \ref HistoryManager
+    explicit SecurityInfoDialog(CookieJar *cookieJar, CookieWidget *cookieWidget, HistoryManager *historyManager);
 
     /// SecurityInfoDialog destructor
     ~SecurityInfoDialog();
@@ -37,15 +38,25 @@ public:
     /// to view this information in another dialog
     void setWebsite(const QUrl &url, const QString &host, const QList<QSslCertificate> &chain = QList<QSslCertificate>());
 
+private slots:
+    /// Displays the cookie widget, showing all cookies associated with the website being viewed
+    void showCookieWidget();
+
 private:
     /// UI items contained in the SecurityInfoDialog.ui file
     Ui::SecurityInfoDialog *ui;
+
+    /// Hostname of the website being viewed by the user
+    QString m_hostName;
 
     /// Widget used to display detailed certificate information regarding the website being inspected
     CertificateViewer *m_certViewer;
 
     /// Main profile's cookie jar
     CookieJar *m_cookieJar;
+
+    /// Cookie viewing/editing widget
+    CookieWidget *m_cookieWidget;
 
     /// Main profile's history manager
     HistoryManager *m_historyManager;

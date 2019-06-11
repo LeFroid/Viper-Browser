@@ -11,6 +11,7 @@
 #include <QWebEngineCertificateError>
 
 class CookieJar;
+class CookieWidget;
 class HistoryManager;
 class NetworkAccessManager;
 class SecurityInfoDialog;
@@ -80,6 +81,9 @@ private:
 
     /// Security information dialog for websites
     SecurityInfoDialog *m_securityDialog;
+
+    /// Cookie widget - gets passed to the security info dialog
+    CookieWidget *m_cookieWidget;
 
     /// True if the SecurityInfoDialog needs to be shown after fetching a website's SSL certificate chain, false if else
     bool m_needShowDialog;

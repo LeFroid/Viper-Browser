@@ -49,6 +49,12 @@ void CookieWidget::resetUI()
     static_cast<CookieTableModel*>(ui->tableViewCookies->model())->loadCookies();
 }
 
+void CookieWidget::searchForHost(const QString &hostname)
+{
+    ui->lineEditSearch->setText(hostname);
+    searchCookies();
+}
+
 void CookieWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);

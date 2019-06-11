@@ -27,6 +27,9 @@ public:
     /// Resets the checkbox states in the table view
     void resetUI();
 
+    /// Filters the cookie table for those that match the given host
+    void searchForHost(const QString &hostname);
+
 protected:
     /// Called to adjust the proportions of the columns belonging to the table views
     virtual void resizeEvent(QResizeEvent *event) override;
