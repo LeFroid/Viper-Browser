@@ -74,7 +74,7 @@ void AdBlockButton::updateCount()
 
             // Setup font
             QFont font = painter.font();
-            font.setPointSize(14);
+            font.setPointSize(adBlockCount >= 100 ? 11 : 14);
             //font.setBold(true);
             painter.setFont(font);
 
