@@ -48,6 +48,9 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
     connect(manager, &SearchEngineManager::defaultEngineChanged, this, &SearchEngineLineEdit::setSearchEngine);
     connect(manager, &SearchEngineManager::engineAdded, this, &SearchEngineLineEdit::addSearchEngine);
     connect(manager, &SearchEngineManager::engineRemoved, this, &SearchEngineLineEdit::removeSearchEngine);
+
+    m_faviconManager = nullptr;
+    m_searchEngineMenu = nullptr; 
 }
 
 void SearchEngineLineEdit::setFaviconManager(FaviconManager *faviconManager)
