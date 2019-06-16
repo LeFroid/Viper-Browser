@@ -423,18 +423,31 @@ void BookmarkManager::checkIfLoaded()
         return;
     }
 
-    resetBookmarkList();
-
-    if (m_faviconManager == nullptr)
-        return;
-
-    for (BookmarkNode *node : *this)
+    if (m_faviconManager != nullptr)
     {
-        if (node->getType() == BookmarkNode::Bookmark)
-            node->setIcon(m_faviconManager->getFavicon(node->getURL()));
+        std::deque<BookmarkNode*> queue;
+        queue.push_back(m_rootNode.get());
+        while (!queue.empty())
+        {
+            BookmarkNode *n = queue.front();
+
+            for (const auto &node : n->m_children)
+            {
+                BookmarkNode *childNode = node.get();
+                if (!childNode)
+                    continue;
+
+                if (childNode->getType() == BookmarkNode::Bookmark)
+                    childNode->setIcon(m_faviconManager->getFavicon(childNode->getURL()));
+                else if (childNode->getType() == BookmarkNode::Folder)
+                    queue.push_back(childNode);
+            }
+
+            queue.pop_front();
+        }
     }
 
-    emit bookmarksChanged();
+    resetBookmarkList();
 }
 
 void BookmarkManager::scheduleBookmarkInsert(const BookmarkNode *node)
