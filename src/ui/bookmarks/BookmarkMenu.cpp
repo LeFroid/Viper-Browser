@@ -50,6 +50,9 @@ void BookmarkMenu::resetMenu()
     addAction(tr("Manage Bookmarks"), this, &BookmarkMenu::manageBookmarkRequest);
     addSeparator();
 
+    if (m_bookmarkManager->getRoot() == nullptr)
+        return;
+
     // Iteratively load bookmark data into menu
     std::deque< std::pair<BookmarkNode*, QMenu*> > folders;
     folders.push_back({ m_bookmarkManager->getRoot(), this });

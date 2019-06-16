@@ -69,14 +69,15 @@ void DatabaseTaskScheduler::stop()
 
 void DatabaseTaskScheduler::workerThread()
 {
-    for (auto &workerInfo : m_workersToCreate)
+    for (auto &&workerInfo : m_workersToCreate)
     {
         m_registry[workerInfo.first] = workerInfo.second();
     }
-    m_workersToCreate.clear();
 
     for (auto &initCallback : m_initCallbacks)
         initCallback();
+
+    m_initCallbacks.clear();
 
     for (;;)
     {

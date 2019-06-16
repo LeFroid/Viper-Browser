@@ -7,12 +7,15 @@
 #include <deque>
 #include <memory>
 
+#include <QTimer>
 #include <QtConcurrent>
 
-BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, QObject *parent) :
+BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler, QObject *parent) :
     QObject(parent),
+    m_taskScheduler(taskScheduler),
     m_rootNode(nullptr),
     m_bookmarkBar(nullptr),
+    m_bookmarkStore(nullptr),
     m_faviconManager(nullptr),
     m_lookupCache(24),
     m_nodeList(),
@@ -24,6 +27,17 @@ BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, QObj
 {
     m_faviconManager = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
     setObjectName(QLatin1String("BookmarkManager"));
+
+    QTimer::singleShot(250, this, &BookmarkManager::checkIfLoaded);
+
+    m_taskScheduler.onInit([this](){
+        m_bookmarkStore = static_cast<BookmarkStore*>(m_taskScheduler.getWorker("BookmarkStore"));
+    });
+
+    m_taskScheduler.post([this](){
+        m_nextBookmarkId = m_bookmarkStore->getMaxUniqueId() + 1;
+        setRootNode(m_bookmarkStore->getRootNode());
+    });
 }
 
 BookmarkManager::~BookmarkManager()
@@ -32,7 +46,7 @@ BookmarkManager::~BookmarkManager()
 
 BookmarkNode *BookmarkManager::getRoot() const
 {
-    return m_rootNode;
+    return m_rootNode.get();
 }
 
 BookmarkNode *BookmarkManager::getBookmarksBar() const
@@ -68,7 +82,7 @@ BookmarkNode *BookmarkManager::getBookmark(const QUrl &url)
 
 bool BookmarkManager::isBookmarked(const QUrl &url)
 {
-    if (url.isEmpty())
+    if (url.isEmpty() || !m_rootNode.get())
         return false;
 
     const std::string urlStdStr = url.toString().toStdString();
@@ -76,7 +90,7 @@ bool BookmarkManager::isBookmarked(const QUrl &url)
         return true;
 
     std::deque<BookmarkNode*> queue;
-    queue.push_back(m_rootNode);
+    queue.push_back(m_rootNode.get());
     while (!queue.empty())
     {
         BookmarkNode *n = queue.front();
@@ -122,8 +136,7 @@ void BookmarkManager::appendBookmark(const QString &name, const QUrl &url, Bookm
 
     m_numBookmarks++;
 
-    emit bookmarkCreated(bookmark);
-
+    scheduleBookmarkInsert(bookmark);
     scheduleResetList();
 }
 
@@ -148,8 +161,7 @@ void BookmarkManager::insertBookmark(const QString &name, const QUrl &url, Bookm
 
     m_numBookmarks++;
 
-    emit bookmarkCreated(bookmark);
-
+    scheduleBookmarkInsert(bookmark);
     scheduleResetList();
 }
 
@@ -157,7 +169,9 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
 {
     // If parent cannot be found then attach the new folder directly to the root folder
     if (!parent)
-        parent = m_rootNode;
+        parent = m_rootNode.get();
+    if (!parent)
+        return nullptr;
 
     const int folderId = m_nextBookmarkId++;
 
@@ -168,9 +182,9 @@ BookmarkNode *BookmarkManager::addFolder(const QString &name, BookmarkNode *pare
 
     m_numBookmarks++;
 
-    emit bookmarkCreated(folder);
-
+    scheduleBookmarkInsert(folder);
     scheduleResetList();
+
     return folder;
 }
 
@@ -209,7 +223,7 @@ void BookmarkManager::removeBookmark(const QUrl &url)
 
 void BookmarkManager::removeBookmark(BookmarkNode *item)
 {
-    if (!item || item == m_rootNode)
+    if (!item || item == m_rootNode.get())
         return;
 
     // If node is a folder, add all sub-folders to the deletion queue. Otherwise just add the bookmark
@@ -247,8 +261,13 @@ void BookmarkManager::removeBookmark(BookmarkNode *item)
         BookmarkNode *node = deleteQueue.back();
         BookmarkNode *parent = node->getParent();
         if (!parent)
-            parent = m_rootNode;
-        emit bookmarkDeleted(node->getUniqueId(), parent->getUniqueId(), node->getPosition());
+            parent = m_rootNode.get();
+
+        if (m_bookmarkStore)
+            m_taskScheduler.post(&BookmarkStore::removeNode, std::ref(m_bookmarkStore), node->getUniqueId(),
+                                 parent->getUniqueId(), node->getPosition());
+        //emit bookmarkDeleted(node->getUniqueId(), parent->getUniqueId(), node->getPosition());
+
         deleteQueue.pop_back();
     }
 
@@ -273,14 +292,14 @@ void BookmarkManager::setBookmarkName(BookmarkNode *bookmark, const QString &nam
 
     bookmark->setName(name);
 
-    emit bookmarkChanged(bookmark);
+    scheduleBookmarkUpdate(bookmark);
 }
 
 BookmarkNode *BookmarkManager::setBookmarkParent(BookmarkNode *bookmark, BookmarkNode *parent)
 {
     if (!bookmark
             || !parent
-            || bookmark == m_rootNode
+            || bookmark == m_rootNode.get()
             || bookmark->getParent() == parent
             || parent->getType() != BookmarkNode::Folder)
         return bookmark;
@@ -293,7 +312,7 @@ BookmarkNode *BookmarkManager::setBookmarkParent(BookmarkNode *bookmark, Bookmar
         while (temp->getParent())
         {
             BookmarkNode *tempParent = temp->getParent();
-            if (tempParent == m_rootNode)
+            if (tempParent == m_rootNode.get())
                 break;
             if (tempParent == bookmark)
                 return bookmark;
@@ -315,8 +334,8 @@ BookmarkNode *BookmarkManager::setBookmarkParent(BookmarkNode *bookmark, Bookmar
 
     bookmark = parent->getNode(parent->getNumChildren() - 1);
     bookmark->m_parent = parent;
-    emit bookmarkChanged(bookmark);
 
+    scheduleBookmarkUpdate(bookmark);
     scheduleResetList();
 
     return bookmark;
@@ -341,8 +360,8 @@ void BookmarkManager::setBookmarkPosition(BookmarkNode *bookmark, int position)
     parent->removeNode(bookmark);
 
     bookmark = parent->getNode(position);
-    emit bookmarkChanged(bookmark);
 
+    scheduleBookmarkUpdate(bookmark);
     scheduleResetList();
 }
 
@@ -353,7 +372,7 @@ void BookmarkManager::setBookmarkShortcut(BookmarkNode *bookmark, const QString 
 
     bookmark->setShortcut(shortcut);
 
-    emit bookmarkChanged(bookmark);
+    scheduleBookmarkUpdate(bookmark);
 }
 
 void BookmarkManager::setBookmarkURL(BookmarkNode *bookmark, const QUrl &url)
@@ -371,15 +390,10 @@ void BookmarkManager::setBookmarkURL(BookmarkNode *bookmark, const QUrl &url)
     bookmark->setURL(url);
     bookmark->setIcon(m_faviconManager ? m_faviconManager->getFavicon(url) : QIcon());
 
-    emit bookmarkChanged(bookmark);
+    scheduleBookmarkUpdate(bookmark);
 }
 
-void BookmarkManager::setLastBookmarkId(int id)
-{
-    m_nextBookmarkId = id + 1;
-}
-
-void BookmarkManager::setRootNode(BookmarkNode *node)
+void BookmarkManager::setRootNode(std::shared_ptr<BookmarkNode> node)
 {
     if (!node)
         return;
@@ -398,9 +412,53 @@ void BookmarkManager::setRootNode(BookmarkNode *node)
     }
 
     if (!m_bookmarkBar)
-        m_bookmarkBar = m_rootNode;
+        m_bookmarkBar = m_rootNode.get();
+}
+
+void BookmarkManager::checkIfLoaded()
+{
+    if (!m_rootNode.get())
+    {
+        QTimer::singleShot(250, this, &BookmarkManager::checkIfLoaded);
+        return;
+    }
 
     resetBookmarkList();
+
+    if (m_faviconManager == nullptr)
+        return;
+
+    for (BookmarkNode *node : *this)
+    {
+        if (node->getType() == BookmarkNode::Bookmark)
+            node->setIcon(m_faviconManager->getFavicon(node->getURL()));
+    }
+
+    emit bookmarksChanged();
+}
+
+void BookmarkManager::scheduleBookmarkInsert(const BookmarkNode *node)
+{
+    if (!m_bookmarkStore || node == m_rootNode.get())
+        return;
+
+    // params: int nodeId, int parentId, int nodeType, const QString &name, const QUrl &url, int position
+    m_taskScheduler.post(&BookmarkStore::insertNode, std::ref(m_bookmarkStore),
+                         node->getUniqueId(), node->getParent()->getUniqueId(),
+                         static_cast<int>(node->getType()), node->getName(),
+                         node->getURL(), node->getPosition());
+}
+
+void BookmarkManager::scheduleBookmarkUpdate(const BookmarkNode *node)
+{
+    if (!m_bookmarkStore || node == m_rootNode.get())
+        return;
+
+    // params: int nodeId, int parentId, const QString &name, const QString &url, const QString &shortcut, int position
+    m_taskScheduler.post(&BookmarkStore::updateNode, std::ref(m_bookmarkStore),
+                         node->getUniqueId(), node->getParent()->getUniqueId(),
+                         node->getName(), node->getURL(), node->getShortcut(),
+                         node->getPosition());
 }
 
 void BookmarkManager::scheduleResetList()
@@ -430,7 +488,7 @@ void BookmarkManager::resetBookmarkList()
     std::vector<BookmarkNode*> nodeList;
 
     std::deque<BookmarkNode*> queue;
-    queue.push_back(m_rootNode);
+    queue.push_back(m_rootNode.get());
     while (!queue.empty())
     {
         BookmarkNode *n = queue.front();

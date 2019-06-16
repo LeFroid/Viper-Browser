@@ -21,7 +21,7 @@ namespace adblock {
 class AutoFill;
 class BlockedSchemeHandler;
 class BookmarkManager;
-class BookmarkStore;
+//class BookmarkStore;
 class CookieJar;
 class CookieWidget;
 class DownloadManager;
@@ -129,8 +129,8 @@ private:
     /// Web-related settings manager
     WebSettings *m_webSettings;
 
-    /// Bookmark storage class
-    std::unique_ptr<BookmarkStore> m_bookmarkStore;
+    /// Bookmark manager
+    BookmarkManager *m_bookmarkManager;
 
     /// Advertisement blocking system manager
     adblock::AdBlockManager *m_adBlockManager;

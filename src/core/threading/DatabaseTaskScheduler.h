@@ -36,6 +36,19 @@ public:
     /// Registers a callback to be executed when the worker thread has started
     void onInit(std::function<void()> &&callback);
 
+    /**
+     * @brief Posts a task to the end of the work queue
+     * @param f Member function to be invoked
+     * @param args Function arguments
+     */
+    template<class Fn, class ...Args>
+    void post(Fn &&f, Args &&...args)
+    {
+        std::lock_guard<std::mutex> lock{m_mutex};
+        m_tasks.push_back(std::bind(std::forward<Fn>(f), std::forward<Args>(args)...));
+        m_cv.notify_one();
+    }
+
     /// Posts a task to the end of the work queue
     void post(std::function<void()> &&work);
 

@@ -1,6 +1,7 @@
 #ifndef BOOKMARKNODEMANAGER_H
 #define BOOKMARKNODEMANAGER_H
 
+#include "DatabaseTaskScheduler.h"
 #include "LRUCache.h"
 #include "ServiceLocator.h"
 
@@ -13,6 +14,7 @@
 #include <QObject>
 
 class BookmarkNode;
+class BookmarkStore;
 class FaviconManager;
 
 /**
@@ -33,8 +35,8 @@ public:
     using iterator = std::vector<BookmarkNode*>::iterator;
     using const_iterator = std::vector<BookmarkNode*>::const_iterator;
 
-    /// Constructs the bookmark node manager with a given parent, and a reference to the service locator
-    explicit BookmarkManager(const ViperServiceLocator &serviceLocator, QObject *parent = nullptr);
+    /// Constructs the bookmark node manager, given the service locator, task scheduler and a pointer to the manager's parent
+    explicit BookmarkManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler, QObject *parent);
 
     /// BookmarkManager destructor
     ~BookmarkManager();
@@ -122,12 +124,8 @@ signals:
     void bookmarkDeleted(int uniqueId, int parentId, int position);
 
 protected:
-    /// Sets the last unique bookmark ID that has been stored in the database. Used to assign
-    /// new unique identifiers to any newly created bookmarks
-    void setLastBookmarkId(int id);
-
     /// Sets the root node of the bookmark tree - this is called by the \ref BookmarkStore after loading the data
-    void setRootNode(BookmarkNode *node);
+    void setRootNode(std::shared_ptr<BookmarkNode> node);
 
     /// Runs resetBookmarkList concurrently as long as a major change isn't being made to the bookmark collection
     void scheduleResetList();
@@ -138,16 +136,32 @@ protected:
     /// Waits on any asynchronous resetBookmarkList() operations
     void waitToFinishList();
 
+private slots:
+    /// Runs on a regular interval until the root bookmark node has been populated
+    void checkIfLoaded();
+
 private:
+    /// Schedules an create bookmark operation in the repository
+    void scheduleBookmarkInsert(const BookmarkNode *node);
+
+    /// Schedules a boookmark update to the database worker
+    void scheduleBookmarkUpdate(const BookmarkNode *node);
+
     /// Resets the flat list of bookmark node pointers, used for iteration & bookmark searches
     void resetBookmarkList();
 
 private:
+    /// Reference to the task scheduler. Needed to queue work for the \ref BookmarkStore
+    DatabaseTaskScheduler &m_taskScheduler;
+
     /// Holds a pointer to the root node of the bookmark tree
-    BookmarkNode *m_rootNode;
+    std::shared_ptr<BookmarkNode> m_rootNode;
 
     /// Holds a pointer to the bookmark bar node in the bookmark tree
     BookmarkNode *m_bookmarkBar;
+
+    /// Points to the bookmark repository
+    BookmarkStore *m_bookmarkStore;
 
     /// Pointer to the favicon manager
     FaviconManager *m_faviconManager;

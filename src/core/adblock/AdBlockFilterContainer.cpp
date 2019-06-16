@@ -150,11 +150,6 @@ std::vector<Filter*> FilterContainer::getMatchingCSPFilters(const QString &reque
             else
                 matches.push_back(filter);
         }
-        /*
-        if (!filter->isException() && filter->isMatch(requestUrl, requestUrl, domain, ElementType::CSP))
-        {
-            result.push_back(filter);
-        }*/
     }
     for (Filter *filter : matches)
     {

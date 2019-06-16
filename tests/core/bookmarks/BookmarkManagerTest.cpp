@@ -1,5 +1,7 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "BookmarkStore.h"
+#include "DatabaseTaskScheduler.h"
 #include "ServiceLocator.h"
 
 #include <chrono>
@@ -35,7 +37,7 @@ private slots:
 
 private:
     /// Root node/folder used in bookmark management tests
-    std::unique_ptr<BookmarkNode> m_root;
+    std::shared_ptr<BookmarkNode> m_root;
 
     /// Bookmark manager used in test cases
     BookmarkManager *m_manager;
@@ -57,8 +59,9 @@ void BookmarkManagerTest::initTestCase()
     m_root.reset(new BookmarkNode(BookmarkNode::Folder, QLatin1String("Root Folder")));
 
     ViperServiceLocator serviceLocator;
-    m_manager = new BookmarkManager(serviceLocator, nullptr);
-    m_manager->setRootNode(m_root.get());
+    DatabaseTaskScheduler taskScheduler;
+    m_manager = new BookmarkManager(serviceLocator, taskScheduler, nullptr);
+    m_manager->setRootNode(m_root);
 }
 
 void BookmarkManagerTest::cleanupTestCase()

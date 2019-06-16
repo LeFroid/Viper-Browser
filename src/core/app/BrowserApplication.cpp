@@ -69,10 +69,14 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
     //m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
     //registerService(m_faviconStorage.get());
 
-    // Initialize bookmarks store 
-    m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::BookmarkPath));
-    registerService(m_bookmarkStore.get());
-    registerService(m_bookmarkStore->getNodeManager());
+    // Bookmark setup
+    m_databaseScheduler.addWorker("BookmarkStore",
+                                  std::bind(DatabaseFactory::createDBWorker<BookmarkStore>, m_settings->getPathValue(BrowserSetting::BookmarkPath)));
+    m_bookmarkManager = new BookmarkManager(m_serviceLocator, m_databaseScheduler, nullptr);
+    registerService(m_bookmarkManager);
+    //m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::BookmarkPath));
+    //registerService(m_bookmarkStore.get());
+    //registerService(m_bookmarkStore->getNodeManager());
 
     // Initialize cookie jar and cookie manager UI
     const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();
@@ -166,6 +170,8 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
 BrowserApplication::~BrowserApplication()
 {
+    m_databaseScheduler.stop();
+
     delete m_downloadMgr;
     delete m_networkAccessMgr;
     delete m_userAgentMgr;
@@ -183,6 +189,7 @@ BrowserApplication::~BrowserApplication()
     delete m_adBlockManager;
     delete m_webSettings;
     delete m_faviconMgr;
+    delete m_bookmarkManager;
     delete m_settings;
 }
 

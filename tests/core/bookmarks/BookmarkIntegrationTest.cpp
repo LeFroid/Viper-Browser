@@ -1,7 +1,9 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
 #include "BookmarkStore.h"
+#include "CommonUtil.h"
 #include "DatabaseFactory.h"
+#include "DatabaseTaskScheduler.h"
 #include "ServiceLocator.h"
 
 #include <chrono>
@@ -48,6 +50,10 @@ private slots:
     /// been saved to the database and subsequently loaded when the bookmark store was reinstantiated
     void testLoadingFoldersFromDatabase();
 
+    /// Verifies that a change in a bookmark's name, url, shortcut, etc. can be persisted across
+    /// multiple sessions
+    void testModificationsPersisted();
+
     /// Adds a bookmark to a folder, deletes the parent folder and then checks if the bookmark manager
     /// still thinks the node is bookmarked
     void testIsBookmarkedAfterDeletingParentFolder();
@@ -56,18 +62,18 @@ private:
     /// Bookmark database file used for testing
     QString m_dbFile;
 
-    /// Pointer to the bookmark store
-    std::unique_ptr<BookmarkStore> m_bookmarkStore;
-
     /// Points to the bookmark manager, which is instantiated by the bookmark store
     BookmarkManager *m_bookmarkManager;
+
+    /// Task scheduler
+    std::unique_ptr<DatabaseTaskScheduler> m_taskScheduler;
 };
 
 BookmarkIntegrationTest::BookmarkIntegrationTest() :
     QObject(nullptr),
     m_dbFile(QLatin1String("BookmarkIntegrationTest.db")),
-    m_bookmarkStore(nullptr),
-    m_bookmarkManager(nullptr)
+    m_bookmarkManager(nullptr),
+    m_taskScheduler(nullptr)
 {
 }
 
@@ -80,23 +86,29 @@ void BookmarkIntegrationTest::initTestCase()
 void BookmarkIntegrationTest::init()
 {
     ViperServiceLocator emptyServiceLocator;
-    m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(emptyServiceLocator, m_dbFile);
-    m_bookmarkManager = m_bookmarkStore->getNodeManager();
+    m_taskScheduler = std::make_unique<DatabaseTaskScheduler>();
+    m_taskScheduler->addWorker("BookmarkStore", std::bind(DatabaseFactory::createDBWorker<BookmarkStore>, m_dbFile));
+
+    m_bookmarkManager = new BookmarkManager(emptyServiceLocator, *m_taskScheduler, nullptr);
+    m_taskScheduler->run();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }
 
 void BookmarkIntegrationTest::cleanup()
 {
-    m_bookmarkStore.reset();
+    m_taskScheduler->stop();
+
+    delete m_bookmarkManager;
     m_bookmarkManager = nullptr;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    m_taskScheduler.reset(nullptr);
+
     QSqlDatabase::removeDatabase(QLatin1String("Bookmarks"));
 }
 
 void BookmarkIntegrationTest::cleanupTestCase()
 {
-    if (m_bookmarkStore.get())
-        cleanup();
-
     if (QFile::exists(m_dbFile))
         QFile::remove(m_dbFile);
 }
@@ -117,6 +129,13 @@ void BookmarkIntegrationTest::testAddingFoldersToRoot()
         BookmarkNode *folder = m_bookmarkManager->addFolder(name, root);
         QVERIFY2(folder != nullptr, "Bookmark manager should have been able to create a folder");
     }
+
+    BookmarkNode *lastFolder = root->getNode(root->getNumChildren() - 1);
+    QVERIFY2(lastFolder && lastFolder->getName().compare(names.at(names.size() - 1)) == 0,
+             "Should be able to retrieve the Programming folder from the root of the bookmark tree");
+
+    // Used in next test
+    m_bookmarkManager->appendBookmark(QLatin1String("Link A"), QUrl(QLatin1String("https://link-a.net/")), lastFolder);
 }
 
 void BookmarkIntegrationTest::testLoadingFoldersFromDatabase()
@@ -138,6 +157,40 @@ void BookmarkIntegrationTest::testLoadingFoldersFromDatabase()
         QCOMPARE(node->getName(), names.at(i - 1));
         QVERIFY(node->getType() == BookmarkNode::Folder);
     }
+
+    // Verify child bookmark data is same as before
+    BookmarkNode *lastFolder = root->getNode(root->getNumChildren() - 1);
+    QVERIFY2(lastFolder && lastFolder->getName().compare(names.at(names.size() - 1)) == 0,
+             "Should be able to retrieve the Programming folder from the root of the bookmark tree");
+    QVERIFY2(lastFolder->getNumChildren() == 1, "Programming folder should have 1 child node");
+
+    BookmarkNode *child = lastFolder->getNode(0);
+    QVERIFY2(child->getName().compare(QLatin1String("Link A")) == 0, "Bookmark name should persist across sessions");
+    QVERIFY2(child->getType() == BookmarkNode::Bookmark, "Bookmark type should persist across sessions");
+
+    const QUrl expectedUrl { QLatin1String("https://link-a.net/") };
+    QVERIFY2(CommonUtil::doUrlsMatch(child->getURL(), expectedUrl), "Bookmark URL should persist across sessions");
+
+    // Now change URL and shortcut for next test
+    m_bookmarkManager->setBookmarkURL(child, QUrl(QLatin1String("https://link-abc.org/")));
+    m_bookmarkManager->setBookmarkShortcut(child, QLatin1String("abc"));
+}
+
+void BookmarkIntegrationTest::testModificationsPersisted()
+{
+    BookmarkNode *root = m_bookmarkManager->getRoot();
+    QVERIFY(root != nullptr);
+    QCOMPARE(root->getNumChildren(), 4);
+
+    BookmarkNode *lastFolder = root->getNode(root->getNumChildren() - 1);
+    QVERIFY(lastFolder != nullptr);
+
+    BookmarkNode *child = lastFolder->getNode(0);
+    QVERIFY(child != nullptr);
+
+    const QUrl expectedUrl { QLatin1String("https://link-abc.org/") };
+    QVERIFY2(CommonUtil::doUrlsMatch(child->getURL(), expectedUrl), "Change in bookmark's URL should be persisted");
+    QVERIFY2(child->getShortcut().compare(QLatin1String("abc")) == 0, "Change in bookmark's shortcut should be persisted");
 }
 
 void BookmarkIntegrationTest::testIsBookmarkedAfterDeletingParentFolder()

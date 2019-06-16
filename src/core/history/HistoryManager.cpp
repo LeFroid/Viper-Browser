@@ -111,9 +111,7 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
     if (m_storagePolicy == HistoryStoragePolicy::Never)
         return;
 
-    m_taskScheduler.post([=](){
-        m_historyStore->addVisit(url, title, visitTime, requestedUrl, wasTypedByUser);
-    });
+    m_taskScheduler.post(&HistoryStore::addVisit, std::ref(m_historyStore), url, title, visitTime, requestedUrl, wasTypedByUser);
 
     VisitEntry visit = visitTime;
 

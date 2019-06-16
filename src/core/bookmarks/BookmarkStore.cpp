@@ -1,96 +1,64 @@
 #include "BookmarkNode.h"
-#include "BookmarkManager.h"
 #include "BookmarkStore.h"
-#include "FaviconManager.h"
 
 #include <deque>
 #include <iterator>
 #include <cstdint>
-#include <QtConcurrent>
+
 #include <QFuture>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QDebug>
 
-BookmarkStore::BookmarkStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile) :
-    QObject(nullptr),
+BookmarkStore::BookmarkStore(const QString &databaseFile) :
     DatabaseWorker(databaseFile, QLatin1String("Bookmarks")),
-    m_rootNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks"))),
-    m_nodeManager(new BookmarkManager(serviceLocator, this)),
-    m_faviconManager(nullptr)
+    m_rootNode(std::make_shared<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks")))
 {
-    m_faviconManager = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
-
-    setObjectName(QLatin1String("BookmarkStore"));
-
-    connect(m_nodeManager, &BookmarkManager::bookmarkChanged, this, &BookmarkStore::onBookmarkChanged);
-    connect(m_nodeManager, &BookmarkManager::bookmarkCreated, this, &BookmarkStore::onBookmarkCreated);
-    connect(m_nodeManager, &BookmarkManager::bookmarkDeleted, this, &BookmarkStore::onBookmarkDeleted);
 }
 
 BookmarkStore::~BookmarkStore()
 {
-    m_nodeManager->waitToFinishList();
     save();
 }
 
-BookmarkManager *BookmarkStore::getNodeManager() const
+std::shared_ptr<BookmarkNode> BookmarkStore::getRootNode() const
 {
-    return m_nodeManager;
+    return m_rootNode;
 }
 
-void BookmarkStore::onBookmarkChanged(const BookmarkNode *node)
+int BookmarkStore::getMaxUniqueId() const
 {
-    BookmarkNode *parent = node->getParent();
-    if (!parent)
-        parent = m_rootNode.get();
+    int lastUniqueId = -1;
 
     QSqlQuery query(m_database);
-    query.prepare(QLatin1String("UPDATE Bookmarks SET ParentID = (:parentID), Name = (:name), URL = (:url), "
-                                "Shortcut = (:shortcut), Position = (:position) WHERE ID = (:id)"));
+    query.prepare(QLatin1String("SELECT MAX(ID) FROM Bookmarks"));
+    if (query.exec() && query.first())
+        lastUniqueId = query.value(0).toInt();
 
-    query.bindValue(QLatin1String(":parentID"), parent->getUniqueId());
-    query.bindValue(QLatin1String(":name"), node->getName());
-    query.bindValue(QLatin1String(":url"), node->getURL());
-    query.bindValue(QLatin1String(":shortcut"), node->getShortcut());
-    query.bindValue(QLatin1String(":position"), node->getPosition());
-    query.bindValue(QLatin1String(":id"), node->getUniqueId());
-
-    if (!query.exec())
+    query.prepare(QLatin1String("SELECT MAX(ParentID) FROM Bookmarks"));
+    if (query.exec() && query.first())
     {
-        qWarning() << "BookmarkStore::onBookmarkChanged - could not update bookmark node. Error: "
-                   << query.lastError().text();
+        int id = query.value(0).toInt();
+        if (id > lastUniqueId)
+            lastUniqueId = id;
     }
 
-    query.prepare(QLatin1String("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentID) "
-                                "AND Position >= (:position) AND ID != (:id)"));
-    query.bindValue(QLatin1String(":parentID"), parent->getUniqueId());
-    query.bindValue(QLatin1String(":position"), node->getPosition());
-    query.bindValue(QLatin1String(":id"), node->getUniqueId());
-    if (!query.exec())
-    {
-        qWarning() << "BookmarkStore::onBookmarkCreated - could not update bookmark positions. Error: "
-                   << query.lastError().text();
-    }
+    return std::max(0, lastUniqueId);
 }
 
-void BookmarkStore::onBookmarkCreated(const BookmarkNode *node)
+void BookmarkStore::insertNode(int nodeId, int parentId, int nodeType, const QString &name, const QUrl &url, int position)
 {
-    BookmarkNode *parent = node->getParent();
-    if (!parent)
-        parent = m_rootNode.get();
-
     QSqlQuery query(m_database);
     query.prepare(QLatin1String("INSERT OR REPLACE INTO Bookmarks(ID, ParentID, Type, Name, URL, Position) "
                   "VALUES(:id, :parentID, :type, :name, :url, :position)"));
 
-    query.bindValue(QLatin1String(":id"), node->getUniqueId());
-    query.bindValue(QLatin1String(":parentID"), parent->getUniqueId());
-    query.bindValue(QLatin1String(":type"), static_cast<int>(node->getType()));
-    query.bindValue(QLatin1String(":name"), node->getName());
-    query.bindValue(QLatin1String(":url"), node->getURL());
-    query.bindValue(QLatin1String(":position"), node->getPosition());
+    query.bindValue(QLatin1String(":id"), nodeId);
+    query.bindValue(QLatin1String(":parentID"), parentId);
+    query.bindValue(QLatin1String(":type"), nodeType);
+    query.bindValue(QLatin1String(":name"), name);
+    query.bindValue(QLatin1String(":url"), url);
+    query.bindValue(QLatin1String(":position"), position);
 
     if (!query.exec())
     {
@@ -99,8 +67,8 @@ void BookmarkStore::onBookmarkCreated(const BookmarkNode *node)
     }
 
     query.prepare(QLatin1String("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentID) AND Position >= (:position)"));
-    query.bindValue(QLatin1String(":parentID"), parent->getUniqueId());
-    query.bindValue(QLatin1String(":position"), node->getPosition());
+    query.bindValue(QLatin1String(":parentID"), parentId);
+    query.bindValue(QLatin1String(":position"), position);
     if (!query.exec())
     {
         qWarning() << "BookmarkStore::onBookmarkCreated - could not update bookmark positions. Error: "
@@ -108,11 +76,11 @@ void BookmarkStore::onBookmarkCreated(const BookmarkNode *node)
     }
 }
 
-void BookmarkStore::onBookmarkDeleted(int uniqueId, int parentId, int position)
+void BookmarkStore::removeNode(int nodeId, int parentId, int position)
 {
     QSqlQuery query(m_database);
     query.prepare(QLatin1String("DELETE FROM Bookmarks WHERE ID = (:id) OR ParentID = (:id)"));
-    query.bindValue(QLatin1String(":id"), uniqueId);
+    query.bindValue(QLatin1String(":id"), nodeId);
     if (!query.exec())
     {
         qWarning() << "BookmarkStore::onBookmarkDeleted - could not delete bookmark node. Error: "
@@ -126,6 +94,37 @@ void BookmarkStore::onBookmarkDeleted(int uniqueId, int parentId, int position)
     if (!query.exec())
     {
         qWarning() << "BookmarkStore::onBookmarkDeleted - could not update bookmark positions. Error: "
+                   << query.lastError().text();
+    }
+}
+
+void BookmarkStore::updateNode(int nodeId, int parentId, const QString &name, const QUrl &url, const QString &shortcut, int position)
+{
+    QSqlQuery query(m_database);
+    query.prepare(QLatin1String("UPDATE Bookmarks SET ParentID = (:parentID), Name = (:name), URL = (:url), "
+                                "Shortcut = (:shortcut), Position = (:position) WHERE ID = (:id)"));
+
+    query.bindValue(QLatin1String(":parentID"), parentId);
+    query.bindValue(QLatin1String(":name"), name);
+    query.bindValue(QLatin1String(":url"), url);
+    query.bindValue(QLatin1String(":shortcut"), shortcut);
+    query.bindValue(QLatin1String(":position"), position);
+    query.bindValue(QLatin1String(":id"), nodeId);
+
+    if (!query.exec())
+    {
+        qWarning() << "BookmarkStore::onBookmarkChanged - could not update bookmark node. Error: "
+                   << query.lastError().text();
+    }
+
+    query.prepare(QLatin1String("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentID) "
+                                "AND Position >= (:position) AND ID != (:id)"));
+    query.bindValue(QLatin1String(":parentID"), parentId);
+    query.bindValue(QLatin1String(":position"), position);
+    query.bindValue(QLatin1String(":id"), nodeId);
+    if (!query.exec())
+    {
+        qWarning() << "BookmarkStore::onBookmarkCreated - could not update bookmark positions. Error: "
                    << query.lastError().text();
     }
 }
@@ -174,7 +173,6 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
                 case BookmarkNode::Bookmark:
                     subNode->setURL(query.value(3).toString());
                     subNode->setShortcut(query.value(4).toString());
-                    subNode->setIcon(m_faviconManager ? m_faviconManager->getFavicon(subNode->m_url) : QIcon());
                     break;
             }
         }
@@ -207,20 +205,15 @@ void BookmarkStore::setup()
         qDebug() << "Error inserting root bookmark folder. Message: " << query.lastError().text();
 
     m_rootNode->setUniqueId(0);
-    m_nodeManager->setRootNode(m_rootNode.get());
-    m_nodeManager->setLastBookmarkId(0);
-    m_nodeManager->setCanUpdateList(false);
 
-    // Insert bookmarks bar folder
-    BookmarkNode *bookmarkBar = m_nodeManager->addFolder(QLatin1String("Bookmarks Bar"), m_rootNode.get());
+    BookmarkNode *bookmarkBar = m_rootNode->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks Bar")));
+    bookmarkBar->setUniqueId(1);
+    insertNode(1, 0, static_cast<int>(BookmarkNode::Folder), bookmarkBar->getName(), bookmarkBar->getURL(), 0);
 
-    // Set root node again so the node manager will fetch the bookmark bar
-    m_nodeManager->setRootNode(m_rootNode.get());
-
-    // Insert bookmark for search engine
-    m_nodeManager->appendBookmark(QLatin1String("Search Engine"), QUrl(QLatin1String("https://www.startpage.com")), bookmarkBar);
-
-    m_nodeManager->setCanUpdateList(true);
+    BookmarkNode *bookmark = bookmarkBar->appendNode(std::make_unique<BookmarkNode>(BookmarkNode::Bookmark, QLatin1String("Search Engine")));
+    bookmark->setURL(QUrl(QLatin1String("https://www.startpage.com")));
+    bookmark->setUniqueId(2);
+    insertNode(2, 1, static_cast<int>(BookmarkNode::Bookmark), bookmark->getName(), bookmark->getURL(), 0);
 }
 
 void BookmarkStore::save()
@@ -330,26 +323,6 @@ void BookmarkStore::load()
     if (m_rootNode->getNumChildren() == 0)
     {
         m_rootNode->setUniqueId(0);
-
         loadFolder(m_rootNode.get());
-
-        m_nodeManager->setRootNode(m_rootNode.get());
-
-        // Get last unique bookmark id
-        int lastUniqueId = -1;
-        query.prepare(QLatin1String("SELECT MAX(ID) FROM Bookmarks"));
-        if (query.exec() && query.first())
-            lastUniqueId = query.value(0).toInt();
-
-        query.prepare(QLatin1String("SELECT MAX(ParentID) FROM Bookmarks"));
-        if (query.exec() && query.first())
-        {
-            int id = query.value(0).toInt();
-            if (id > lastUniqueId)
-                lastUniqueId = id;
-        }
-
-        if (lastUniqueId >= 0)
-            m_nodeManager->setLastBookmarkId(lastUniqueId);
     }
 }

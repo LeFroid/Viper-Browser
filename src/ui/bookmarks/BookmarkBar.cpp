@@ -115,6 +115,9 @@ void BookmarkBar::refresh()
     clear();
 
     BookmarkNode *folder = m_bookmarkManager->getBookmarksBar();
+    if (!folder)
+        return;
+
     int numChildren = folder->getNumChildren();
 
     QFontMetrics fMetrics = fontMetrics();

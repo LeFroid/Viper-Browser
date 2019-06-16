@@ -3,7 +3,6 @@
 
 #include "DatabaseWorker.h"
 #include "LRUCache.h"
-#include "ServiceLocator.h"
 
 #include <map>
 #include <memory>
@@ -16,7 +15,6 @@
 
 class BookmarkNode;
 class BookmarkManager;
-class FaviconManager;
 
 /**
  * @defgroup Bookmarks Bookmark System
@@ -28,38 +26,33 @@ class FaviconManager;
  *        multiple browsing sessions.
  * @ingroup Bookmarks
  */
-class BookmarkStore : public QObject, private DatabaseWorker
+class BookmarkStore : public DatabaseWorker
 {
-    Q_OBJECT
-
-    friend class BookmarkImporter;
-    friend class BookmarkTableModel;
-    friend class BookmarkFolderModel;
+    friend class BookmarkManager;
     friend class DatabaseFactory;
 
 public:
-    /// Bookmark constructor - loads database information into memory
-    explicit BookmarkStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile);
+    /// Bookmark constructor -5 loads database information into memory
+    explicit BookmarkStore(const QString &databaseFile);
 
     /// Destructor
     ~BookmarkStore();
 
-    /// Returns the in-memory manager and model of bookmarks
-    BookmarkManager *getNodeManager() const;
+    /// Returns a pointer to the root node that contains a bookmark collection
+    std::shared_ptr<BookmarkNode> getRootNode() const;
 
-signals:
-    /// Emitted when there has been a change to the bookmark tree
-    void bookmarksChanged();
+    /// Returns the largest unique id in the bookmark repository. Used by the bookmark manager to assign
+    /// the next unique id when a bookmark is created
+    int getMaxUniqueId() const;
 
-private slots:
-    /// Handles a change of one or more properties to the given bookmark node
-    void onBookmarkChanged(const BookmarkNode *node);
+    /// Inserts or replaces the given bookmark node into the database
+    void insertNode(int nodeId, int parentId, int nodeType, const QString &name, const QUrl &url, int position);
 
-    /// Inserts the given bookmark node into the database
-    void onBookmarkCreated(const BookmarkNode *node);
+    /// Removes a node from the database with the given id, parent id and position
+    void removeNode(int nodeId, int parentId, int position);
 
-    /// Removes the given bookmark from the database
-    void onBookmarkDeleted(int uniqueId, int parentId, int position);
+    /// Saves a change in one or more properties of the given node
+    void updateNode(int nodeId, int parentId, const QString &name, const QUrl &url, const QString &shortcut, int position);
 
 private:
     /// Loads bookmark information from the database
@@ -81,13 +74,7 @@ protected:
 
 private:
     /// Root bookmark folder
-    std::unique_ptr<BookmarkNode> m_rootNode;
-
-    /// Handles in-app management of bookmarks
-    BookmarkManager *m_nodeManager;
-
-    /// Pointer to the favicon manager
-    FaviconManager *m_faviconManager;
+    std::shared_ptr<BookmarkNode> m_rootNode;
 };
 
 #endif // BOOKMARKSTORE_H

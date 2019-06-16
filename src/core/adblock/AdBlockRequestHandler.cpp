@@ -60,6 +60,7 @@ bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QU
     QString domain = requestUrl.host().toLower();
     if (domain.startsWith(QLatin1String("www.")))
         domain = domain.mid(4);
+
     if (domain.isEmpty())
         domain = requestUrlWrapper.getSecondLevelDomain();
 
