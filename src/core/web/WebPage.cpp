@@ -26,6 +26,7 @@
 #include <QTimer>
 #include <QWebChannel>
 #include <QWebEngineProfile>
+#include <QWebEngineSettings>
 #include <QWebEngineScript>
 #include <QWebEngineScriptCollection>
 #include <QtWebEngineCoreVersion>
@@ -113,7 +114,14 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
 
     m_originalUrl = QUrl();
 
-#if (QT_VERSION < QT_VERSION_CHECK(5, 13, 0))
+    // Conditionally enable PDF.JS if QtWebEngine version is >= 5.13, otherwise, unconditionally enable
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
+    const QWebEngineSettings *pageSettings = settings();
+    if (!pageSettings->testAttribute(QWebEngineSettings::PluginsEnabled)
+            || !pageSettings->testAttribute(QWebEngineSettings::PdfViewerEnabled))
+    {
+#endif
+
     // Check if the request is for a PDF and try to render with PDF.js
     const QString urlString = url.toString(QUrl::FullyEncoded);
     if (urlString.endsWith(QLatin1String(".pdf")))
@@ -132,6 +140,9 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             setHtml(bytes, url);
             return false;
         }
+    }
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
     }
 #endif
 
