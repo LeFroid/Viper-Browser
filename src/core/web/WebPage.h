@@ -123,6 +123,9 @@ private:
 
     /// Scripts injected by ad block during load progress and load finish
     QString m_mainFrameAdBlockScript;
+
+    /// Flag indicating whether or not we need to inject the adblock script into the DOM
+    bool m_injectedAdblock;
 };
 
 #endif // WEBPAGE_H

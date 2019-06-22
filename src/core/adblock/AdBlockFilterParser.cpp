@@ -293,17 +293,20 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
     if (evalStr.isEmpty())
         evalStr = QStringLiteral("*");
 
+    evalStr.replace(QChar('\''), QString("\\\'"));
+
+    const bool isArgRegExp = evalArg.startsWith(QChar('/')) && (evalArg.endsWith(QChar('/')) || evalArg.at(evalArg.size() - 2) == QChar('/'));
+    if (!isArgRegExp)
+        evalArg.replace(QChar('\''), QString("\\\'"));
+
     const auto cosmeticFilterType = std::get<1>(p);
     switch (cosmeticFilterType)
     {
         case CosmeticFilter::HasText:
         {
             // Place argument in quotes if not a regular expression
-            if (!evalArg.startsWith(QChar('/'))
-                    && (!evalArg.endsWith(QChar('/')) || !(evalArg.at(evalArg.size() - 2) == QChar('/'))))
-            {
+            if (!isArgRegExp)
                 evalArg = QString("'%1'").arg(evalArg);
-            }
 
             filter->m_evalString = QString("hideNodes(hasText, '%1', %2); ").arg(evalStr).arg(evalArg);
             break;
@@ -426,14 +429,19 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
         return true;
     }
 
-    // For each item with index > 0 in injectionArgs list, replace each {{index}}
+    // For each item with index > 0 in injectionArgs list, replace the *first* {{index}}
     // string in resource with injectionArgs[index]
     for (int i = 1; i < injectionArgs.size(); ++i)
     {
         QString arg = injectionArgs.at(i).trimmed();
-        arg.replace(QChar('\''), QStringLiteral("\\'"));
+        arg.replace(QChar('\''), QStringLiteral("\\\'"));
         QString term = QString("{{%1}}").arg(i);
-        filter->m_evalString.replace(term, arg);
+
+        const int targetIndex = filter->m_evalString.indexOf(term);
+        if (targetIndex >= 0)
+            filter->m_evalString.replace(targetIndex, term.size(), arg);
+
+        //filter->m_evalString.replace(term, arg);
     }
 
     filter->m_evalString = nonThrowingScript.arg(filter->m_evalString);
@@ -479,6 +487,7 @@ CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const st
                     break;
                 case CosmeticFilter::NthAncestor:
                     result.CallbackName = QStringLiteral("nthAncestor");
+                    break;
                 default:
                     // If, IfNot and Has should not be nested
                     break;

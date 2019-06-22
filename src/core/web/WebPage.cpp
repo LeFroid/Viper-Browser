@@ -39,7 +39,8 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),
-    m_mainFrameAdBlockScript()
+    m_mainFrameAdBlockScript(),
+    m_injectedAdblock(false)
 {
     setupSlots(serviceLocator);
 }
@@ -50,7 +51,8 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *p
     m_userScriptManager(serviceLocator.getServiceAs<UserScriptManager>("UserScriptManager")),
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),
-    m_mainFrameAdBlockScript()
+    m_mainFrameAdBlockScript(),
+    m_injectedAdblock(false)
 {
     setupSlots(serviceLocator);
 }
@@ -80,6 +82,15 @@ void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
     connect(this, &WebPage::loadFinished,     autoFillManager, &AutoFill::onPageLoaded);
     connect(this, &WebPage::featurePermissionRequested,  this, &WebPage::onFeaturePermissionRequested);
     connect(this, &WebPage::renderProcessTerminated,     this, &WebPage::onRenderProcessTerminated);
+
+    connect(this, &WebPage::loadProgress, this, [this](int progress) {
+        if (!m_injectedAdblock && progress >= 25 && progress < 100)
+        {
+            m_injectedAdblock = true;
+            if (!m_mainFrameAdBlockScript.isEmpty())
+                runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::UserWorld);
+        }
+    });
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     connect(this, &WebPage::quotaRequested, this, &WebPage::onQuotaRequested);
@@ -112,6 +123,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
     if (!isMainFrame)
         return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
 
+    m_injectedAdblock = false;
     m_originalUrl = QUrl();
 
     // Conditionally enable PDF.JS if QtWebEngine version is >= 5.13, otherwise, unconditionally enable
@@ -168,15 +180,21 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         {
             QWebEngineScript adBlockScript;
             adBlockScript.setSourceCode(m_mainFrameAdBlockScript);
-            adBlockScript.setName(QLatin1String("viper-content-blocker"));
+            adBlockScript.setName(QLatin1String("viper-content-blocker-userworld"));
             adBlockScript.setRunsOnSubFrames(true);
             adBlockScript.setWorldId(QWebEngineScript::UserWorld);
             adBlockScript.setInjectionPoint(QWebEngineScript::DocumentCreation);
             scriptCollection.insert(adBlockScript);
 
-            adBlockScript.setWorldId(QWebEngineScript::ApplicationWorld);
-            adBlockScript.setInjectionPoint(QWebEngineScript::DocumentReady);
-            scriptCollection.insert(adBlockScript);
+            // Inject into the DOM as a script tag
+            QString scriptAdjusted = m_mainFrameAdBlockScript;
+            m_mainFrameAdBlockScript.replace(QString("\\"), QString("\\\\"));
+            m_mainFrameAdBlockScript.replace(QString("${"), QString("\\${"));
+            const static QString mutationScript = QStringLiteral("try { let script = document.createElement('script'); "
+                                             "script.appendChild(document.createTextNode(`%1`)); "
+                                             "(document.head || document.documentElement).appendChild(script); "
+                                             " } catch(exc) { console.error('Could not run mutation script: ' + exc); }");
+            m_mainFrameAdBlockScript = mutationScript.arg(m_mainFrameAdBlockScript);
         }
 
         const QString domainFilterStyle = m_adBlockManager->getDomainStylesheet(pageUrl);
