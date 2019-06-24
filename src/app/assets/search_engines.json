@@ -14,6 +14,12 @@
             "PostURL": "https://www.startpage.com/do/search",
             "PostTemplate": "language=english&cat=web&query=%s",
             "Query": "https://www.startpage.com/do/dsearch?query=%s&cat=web&pl=opensearch&language=english"
+        },
+        {
+            "Name": "SearX",
+            "PostURL": "https://searx.me/",
+            "PostTemplate": "q=%s&time_range=&categories=general&language=en-US",
+            "Query": "https://searx.me/?q=%s&categories=general&language=en-US"
         }
     ]
 }

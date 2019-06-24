@@ -84,7 +84,7 @@ void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
     connect(this, &WebPage::renderProcessTerminated,     this, &WebPage::onRenderProcessTerminated);
 
     connect(this, &WebPage::loadProgress, this, [this](int progress) {
-        if (!m_injectedAdblock && progress >= 25 && progress < 100)
+        if (!m_injectedAdblock && progress >= 22 && progress < 100)
         {
             m_injectedAdblock = true;
             if (!m_mainFrameAdBlockScript.isEmpty())
@@ -190,10 +190,12 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             QString scriptAdjusted = m_mainFrameAdBlockScript;
             m_mainFrameAdBlockScript.replace(QString("\\"), QString("\\\\"));
             m_mainFrameAdBlockScript.replace(QString("${"), QString("\\${"));
-            const static QString mutationScript = QStringLiteral("try { let script = document.createElement('script'); "
+            const static QString mutationScript = QStringLiteral("function selfInject() { "
+                                             "try { let script = document.createElement('script'); "
                                              "script.appendChild(document.createTextNode(`%1`)); "
-                                             "(document.head || document.documentElement).appendChild(script); "
-                                             " } catch(exc) { console.error('Could not run mutation script: ' + exc); }");
+                                             "if (document.head || document.documentElement) { (document.head || document.documentElement).appendChild(script); } "
+                                             "else { setTimeout(selfInject, 100); } "
+                                             " } catch(exc) { console.error('Could not run mutation script: ' + exc); } } selfInject();");
             m_mainFrameAdBlockScript = mutationScript.arg(m_mainFrameAdBlockScript);
         }
 
@@ -274,7 +276,7 @@ QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type)
         case QWebEnginePage::WebBrowserWindow:    // Open a new window
         {
             MainWindow *win = isPrivate ? sBrowserApplication->getNewPrivateWindow() : sBrowserApplication->getNewWindow();
-            return win->getTabWidget()->currentWebWidget()->page();
+            return win->currentWebWidget()->page();
         }
         case QWebEnginePage::WebBrowserBackgroundTab:
         case QWebEnginePage::WebBrowserTab:
