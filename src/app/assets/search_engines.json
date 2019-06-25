@@ -17,9 +17,9 @@
         },
         {
             "Name": "SearX",
-            "PostURL": "https://searx.me/",
+            "PostURL": "https://searx.org/",
             "PostTemplate": "q=%s&time_range=&categories=general&language=en-US",
-            "Query": "https://searx.me/?q=%s&categories=general&language=en-US"
+            "Query": "https://searx.org/?q=%s&categories=general&language=en-US"
         }
     ]
 }
