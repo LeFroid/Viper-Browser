@@ -518,7 +518,7 @@ void MainWindow::onLoadFinished(bool ok)
         return;
 
     auto urlWidget = ui->toolBar->getURLWidget();
-    if (!urlWidget->isModified())
+    if (!urlWidget->isModified() && urlWidget->cursorPosition() == 0)
         urlWidget->setURL(ww->url());
 
     checkPageForBookmark();

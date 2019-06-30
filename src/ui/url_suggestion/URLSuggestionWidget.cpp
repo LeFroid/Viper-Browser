@@ -179,7 +179,10 @@ bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
             if (!underMouse())
             {
                 close();
-                emit noSuggestionChosen(m_searchTerm);
+
+                if (!m_lineEdit->underMouse())
+                    emit noSuggestionChosen(m_searchTerm);
+
                 return true;
             }
             return false;

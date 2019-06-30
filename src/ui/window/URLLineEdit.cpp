@@ -301,7 +301,9 @@ void URLLineEdit::onTextEdited(const QString &text)
 
     m_suggestionWidget->suggestForInput(text);
 
+    const int cursorPos = cursorPosition();
     tryToFormatInput(text);
+    setCursorPosition(cursorPos);
 }
 
 void URLLineEdit::tryToFormatInput(const QString &text)
