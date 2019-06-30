@@ -61,6 +61,15 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     connect(ui->lineEditName,     &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeName);
     connect(ui->lineEditLocation, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeURL);
     connect(ui->lineEditShortcut, &QLineEdit::returnPressed, this, &BookmarkWidget::onEditNodeShortcut);
+
+    // Set proportions of splitter items
+    QList<int> splitterSizes;
+    const int totalWidth = width();
+    splitterSizes.push_back(totalWidth / 3);
+    splitterSizes.push_back(totalWidth * 2 / 3);
+    ui->splitter->setSizes(splitterSizes);
+    ui->splitter->setStretchFactor(0, 0);
+    ui->splitter->setStretchFactor(1, 1);
 }
 
 BookmarkWidget::~BookmarkWidget()

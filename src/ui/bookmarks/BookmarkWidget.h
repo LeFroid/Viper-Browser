@@ -44,7 +44,7 @@ public:
 
 protected:
     /// Called to adjust the proportions of the columns belonging to the table view
-    virtual void resizeEvent(QResizeEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 signals:
     /// Signal for the browser to open a bookmark onto the current web page

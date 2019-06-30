@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>801</width>
-    <height>621</height>
+    <width>872</width>
+    <height>688</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Bookmarks</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,20">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayoutControls">
      <property name="sizeConstraint">
@@ -66,36 +66,46 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayoutContent">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetMaximumSize</enum>
+    <widget class="QSplitter" name="splitter">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-     <item>
-      <widget class="QTreeView" name="treeView">
-       <property name="maximumSize">
-        <size>
-         <width>270</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="dragEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="dragDropMode">
-        <enum>QAbstractItemView::DragDrop</enum>
-       </property>
-       <property name="defaultDropAction">
-        <enum>Qt::MoveAction</enum>
-       </property>
-       <property name="headerHidden">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="opaqueResize">
+      <bool>true</bool>
+     </property>
+     <widget class="QTreeView" name="treeView">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="dragEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="dragDropMode">
+       <enum>QAbstractItemView::DragDrop</enum>
+      </property>
+      <property name="defaultDropAction">
+       <enum>Qt::MoveAction</enum>
+      </property>
+      <property name="headerHidden">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
         <number>2</number>
+       </property>
+       <property name="sizeConstraint">
+        <enum>QLayout::SetMaximumSize</enum>
        </property>
        <item>
         <widget class="QTableView" name="tableView">
@@ -169,8 +179,8 @@
         </layout>
        </item>
       </layout>
-     </item>
-    </layout>
+     </widget>
+    </widget>
    </item>
   </layout>
  </widget>

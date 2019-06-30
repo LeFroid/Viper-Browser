@@ -360,6 +360,9 @@ void MainWindow::openBookmarkWidget()
     bookmarkWidget->show();
     bookmarkWidget->raise();
     bookmarkWidget->activateWindow();
+
+    // Force a resize event on the widget, so the bookmark table renders the columns proportionally
+    bookmarkWidget->resize(bookmarkWidget->width() + 2, bookmarkWidget->height());
 }
 
 void MainWindow::onClearHistoryDialogFinished(int result)
