@@ -11,17 +11,16 @@
 #include "BookmarkManager.h"
 #include "BookmarkWidget.h"
 #include "ClearHistoryDialog.h"
-#include "CodeEditor.h"
 #include "CookieJar.h"
 #include "HistoryManager.h"
 #include "HistoryWidget.h"
 #include "HttpRequest.h"
-#include "HTMLHighlighter.h"
 #include "Preferences.h"
 #include "SecurityManager.h"
 #include "SearchEngineLineEdit.h"
 #include "ToolMenu.h"
 #include "URLLineEdit.h"
+#include "ViewSourceWindow.h"
 #include "WebInspector.h"
 #include "WebPage.h"
 #include "WebPageTextFinder.h"
@@ -613,18 +612,11 @@ void MainWindow::onRequestViewSource()
     if (!currentView)
         return;
 
-    //TODO: move into a subclass of QMainWindow and add a FindTextWidget to the view source class
-    QString pageTitle = currentView->getTitle();
-    CodeEditor *view = new CodeEditor;
-    currentView->page()->toHtml([view](const QString &result){ view->setPlainText(result); });
-    HTMLHighlighter *h = new HTMLHighlighter;
-    h->setDocument(view->document());
-    view->setReadOnly(true);
-    view->setWindowTitle(tr("Viewing Source of %1").arg(pageTitle));
-    view->setMinimumWidth(640);
-    view->setMinimumHeight(geometry().height() / 2);
-    view->setAttribute(Qt::WA_DeleteOnClose);
-    view->show();
+    ViewSourceWindow *sourceWindow = new ViewSourceWindow(currentView->getTitle());
+    sourceWindow->setWebPage(currentView->page());
+    sourceWindow->show();
+    sourceWindow->raise();
+    sourceWindow->activateWindow();
 }
 
 void MainWindow::onToggleFullScreen(bool enable)

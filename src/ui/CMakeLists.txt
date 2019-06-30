@@ -39,6 +39,7 @@ set(viper_ui_src
     user_scripts/AddUserScriptDialog.cpp
     user_scripts/UserScriptEditor.cpp
     user_scripts/UserScriptWidget.cpp
+    web/ViewSourceWindow.cpp
     web/WebDialog.cpp
     web/WebInspector.cpp
     web/WebLoadObserver.cpp
@@ -91,6 +92,7 @@ qt5_wrap_ui(viper_ui_files
     user_scripts/AddUserScriptDialog.ui
     user_scripts/UserScriptEditor.ui
     user_scripts/UserScriptWidget.ui
+    web/ViewSourceWindow.ui
     widgets/FindTextWidget.ui
     window/MainWindow.ui
 )

@@ -1,13 +1,13 @@
 (function() {
 /// Checks if the given string needs ':scope' prepended to it
-var addScopeIfNeeded = function(str) {
+const addScopeIfNeeded = function(str) {
     var needScope = /^\s*[+>~]/;
     if (needScope.test(str)) {
         str = ':scope ' + str;
     }
     return str;
 };
-var hideIfHasAsync = async function(subject, target) {
+const hideIfHasAsync = async function(subject, target) {
     var nodes = document.querySelectorAll(subject);
     var i = 0;
     for (; i < nodes.length; ++i) {
@@ -23,7 +23,7 @@ var hideIfHasAsync = async function(subject, target) {
     }
 };
 /// Handles the :has(...) cosmetic filter option
-var hideIfHas = function (subject, target) {
+const hideIfHas = function (subject, target) {
     target = addScopeIfNeeded(target);
 
     if (subject === '*') {
@@ -39,7 +39,7 @@ var hideIfHas = function (subject, target) {
         }
     }
 };
-var hideIfNotHasAsync = async function(subject, target) {
+const hideIfNotHasAsync = async function(subject, target) {
     var nodes = document.querySelectorAll(subject);
     var i = 0;
     for (; i < nodes.length; ++i) {
@@ -55,7 +55,7 @@ var hideIfNotHasAsync = async function(subject, target) {
     }
 };
 /// Handles :if-not(...) cosmetic filter option if it does not have any nested cosmetic filter options
-var hideIfNotHas = function (subject, target) {
+const hideIfNotHas = function (subject, target) {
     target = addScopeIfNeeded(target);
 
     if (subject === '*') {
@@ -72,7 +72,7 @@ var hideIfNotHas = function (subject, target) {
     }
 };
 /// Handles the :has-text(...) cosmetic filter option, returns an array of elements that match the given criteria
-var hasText = function (selector, text, root) {
+const hasText = function (selector, text, root) {
     if (root === undefined) {
         root = document;
     }
@@ -82,7 +82,7 @@ var hasText = function (selector, text, root) {
     });
     return subElems;
 };
-var matchesCSS = function (selector, text, root, pseudoSelector) {
+const matchesCSS = function (selector, text, root, pseudoSelector) {
     if (root === undefined)
         root = document;
 
@@ -106,10 +106,10 @@ var matchesCSS = function (selector, text, root, pseudoSelector) {
     }
     return output;
 };
-var matchesCSSBefore = function(selector, text, root) {
+const matchesCSSBefore = function(selector, text, root) {
     return matchesCSS(selector, text, root, ':before');
 };
-var matchesCSSAfter = function(selector, text, root) {
+const matchesCSSAfter = function(selector, text, root) {
     return matchesCSS(selector, text, root, ':after');
 };
 /// Handles the :xpath(...) cosmetic filter option, returns an array of elements that match the given criteria
@@ -134,7 +134,7 @@ var doXPath = function (subject, expr, root) {
     return output;
 };
 /// Similar to the doXPath function, except this traverses the dom tree without the xpath expression evaluations
-var nthAncestor = function (subject, expr, root) {
+const nthAncestor = function (subject, expr, root) {
     if (root === undefined)
         root = document;
 
