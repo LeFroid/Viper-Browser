@@ -269,7 +269,7 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
 
     // Search for each chainable type and handle the first one to appear, as any other
     // chainable filter options will appear as an argument of the first
-    std::vector<std::tuple<int, CosmeticFilter, int>> filters = getChainableFilters(filter->m_evalString);
+    std::vector<ProceduralDirective> filters = getChainableDirectives(filter->m_evalString);
     if (filters.empty())
         return false;
 
@@ -277,13 +277,32 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
     QString evalStr = filter->m_evalString;
 
     // Process first item in filters container
-    const std::tuple<int, CosmeticFilter, int> &p = filters.at(0);
+    const ProceduralDirective &directive = filters.at(0);
 
     // Extract filter argument
-    QString evalArg = evalStr.mid(std::get<0>(p) + std::get<2>(p));
-    evalArg = evalArg.left(evalArg.lastIndexOf(QChar(')')));
+    QString evalArg = evalStr.mid(directive.Index + directive.StringLength);
 
-    evalStr = evalStr.left(std::get<0>(p));
+    int argEndPos = 0;
+    int numNestedArgs = 0;
+    for (int i = 0; i < evalArg.size(); ++i)
+    {
+        const char currentChar = evalArg.at(i).toLatin1();
+        if (currentChar == '(')
+            ++numNestedArgs;
+        else if (currentChar == ')')
+        {
+            if (numNestedArgs-- == 0)
+            {
+                argEndPos = i;
+                break;
+            }
+        }
+    }
+    if (argEndPos <= 0)
+        argEndPos = evalArg.lastIndexOf(QChar(')'));
+    evalArg = evalArg.left(argEndPos);
+
+    evalStr = evalStr.left(directive.Index);
 
     /*
     if (std::get<1>(p) == CosmeticFilter::XPath && evalStr.isEmpty())
@@ -295,12 +314,11 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
 
     evalStr.replace(QChar('\''), QString("\\\'"));
 
-    const bool isArgRegExp = evalArg.startsWith(QChar('/')) && (evalArg.endsWith(QChar('/')) || evalArg.at(evalArg.size() - 2) == QChar('/'));
+    const bool isArgRegExp = evalArg.startsWith(QChar('/')) && evalArg.endsWith(QChar('/'));
     if (!isArgRegExp)
         evalArg.replace(QChar('\''), QString("\\\'"));
 
-    const auto cosmeticFilterType = std::get<1>(p);
-    switch (cosmeticFilterType)
+    switch (directive.DirectiveName)
     {
         case CosmeticFilter::HasText:
         {
@@ -316,7 +334,7 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
         case CosmeticFilter::IfNot:
         case CosmeticFilter::Not:
         {
-            const bool isNegation = (cosmeticFilterType == CosmeticFilter::IfNot || cosmeticFilterType == CosmeticFilter::Not);
+            const bool isNegation = (directive.DirectiveName == CosmeticFilter::IfNot || directive.DirectiveName == CosmeticFilter::Not);
             // Check if anything within the :if(...) is a cosmetic filter, thus requiring the use of callbacks
             if (filters.size() > 1)
             {
@@ -433,8 +451,7 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
     // string in resource with injectionArgs[index]
     for (int i = 1; i < injectionArgs.size(); ++i)
     {
-        QString arg = injectionArgs.at(i).trimmed();
-        arg.replace(QChar('\''), QStringLiteral("\\\'"));
+        QString arg = injectionArgs.at(i).trimmed().replace(QChar('\''), QString("\\\'"));
         QString term = QString("{{%1}}").arg(i);
 
         const int targetIndex = filter->m_evalString.indexOf(term);
@@ -448,27 +465,26 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
     return true;
 }
 
-CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters) const
+CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const std::vector<ProceduralDirective> &filters) const
 {
     auto result = CosmeticJSCallback();
 
-    const std::tuple<int, CosmeticFilter, int> &p = filters.at(0);
+    const ProceduralDirective &directive = filters.at(0);
 
     // Attempt to extract information neccessary for callback invocation
     int argStrLen = evalArg.size();
     for (std::size_t i = 1; i < filters.size(); ++i)
     {
-        auto const &p2 = filters.at(i);
-        if (std::get<0>(p2) < std::get<0>(p) + std::get<2>(p) + argStrLen)
+        auto const &d2 = filters.at(i);
+        if (d2.Index < directive.Index + directive.StringLength + argStrLen)
         {
             result.IsValid = true;
 
             // Extract selector and argument for nested filter
-            int colonPos = std::get<0>(p2) - std::get<0>(p) - std::get<2>(p);
-            int cosmeticLen = std::get<2>(p2);
+            int colonPos = d2.Index - directive.Index - directive.StringLength;
+            int cosmeticLen = d2.StringLength;
 
-            CosmeticFilter currFilter = std::get<1>(p2);
-            switch (currFilter)
+            switch (d2.DirectiveName)
             {
                 case CosmeticFilter::HasText:
                     result.CallbackName = QStringLiteral("hasText");
@@ -502,26 +518,38 @@ CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const st
     return result;
 }
 
-std::vector< std::tuple<int, CosmeticFilter, int> > FilterParser::getChainableFilters(const QString &evalStr) const
+std::vector<ProceduralDirective> FilterParser::getChainableDirectives(const QString &evalStr) const
 {
     // Only search for chainable types
-    std::vector< std::tuple<int, CosmeticFilter, int> > filters;
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":has(")), CosmeticFilter::Has, 5));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":has-text(")), CosmeticFilter::HasText, 10));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if(")), CosmeticFilter::If, 4));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":if-not(")), CosmeticFilter::IfNot, 8));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":not(")), CosmeticFilter::IfNot, 5));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css(")), CosmeticFilter::MatchesCSS, 13));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-before(")), CosmeticFilter::MatchesCSSBefore, 20));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":matches-css-after(")), CosmeticFilter::MatchesCSSAfter, 19));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":xpath(")), CosmeticFilter::XPath, 7));
-    filters.push_back(std::make_tuple(evalStr.indexOf(QStringLiteral(":nth-ancestor(")), CosmeticFilter::NthAncestor, 14));
-    filters.erase(std::remove_if(filters.begin(), filters.end(), [](std::tuple<int, CosmeticFilter, int> p){ return std::get<0>(p) < 0; }), filters.end());
+    std::vector<ProceduralDirective> filters;
+    // ProceduralDirective : { Index, ArgumentIndex, DirectiveName }
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":has(")),                 5, CosmeticFilter::Has });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":has-text(")),           10, CosmeticFilter::HasText });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":if(")),                  4, CosmeticFilter::If });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":if-not(")),              8, CosmeticFilter::IfNot });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":not(")),                 5, CosmeticFilter::IfNot });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css(")),        13, CosmeticFilter::MatchesCSS });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css-before(")), 20, CosmeticFilter::MatchesCSSBefore });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css-after(")),  19, CosmeticFilter::MatchesCSSAfter });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":xpath(")),               7, CosmeticFilter::XPath });
+    filters.push_back({ evalStr.indexOf(QStringLiteral(":nth-ancestor(")),       14, CosmeticFilter::NthAncestor });
+    filters.erase(std::remove_if(filters.begin(), filters.end(), [](const ProceduralDirective &d) {
+        return d.Index < 0;
+    }), filters.end());
+
     if (filters.empty())
         return filters;
 
-    std::sort(filters.begin(), filters.end(), [](std::tuple<int, CosmeticFilter, int> const &p1, std::tuple<int, CosmeticFilter, int> const &p2) {
-        return std::get<0>(p1) < std::get<0>(p2);
+    // TODO: Search again for the keywords that were found, in case there are more than one if, has, etc. in the string
+    /*
+    for (const ProceduralDirective &d : filters)
+    {
+        int startIndex = d.ArgumentIndex;
+    }
+    */
+
+    std::sort(filters.begin(), filters.end(), [](const ProceduralDirective &d1, const ProceduralDirective &d2) {
+        return d1.Index < d2.Index;
     });
 
     return filters;

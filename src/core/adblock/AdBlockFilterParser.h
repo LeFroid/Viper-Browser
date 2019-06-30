@@ -16,6 +16,23 @@ extern QHash<QString, ElementType> eOptionMap;
 
 /**
  * @ingroup AdBlock
+ * @brief Holds information about the position of a procedural filter and its argument(s)
+ */
+struct ProceduralDirective
+{
+    /// Index of the ':' char that marks the start of this directive. This comes after the subject of the directive.
+    int Index;
+
+    /// Length of the directive, from the first ':' char to the first '(' that comes before the argument of the directive
+    /// Example: ':if(some_arg)' -> StringLength = 4
+    int StringLength;
+
+    /// The name of this procedural cosmetic filter argument (ex: has, if, if-not, xpath, etc
+    CosmeticFilter DirectiveName;
+};
+
+/**
+ * @ingroup AdBlock
  * @brief Contains data necessary for translating uBlock cosmetic filter rules into the appropriate JavaScript calls
  */
 struct CosmeticJSCallback
@@ -69,11 +86,12 @@ private:
     /// Checks for and handles the script:inject(...) filter option, returning true if found, false if else
     bool parseScriptInjection(Filter *filter) const;
 
-    /// Returns the javascript callback translation structure for the given evaluation argument and a container of index-type-string len filter information pairs
-    CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<std::tuple<int, CosmeticFilter, int>> &filters) const;
+    /// Returns the javascript callback translation structure for the given evaluation argument and a container of procedural directives
+    CosmeticJSCallback getTranslation(const QString &evalArg, const std::vector<ProceduralDirective> &filters) const;
 
-    /// Returns a container of tuples including the index, type, and string length of each chainable cosmetic filter in the evaluation string
-    std::vector< std::tuple<int, CosmeticFilter, int> > getChainableFilters(const QString &evalStr) const;
+    /// Returns a container of the procedural filter directives that were found in the evaluation string.
+    /// This container is sorted in ascending order.
+    std::vector<ProceduralDirective> getChainableDirectives(const QString &evalStr) const;
 
     /// Checks for blob: and data: type filter rules, converting them into the appropriate CSP filter types
     void parseForCSP(Filter *filter) const;
