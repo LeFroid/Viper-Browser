@@ -28,9 +28,9 @@ CustomFilterEditor::CustomFilterEditor(QWidget *parent) :
     m_filePath.append(QDir::separator());
     m_filePath.append(QLatin1String("custom.txt"));
 
-    TextEditorTextFinder *textFinder = new TextEditorTextFinder;
-    textFinder->setTextEdit(ui->filterEditor);
-    ui->widgetFindText->setTextFinder(textFinder);
+    std::unique_ptr<ITextFinder> textFinder { std::make_unique<TextEditorTextFinder>() };
+    static_cast<TextEditorTextFinder*>(textFinder.get())->setTextEdit(ui->filterEditor);
+    ui->widgetFindText->setTextFinder(std::move(textFinder));
     ui->widgetFindText->hide();
 
     connect(ui->widgetFindText, &FindTextWidget::pseudoModifiedDocument, this, &CustomFilterEditor::onTextFindPseudoModify);

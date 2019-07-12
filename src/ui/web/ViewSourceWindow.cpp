@@ -21,9 +21,9 @@ ViewSourceWindow::ViewSourceWindow(const QString &title, QWidget *parent) :
 
     m_highlighter->setDocument(ui->sourceView->document());
 
-    TextEditorTextFinder *textFinder = new TextEditorTextFinder;
-    textFinder->setTextEdit(ui->sourceView);
-    ui->widgetFindText->setTextFinder(textFinder);
+    std::unique_ptr<ITextFinder> textFinder { std::make_unique<TextEditorTextFinder>() };
+    static_cast<TextEditorTextFinder*>(textFinder.get())->setTextEdit(ui->sourceView);
+    ui->widgetFindText->setTextFinder(std::move(textFinder));
 
     QShortcut *shortcutFind = new QShortcut(QKeySequence(tr("Ctrl+F")), this);
     connect(shortcutFind, &QShortcut::activated, this, &ViewSourceWindow::toggleFindTextWidget);

@@ -31,36 +31,29 @@ FindTextWidget::FindTextWidget(QWidget *parent) :
 
 FindTextWidget::~FindTextWidget()
 {
-    if (m_textFinder != nullptr)
-    {
-        delete m_textFinder;
-        m_textFinder = nullptr;
-    }
-
     delete ui;
 }
 
-void FindTextWidget::setTextFinder(ITextFinder *textFinder)
+void FindTextWidget::setTextFinder(std::unique_ptr<ITextFinder> &&textFinder)
 {
-    if (!textFinder)
+    if (!textFinder.get())
         return;
 
-    if (m_textFinder != nullptr)
-        delete m_textFinder;
+    m_textFinder.reset(nullptr);
+    m_textFinder = std::move(textFinder);
 
     clearLabels();
 
-    m_textFinder = textFinder;
+    auto textFinderPtr = m_textFinder.get();
+    connect(textFinderPtr, &ITextFinder::showMatchResultText,   ui->labelMatches, &QLabel::setText);
+    connect(textFinderPtr, &ITextFinder::pseudoModifiedDocument, this, &FindTextWidget::pseudoModifiedDocument);
 
-    connect(m_textFinder, &ITextFinder::showMatchResultText,   ui->labelMatches, &QLabel::setText);
-    connect(m_textFinder, &ITextFinder::pseudoModifiedDocument, this, &FindTextWidget::pseudoModifiedDocument);
-
-    connect(ui->lineEdit,               &QLineEdit::textChanged,   m_textFinder, &ITextFinder::searchTermChanged);
-    connect(ui->lineEdit,               &QLineEdit::returnPressed, m_textFinder, &ITextFinder::findNext);
-    connect(ui->pushButtonNext,         &QPushButton::clicked,     m_textFinder, &ITextFinder::findNext);
-    connect(ui->pushButtonPrev,         &QPushButton::clicked,     m_textFinder, &ITextFinder::findPrevious);
-    connect(ui->pushButtonHighlightAll, &QPushButton::toggled,     m_textFinder, &ITextFinder::setHighlightAll);
-    connect(ui->pushButtonMatchCase,    &QPushButton::toggled,     m_textFinder, &ITextFinder::setMatchCase);
+    connect(ui->lineEdit,               &QLineEdit::textChanged,   textFinderPtr, &ITextFinder::searchTermChanged);
+    connect(ui->lineEdit,               &QLineEdit::returnPressed, textFinderPtr, &ITextFinder::findNext);
+    connect(ui->pushButtonNext,         &QPushButton::clicked,     textFinderPtr, &ITextFinder::findNext);
+    connect(ui->pushButtonPrev,         &QPushButton::clicked,     textFinderPtr, &ITextFinder::findPrevious);
+    connect(ui->pushButtonHighlightAll, &QPushButton::toggled,     textFinderPtr, &ITextFinder::setHighlightAll);
+    connect(ui->pushButtonMatchCase,    &QPushButton::toggled,     textFinderPtr, &ITextFinder::setMatchCase);
 
     connect(ui->pushButtonHide, &QPushButton::clicked, [this](){
         if (m_textFinder)
@@ -72,7 +65,7 @@ void FindTextWidget::setTextFinder(ITextFinder *textFinder)
 
 ITextFinder *FindTextWidget::getTextFinder() const
 {
-    return m_textFinder;
+    return m_textFinder.get();
 }
 
 void FindTextWidget::clearLabels()

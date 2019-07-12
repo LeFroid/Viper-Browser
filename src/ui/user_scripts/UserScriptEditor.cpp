@@ -25,9 +25,9 @@ UserScriptEditor::UserScriptEditor(QWidget *parent) :
 
     m_highlighter->setDocument(ui->scriptEditor->document());
 
-    TextEditorTextFinder *textFinder = new TextEditorTextFinder;
-    textFinder->setTextEdit(ui->scriptEditor);
-    ui->widgetFindText->setTextFinder(textFinder);
+    std::unique_ptr<ITextFinder> textFinder { std::make_unique<TextEditorTextFinder>() };
+    static_cast<TextEditorTextFinder*>(textFinder.get())->setTextEdit(ui->scriptEditor);
+    ui->widgetFindText->setTextFinder(std::move(textFinder));
     ui->widgetFindText->hide();
 
     connect(ui->widgetFindText, &FindTextWidget::pseudoModifiedDocument, this, &UserScriptEditor::onTextFindPseudoModify);

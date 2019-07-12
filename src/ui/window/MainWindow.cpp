@@ -83,7 +83,7 @@ MainWindow::MainWindow(const ViperServiceLocator &serviceLocator, bool privateWi
               availableHeight = mainScreen->availableGeometry().height();
     setGeometry(availableWidth / 16, availableHeight / 16, availableWidth * 7 / 8, availableHeight * 7 / 8);
 
-    ui->widgetFindText->setTextFinder(new WebPageTextFinder);
+    ui->widgetFindText->setTextFinder(std::make_unique<WebPageTextFinder>());
 
     setupStatusBar();
     setupTabWidget();
@@ -390,6 +390,7 @@ void MainWindow::onClearHistoryDialogFinished(int result)
             break;
         case ClearHistoryDialog::CUSTOM_RANGE:
             customTimeRange = true;
+            break;
         default:
             break;
     }

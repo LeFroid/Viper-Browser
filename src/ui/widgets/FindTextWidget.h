@@ -1,6 +1,7 @@
 #ifndef FINDTEXTWIDGET_H
 #define FINDTEXTWIDGET_H
 
+#include <memory>
 #include <QWidget>
 
 namespace Ui {
@@ -25,8 +26,8 @@ public:
     /// FindTextWidget destructor
     ~FindTextWidget();
 
-    /// Sets the implementation that will be used to search for text.
-    void setTextFinder(ITextFinder *textFinder);
+    /// Sets the instance of the text finder that will be used by this widget.
+    void setTextFinder(std::unique_ptr<ITextFinder> &&textFinder);
 
     /// Returns a pointer to the text finder
     ITextFinder *getTextFinder() const;
@@ -51,7 +52,7 @@ private:
     Ui::FindTextWidget *ui;
 
     /// Text finding implementation
-    ITextFinder *m_textFinder;
+    std::unique_ptr<ITextFinder> m_textFinder;
 };
 
 #endif // FINDTEXTWIDGET_H

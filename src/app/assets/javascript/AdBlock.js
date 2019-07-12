@@ -14,7 +14,7 @@ const hideIfHasAsync = async function(subject, target) {
         if (nodes[i++].nodeName === 'BODY')
             break;
     }
-    for (i = 0; i < nodes.length; ++i) {
+    for (; i < nodes.length; ++i) {
         let currNode = nodes[i];
         let compStyle = window.getComputedStyle(currNode);
         if (compStyle.cssText && compStyle.cssText.indexOf(target) >= 0) {
@@ -113,7 +113,7 @@ const matchesCSSAfter = function(selector, text, root) {
     return matchesCSS(selector, text, root, ':after');
 };
 /// Handles the :xpath(...) cosmetic filter option, returns an array of elements that match the given criteria
-var doXPath = function (subject, expr, root) {
+const doXPath = function (subject, expr, root) {
     if (root === undefined) {
         root = document;
     }
@@ -154,6 +154,7 @@ const nthAncestor = function (subject, expr, root) {
     }
     return output
 };
+
 /// Hides each subject in the document, for which the result of the callback with parameters chainSubject, chainTarget is not null or empty
 function hideIfChain(subject, chainSubject, chainTarget, callback) {
     chainSubject = addScopeIfNeeded(chainSubject);
