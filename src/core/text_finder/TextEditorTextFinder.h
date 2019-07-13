@@ -2,7 +2,9 @@
 #define TEXTEDITORTEXTFINDER_H
 
 #include "ITextFinder.h"
+
 #include <QObject>
+#include <QTextCursor>
 
 class QPlainTextEdit;
 
@@ -61,6 +63,12 @@ private:
 private:
     /// Current text editor
     QPlainTextEdit *m_editor;
+
+    /// Stores the cursor after executing a findNext() or findPrevious() operation.
+    /// For some reason the cursor's state is not accurately represened when we attempt
+    /// to fetch it again from the editor (it will report no selection, even when there is
+    /// a selected text).
+    QTextCursor m_lastSearchCursor;
 
     /// Stores the previous search term (before current one was applied to the text finder)
     QString m_lastSearchTerm;

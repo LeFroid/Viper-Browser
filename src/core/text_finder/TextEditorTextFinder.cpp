@@ -9,6 +9,7 @@
 TextEditorTextFinder::TextEditorTextFinder(QObject *parent) :
     ITextFinder(parent),
     m_editor(nullptr),
+    m_lastSearchCursor(),
     m_lastSearchTerm()
 {
 }
@@ -32,6 +33,8 @@ void TextEditorTextFinder::stopSearching()
     QTextCursor c = m_editor->textCursor();
     c.setPosition(currentPos);
     m_editor->setTextCursor(c);
+
+    m_lastSearchCursor = QTextCursor();
 }
 
 void TextEditorTextFinder::findNext()
@@ -90,16 +93,29 @@ bool TextEditorTextFinder::findText(bool isFindingNext)
         return false;
     }
 
+    // Determine which cursor to use
+    QTextCursor c { m_lastSearchCursor };
+
     if (!m_lastSearchTerm.isEmpty() && m_searchTerm.compare(m_lastSearchTerm) != 0)
-        stopSearching();
+        c = m_editor->textCursor();
+
+    // Grab the document
+    QTextDocument *doc = m_editor->document();
+
+    // Adjust cursor pos based on search direction.
+    if (!isFindingNext && c.hasSelection())
+    {
+        int startSearchPos = c.selectionStart() - 1;
+        if (startSearchPos < 0)
+            startSearchPos = doc->characterCount() - 1;
+        c.clearSelection();
+        c.setPosition(startSearchPos, QTextCursor::MoveAnchor);
+    }
 
     QTextDocument::FindFlags flags = isFindingNext ? QTextDocument::FindFlags() : QTextDocument::FindBackward;
     if (m_matchCase)
         flags |= QTextDocument::FindCaseSensitively;
 
-    // Look for search term
-    QTextDocument *doc = m_editor->document();
-    QTextCursor c = m_editor->textCursor();
     QTextCursor searchPos = doc->find(m_searchTerm, c, flags);
 
     // If highlight all option was selected, find all occurrences, and set position to prevPos
@@ -127,6 +143,7 @@ bool TextEditorTextFinder::findText(bool isFindingNext)
     if (!searchPos.isNull())
     {
         m_editor->setTextCursor(searchPos);
+        m_editor->ensureCursorVisible();
         return true;
     }
 

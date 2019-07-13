@@ -74,9 +74,6 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
                                   std::bind(DatabaseFactory::createDBWorker<BookmarkStore>, m_settings->getPathValue(BrowserSetting::BookmarkPath)));
     m_bookmarkManager = new BookmarkManager(m_serviceLocator, m_databaseScheduler, nullptr);
     registerService(m_bookmarkManager);
-    //m_bookmarkStore = DatabaseFactory::createWorker<BookmarkStore>(m_serviceLocator, m_settings->getPathValue(BrowserSetting::BookmarkPath));
-    //registerService(m_bookmarkStore.get());
-    //registerService(m_bookmarkStore->getNodeManager());
 
     // Initialize cookie jar and cookie manager UI
     const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();
