@@ -327,7 +327,7 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
                        << m_queryHistoryItem->lastError().text();
     }
 
-    const quint64 visitTimeInMSec = visitTime.toMSecsSinceEpoch();
+    const quint64 visitTimeInMSec = static_cast<quint64>(visitTime.toMSecsSinceEpoch());
     m_queryVisit->bindValue(QLatin1String(":visitId"), visitId);
     m_queryVisit->bindValue(QLatin1String(":date"), visitTimeInMSec);
     if (!m_queryVisit->exec())
@@ -454,7 +454,7 @@ void HistoryStore::purgeOldEntries()
 {
     // Clear visits that are 6+ months old
     QSqlQuery query(m_database);
-    quint64 purgeDate = QDateTime::currentMSecsSinceEpoch();
+    quint64 purgeDate = static_cast<quint64>(QDateTime::currentMSecsSinceEpoch());
     const quint64 tmp = quint64{15552000000};
     if (purgeDate > tmp)
     {

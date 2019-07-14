@@ -118,6 +118,9 @@ private slots:
     void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
 private:
+    /// Adds the history visit to the in-memory history store.
+    void addVisitToLocalStore(const QUrl &url, const QString &title, const QDateTime &visitTime, bool wasTypedByUser);
+
     /// Handles the recent history record load event - called during instantiation of the \ref HistoryStore
     void onRecentItemsLoaded(std::deque<HistoryEntry> &&entries);
 

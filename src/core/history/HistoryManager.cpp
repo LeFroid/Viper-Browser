@@ -113,6 +113,22 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
 
     m_taskScheduler.post(&HistoryStore::addVisit, std::ref(m_historyStore), url, title, visitTime, requestedUrl, wasTypedByUser);
 
+    if (!CommonUtil::doUrlsMatch(requestedUrl, url))
+    {
+        QDateTime visit = visitTime.addSecs(-1);
+        addVisitToLocalStore(requestedUrl, title, visit, wasTypedByUser);
+    }
+
+    addVisitToLocalStore(url, title, visitTime, wasTypedByUser);
+
+    while (m_recentItems.size() > 15)
+        m_recentItems.pop_back();
+
+    emit pageVisited(url, title);
+}
+
+void HistoryManager::addVisitToLocalStore(const QUrl &url, const QString &title, const QDateTime &visitTime, bool wasTypedByUser)
+{
     VisitEntry visit = visitTime;
 
     auto it = m_historyItems.find(url.toString().toUpper());
@@ -138,39 +154,6 @@ void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDate
         m_historyItems.insert(url.toString().toUpper(), URLRecord(std::move(entry), std::move(visits)));
         m_recentItems.push_front(entry);
     }
-
-    if (!CommonUtil::doUrlsMatch(requestedUrl, url))
-    {
-        visit = visitTime.addSecs(-1);
-
-        it = m_historyItems.find(requestedUrl.toString().toUpper());
-        if (it != m_historyItems.end())
-        {
-            if (wasTypedByUser)
-                it->m_historyEntry.URLTypedCount++;
-
-            it->addVisit(visit);
-            m_recentItems.push_front(it->m_historyEntry);
-        }
-        else
-        {
-            HistoryEntry entry;
-            entry.VisitID = -1;
-            entry.NumVisits = 1;
-            entry.LastVisit = visitTime;
-            entry.Title = title;
-            entry.URL = requestedUrl;
-            entry.URLTypedCount = wasTypedByUser ? 1 : 0;
-            std::vector<VisitEntry> visits {visit};
-            m_historyItems.insert(requestedUrl.toString().toUpper(), URLRecord(std::move(entry), std::move(visits)));
-            m_recentItems.push_front(entry);
-        }
-    }
-
-    while (m_recentItems.size() > 15)
-        m_recentItems.pop_back();
-
-    emit pageVisited(url, title);
 }
 
 void HistoryManager::getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate, std::function<void(std::vector<URLRecord>)> callback)
