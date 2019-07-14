@@ -5,6 +5,7 @@
 #include "BlockedSchemeHandler.h"
 #include "BookmarkManager.h"
 #include "BookmarkStore.h"
+#include "BrowserIPC.h"
 #include "CookieJar.h"
 #include "CookieWidget.h"
 #include "DatabaseFactory.h"
@@ -27,6 +28,7 @@
 #include "WebPage.h"
 #include "WebPageThumbnailStore.h"
 #include "WebSettings.h"
+#include "WebWidget.h"
 
 #include <vector>
 #include <QDesktopServices>
@@ -41,7 +43,7 @@
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
 
-BrowserApplication::BrowserApplication(int &argc, char **argv) :
+BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) :
     QApplication(argc, argv)
 {
     QCoreApplication::setOrganizationName(QLatin1String("Vaccarelli"));
@@ -56,6 +58,12 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
     // Web profiles must be set up immediately upon browser initialization
     setupWebProfiles();
+
+    // Set pointer to the IPC handler. This is checked for pending messages on a regular basis
+    m_ipc = ipc;
+
+    // Check for IPC messages every 10 seconds
+    m_ipcTimerId = startTimer(1000 * 10);
 
     // Instantiate and load settings
     m_settings = new Settings;
@@ -167,6 +175,9 @@ BrowserApplication::BrowserApplication(int &argc, char **argv) :
 
 BrowserApplication::~BrowserApplication()
 {
+    m_ipc = nullptr;
+    killTimer(m_ipcTimerId);
+
     m_databaseScheduler.stop();
 
     delete m_downloadMgr;
@@ -346,6 +357,16 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
     //todo: support clearing form and search data
 }
 
+void BrowserApplication::timerEvent(QTimerEvent *event)
+{
+    QApplication::timerEvent(event);
+
+    if (event->timerId() == m_ipcTimerId)
+    {
+        checkBrowserIPC();
+    }
+}
+
 void BrowserApplication::installGlobalWebScripts()
 {
     BrowserScripts browserScriptContainer;
@@ -405,6 +426,66 @@ void BrowserApplication::setupWebProfiles()
 
     m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
     m_privateProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
+}
+
+void BrowserApplication::checkBrowserIPC()
+{
+    if (m_ipc == nullptr || !m_ipc->hasMessage())
+        return;
+
+    BrowserMessage message { m_ipc->getMessage() };
+
+    if (message.data == nullptr)
+        return;
+
+    if (message.length < 1)
+    {
+        delete[] message.data;
+        return;
+    }
+
+    // Handle message
+    std::string messageStdString(message.data, static_cast<size_t>(message.length));
+    QString messageStr = QString::fromStdString(messageStdString);
+
+    if (messageStr.compare(QLatin1String("new-window")) == 0)
+    {
+        static_cast<void>(getNewWindow());
+    }
+    else
+    {
+        // Try to first get the active window. If we can't get this, we will create a new window
+        MainWindow *activeWin = qobject_cast<MainWindow*>(activeWindow());
+        if (!activeWin)
+        {
+            for (QPointer<MainWindow> &win : m_browserWindows)
+            {
+                if (!win.isNull() && win->hasFocus())
+                {
+                    activeWin = win.data();
+                    break;
+                }
+            }
+        }
+
+        if (!activeWin)
+            activeWin = getNewWindow();
+
+        QStringList urlList = messageStr.split(QChar('\t'), QString::SkipEmptyParts);
+        for (const QString &urlStr : urlList)
+        {
+            QUrl url = QUrl::fromUserInput(urlStr);
+            if (!url.isEmpty() && !url.scheme().isEmpty() && url.isValid())
+            {
+                if (activeWin->currentWebWidget()->isOnBlankPage())
+                    activeWin->loadUrl(url);
+                else
+                    activeWin->openLinkNewTab(url);
+            }
+        }
+    }
+
+    delete[] message.data;
 }
 
 void BrowserApplication::beforeBrowserQuit()

@@ -21,7 +21,7 @@ namespace adblock {
 class AutoFill;
 class BlockedSchemeHandler;
 class BookmarkManager;
-//class BookmarkStore;
+class BrowserIPC;
 class CookieJar;
 class CookieWidget;
 class DownloadManager;
@@ -54,7 +54,7 @@ class BrowserApplication : public QApplication
 
 public:
     /// BrowserApplication constructor
-    BrowserApplication(int &argc, char **argv);
+    explicit BrowserApplication(BrowserIPC *ipc, int &argc, char **argv);
 
     /// BrowserApplication destructor
     ~BrowserApplication();
@@ -111,6 +111,10 @@ protected:
     /// Clears the given history type(s) from the browser's storage within the given {start, end} date-time range
     void clearHistoryRange(HistoryType histType, std::pair<QDateTime, QDateTime> range);
 
+protected:
+    /// Called on a regular interval to check for messages in the IPC channel
+    void timerEvent(QTimerEvent *event) override;
+
 private:
     /// Installs core browser scripts into the script collection
     void installGlobalWebScripts();
@@ -122,7 +126,17 @@ private:
     /// This includes instantiation of request interceptors and custom scheme handlers.
     void setupWebProfiles();
 
+    /// Checks for any unread inter-process messages. This would be empty, or it would
+    /// contain a request to open one or more URLs.
+    void checkBrowserIPC();
+
 private:
+    /// Inter-process communication handler
+    BrowserIPC *m_ipc;
+
+    /// Unique identifier of the timer that is used to check for pending messages in the IPC channel
+    int m_ipcTimerId;
+
     /// Application settings
     Settings *m_settings;
 

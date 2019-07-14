@@ -54,6 +54,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/core/highlighters
     ${CMAKE_SOURCE_DIR}/src/core/history
     ${CMAKE_SOURCE_DIR}/src/core/icons
+    ${CMAKE_SOURCE_DIR}/src/core/ipc
     ${CMAKE_SOURCE_DIR}/src/core/network
     ${CMAKE_SOURCE_DIR}/src/core/search
     ${CMAKE_SOURCE_DIR}/src/core/session

@@ -39,6 +39,7 @@ set(viper_src
     icons/FaviconManager.cpp
     icons/FaviconStore.cpp
     icons/FaviconStoreBridge.cpp
+    ipc/BrowserIPC.cpp
     network/BlockedSchemeHandler.cpp
     network/HttpRequest.cpp
     network/NetworkAccessManager.cpp

@@ -1,5 +1,6 @@
 #include "AppInitSettings.h"
 #include "BrowserApplication.h"
+#include "BrowserIPC.h"
 #include "MainWindow.h"
 #include "SecurityManager.h"
 #include "SchemeRegistry.h"
@@ -142,6 +143,70 @@ int main(int argc, char *argv[])
 
     SchemeRegistry::registerSchemes();
 
+    // Check if any application arguments include URLs
+    std::vector<QUrl> appArgUrls;
+    if (argc > 1)
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            QString arg(argv[i]);
+            QUrl url = QUrl::fromUserInput(arg);
+            if (!url.isEmpty() && !url.scheme().isEmpty() && url.isValid())
+                appArgUrls.push_back(url);
+        }
+    }
+
+    // Check if there is an existing instance of the browser application
+    BrowserIPC ipc;
+    if (ipc.hasExistingInstance())
+    {
+        QString ipcMessage;
+
+        // If appArgUrls is not empty, concatenate the
+        // URLs into a string (length must be < BrowserIPC::BufferLength),
+        // and pass as a single message to existing process.
+        // Otherwise, pass message "new-window"
+        if (!appArgUrls.empty())
+        {
+            const int headerLen = static_cast<int>(sizeof(int));
+            for (size_t i = 0; i < appArgUrls.size(); ++i)
+            {
+                const QUrl &url = appArgUrls.at(i);
+                const QString urlString = url.toString();
+                const bool isLastUrl = i + 1 == appArgUrls.size();
+
+                int additionalLength = urlString.length();
+                if (!isLastUrl)
+                    additionalLength++;
+
+                if (ipcMessage.length() + additionalLength + headerLen > BrowserIPC::BufferLength)
+                    break;
+
+                ipcMessage += urlString;
+                if (!isLastUrl)
+                    ipcMessage += QLatin1Char('\t');
+            }
+        }
+        else
+        {
+            ipcMessage = QLatin1String("new-window");
+        }
+
+        std::string ipcMessageStdString = ipcMessage.toStdString();
+
+        int stringLen = static_cast<int>(ipcMessageStdString.size());
+        size_t ipcBufferLen = ipcMessageStdString.size() + sizeof(int);
+
+        char *rawBuffer = new char[ipcBufferLen];
+        memcpy(rawBuffer, &stringLen, sizeof(int));
+        memcpy(&rawBuffer[sizeof(int)], ipcMessageStdString.c_str(), ipcMessageStdString.size());
+
+        ipc.sendMessage(const_cast<const char*>(rawBuffer), static_cast<int>(ipcBufferLen));
+
+        delete[] rawBuffer;
+        return 0;
+    }
+
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     AppInitSettings initSettings;
 
@@ -170,27 +235,22 @@ int main(int argc, char *argv[])
         argv2[argc2++] = processModelBuffer.data();
     }
 
-    BrowserApplication a(argc2, argv2);
+    BrowserApplication a(&ipc, argc2, argv2);
 #else
     int argc2 = 2;
     char *argv2[] = { argv[0], "--remote-debugging-port=9477" };
-    BrowserApplication a(argc2, argv2);
+    BrowserApplication a(&ipc, argc2, argv2);
 #endif
 
     MainWindow *window = a.getNewWindow();
-    if (argc > 1)
+    if (!appArgUrls.empty())
     {
-        for (int i = 1; i < argc; ++i)
+        for (const QUrl &url : appArgUrls)
         {
-            QString arg(argv[i]);
-            QUrl url = QUrl::fromUserInput(arg);
-            if (!url.isEmpty() && !url.scheme().isEmpty() && url.isValid())
-            {
-                if (window->currentWebWidget()->isOnBlankPage())
-                    window->loadUrl(url);
-                else
-                    window->openLinkNewTab(url);
-            }
+            if (window->currentWebWidget()->isOnBlankPage())
+                window->loadUrl(url);
+            else
+                window->openLinkNewTab(url);
         }
     }
 
