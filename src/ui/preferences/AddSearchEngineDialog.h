@@ -28,7 +28,7 @@ public:
     /// Returns the query URL associated with the search engine
     QString getQueryURL() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user hits the "Ok" button to confirm the addition of a new search engine
     void searchEngineAdded(const QString &name, const QString &queryUrl);
 

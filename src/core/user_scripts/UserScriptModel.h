@@ -67,7 +67,7 @@ public:
     // Remove data:
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
-public slots:
+public Q_SLOTS:
     /// Reloads the script at the given index in the script container
     void reloadScript(int indexRow);
 

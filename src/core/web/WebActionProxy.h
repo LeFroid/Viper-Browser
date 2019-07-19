@@ -20,7 +20,7 @@ public:
     /// Sets the pointer to the active web page
     void setPage(WebPage *page);
 
-private slots:
+private Q_SLOTS:
     /// Called to trigger the web page's WebAction when the main UI's associated
     /// action is triggered
     void triggerOnPage();

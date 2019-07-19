@@ -23,11 +23,11 @@ public:
     /// AddUserScriptDialolg destructor
     ~AddUserScriptDialog();
 
-signals:
+Q_SIGNALS:
     /// Emitted if the user hits the "Ok" button, confirming the creation of a new user script
     void informationEntered(const QString &name, const QString &nameSpace, const QString &description, const QString &version);
 
-private slots:
+private Q_SLOTS:
     /// Called when the "Ok" button is entered, emits the informationEntered(..) signal with script meta-information
     void onAccepted();
 

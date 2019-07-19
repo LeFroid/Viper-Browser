@@ -54,11 +54,11 @@ public:
     /// Returns all of the user scripts associated with the given url
     std::vector<QWebEngineScript> getAllScriptsFor(const QUrl &url);
 
-signals:
+Q_SIGNALS:
     /// Emitted when a user script has been created by the user and can be loaded into the script editor
     void scriptCreated(int scriptIdx);
 
-public slots:
+public Q_SLOTS:
     /**
      * @brief Attempts to download and install the user script from the given URL
      * @param url The location of the user script to be installed
@@ -74,7 +74,7 @@ public slots:
      */
     void createScript(const QString &name, const QString &nameSpace, const QString &description, const QString &version);
 
-private slots:
+private Q_SLOTS:
     /// Listens for any settings changes that affect the user script system
     void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 

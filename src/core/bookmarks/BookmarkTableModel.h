@@ -60,11 +60,11 @@ public:
     /// Returns true if the model is displaying the results of a search operation, false if else
     bool isInSearchMode() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when a folder has been moved. Used so that the BookmarkFolderModel can update itself appropriately
     void movedFolder();
 
-public slots:
+public Q_SLOTS:
     /// Searches for bookmarks with either a page title or domain containing the given string, displaying
     /// the matching results in the model
     void searchFor(const QString &text);

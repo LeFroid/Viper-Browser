@@ -35,11 +35,11 @@ public:
     /// Returns a pointer to the line edit widget (used to acquire focus)
     QLineEdit *getLineEdit();
 
-signals:
+Q_SIGNALS:
     /// Emitted when a text document is aesthetically modified by the text finder
     void pseudoModifiedDocument();
 
-public slots:
+public Q_SLOTS:
     /// Clears the UI labels
     void clearLabels();
 

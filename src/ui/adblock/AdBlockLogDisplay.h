@@ -37,7 +37,7 @@ public:
     /// Shows all log entries in the ad block system
     void showAllLogs();
 
-private slots:
+private Q_SLOTS:
     /// Searches and filters the log table for the string contained in the line edit
     void onSearchTermEntered();
 

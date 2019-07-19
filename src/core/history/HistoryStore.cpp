@@ -352,7 +352,7 @@ bool HistoryStore::hasProperStructure()
 void HistoryStore::setup()
 {
     QSqlQuery query(m_database);
-    if (!query.exec(QLatin1String("CREATE TABLE History(VisitID INTEGER PRIMARY KEY, URL TEXT UNIQUE NOT NULL, Title TEXT, "
+    if (!query.exec(QLatin1String("CREATE TABLE History(VisitID INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT UNIQUE NOT NULL, Title TEXT, "
                                   "URLTypedCount INTEGER DEFAULT 0)")))
     {
         qDebug() << "[Error]: In HistoryStore::setup - unable to create history table. Message: " << query.lastError().text();

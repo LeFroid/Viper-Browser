@@ -60,7 +60,7 @@ public:
     /// Sets the certificate chain to be used by the widget
     void setCertificateChain(const QList<QSslCertificate> &chain);
 
-private slots:
+private Q_SLOTS:
     /// Called when an item in the certificate hierarchy tree view has been selected
     void onCertChainItemSelected(QTreeWidgetItem *item, int column);
 

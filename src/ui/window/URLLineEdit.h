@@ -72,7 +72,7 @@ public:
     /// will not be lost if they go back to the tab
     void tabChanged(WebWidget *newView);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user has requested to load the given url into the active WebWidget
     void loadRequested(const QUrl &url);
 
@@ -82,14 +82,14 @@ signals:
     /// Emitted when the user wants to change the bookmark status of the page they are currently visiting
     void toggleBookmarkStatus();
 
-public slots:
+public Q_SLOTS:
     /// Removes the given view pointer from the map of webviews to user-set text in the line edit
     void removeMappedView(WebWidget *view);
 
     /// Sets the URL to be displayed with a security status icon in the url bar
     void setURL(const QUrl &url);
 
-private slots:
+private Q_SLOTS:
     /// Handles the returnPressed event - checks for a valid URL or shortcut to a URL, and emits the loadRequested(const QUrl &) signal
     void onInputEntered();
 

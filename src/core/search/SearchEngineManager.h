@@ -65,7 +65,7 @@ public:
     /// Loads search engine information from the given file, including information such as the default engine
     void loadSearchEngines(const QString &fileName);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the default search engine has been changed to the given name
     void defaultEngineChanged(const QString &name);
 
@@ -75,7 +75,7 @@ signals:
     /// Emitted when a search engine has been removed from the collection
     void engineRemoved(const QString &name);
 
-public slots:
+public Q_SLOTS:
     /// Adds a search engine to the collection, with the given reference name and a search URL
     void addSearchEngine(const QString &name, const QString &query);
 

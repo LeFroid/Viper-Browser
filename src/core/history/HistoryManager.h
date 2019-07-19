@@ -106,14 +106,14 @@ public:
     /// determine which web pages' thumbnails to retrieve for the "New Tab" page
     void loadMostVisitedEntries(int limit, std::function<void(std::vector<WebPageInformation>)> callback);
 
-signals:
+Q_SIGNALS:
     /// Emitted when a page has been visited
     void pageVisited(const QUrl &url, const QString &title);
 
     /// Emitted when some or all of the history collection has been erased
     void historyCleared();
 
-private slots:
+private Q_SLOTS:
     /// Listens for any settings changes that affect the history manager
     void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 

@@ -86,7 +86,7 @@ protected:
     /// Called on a regular interval to prune older log entries
     void timerEvent(QTimerEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Removes any entries from the logs that are more than 30 minutes old
     void pruneLogs();
 

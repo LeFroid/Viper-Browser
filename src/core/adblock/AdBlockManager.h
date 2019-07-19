@@ -87,7 +87,7 @@ public:
     /// Returns the content type of the resource with the given key. Returns an empty string if the key is not found
     QString getResourceContentType(const QString &key) const;
 
-public slots:
+public Q_SLOTS:
     /// Attempt to update ad block subscriptions
     void updateSubscriptions();
 
@@ -131,7 +131,7 @@ protected:
     /// Loads active subscriptions
     void loadSubscriptions();
 
-private slots:
+private Q_SLOTS:
     /// Loads the uBlock Origin-style resource file into the resource map
     void loadResourceFile(const QString &path);
 

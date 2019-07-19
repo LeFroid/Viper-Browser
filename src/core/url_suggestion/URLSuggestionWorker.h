@@ -39,7 +39,7 @@ public:
     /// (namely, the \ref HistoryManager , \ref BookmarkManager , and \ref FaviconStore )
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
-signals:
+Q_SIGNALS:
     /// Emitted when a suggestion search is finished, passing a reference to each URL matching the input pattern
     void finishedSearch(const std::vector<URLSuggestion> &results);
 

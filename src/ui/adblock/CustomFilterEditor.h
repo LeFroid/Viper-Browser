@@ -27,7 +27,7 @@ public:
     /// Loads the user blocking filters into the editor
     void loadUserFilters();
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user-specified filters have been modified and the editor is closed or is closing.
     /// Will result in a reload of the user's blocking filters
     void filtersModified();
@@ -36,7 +36,7 @@ signals:
     /// in the \ref AdBlockManager registering a new subscription for user-set filter rules
     void createUserSubscription();
 
-private slots:
+private Q_SLOTS:
     /// Toggles the visibility and focus of the find text widget
     void toggleFindTextWidget();
 

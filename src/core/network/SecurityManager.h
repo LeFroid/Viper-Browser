@@ -48,11 +48,11 @@ public:
     /// \ref CookieJar , \ref HistoryManager, and \ref NetworkAccessManager
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
-public slots:
+public Q_SLOTS:
     /// Shows a dialog containing the certificate information (or lack thereof) for the host of the given url
     void showSecurityInfo(const QUrl &url);
 
-private slots:
+private Q_SLOTS:
     /// Called when any network reply has been received - checks if reply is associated with current tab,
     /// if connection is over SSL the certificate's validity will be confirmed
     void onNetworkReply(QNetworkReply *reply);

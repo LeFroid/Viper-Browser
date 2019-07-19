@@ -46,7 +46,7 @@ public:
     /// Loads all history items matching the current filter, as set in the list widget
     void loadHistory();
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user requests to open the given link in the active browser tab
     void openLink(const QUrl &url);
 
@@ -60,7 +60,7 @@ protected:
     /// Called to adjust the proportions of the columns belonging to the table view
     virtual void resizeEvent(QResizeEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Called when a context menu is requested within the table view
     void onContextMenuRequested(const QPoint &pos);
 

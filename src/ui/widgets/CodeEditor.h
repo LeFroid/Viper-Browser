@@ -77,7 +77,7 @@ protected:
     /// Called when the size of the editor has been changed
     void resizeEvent(QResizeEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Called when the block count has changed. Updates the line count area size as needed
     void onBlockCountChanged(int newBlockCount);
 

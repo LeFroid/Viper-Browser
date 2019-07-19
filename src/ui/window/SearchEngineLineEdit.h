@@ -29,11 +29,11 @@ public:
     /// Sets the pointer to the favicon manager
     void setFaviconManager(FaviconManager *faviconManager);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user enters a search term and the current browser tab should load the given request
     void requestPageLoad(const HttpRequest &request);
 
-private slots:
+private Q_SLOTS:
     /// Sets the current search engine to the engine that is mapped to the given name
     void setSearchEngine(const QString &name);
 

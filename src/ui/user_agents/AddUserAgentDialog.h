@@ -39,15 +39,15 @@ public:
     /// Clears the items in the user agent category combo box
     void clearAgentCategories();
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user hits the "Ok" button to confirm the addition of a new user agent
     void userAgentAdded();
 
-public slots:
+public Q_SLOTS:
     /// Adds a new category to the list of UA categories the user can choose from
     void addAgentCategory(const QString &name);
 
-private slots:
+private Q_SLOTS:
     /// Shows a dialog to create a new category of user agents
     void showNewCategoryDialog();
 

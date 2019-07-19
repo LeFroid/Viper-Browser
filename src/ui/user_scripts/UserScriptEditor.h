@@ -33,11 +33,11 @@ public:
      */
     void setScriptInfo(const QString &name, const QString &code, const QString &filePath, int rowIndex);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user script has been modified and the editor has closed. Will result in the script being reloaded
     void scriptModified(int rowIndex);
 
-private slots:
+private Q_SLOTS:
     /// Toggles the visibility and focus of the find text widget
     void toggleFindTextWidget();
 

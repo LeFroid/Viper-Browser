@@ -38,7 +38,7 @@ protected:
     /// to bind its actions to the appropriate slots
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
-public slots:
+public Q_SLOTS:
     /// Opens a window that allows the user to manage the advertisement blocking subscriptions and filters
     void openAdBlockManager();
 

@@ -26,7 +26,7 @@ public:
     /// Widget destructor
     ~AutoFillCredentialsView();
 
-private slots:
+private Q_SLOTS:
     /// Called when one or more rows of data are to be removed from the \ref CredentialStore
     void onClickRemoveSelection();
 

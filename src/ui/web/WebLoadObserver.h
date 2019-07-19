@@ -19,7 +19,7 @@ public:
     /// Constructs the load observer given a pointer to the history manager and the observer's parent
     explicit WebLoadObserver(HistoryManager *historyManager, WebWidget *parent);
 
-private slots:
+private Q_SLOTS:
     /// Handles the load finished event - notifying the history manager if the load was a success
     void onLoadFinished(bool ok);
 

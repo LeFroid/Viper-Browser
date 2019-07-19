@@ -32,7 +32,7 @@ protected:
     /// Called when the widget is resized - resizes the columns of the table view
     void resizeEvent(QResizeEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Called when a subscription item in the table has been clicked
     void onItemClicked(const QModelIndex &index);
 

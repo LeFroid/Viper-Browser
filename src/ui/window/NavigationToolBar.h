@@ -43,7 +43,7 @@ public:
     /// Sets the minimum heights for the toolbar and its sub-widgets
     void setMinHeights(int size);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the ad block button is clicked
     void clickedAdBlockButton();
 
@@ -61,7 +61,7 @@ private:
     /// Returns a pointer to the toolbar's parent window
     MainWindow *getParentWindow();
 
-private slots:
+private Q_SLOTS:
     /// Handles the tab change event that is sent by the \ref BrowserTabWidget
     void onTabChanged(int index);
 

@@ -36,7 +36,7 @@ public:
      */
     void setCurrentPageBookmarked(bool state);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user wants to open the bookmark management widget
     void manageBookmarkRequest();
 
@@ -49,7 +49,7 @@ signals:
     /// Emitted when the user wants to remove the current tab's page to their bookmark collection
     void removePageFromBookmarks(bool showDialog);
 
-private slots:
+private Q_SLOTS:
     /// Clears the menu, creates the actions belonging to the bookmark menu, and sets the behavior of each action
     void resetMenu();
 

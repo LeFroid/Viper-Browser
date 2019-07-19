@@ -34,7 +34,7 @@ public:
     /// Destructor
     ~WebSettings();
 
-private slots:
+private Q_SLOTS:
     /// Listens for any settings changes that affect the web configuration
     void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 

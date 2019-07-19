@@ -22,10 +22,11 @@ class URLSuggestionListModel : public QAbstractListModel
 public:
     enum Role
     {
-        Favicon  = Qt::UserRole + 1,
-        Title    = Qt::UserRole + 2,
-        Link     = Qt::UserRole + 3,
-        Bookmark = Qt::UserRole + 4
+        Favicon   = Qt::UserRole + 1,
+        Title     = Qt::UserRole + 2,
+        Link      = Qt::UserRole + 3,
+        Bookmark  = Qt::UserRole + 4,
+        MatchedBy = Qt::UserRole + 5
     };
 
 public:
@@ -42,7 +43,7 @@ public:
     /// Returns true if the rows were successfully removed, otherwise returns false.
     bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
 
-public slots:
+public Q_SLOTS:
     /// Sets the suggested items to be displayed in the model
     void setSuggestions(std::vector<URLSuggestion> suggestions);
 

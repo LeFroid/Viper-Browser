@@ -84,7 +84,7 @@ public:
     /// MainWindow if found, or a nullptr otherwise.
     MainWindow *getWindowById(WId windowId) const;
 
-public slots:
+public Q_SLOTS:
     /// Spawns and returns the pointer to a new browser window
     MainWindow *getNewWindow();
 
@@ -94,7 +94,7 @@ public slots:
     /// Opens the given url in the active browser window
     void openUrl(const QUrl &url);
 
-private slots:
+private Q_SLOTS:
     /// Called when the aboutToQuit signal is emitted. If the user has enabled the session restore feature, their
     /// current windows and tabs will be saved so they can be opened at the start of the next browsing session
     void beforeBrowserQuit();

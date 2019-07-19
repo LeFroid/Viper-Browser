@@ -47,7 +47,7 @@ public:
     /// web page that triggered the dialog to be shown
     void alignAndShow(const QRect &windowGeom);
 
-signals:
+Q_SIGNALS:
     /// Tells the \ref AutoFill manager to save the given credentials
     void saveCredentials(const WebCredentials &credentials);
 
@@ -57,7 +57,7 @@ signals:
     /// Tells the \ref AutoFill manager to delete the given credentials
     void removeCredentials(const WebCredentials &credentials);
 
-private slots:
+private Q_SLOTS:
     /// Called when the save credentials button is triggered
     void onSaveAction();
 

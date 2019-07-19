@@ -30,7 +30,7 @@ public:
     /// Sets the web page from which this widget extracts the source into its code editor view
     void setWebPage(WebPage *page);
 
-private slots:
+private Q_SLOTS:
     /// Toggles the visibility of the find text widget group at the bottom of the window
     void toggleFindTextWidget();
 

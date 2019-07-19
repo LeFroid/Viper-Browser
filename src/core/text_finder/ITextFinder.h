@@ -22,7 +22,7 @@ public:
     /// text matches are still highlighted.
     virtual void stopSearching() = 0;
 
-public slots:
+public Q_SLOTS:
     /// Finds the next occurrence (if any) of the current search term
     virtual void findNext() = 0;
 
@@ -39,7 +39,7 @@ public slots:
     /// Handles a search term change event
     virtual void searchTermChanged(const QString &text) = 0;
 
-signals:
+Q_SIGNALS:
     /// Notifies the \ref FindTextWidget that it should display the given text as the
     /// result of a search operation (ex: "Phrase not found", "2 of 7 matches", "", etc)
     void showMatchResultText(const QString &text);

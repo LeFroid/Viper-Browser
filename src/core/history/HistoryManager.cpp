@@ -6,11 +6,8 @@
 #include <algorithm>
 #include <array>
 #include <QBuffer>
-#include <QCryptographicHash>
 #include <QDateTime>
-#include <QFuture>
 #include <QIcon>
-#include <QImage>
 #include <QRegularExpression>
 #include <QSqlError>
 #include <QSqlQuery>

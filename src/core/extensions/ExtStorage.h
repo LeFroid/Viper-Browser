@@ -26,7 +26,7 @@ public:
     /// Extension storage destructor
     virtual ~ExtStorage();
 
-public slots:
+public Q_SLOTS:
     /**
      * @brief Searches the caller's storage region
      * @param extUID Unique identifier of the calling extension

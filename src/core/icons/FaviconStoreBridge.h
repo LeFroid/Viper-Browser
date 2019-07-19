@@ -22,7 +22,7 @@ public:
     /// Destructor
     ~FaviconStoreBridge();
 
-public slots:
+public Q_SLOTS:
     /// Called when the parent web page has finished loading and has located the URL of its favicon
     void updateIconUrl(const QString &faviconUrl);
 

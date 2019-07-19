@@ -36,7 +36,7 @@ public:
     /// Returns true if the GPU should be disabled, false if else
     bool isGpuDisabled() const;
 
-private slots:
+private Q_SLOTS:
     /// Changes the text next to the checkbox depending on the given value
     void onGpuCheckBoxChanged(bool value);
 

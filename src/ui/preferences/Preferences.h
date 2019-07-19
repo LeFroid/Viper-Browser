@@ -28,7 +28,7 @@ public:
     /// Preferences destructor
     ~Preferences();
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user requests to clear their browsing history.
     void clearHistoryRequested();
 
@@ -41,7 +41,7 @@ signals:
     /// Emitted when the user wants to view the website logins that have been forbidden from being saved
     void viewAutoFillExceptionsRequested();
 
-private slots:
+private Q_SLOTS:
     /// Called when
     void onCloseWithSave();
 

@@ -33,7 +33,7 @@ private:
     /// Loads the exempt host information into the list widget
     void loadHosts();
 
-private slots:
+private Q_SLOTS:
     /// Called when the "add website" button is clicked
     void onAddHostButtonClicked();
 

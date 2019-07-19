@@ -34,7 +34,7 @@ protected:
     /// Called to adjust the proportions of the columns belonging to the table views
     virtual void resizeEvent(QResizeEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Searches for any subset of cookies that match a search parameter given by the user
     void searchCookies();
 

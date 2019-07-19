@@ -46,7 +46,7 @@ public:
     /// Called by the URL line edit when its own size has changed, sets the minimum width of this widget to that of the URL widget
     void needResizeWidth(int width);
 
-signals:
+Q_SIGNALS:
     /// Emitted when an item in the suggestion list with the given URL is chosen
     void urlChosen(const QUrl &url);
 
@@ -56,7 +56,7 @@ signals:
      */
     void noSuggestionChosen(const QString &originalText);
 
-private slots:
+private Q_SLOTS:
     /// Called when an item in the suggestion list at the given index is clicked
     void onSuggestionClicked(const QModelIndex &index);
 

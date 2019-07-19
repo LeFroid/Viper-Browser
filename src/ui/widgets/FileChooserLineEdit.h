@@ -22,7 +22,7 @@ public:
     /// Sets the mode of the dialog associated with the browse button
     void setFileMode(QFileDialog::FileMode mode);
 
-private slots:
+private Q_SLOTS:
     /// Called when the "Browse" button is clicked, spawns a file/folder chooser dialog
     void onClickBrowse();
 

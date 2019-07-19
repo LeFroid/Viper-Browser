@@ -70,7 +70,7 @@ public:
     /// some tabs will take focus when opened.
     void setAllTabsOpenInBackground(bool value);
 
-private slots:
+private Q_SLOTS:
     /// Toggles the active/inactive state of the line edit associated with the download directory
     void toggleLineEditDownloadDir();
 

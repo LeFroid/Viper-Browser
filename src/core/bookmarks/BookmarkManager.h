@@ -109,7 +109,7 @@ public:
     /// Sets the URL of a bookmark in the database
     void setBookmarkURL(BookmarkNode *bookmark, const QUrl &url);
 
-signals:
+Q_SIGNALS:
     /// Emitted when one of the properties of the given bookmark has changed
     void bookmarkChanged(const BookmarkNode *node);
 
@@ -136,7 +136,7 @@ protected:
     /// Waits on any asynchronous resetBookmarkList() operations
     void waitToFinishList();
 
-private slots:
+private Q_SLOTS:
     /// Runs on a regular interval until the root bookmark node has been populated
     void checkIfLoaded();
 

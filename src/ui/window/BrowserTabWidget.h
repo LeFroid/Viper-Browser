@@ -43,7 +43,7 @@ public:
     /// Returns true if the tab at the given index is pinned, false if else
     bool isTabPinned(int tabIndex) const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when the current tab's web page is about to hibernate
     void aboutToHibernate();
 
@@ -74,7 +74,7 @@ signals:
     /// Emitted when the active tab / web view has changed
     void viewChanged(int index);
 
-public slots:
+public Q_SLOTS:
     /// Sets the tab at the given index to be pinned if value is true, otherwise it will be unpinned
     void setTabPinned(int index, bool value);
 
@@ -143,7 +143,7 @@ public slots:
     /// Decreases the zoom factor of the active tab's \ref WebView by 10% of the base value
     void zoomOutCurrentView();
 
-private slots:
+private Q_SLOTS:
     /// Called when the current tab has been changed
     void onCurrentChanged(int index);
 

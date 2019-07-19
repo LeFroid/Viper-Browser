@@ -51,7 +51,7 @@ public:
     /// Returns a list of each row and whether or not the row is checked
     const QList<int> &getCheckedStates() const;
 
-public slots:
+public Q_SLOTS:
     /// Searches for cookies with either a name or domain containing the given string, displaying
     /// the matching subset of cookies in the model
     void searchFor(const QString &text);
@@ -59,7 +59,7 @@ public slots:
     /// Reloads the local copy of the browser's cookies
     void loadCookies();
 
-private slots:
+private Q_SLOTS:
     /// Called when the cookies have been erased
     void eraseCookies();
 

@@ -66,7 +66,7 @@ bool BrowserIPC::hasMessage()
         return false;
 
     const int messageLen = *(reinterpret_cast<const int*>(data));
-    return messageLen > 0;
+    return messageLen > 0 && messageLen < BufferLength;
 }
 
 BrowserMessage BrowserIPC::getMessage()
@@ -88,7 +88,7 @@ BrowserMessage BrowserIPC::getMessage()
     }
 
     const int expectedLength = *(reinterpret_cast<const int*>(data));
-    if (expectedLength < 1)
+    if (expectedLength < 1 || expectedLength > BufferLength)
     {
         qDebug() << "BrowserIPC::getMessage() - invalid expected length";
         m_semaphore.release();

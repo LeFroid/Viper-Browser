@@ -30,7 +30,7 @@ protected:
     /// Called to adjust the proportions of the columns belonging to the table views
     virtual void resizeEvent(QResizeEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Called when an item in the table view is clicked. This enables the edit and delete buttons
     void onItemClicked(const QModelIndex &index);
 

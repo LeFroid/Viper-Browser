@@ -31,7 +31,7 @@ public:
     /// Returns the current cookie's data
     const QNetworkCookie &getCookie() const;
 
-private slots:
+private Q_SLOTS:
     /// Called when the cookie expiration type combo box value has changed
     void onExpireTypeChanged(int index);
 

@@ -57,7 +57,7 @@ public:
     /// Executes the given JavaScript code (string form), and waits until the result can be returned
     QVariant runJavaScriptBlocking(const QString &scriptSource);
 
-signals:
+Q_SIGNALS:
     /// Emitted when a print request is made from the web page
     void printPageRequest();
 
@@ -74,7 +74,7 @@ protected:
     /// Creates a new web page in a new window, new tab or as a dialog, depending on the given type, and returns a pointer to the page
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
 
-private slots:
+private Q_SLOTS:
     /// Opens an authentication dialog when requested by the given URL
     void onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator);
 

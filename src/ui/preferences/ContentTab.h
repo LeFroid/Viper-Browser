@@ -92,7 +92,7 @@ public:
     /// Sets the size of the browser's fixed font
     void setFixedFontSize(int size);
 
-public slots:
+public Q_SLOTS:
     /**
      * @brief toggleAdBlock Toggles the setting for using an advertisement blocker when loading content
      * @param value If true, the ad blocker will be enabled. Otherwise it will be disabled

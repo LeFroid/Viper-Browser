@@ -49,7 +49,7 @@ public:
      */
     void updateIcon(const QUrl &iconUrl, const QUrl &pageUrl, const QIcon &pageIcon);
 
-private slots:
+private Q_SLOTS:
     /// Called after the request for a favicon has been completed
     void onReplyFinished(QNetworkReply *reply);
 

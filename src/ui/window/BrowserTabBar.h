@@ -30,7 +30,7 @@ public:
     /// Returns a pointer to the new tab button on the tab bar
     QToolButton *getNewTabButton() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user chooses to duplicate the tab at the given index
     void duplicateTabRequest(int index);
 
@@ -43,11 +43,11 @@ signals:
     /// Emitted when the pinned state of a tab at the given index has changed (i.e., from pin -> unpin or unpin -> pin)
     void tabPinned(int index, bool value);
 
-public slots:
+public Q_SLOTS:
     /// Sets the tab at the given index to be pinned if value is true, otherwise it will be unpinned
     void setTabPinned(int index, bool value);
 
-private slots:
+private Q_SLOTS:
     /// Called when the next tab shortcut is activated. Switches to the next tab, or cycles back to the first tab if already at the last tab
     void onNextTabShortcut();
 

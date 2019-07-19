@@ -45,21 +45,21 @@ public:
     /// Returns a const reference to the set of exempt third party hosts that can set cookies.
     const QSet<URL> &getExemptThirdPartyHosts() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when a new cookie has been added to the jar
     void cookieAdded();
 
     /// Emitted when all the cookies have been erased
     void cookiesRemoved();
 
-public slots:
+public Q_SLOTS:
     /// Adds an exemption for a third party host to be able to store cookies when the third party filter is enabled. Does nothing if filtering is diabled
     void addThirdPartyExemption(const QUrl &hostUrl);
 
     /// Removes an exemption for a third party host to be able to store cookies when the third party filter is enabled. Does nothing if filtering is diabled
     void removeThirdPartyExemption(const QUrl &hostUrl);
 
-private slots:
+private Q_SLOTS:
     /// Called when a cookie has been added to the cookie store
     void onCookieAdded(const QNetworkCookie &cookie);
 

@@ -74,7 +74,7 @@ public:
     /// Returns true if the given URL is in the collection of favorite pages, false if it wasn't found
     bool isPresent(const QUrl &url) const;
 
-public slots:
+public Q_SLOTS:
     /// Returns a list of the user's favorite web pages. The QVariants in the list may be converted to \ref WebPageInformation
     QVariantList getFavorites() const;
 

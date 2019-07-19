@@ -29,7 +29,7 @@ public:
     /// Loads user agent information from the \ref UserAgentManager into the tree view, clearing any pre-existing tree items
     void loadUserAgents();
 
-private slots:
+private Q_SLOTS:
     /// Spawns a dialog which allows the user to add a new category of user agents
     void addCategory();
 

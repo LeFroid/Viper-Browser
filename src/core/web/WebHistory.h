@@ -90,11 +90,11 @@ public:
     /// Saves the web page history, returning it as a byte array
     QByteArray save() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when any of the history associated with a page has changed
     void historyChanged();
 
-public slots:
+public Q_SLOTS:
     /// Moves the page back to the page associated with the previous history entry
     void goBack();
 

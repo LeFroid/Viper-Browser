@@ -35,7 +35,7 @@ protected:
     /// application settings
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
 
-public slots:
+public Q_SLOTS:
     /// Resets the items belonging to the user agent menu
     void resetItems();
 

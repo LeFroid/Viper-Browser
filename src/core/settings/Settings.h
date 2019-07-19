@@ -47,7 +47,7 @@ public:
     /// Returns true if the settings have been created in this session, false if else
     bool firstRun() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted whenever a setting is changed to the given value
     void settingChanged(BrowserSetting setting, const QVariant &value);
 

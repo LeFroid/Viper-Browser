@@ -43,11 +43,11 @@ public:
     /// Clears the history entries from the menu
     void clearItems();
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user activates a history item on the menu, requesting a page load for the given url
     void loadUrl(const QUrl &url);
 
-private slots:
+private Q_SLOTS:
     /// Resets the contents of the menu to the most recently visited items
     void resetItems();
 

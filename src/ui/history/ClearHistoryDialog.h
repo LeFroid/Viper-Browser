@@ -34,7 +34,7 @@ public:
     /// Returns a pair { start date, end date } of the user-set time range to be clear, so long as the time range option is set to CUSTOM_RANGE
     std::pair<QDateTime, QDateTime> getCustomTimeRange() const;
 
-private slots:
+private Q_SLOTS:
     /// Toggles the details list widget display
     void toggleDetails();
 

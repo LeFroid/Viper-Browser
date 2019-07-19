@@ -44,7 +44,7 @@ public:
      */
     void onFormSubmitted(WebPage *page, const QString &pageUrl, const QString &username, const QString &password, const QMap<QString, QVariant> &formData);
 
-public slots:
+public Q_SLOTS:
     /// Checks for any saved login information for the URL associated with the web page
     /// that triggered this slot, completing any forms found on the page if auto fill is enabled
     void onPageLoaded(bool ok);
@@ -53,11 +53,11 @@ protected:
     /// Returns a list of all credentials that are stored in the system
     std::vector<WebCredentials> getAllCredentials();
 
-protected slots:
+protected Q_SLOTS:
     /// Removes the given credentials from the \ref CredentialStore
     void removeCredentials(const WebCredentials &credentials);
 
-private slots:
+private Q_SLOTS:
     /// Saves the given credentials in the \ref CredentialStore
     void saveCredentials(const WebCredentials &credentials);
 

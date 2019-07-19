@@ -46,7 +46,7 @@ protected:
     /// Called to adjust the proportions of the columns belonging to the table view
     void resizeEvent(QResizeEvent *event) override;
 
-signals:
+Q_SIGNALS:
     /// Signal for the browser to open a bookmark onto the current web page
     void openBookmark(const QUrl &link);
 
@@ -56,7 +56,7 @@ signals:
     /// Signal for the browser to open a bookmark into a new window
     void openBookmarkNewWindow(const QUrl &link);
 
-private slots:
+private Q_SLOTS:
     /// Creates a context menu for the table view at the position of the cursor
     void onBookmarkContextMenu(const QPoint &pos);
 

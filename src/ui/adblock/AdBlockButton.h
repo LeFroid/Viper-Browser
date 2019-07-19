@@ -30,7 +30,7 @@ public:
     /// Sets the pointer to the application-level settings handler
     void setSettings(Settings *settings);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user wants to enable or disable the ad block system
     void toggleAdBlockEnabledRequest();
 
@@ -40,7 +40,7 @@ signals:
     /// Emitted when the user requests to view the ad block system logs
     void viewLogsRequest();
 
-public slots:
+public Q_SLOTS:
     /// Updates the region of the button's icon containing the number of ads being blocked on the active page
     void updateCount();
 

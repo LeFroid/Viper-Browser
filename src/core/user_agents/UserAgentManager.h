@@ -66,11 +66,11 @@ protected:
     /// Called when the \ref UserAgentsWindow is finished saving changes to user agent values, so that the updateUserAgents() signal may be emitted
     void modifyWindowFinished();
 
-signals:
+Q_SIGNALS:
     /// Emitted when the map of user agents has changed, so that any UI elements using user agent information may be updated
     void updateUserAgents();
 
-public slots:
+public Q_SLOTS:
     /// Shows the "Add an User Agent" dialog
     void addUserAgent();
 
@@ -80,7 +80,7 @@ public slots:
     /// Shows the window used for modifying user agents
     void modifyUserAgents();
 
-private slots:
+private Q_SLOTS:
     /// Called when the "Add an User Agent" dialog has been closed and the user confirms the addition of a new agent
     void onUserAgentAdded();
 

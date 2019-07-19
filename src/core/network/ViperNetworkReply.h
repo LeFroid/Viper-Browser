@@ -31,7 +31,7 @@ protected:
      */
     qint64 readData(char *data, qint64 maxSize) override;
 
-private slots:
+private Q_SLOTS:
     /// Called when the reply is finished due to a read error
     void errorFinished();
 

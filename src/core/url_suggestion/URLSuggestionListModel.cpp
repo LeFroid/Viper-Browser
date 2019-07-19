@@ -25,6 +25,8 @@ QVariant URLSuggestionListModel::data(const QModelIndex &index, int role) const
         return item.URL;
     else if (role == Role::Bookmark)
         return item.IsBookmark;
+    else if (role == Role::MatchedBy)
+        return static_cast<int>(item.Type);
 
     return QVariant();
 }

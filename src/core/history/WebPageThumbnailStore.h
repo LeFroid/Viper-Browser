@@ -42,7 +42,7 @@ public:
     /// as a QImage if found, or returning a null pixmap if it could not be found.
     QImage getThumbnail(const QUrl &url);
 
-public slots:
+public Q_SLOTS:
     /// Handles the loadFinished event which is emitted by a \ref WebWidget
     void onPageLoaded(bool ok);
 

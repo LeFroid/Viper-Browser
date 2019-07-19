@@ -53,7 +53,7 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
-signals:
+Q_SIGNALS:
     /// Emitted when one or more bookmarks are about to be dropped from one folder into another, so that the \ref BookmarkTableModel can update its data
     void beginMovingBookmarks();
 

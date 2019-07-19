@@ -25,11 +25,11 @@ public:
     explicit InternalDownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, bool writeOverExisting, QObject *parent = nullptr);
     ~InternalDownloadItem();
 
- signals:
+ Q_SIGNALS:
     /// Emitted when the download has successfully completed
     void downloadFinished(const QString &filePath);
 
-private slots:
+private Q_SLOTS:
     /// Called when the download is ready to be read onto the disk
     void onReadyRead();
 

@@ -67,7 +67,7 @@ public:
     /// Returns a pointer to the current web widget
     WebWidget *currentWebWidget() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when the window is about to be closed
     void aboutToClose();
 
@@ -94,7 +94,7 @@ private:
     /// Initializes the widgets belonging to the status bar
     void setupStatusBar();
 
-public slots:
+public Q_SLOTS:
     /// Called when the active tab has changed
     void onTabChanged(int index);
 
@@ -131,7 +131,7 @@ public slots:
     /// Shows the find text widget for the web view, if currently hidden
     void onFindTextAction();
 
-protected slots:
+protected Q_SLOTS:
     /// Called when the bookmark icon is clicked by the user
     void onClickBookmarkIcon();
 
@@ -150,7 +150,7 @@ protected slots:
     /// Opens and/or creates the web inspector, set to the current page
     void openInspector();
 
-private slots:
+private Q_SLOTS:
     /// Checks if the page on the active tab is bookmarked, setting the appropriate action in
     /// the bookmark menu after checking the database
     void checkPageForBookmark();

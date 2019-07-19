@@ -36,11 +36,11 @@ public:
     /// etc), false otherwise
     bool isFinished() const;
 
-public slots:
+public Q_SLOTS:
     /// Cancels the download
     void cancel();
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user requests the download item to be removed from the visible downloads list
     void removeFromList();
 
@@ -48,7 +48,7 @@ protected:
     /// Event handler for context menu requests
     void contextMenuEvent(QContextMenuEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Called when progress has been made in the downloading of this item
     void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
 

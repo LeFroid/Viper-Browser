@@ -20,7 +20,7 @@ public:
     explicit SearchTab(QWidget *parent = 0);
     ~SearchTab();
 
-private slots:
+private Q_SLOTS:
     /// Called when the default search engine has changed to the item in the combo box at the given index
     void onDefaultEngineChanged(int index);
 

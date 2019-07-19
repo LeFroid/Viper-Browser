@@ -68,7 +68,7 @@ public:
     /// Returns a thumbnail of the current page, or a null QPixmap if the thumbnail could not be obtained
     const QPixmap &getThumbnail();
 
-public slots:
+public Q_SLOTS:
     /// Resets the zoom factor to its base value
     void resetZoom();
 
@@ -78,7 +78,7 @@ public slots:
     /// Decreases the zoom factor of the view by 10% of the base value
     void zoomOut();
 
-private slots:
+private Q_SLOTS:
     /// Called when the page has requested fullscreen mode
     void onFullScreenRequested(QWebEngineFullScreenRequest request);
 
@@ -119,7 +119,7 @@ protected:
     /// substituted for the coordinates given by parameter pos, scaled to the page's zoom factor
     QString getContextMenuScript(const QPoint &pos);
 
-signals:
+Q_SIGNALS:
     /// Called when the user requests to open a link in the current web view / tab
     void openRequest(const QUrl &url);
 

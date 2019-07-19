@@ -25,7 +25,7 @@ public:
     /// AutoFillBridge destructor
     ~AutoFillBridge();
 
-public slots:
+public Q_SLOTS:
     /**
      * @brief Triggered by a \ref WebPage when a form was submitted
      * @param pageUrl The URL of the page containing the form

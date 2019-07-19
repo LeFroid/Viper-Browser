@@ -48,7 +48,7 @@ public:
     /// Returns true if the setting to pass a 'Do Not Track' header is enabled, false if disabled
     bool isDoNotTrackEnabled() const;
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user requests to clear their browsing history.
     void clearHistoryRequested();
 
@@ -61,7 +61,7 @@ signals:
     /// Emitted when the user wants to view the website logins that have been forbidden from being saved
     void viewAutoFillExceptionsRequested();
 
-public slots:
+public Q_SLOTS:
     /// Sets the checkbox state representing whether or not the AutoFill system is enabled (if value = true)
     void setAutoFillEnabled(bool value);
 
@@ -83,7 +83,7 @@ public slots:
     /// otherwise will not send any DNT header
     void setDoNotTrackEnabled(bool value);
 
-private slots:
+private Q_SLOTS:
     /// Called when the push button to manage third party cookie exceptions is clicked
     void onManageCookieExceptionsClicked();
 

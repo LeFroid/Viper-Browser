@@ -121,7 +121,7 @@ public:
     /// Event filter
     bool eventFilter(QObject *watched, QEvent *event) override;
 
-public slots:
+public Q_SLOTS:
     /// Reloads the current page
     void reload();
 
@@ -135,7 +135,7 @@ public slots:
      */
     void setHibernation(bool on);
 
-signals:
+Q_SIGNALS:
     /// Emitted when the widget is about to go into hibernation state
     void aboutToHibernate();
 
@@ -188,7 +188,7 @@ protected:
     /// Handles mouse press events when the widget is in hibernate mode, otherwise forwards the event to the appropriate handler
     void mousePressEvent(QMouseEvent *event) override;
 
-private slots:
+private Q_SLOTS:
     /// Shows the context menu on the web page
     void showContextMenuForView();
 

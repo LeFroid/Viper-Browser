@@ -31,7 +31,7 @@ public:
     /// Returns the recommended minimum size of this widget
     QSize minimumSizeHint() const override;
 
-signals:
+Q_SIGNALS:
     /// Emitted when the user requests to load a bookmark onto the active webview
     void loadBookmark(const QUrl &url);
 
@@ -41,7 +41,7 @@ signals:
     /// Emitted when the user requests to load a bookmark onto a new tab
     void loadBookmarkNewWindow(const QUrl &url);
 
-private slots:
+private Q_SLOTS:
     /// Refreshes the items belonging to the bookmark bar
     void refresh();
 

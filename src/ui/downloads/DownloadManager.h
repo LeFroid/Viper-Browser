@@ -42,7 +42,7 @@ public:
     /// Sets the network access manager used for downloading content
     void setNetworkAccessManager(NetworkAccessManager *manager);
 
-public slots:
+public Q_SLOTS:
     /// Clears all downloads from the list
     void clearDownloads();
 

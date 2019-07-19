@@ -38,7 +38,7 @@ public:
     /// to view this information in another dialog
     void setWebsite(const QUrl &url, const QString &host, const QList<QSslCertificate> &chain = QList<QSslCertificate>());
 
-private slots:
+private Q_SLOTS:
     /// Displays the cookie widget, showing all cookies associated with the website being viewed
     void showCookieWidget();
 
