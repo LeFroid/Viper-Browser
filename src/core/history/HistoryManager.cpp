@@ -84,21 +84,30 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
         emit historyCleared();
     });
 
+    auto visitRemover = [&range](VisitEntry v){
+        return v >= range.first && v <= range.second;
+    };
+
     for (auto it = m_historyItems.begin(); it != m_historyItems.end();)
     {
-        std::vector<VisitEntry> &visits = it->m_visits;
-        visits.erase(std::remove_if(visits.begin(), visits.end(), [&range](VisitEntry v){
-            return v >= range.first && v <= range.second;
-        }), visits.end());
+        URLRecord &record = it->second;
+        std::vector<VisitEntry> &visits = record.m_visits;
+        visits.erase(std::remove_if(visits.begin(), visits.end(), visitRemover), visits.end());
 
-        if (visits.empty())
+        VisitEntry lastVisit = record.getLastVisit();
+        if (visits.empty() &&
+                (!lastVisit.isValid() || (lastVisit >= range.first && lastVisit <= range.second)))
         {
             it = m_historyItems.erase(it);
             continue;
         }
 
-        it->m_historyEntry.NumVisits = static_cast<int>(visits.size());
-        it->m_historyEntry.LastVisit = visits.at(visits.size() - 1);
+        if (!visits.empty())
+        {
+            record.m_historyEntry.NumVisits = static_cast<int>(visits.size());
+            record.m_historyEntry.LastVisit = visits.at(visits.size() - 1);
+        }
+
         ++it;
     }
 }
@@ -131,12 +140,13 @@ void HistoryManager::addVisitToLocalStore(const QUrl &url, const QString &title,
     auto it = m_historyItems.find(url.toString().toUpper());
     if (it != m_historyItems.end())
     {
+        URLRecord &record = it->second;
         if (wasTypedByUser)
-            it->m_historyEntry.URLTypedCount++;
+            record.m_historyEntry.URLTypedCount++;
 
-        it->addVisit(visit);
+        record.addVisit(visit);
 
-        m_recentItems.push_front(it->m_historyEntry);
+        m_recentItems.push_front(record.m_historyEntry);
     }
     else
     {
@@ -148,7 +158,9 @@ void HistoryManager::addVisitToLocalStore(const QUrl &url, const QString &title,
         entry.URL = url;
         entry.URLTypedCount = wasTypedByUser ? 1 : 0;
         std::vector<VisitEntry> visits {visit};
-        m_historyItems.insert(url.toString().toUpper(), URLRecord(std::move(entry), std::move(visits)));
+
+        QString urlUpper = url.toString().toUpper();
+        m_historyItems.insert(std::make_pair(url.toString().toUpper(), URLRecord(std::move(entry), std::move(visits))));
         m_recentItems.push_front(entry);
     }
 }
@@ -178,7 +190,7 @@ HistoryEntry HistoryManager::getEntry(const QUrl &url) const
 
     auto it = m_historyItems.find(url.toString().toUpper());
     if (it != m_historyItems.end())
-        result = it->m_historyEntry;
+        result = it->second.m_historyEntry;
 
     return result;
 }
@@ -194,7 +206,7 @@ int HistoryManager::getTimesVisited(const QUrl &url) const
 {
     auto it = m_historyItems.find(url.toString().toUpper());
     if (it != m_historyItems.end())
-        return it->getNumVisits();
+        return it->second.getNumVisits();
 
     return 0;
 }
@@ -229,7 +241,7 @@ void HistoryManager::onHistoryRecordsLoaded(std::vector<URLRecord> &&records)
 
     for (auto &&record : records)
     {
-        m_historyItems.insert(record.getUrl().toString().toUpper(), std::move(record));
+        m_historyItems.insert(std::make_pair(record.getUrl().toString().toUpper(), record));
     }
 }
 

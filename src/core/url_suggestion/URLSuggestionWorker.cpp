@@ -115,7 +115,7 @@ void URLSuggestionWorker::searchForHits()
 
     const bool inputStartsWithWww = m_searchTerm.size() > 4 && m_searchTerm.startsWith(QLatin1String("WWW."));
 
-    for (auto it : *m_bookmarkManager)
+    for (const auto &it : *m_bookmarkManager)
     {
         if (!m_working.load())
             return;
@@ -151,17 +151,18 @@ void URLSuggestionWorker::searchForHits()
         if (!m_working.load())
             return;
 
-        const QString &url = it.getUrl().toString();
+        const URLRecord &record = it.second;
+        const QString &url = record.getUrl().toString();
         if (hits.contains(url))
             continue;
 
-        const QUrl &urlObj = it.getUrl();
+        const QUrl &urlObj = record.getUrl();
 
         //if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
-        MatchType matchType = getMatchType(it.getTitle().toUpper(), url.toUpper());
+        MatchType matchType = getMatchType(record.getTitle().toUpper(), url.toUpper());
         if (matchType != MatchType::None)
         {
-            URLSuggestion suggestion { it, m_faviconManager->getFavicon(urlObj), matchType };
+            URLSuggestion suggestion { record, m_faviconManager->getFavicon(urlObj), matchType };
 
             QString suggestionHost = urlObj.host().toUpper();
             if (!inputStartsWithWww)

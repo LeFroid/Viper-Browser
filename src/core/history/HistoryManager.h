@@ -1,6 +1,7 @@
 #ifndef HISTORYMANAGER_H
 #define HISTORYMANAGER_H
 
+#include "CommonUtil.h"
 #include "ClearHistoryOptions.h"
 #include "DatabaseTaskScheduler.h"
 #include "FavoritePagesManager.h"
@@ -16,6 +17,7 @@
 #include <QUrl>
 
 #include <deque>
+#include <unordered_map>
 #include <vector>
 
 class HistoryStore;
@@ -41,7 +43,7 @@ class HistoryManager : public QObject, public ISettingsObserver
     Q_OBJECT
 
 public:
-    using const_iterator = QHash<QString, URLRecord>::const_iterator;
+    using const_iterator = std::unordered_map<QString, URLRecord>::const_iterator;
 
     /// Constructs the history manager, given the path to the history database
     explicit HistoryManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler);
@@ -86,9 +88,6 @@ public:
     /// Returns a queue of recently visited items, with the most recent visits being at the front of the queue
     const std::deque<HistoryEntry> &getRecentItems() const { return m_recentItems; }
 
-    /// Returns a list of all visited URLs
-    QList<QString> getVisitedURLs() const { return m_historyItems.keys(); }
-
     /// Fetches the number of times the host was visited, passing it to the given callback when the
     /// result has been retrieved
     void getTimesVisitedHost(const QUrl &host, std::function<void(int)> callback);
@@ -132,7 +131,7 @@ private:
     DatabaseTaskScheduler &m_taskScheduler;
 
     /// Hash map of history URL strings to their corresponding data structure
-    QHash<QString, URLRecord> m_historyItems;
+    std::unordered_map<QString, URLRecord> m_historyItems;
 
     /// Queue of recently visited items
     std::deque<HistoryEntry> m_recentItems;

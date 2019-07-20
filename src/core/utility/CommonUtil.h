@@ -2,12 +2,25 @@
 #define COMMONUTIL_H
 
 #include <string>
+#include <functional>
 
 #include <QIcon>
 #include <QRegularExpression>
 #include <QString>
 #include <QtGlobal>
 #include <QUrl>
+
+/// Allows use of QString in standard hashmaps and the like
+namespace std
+{
+    template<> struct hash<QString>
+    {
+        std::size_t operator()(const QString &s) const
+        {
+            return static_cast<std::size_t>(qHash(s));
+        }
+    };
+}
 
 /// Collection of common utility functions
 namespace CommonUtil

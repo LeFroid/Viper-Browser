@@ -112,8 +112,8 @@ void HistoryMenu::onPageVisited(const QUrl &url, const QString &title)
 
 void HistoryMenu::setup()
 {
-    connect(m_historyManager, &HistoryManager::pageVisited, this, &HistoryMenu::onPageVisited);
-    connect(m_historyManager, &HistoryManager::historyCleared, this, &HistoryMenu::resetItems);
+    connect(m_historyManager, &HistoryManager::pageVisited,    this, &HistoryMenu::onPageVisited);
+    connect(m_historyManager, &HistoryManager::historyCleared, this, &HistoryMenu::resetItems, Qt::QueuedConnection);
 
     m_actionShowHistory = addAction(QLatin1String("&Show all History"));
     m_actionShowHistory->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_H));

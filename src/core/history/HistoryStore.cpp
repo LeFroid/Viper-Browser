@@ -373,11 +373,18 @@ void HistoryStore::load()
     // Load current state of history entries from the DB
     QSqlQuery query(m_database);
     QSqlQuery queryRecentVisit(m_database);
+    QSqlQuery queryGetRecentVisits(m_database);
     //QSqlQuery queryAllVisits(m_database);
 
     queryRecentVisit.prepare(
                 QLatin1String("SELECT MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
                               "FROM Visits WHERE VisitID = (:visitId)"));
+
+    const QDateTime recentTime = QDateTime::currentDateTime().addDays(-2);
+    const qint64 recentTimeMSec = recentTime.toMSecsSinceEpoch();
+    queryGetRecentVisits.prepare(
+                QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) AND "
+                              "Date >= (:date) ORDER BY Date ASC"));
 
     //queryAllVisits.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) ORDER BY Date ASC"));
 
@@ -407,11 +414,23 @@ void HistoryStore::load()
             queryRecentVisit.bindValue(QLatin1String(":visitId"), entry.VisitID);
             if (queryRecentVisit.exec() && queryRecentVisit.first())
             {
-                entry.LastVisit = QDateTime::fromMSecsSinceEpoch(queryRecentVisit.value(0).toULongLong());
+                entry.LastVisit = QDateTime::fromMSecsSinceEpoch(queryRecentVisit.value(0).toLongLong());
                 entry.NumVisits = queryRecentVisit.value(1).toInt();
             }
 
-            m_entries.push_back(URLRecord{ std::move(entry) });
+            std::vector<VisitEntry> recentVisits;
+            queryGetRecentVisits.bindValue(QLatin1String(":visitId"), entry.VisitID);
+            queryGetRecentVisits.bindValue(QLatin1String(":date"), recentTimeMSec);
+            if (queryGetRecentVisits.exec())
+            {
+                while (queryGetRecentVisits.next())
+                {
+                    VisitEntry visit = QDateTime::fromMSecsSinceEpoch(queryGetRecentVisits.value(0).toLongLong());
+                    recentVisits.push_back(visit);
+                }
+            }
+
+            m_entries.push_back(URLRecord{ std::move(entry), std::move(recentVisits) });
         }
     }
     else
