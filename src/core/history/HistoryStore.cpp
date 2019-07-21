@@ -374,7 +374,6 @@ void HistoryStore::load()
     QSqlQuery query(m_database);
     QSqlQuery queryRecentVisit(m_database);
     QSqlQuery queryGetRecentVisits(m_database);
-    //QSqlQuery queryAllVisits(m_database);
 
     queryRecentVisit.prepare(
                 QLatin1String("SELECT MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
@@ -386,8 +385,6 @@ void HistoryStore::load()
                 QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) AND "
                               "Date >= (:date) ORDER BY Date ASC"));
 
-    //queryAllVisits.prepare(QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) ORDER BY Date ASC"));
-
     // Clear history entries that are not referenced by any specific visits
     if (!query.exec(QLatin1String("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)")))
     {
@@ -395,8 +392,16 @@ void HistoryStore::load()
                    << " Message: " << query.lastError().text();
     }
 
-    // Now load history entries
-    if (query.exec(QLatin1String("SELECT VisitID, URL, Title, URLTypedCount FROM History ORDER BY VisitID ASC")))
+    // Prepare main query
+    const QDateTime lastWeek = QDateTime::currentDateTime().addDays(-7);
+    const qint64 lastWeekMSec = lastWeek.toMSecsSinceEpoch();
+    query.prepare(QLatin1String("SELECT VisitID, URL, Title, URLTypedCount FROM History "
+                                "WHERE URLTypedCount > 0 OR EXISTS (SELECT 1 FROM Visits WHERE Date >= (:lastWeek) "
+                                "AND VisitID = History.VisitID LIMIT 1) ORDER BY VisitID ASC"));
+    query.bindValue(QLatin1String(":lastWeek"), lastWeekMSec);
+
+    // Load applicable history entries
+    if (query.exec())
     {
         QSqlRecord rec = query.record();
         const int idVisit = rec.indexOf(QLatin1String("VisitID"));
