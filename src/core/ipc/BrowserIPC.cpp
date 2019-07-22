@@ -69,10 +69,10 @@ bool BrowserIPC::hasMessage()
     return messageLen > 0 && messageLen < BufferLength;
 }
 
-BrowserMessage BrowserIPC::getMessage()
+std::vector<char> BrowserIPC::getMessage()
 {
     if (!m_buffer.isAttached())
-        return BrowserMessage();
+        return std::vector<char>();
 
     // Read from buffer
     m_semaphore.acquire();
@@ -84,7 +84,7 @@ BrowserMessage BrowserIPC::getMessage()
     {
         qDebug() << "BrowserIPC::getMessage() - invalid message (length < 1 or data is null)";
         m_semaphore.release();
-        return BrowserMessage();
+        return std::vector<char>();
     }
 
     const int expectedLength = *(reinterpret_cast<const int*>(data));
@@ -92,7 +92,7 @@ BrowserMessage BrowserIPC::getMessage()
     {
         qDebug() << "BrowserIPC::getMessage() - invalid expected length";
         m_semaphore.release();
-        return BrowserMessage();
+        return std::vector<char>();
     }
 
     // Validate the expected length against the actual
@@ -110,17 +110,21 @@ BrowserMessage BrowserIPC::getMessage()
     {
         qDebug() << "BrowserIPC::getMessage() - actual length: " << actualLength << ", expected: " << expectedLength;
         m_semaphore.release();
-        return BrowserMessage();
+        return std::vector<char>();
     }
 
     // Copy buffer and clear the shared memory region
-    char *dataCopy = new char[static_cast<size_t>(actualLength)];
-    memcpy(dataCopy, &data[offset], static_cast<size_t>(actualLength));
+    std::vector<char> result(static_cast<size_t>(actualLength), '\0');
+
+    char *resultPtr = result.data();
+    memcpy(resultPtr, &data[offset], static_cast<size_t>(actualLength));
+
+    // Clear shared memory
     memset(m_buffer.data(), 0, static_cast<size_t>(offset + actualLength));
 
     m_semaphore.release();
 
-    return BrowserMessage { const_cast<const char*>(dataCopy), actualLength };
+    return result;
 }
 
 void BrowserIPC::sendMessage(const char *data, int length)

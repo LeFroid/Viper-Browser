@@ -194,16 +194,16 @@ int main(int argc, char *argv[])
 
         std::string ipcMessageStdString = ipcMessage.toStdString();
 
-        int stringLen = static_cast<int>(ipcMessageStdString.size());
         size_t ipcBufferLen = ipcMessageStdString.size() + sizeof(int);
 
-        char *rawBuffer = new char[ipcBufferLen];
+        std::vector<char> messageBuffer(ipcBufferLen, '\0');
+        char *rawBuffer = messageBuffer.data();
+        const int stringLen = static_cast<int>(ipcMessageStdString.size());
         memcpy(rawBuffer, &stringLen, sizeof(int));
         memcpy(&rawBuffer[sizeof(int)], ipcMessageStdString.c_str(), ipcMessageStdString.size());
 
         ipc.sendMessage(const_cast<const char*>(rawBuffer), static_cast<int>(ipcBufferLen));
 
-        delete[] rawBuffer;
         return 0;
     }
 

@@ -4,22 +4,6 @@
 #include <QSharedMemory>
 #include <QSystemSemaphore>
 
-/// Simple container for raw messages that can be passed between browser application instances.
-struct BrowserMessage
-{
-    /// Default constructor
-    BrowserMessage() : data(nullptr), length(0) {}
-
-    /// Constructs the message with a given data buffer (allocated on the heap) and length
-    BrowserMessage(const char *data, int length) : data(data), length(length) {}
-
-    /// Pointer to the message data
-    const char *data;
-
-    /// Length of the message
-    const int length;
-};
-
 /**
  * @class BrowserIPC
  * @brief The BrowserIPC class is responsible for passing messages
@@ -53,8 +37,8 @@ public:
     /// Otherwise returns false.
     bool hasMessage();
 
-    /// Returns any messages that have been sent to the browser
-    BrowserMessage getMessage();
+    /// Returns any messages that have been sent to the browser, in the form of a char array
+    std::vector<char> getMessage();
 
     /// Attempts to send the given message (format of data param is length immediately followed by data) through this channel.
     void sendMessage(const char *data, int length);

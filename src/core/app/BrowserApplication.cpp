@@ -62,8 +62,8 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     // Set pointer to the IPC handler. This is checked for pending messages on a regular basis
     m_ipc = ipc;
 
-    // Check for IPC messages every 10 seconds
-    m_ipcTimerId = startTimer(1000 * 10);
+    // Check for IPC messages every 5 seconds
+    m_ipcTimerId = startTimer(1000 * 5);
 
     // Instantiate and load settings
     m_settings = new Settings;
@@ -433,19 +433,12 @@ void BrowserApplication::checkBrowserIPC()
     if (m_ipc == nullptr || !m_ipc->hasMessage())
         return;
 
-    BrowserMessage message { m_ipc->getMessage() };
-
-    if (message.data == nullptr)
+    std::vector<char> message = m_ipc->getMessage();
+    if (message.empty() || message.at(0) == '\0')
         return;
-
-    if (message.length < 1)
-    {
-        delete[] message.data;
-        return;
-    }
 
     // Handle message
-    std::string messageStdString(message.data, static_cast<size_t>(message.length));
+    std::string messageStdString(message.data(), message.size());
     QString messageStr = QString::fromStdString(messageStdString);
 
     if (messageStr.compare(QLatin1String("new-window")) == 0)
@@ -484,8 +477,6 @@ void BrowserApplication::checkBrowserIPC()
             }
         }
     }
-
-    delete[] message.data;
 }
 
 void BrowserApplication::beforeBrowserQuit()
