@@ -79,7 +79,25 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
     QRegularExpression httpExpr(QLatin1String("^HTTP(S?)://"));
     m_searchTerm.replace(httpExpr, QString());
 
-    m_searchWords = m_searchTerm.split(QLatin1Char(' '), QString::SkipEmptyParts);
+    // Split up search term into different words
+    QString termParts = m_searchTerm.toUpper().replace(QRegularExpression(QLatin1String("WWW\\.")), QLatin1String(" "));
+    termParts = termParts.replace(QRegularExpression(QLatin1String("[\\?=&\\./:]+")), QLatin1String(" "));
+    std::array<QRegularExpression, 2> delimExpressions {
+        QRegularExpression(QLatin1String("[A-Z]{1}[0-9]{1}")),
+        QRegularExpression(QLatin1String("[0-9]{1}[A-Z]{1}"))
+    };
+    for (const QRegularExpression &expr : delimExpressions)
+    {
+        int matchPos = 0;
+        auto match = expr.match(termParts, matchPos);
+        while (match.hasMatch())
+        {
+            matchPos = match.capturedStart();
+            termParts.insert(matchPos + 1, QLatin1Char(' '));
+            match = expr.match(termParts, matchPos + 2);
+        }
+    }
+    m_searchWords = termParts.split(QLatin1Char(' '), QString::SkipEmptyParts);
     m_searchTermHasScheme = (m_searchTerm.startsWith(QLatin1String("FILE"))
             || m_searchTerm.startsWith(QLatin1String("VIPER")));
     hashSearchTerm();
@@ -146,6 +164,9 @@ void URLSuggestionWorker::searchForHits()
     if (!m_working.load())
         return;
 
+    // Used to check if certain infrequently visited URLs should be ignored
+    const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-259200);
+
     for (const auto &it : *m_historyManager)
     {
         if (!m_working.load())
@@ -157,6 +178,12 @@ void URLSuggestionWorker::searchForHits()
             continue;
 
         const QUrl &urlObj = record.getUrl();
+
+        // Rule out records that don't match any of these criteria
+        if (record.getUrlTypedCount() < 1
+                && record.getNumVisits() < 4
+                && record.getLastVisit() < cutoffTime)
+            continue;
 
         //if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
         MatchType matchType = getMatchType(record.getTitle().toUpper(), url.toUpper());
@@ -197,13 +224,19 @@ MatchType URLSuggestionWorker::getMatchType(const QString &title, const QString 
     if (isStringMatch(title))
         return MatchType::Title;
 
-    if (m_searchWords.size() > 1)
+    const int numWords = m_searchWords.size();
+    if (numWords > 1)
     {
+        int numMatchingWords = 0;
         for (const QString &word : m_searchWords)
         {
             if (word.size() > 2 && title.contains(word, Qt::CaseSensitive))
-                return MatchType::SearchWords;
+                numMatchingWords++;
+                //return MatchType::SearchWords;
         }
+
+        if (static_cast<float>(numMatchingWords) / static_cast<float>(numWords) >= 0.5f)
+            return MatchType::SearchWords;
     }
 
     return isStringMatch(url) ? MatchType::URL : MatchType::None;
