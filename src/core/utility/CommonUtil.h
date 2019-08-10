@@ -43,6 +43,11 @@ namespace CommonUtil
 
     /// Returns true if the two URLs are the same, false otherwise.
     bool doUrlsMatch(const QUrl &a, const QUrl &b, bool ignoreScheme = false);
+
+    /// Tokenizes the given input string into a list of words
+    /// The string may or may not be a URL - depending on the caller - but
+    /// URL tokenization rules are applied regardless
+    QStringList tokenizePossibleUrl(QString str);
 }
 
 #endif // COMMONUTIL_H

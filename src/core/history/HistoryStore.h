@@ -15,6 +15,7 @@
 #include <QUrl>
 
 #include <deque>
+#include <map>
 #include <vector>
 
 /**
@@ -52,6 +53,10 @@ public:
     /// Returns the history entries that were loaded during instantiation of the history store.
     std::vector<URLRecord> getEntries() const;
 
+    /// Clears the vector of URLRecords that was populated during the initial database load.
+    /// This is called by the \ref HistoryManager , which keeps the records in its memory instead.
+    void clearEntriesInMemory();
+
     /// Returns the visits associated with a given \ref HistoryEntry
     std::vector<VisitEntry> getVisits(const HistoryEntry &record);
 
@@ -69,6 +74,12 @@ public:
 
     /// Returns the number of times that the given URL has been visited
     int getTimesVisited(const QUrl &url) const;
+
+    /// Returns all of the words stored in the words table
+    std::map<int, QString> getWords() const;
+
+    /// Returns a mapping of history entries to the list of word IDs associated with them
+    std::map<int, std::vector<int>> getEntryWordMapping() const;
 
     /// Fetches the set of most frequently visited web pages, up to the given limit. This is used to
     /// determine which web pages' thumbnails to retrieve for the "New Tab" page
@@ -92,6 +103,9 @@ protected:
     void save() override;
 
 private:
+    /// Splits the given URL into distinct words, saving the association in the database
+    void tokenizeAndSaveUrl(int visitId, const QUrl &url, const QString &title);
+
     /// Called during the load() routine, this checks if any of the table structures need to be updated
     void checkForUpdate();
 
@@ -119,6 +133,10 @@ private:
 
     /// Prepared query to fetch a history entry by its URL
     QSqlQuery *m_queryGetEntryByUrl;
+
+    /// Prepared statements to insert and retrieve the "words" or tokens in a URL
+    QSqlQuery *m_queryInsertWord,
+              *m_queryAssociateUrlWithWord;
 };
 
 #endif // HISTORYSTORE_H

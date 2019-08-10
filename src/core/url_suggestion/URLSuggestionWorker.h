@@ -6,6 +6,9 @@
 #include "URLSuggestionListModel.h"
 
 #include <atomic>
+#include <condition_variable>
+#include <map>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -42,6 +45,10 @@ public:
 Q_SIGNALS:
     /// Emitted when a suggestion search is finished, passing a reference to each URL matching the input pattern
     void finishedSearch(const std::vector<URLSuggestion> &results);
+
+private Q_SLOTS:
+    /// Called when the timer for reloading the history word database has completed a cycle
+    void onWordTimerTick();
 
 private:
     /// The suggestion search operation working in a separate thread
@@ -108,6 +115,18 @@ private:
 
     /// Used to determine history-based matches
     HistoryManager *m_historyManager;
+
+    /// Mutex used to access the history word maps between threads
+    mutable std::mutex m_mutex;
+
+    /// CV used to access the history word maps between threads
+    std::condition_variable m_cv;
+
+    /// History-related word dictionary
+    std::map<int, QString> m_historyWords;
+
+    /// Map of history entry IDs to the IDs of associated words. Used to make educated suggestions based on user input
+    std::map<int, std::vector<int>> m_historyWordMap;
 };
 
 #endif // URLSUGGESTIONWORKER_H

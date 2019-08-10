@@ -27,7 +27,9 @@ HistoryStore::HistoryStore(const QString &databaseFile) :
     m_queryUpdateHistoryItem(nullptr),
     m_queryHistoryItem(nullptr),
     m_queryVisit(nullptr),
-    m_queryGetEntryByUrl(nullptr)
+    m_queryGetEntryByUrl(nullptr),
+    m_queryInsertWord(nullptr),
+    m_queryAssociateUrlWithWord(nullptr)
 {
 }
 
@@ -49,6 +51,15 @@ HistoryStore::~HistoryStore()
 
         delete m_queryVisit;
         m_queryVisit = nullptr;
+    }
+
+    if (m_queryInsertWord != nullptr)
+    {
+        delete m_queryInsertWord;
+        m_queryInsertWord = nullptr;
+
+        delete m_queryAssociateUrlWithWord;
+        m_queryAssociateUrlWithWord = nullptr;
     }
 }
 
@@ -139,6 +150,11 @@ HistoryEntry HistoryStore::getEntry(const QUrl &url)
 std::vector<URLRecord> HistoryStore::getEntries() const
 {
     return m_entries;
+}
+
+void HistoryStore::clearEntriesInMemory()
+{
+    m_entries.clear();
 }
 
 std::vector<VisitEntry> HistoryStore::getVisits(const HistoryEntry &record)
@@ -281,6 +297,52 @@ int HistoryStore::getTimesVisited(const QUrl &url) const
     return 0;
 }
 
+std::map<int, QString> HistoryStore::getWords() const
+{
+    std::map<int, QString> result;
+
+    QSqlQuery query(m_database);
+    if (query.exec(QLatin1String("SELECT WordID, Word FROM Words ORDER BY WordID ASC")))
+    {
+        while (query.next())
+        {
+            result.insert(std::make_pair(query.value(0).toInt(), query.value(1).toString()));
+        }
+    }
+
+    return result;
+}
+
+std::map<int, std::vector<int>> HistoryStore::getEntryWordMapping() const
+{
+    std::map<int, std::vector<int>> result;
+
+    QSqlQuery queryDistinctHistoryId(m_database);
+    QSqlQuery queryHistoryWordMapping(m_database);
+    queryHistoryWordMapping.prepare(QLatin1String("SELECT WordID FROM URLWords WHERE HistoryID = (:historyId)"));
+
+    if (queryDistinctHistoryId.exec(QLatin1String(QLatin1String("SELECT DISTINCT(HistoryID) FROM URLWords ORDER BY HistoryID ASC"))))
+    {
+        while (queryDistinctHistoryId.next())
+        {
+            int historyId = queryDistinctHistoryId.value(0).toInt();
+
+            std::vector<int> wordIds;
+            queryHistoryWordMapping.bindValue(QLatin1String(":historyId"), historyId);
+            if (queryHistoryWordMapping.exec())
+            {
+                while (queryHistoryWordMapping.next())
+                    wordIds.push_back(queryHistoryWordMapping.value(0).toInt());
+            }
+
+            if (!wordIds.empty())
+                result.insert(std::make_pair(historyId, wordIds));
+        }
+    }
+
+    return result;
+}
+
 void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser)
 {
     if (m_queryUpdateHistoryItem == nullptr)
@@ -300,7 +362,7 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
     }
 
     auto existingEntry = getEntry(url);
-    qulonglong visitId = existingEntry.VisitID >= 0 ? existingEntry.VisitID : ++m_lastVisitID;
+    qulonglong visitId = existingEntry.VisitID >= 0 ? static_cast<qulonglong>(existingEntry.VisitID) : ++m_lastVisitID;
     if (existingEntry.VisitID >= 0)
     {
         if (wasTypedByUser)
@@ -325,6 +387,8 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
         if (!m_queryHistoryItem->exec())
             qWarning() << "HistoryStore::addVisit - could not save entry to database. Error: "
                        << m_queryHistoryItem->lastError().text();
+        else
+            tokenizeAndSaveUrl(static_cast<int>(visitId), url, title);
     }
 
     const quint64 visitTimeInMSec = static_cast<quint64>(visitTime.toMSecsSinceEpoch());
@@ -343,6 +407,34 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
     }
 }
 
+void HistoryStore::tokenizeAndSaveUrl(int visitId, const QUrl &url, const QString &title)
+{
+    if (m_queryInsertWord == nullptr)
+    {
+        m_queryInsertWord = new QSqlQuery(m_database);
+        m_queryInsertWord->prepare(QLatin1String("INSERT OR IGNORE INTO Words(Word) VALUES(:word)"));
+
+        m_queryAssociateUrlWithWord = new QSqlQuery(m_database);
+        m_queryAssociateUrlWithWord->prepare(QLatin1String("INSERT OR IGNORE INTO URLWords(HistoryID, WordID) "
+                                             "VALUES(?, (SELECT WordID FROM Words WHERE Word = ?))"));
+    }
+
+    QStringList urlWords = CommonUtil::tokenizePossibleUrl(url.toString().toUpper());
+
+    if (!title.startsWith(QLatin1String("http"), Qt::CaseInsensitive))
+        urlWords = urlWords + title.toUpper().split(QLatin1Char(' '), QString::SkipEmptyParts);
+
+    for (const QString &word : urlWords)
+    {
+        m_queryInsertWord->bindValue(0, word);
+        m_queryInsertWord->exec();
+
+        m_queryAssociateUrlWithWord->bindValue(0, visitId);
+        m_queryAssociateUrlWithWord->bindValue(1, word);
+        m_queryAssociateUrlWithWord->exec();
+    }
+}
+
 bool HistoryStore::hasProperStructure()
 {
     // Verify existence of Visits and History tables
@@ -352,15 +444,29 @@ bool HistoryStore::hasProperStructure()
 void HistoryStore::setup()
 {
     QSqlQuery query(m_database);
-    if (!query.exec(QLatin1String("CREATE TABLE History(VisitID INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT UNIQUE NOT NULL, Title TEXT, "
+
+    if (!query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS History(VisitID INTEGER PRIMARY KEY AUTOINCREMENT, URL TEXT UNIQUE NOT NULL, Title TEXT, "
                                   "URLTypedCount INTEGER DEFAULT 0)")))
     {
         qDebug() << "[Error]: In HistoryStore::setup - unable to create history table. Message: " << query.lastError().text();
     }
-    if (!query.exec(QLatin1String("CREATE TABLE Visits(VisitID INTEGER NOT NULL, Date INTEGER NOT NULL, "
+
+    if (!query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS Visits(VisitID INTEGER NOT NULL, Date INTEGER NOT NULL, "
                                   "FOREIGN KEY(VisitID) REFERENCES History(VisitID) ON DELETE CASCADE, PRIMARY KEY(VisitID, Date))")))
     {
         qDebug() << "[Error]: In HistoryStore::setup - unable to create visited table. Message: " << query.lastError().text();
+    }
+
+    if (!query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS Words(WordID INTEGER PRIMARY KEY AUTOINCREMENT, Word TEXT UNIQUE NOT NULL)")))
+    {
+        qDebug() << "[Error]: In HistoryStore::setup - unable to create words table. Message: " << query.lastError().text();
+    }
+
+    if (!query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS URLWords(HistoryID INTEGER NOT NULL, WordID INTEGER NOT NULL, "
+                                  "FOREIGN KEY(HistoryID) REFERENCES History(VisitID) ON DELETE CASCADE, "
+                                  "FOREIGN KEY(WordID) REFERENCES Words(WordID) ON DELETE CASCADE, PRIMARY KEY(HistoryID, WordID))")))
+    {
+        qDebug() << "[Error]: In HistoryStore::setup - unable to create url-word association table. Message: " << query.lastError().text();
     }
 }
 
@@ -416,6 +522,7 @@ void HistoryStore::load()
             entry.VisitID = query.value(idVisit).toInt();
             entry.URLTypedCount = query.value(idUrlTypedCount).toInt();
 
+            // Get visit metadata
             queryRecentVisit.bindValue(QLatin1String(":visitId"), entry.VisitID);
             if (queryRecentVisit.exec() && queryRecentVisit.first())
             {
@@ -423,6 +530,7 @@ void HistoryStore::load()
                 entry.NumVisits = queryRecentVisit.value(1).toInt();
             }
 
+            // Get recent visits
             std::vector<VisitEntry> recentVisits;
             queryGetRecentVisits.bindValue(QLatin1String(":visitId"), entry.VisitID);
             queryGetRecentVisits.bindValue(QLatin1String(":date"), recentTimeMSec);

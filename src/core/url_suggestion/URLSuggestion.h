@@ -60,6 +60,9 @@ struct URLSuggestion
     /// Number of visits to the page with this url
     int VisitCount;
 
+    /// Start index of the match, relative to the whole url or page title
+    int StartIndex;
+
     /// Flag indicating whether or not the host of this url starts with the user input string
     bool IsHostMatch;
 

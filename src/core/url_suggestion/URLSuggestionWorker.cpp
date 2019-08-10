@@ -1,5 +1,6 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "CommonUtil.h"
 #include "FastHash.h"
 #include "FaviconManager.h"
 #include "HistoryManager.h"
@@ -7,9 +8,14 @@
 #include "URLSuggestionWorker.h"
 
 #include <algorithm>
+#include <chrono>
+
 #include <QtConcurrent>
 #include <QSet>
+#include <QTimer>
 #include <QUrl>
+
+#include <QDebug>
 
 // Used to sort results by relevance in the URLSuggestionWorker
 bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
@@ -19,8 +25,8 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
     // 2) Closeness of the url to the user input (ex: search="viper.com", a="vipers-are-cool.com", b="viper.com/faq", choose b)
     // 3) Number of visits to the urls
     // 4) Most recent visit
-    // 5) Type of match to the search term (ex: the page title vs the URL)
-    // 6) Alphabetical ordering
+    // [disabled] 5) Type of match to the search term (ex: the page title vs the URL)
+    // 5) Alphabetical ordering
 
     if (!a.URLTypedCount != !b.URLTypedCount)
         return a.URLTypedCount > b.URLTypedCount;
@@ -34,8 +40,8 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
     if (a.LastVisit != b.LastVisit)
         return a.LastVisit < b.LastVisit;
 
-    if (a.Type != b.Type)
-        return static_cast<int>(a.Type) < static_cast<int>(b.Type);
+    //if (a.Type != b.Type)
+    //    return static_cast<int>(a.Type) < static_cast<int>(b.Type);
 
     return a.URL < b.URL;
 }
@@ -54,11 +60,41 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     m_searchTermHash(0),
     m_bookmarkManager(nullptr),
     m_faviconManager(nullptr),
-    m_historyManager(nullptr)
+    m_historyManager(nullptr),
+    m_mutex(),
+    m_cv(),
+    m_historyWords(),
+    m_historyWordMap()
 {
     m_suggestionWatcher = new QFutureWatcher<void>(this);
     connect(m_suggestionWatcher, &QFutureWatcher<void>::finished, [this](){
         emit finishedSearch(m_suggestions);
+    });
+
+    // Load word database from history manager every minute
+    QTimer *wordTimer = new QTimer(this);
+    wordTimer->setSingleShot(false);
+    wordTimer->setInterval(std::chrono::milliseconds(1000 * 60));
+
+    connect(wordTimer, &QTimer::timeout, this, &URLSuggestionWorker::onWordTimerTick);
+    connect(wordTimer, &QTimer::timeout, wordTimer, static_cast<void(QTimer::*)()>(&QTimer::start));
+
+    wordTimer->start();
+}
+
+void URLSuggestionWorker::onWordTimerTick()
+{
+    if (!m_historyManager)
+        return;
+
+    m_historyManager->loadWordDatabase([this](std::map<int, QString> &&wordMap){
+        std::lock_guard<std::mutex> lock{m_mutex};
+        m_historyWords = std::move(wordMap);
+    });
+
+    m_historyManager->loadHistoryWordMapping([this](std::map<int, std::vector<int>> &&historyWordMap){
+        std::lock_guard<std::mutex> lock{m_mutex};
+        m_historyWordMap = std::move(historyWordMap);
     });
 }
 
@@ -80,26 +116,11 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
     m_searchTerm.replace(httpExpr, QString());
 
     // Split up search term into different words
-    QString termParts = m_searchTerm.toUpper().replace(QRegularExpression(QLatin1String("WWW\\.")), QLatin1String(" "));
-    termParts = termParts.replace(QRegularExpression(QLatin1String("[\\?=&\\./:]+")), QLatin1String(" "));
-    std::array<QRegularExpression, 2> delimExpressions {
-        QRegularExpression(QLatin1String("[A-Z]{1}[0-9]{1}")),
-        QRegularExpression(QLatin1String("[0-9]{1}[A-Z]{1}"))
-    };
-    for (const QRegularExpression &expr : delimExpressions)
-    {
-        int matchPos = 0;
-        auto match = expr.match(termParts, matchPos);
-        while (match.hasMatch())
-        {
-            matchPos = match.capturedStart();
-            termParts.insert(matchPos + 1, QLatin1Char(' '));
-            match = expr.match(termParts, matchPos + 2);
-        }
-    }
-    m_searchWords = termParts.split(QLatin1Char(' '), QString::SkipEmptyParts);
+    m_searchWords = CommonUtil::tokenizePossibleUrl(m_searchTerm);
+
     m_searchTermHasScheme = (m_searchTerm.startsWith(QLatin1String("FILE"))
             || m_searchTerm.startsWith(QLatin1String("VIPER")));
+
     hashSearchTerm();
 
     m_suggestionFuture = QtConcurrent::run(this, &URLSuggestionWorker::searchForHits);
@@ -111,6 +132,8 @@ void URLSuggestionWorker::setServiceLocator(const ViperServiceLocator &serviceLo
     m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
     m_faviconManager  = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
     m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
+
+    onWordTimerTick();
 }
 
 void URLSuggestionWorker::searchForHits()
@@ -131,7 +154,7 @@ void URLSuggestionWorker::searchForHits()
     // Store urls being suggested in a set to avoid duplication when checking different data sources
     QSet<QString> hits;
 
-    const bool inputStartsWithWww = m_searchTerm.size() > 4 && m_searchTerm.startsWith(QLatin1String("WWW."));
+    const bool inputStartsWithWww = m_searchTerm.size() >= 3 && m_searchTerm.startsWith(QLatin1String("WWW"));
 
     for (const auto &it : *m_bookmarkManager)
     {
@@ -142,7 +165,6 @@ void URLSuggestionWorker::searchForHits()
             continue;
 
         const QString url = it->getURL().toString();
-        //if (isEntryMatch(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper()))
         MatchType matchType = getMatchType(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper());
         if (matchType != MatchType::None)
         {
@@ -151,7 +173,11 @@ void URLSuggestionWorker::searchForHits()
             QString suggestionHost = it->getURL().host().toUpper();
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
-            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
+            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm);
+            /*if (matchType == MatchType::URL)
+                suggestion.StartIndex = suggestion.URL.toUpper().indexOf(m_searchTerm);
+            else if (matchType == MatchType::Title)
+                suggestion.StartIndex = suggestion.Title.toUpper().indexOf(m_searchTerm);*/
 
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
@@ -166,7 +192,8 @@ void URLSuggestionWorker::searchForHits()
 
     // Used to check if certain infrequently visited URLs should be ignored
     const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-259200);
-
+    {
+    std::lock_guard<std::mutex> lock{m_mutex};
     for (const auto &it : *m_historyManager)
     {
         if (!m_working.load())
@@ -185,8 +212,47 @@ void URLSuggestionWorker::searchForHits()
                 && record.getLastVisit() < cutoffTime)
             continue;
 
-        //if (isEntryMatch(it.getTitle().toUpper(), url.toUpper()))
-        MatchType matchType = getMatchType(record.getTitle().toUpper(), url.toUpper());
+        MatchType matchType = MatchType::None;
+        const int numWords = m_searchWords.size();
+        if (!m_historyWords.empty() && numWords > 1 && m_searchTerm.size() > 4)
+        {
+            float score = 0.0f;
+
+            std::vector<QString> historyWords;
+            auto wordIt = m_historyWordMap.find(record.getVisitId());
+            if (wordIt != m_historyWordMap.end())
+            {
+                std::vector<int> &wordIds = wordIt->second;
+                for (int id : wordIds)
+                    historyWords.push_back(m_historyWords[id]);
+            }
+
+            for (const QString &histWord : historyWords)
+            {
+                const int histWordLen = histWord.size();
+
+                for (const QString &searchWord : m_searchWords)
+                {
+                    const int offset = histWord.indexOf(searchWord);
+                    if (offset >= 0)
+                        score += static_cast<float>(searchWord.size()) * (static_cast<float>(histWordLen - offset) / histWordLen);
+                }
+            }
+
+            if ((score / static_cast<float>(url.size())) >= 0.275f)
+            {
+                //qDebug() << "Search term: " << m_searchTerm << "Score: " << score << ", Ratio: " << (score / static_cast<float>(url.size()))
+                //         << " URL: " << url << "Title: " << record.getTitle();
+                matchType = MatchType::SearchWords;
+            }
+            else if (isStringMatch(record.getTitle().toUpper()))
+                matchType = MatchType::Title;
+            else if (isStringMatch(url.toUpper()))
+                matchType = MatchType::URL;
+        }
+        else
+            matchType = getMatchType(record.getTitle().toUpper(), url.toUpper());
+
         if (matchType != MatchType::None)
         {
             URLSuggestion suggestion { record, m_faviconManager->getFavicon(urlObj), matchType };
@@ -194,15 +260,21 @@ void URLSuggestionWorker::searchForHits()
             QString suggestionHost = urlObj.host().toUpper();
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
-            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm); 
+            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm);
+            /*
+                if (matchType == MatchType::URL)
+                    suggestion.StartIndex = suggestion.URL.toUpper().indexOf(m_searchTerm);
+                else if (matchType == MatchType::Title)
+                    suggestion.StartIndex = suggestion.Title.toUpper().indexOf(m_searchTerm);
+                */
 
             m_suggestions.push_back(suggestion);
             hits.insert(suggestion.URL);
-            //histSuggestions.push_back(suggestion);
 
             if (++numSuggestedHistory == maxSuggestedHistory)
                 break;
         }
+    }
     }
 
     std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
@@ -221,9 +293,6 @@ MatchType URLSuggestionWorker::getMatchType(const QString &title, const QString 
     if (m_searchTerm.size() < 5)
         return getMatchTypeForSmallSearchTerm(title, url);
 
-    if (isStringMatch(title))
-        return MatchType::Title;
-
     const int numWords = m_searchWords.size();
     if (numWords > 1)
     {
@@ -238,6 +307,9 @@ MatchType URLSuggestionWorker::getMatchType(const QString &title, const QString 
         if (static_cast<float>(numMatchingWords) / static_cast<float>(numWords) >= 0.5f)
             return MatchType::SearchWords;
     }
+
+    if (isStringMatch(title))
+        return MatchType::Title;
 
     return isStringMatch(url) ? MatchType::URL : MatchType::None;
 }

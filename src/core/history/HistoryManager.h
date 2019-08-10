@@ -105,6 +105,13 @@ public:
     /// determine which web pages' thumbnails to retrieve for the "New Tab" page
     void loadMostVisitedEntries(int limit, std::function<void(std::vector<WebPageInformation>)> callback);
 
+    /// Loads the word table into a map, returning the data in the callback function. Used by the
+    /// URL suggestion worker when recommending matches based on user input
+    void loadWordDatabase(std::function<void(std::map<int, QString>)> callback);
+
+    /// Loads a mapping of history entries to the lists of their corresponding words
+    void loadHistoryWordMapping(std::function<void(std::map<int, std::vector<int>>)> callback);
+
 Q_SIGNALS:
     /// Emitted when a page has been visited
     void pageVisited(const QUrl &url, const QString &title);

@@ -41,6 +41,8 @@ HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, Databa
     m_taskScheduler.post([this](){
         onHistoryRecordsLoaded(m_historyStore->getEntries());
         onRecentItemsLoaded(m_historyStore->getRecentItems());
+
+        m_historyStore->clearEntriesInMemory();
     });
 }
 
@@ -249,5 +251,19 @@ void HistoryManager::loadMostVisitedEntries(int limit, std::function<void(std::v
 {
     m_taskScheduler.post([=](){
         callback(m_historyStore->loadMostVisitedEntries(limit));
+    });
+}
+
+void HistoryManager::loadWordDatabase(std::function<void(std::map<int, QString>)> callback)
+{
+    m_taskScheduler.post([=](){
+        callback(m_historyStore->getWords());
+    });
+}
+
+void HistoryManager::loadHistoryWordMapping(std::function<void(std::map<int, std::vector<int>>)> callback)
+{
+    m_taskScheduler.post([=](){
+        callback(m_historyStore->getEntryWordMapping());
     });
 }

@@ -1,5 +1,6 @@
 #include "CommonUtil.h"
 
+#include <array>
 #include <QBuffer>
 
 namespace CommonUtil
@@ -167,5 +168,29 @@ namespace CommonUtil
             bString = bString.left(bString.size() - 1);
 
         return (aString.compare(bString) == 0);
+    }
+
+    QStringList tokenizePossibleUrl(QString str)
+    {
+        str = str.replace(QRegularExpression(QLatin1String("[\\?=&\\./:]+")), QLatin1String(" "));
+
+        const std::array<QRegularExpression, 2> delimExpressions {
+            QRegularExpression(QLatin1String("[A-Z]{1}[0-9]{1}")),
+            QRegularExpression(QLatin1String("[0-9]{1}[A-Z]{1}"))
+        };
+
+        for (const QRegularExpression &expr : delimExpressions)
+        {
+            int matchPos = 0;
+            auto match = expr.match(str, matchPos);
+            while (match.hasMatch())
+            {
+                matchPos = match.capturedStart();
+                str.insert(matchPos + 1, QLatin1Char(' '));
+                match = expr.match(str, matchPos + 2);
+            }
+        }
+
+        return str.split(QLatin1Char(' '), QString::SkipEmptyParts);
     }
 }
