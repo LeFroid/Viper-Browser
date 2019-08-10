@@ -23,6 +23,7 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
     // Account for these factors, in order
     // 1) Number of times the URL was previously typed into the URL bar (ignore this check if a and b have never been typed into the bar)
     // 2) Closeness of the url to the user input (ex: search="viper.com", a="vipers-are-cool.com", b="viper.com/faq", choose b)
+    // 2a) Closeness of search term components to url and title components, where applicable
     // 3) Number of visits to the urls
     // 4) Most recent visit
     // [disabled] 5) Type of match to the search term (ex: the page title vs the URL)
@@ -35,7 +36,7 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
         return a.IsHostMatch;
 
     // Special case
-    if (!a.PercentMatch != !b.PercentMatch)
+    if (a.Type == b.Type && a.PercentMatch != b.PercentMatch)
         return a.PercentMatch > b.PercentMatch;
 
     if (a.VisitCount != b.VisitCount)
@@ -111,7 +112,7 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
         m_suggestionFuture.waitForFinished();
     }
 
-    m_searchTerm = text.toUpper();
+    m_searchTerm = text.toUpper().trimmed();
 
     // Remove any http or https prefix from the term, since we do not want to
     // do a string check on URLs and potentially remove an HTTPS match because
