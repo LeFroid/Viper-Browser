@@ -60,8 +60,8 @@ struct URLSuggestion
     /// Number of visits to the page with this url
     int VisitCount;
 
-    /// Start index of the match, relative to the whole url or page title
-    int StartIndex;
+    /// Percent match (0-100), applicable only for match type "SearchWords"
+    int PercentMatch;
 
     /// Flag indicating whether or not the host of this url starts with the user input string
     bool IsHostMatch;

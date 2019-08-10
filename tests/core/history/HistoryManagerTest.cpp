@@ -116,7 +116,7 @@ private slots:
         QSignalSpy spy(m_historyManager, &HistoryManager::historyCleared);
         m_historyManager->clearHistoryInRange({firstDate, QDateTime::currentDateTime().addDays(-1)});
 
-        QVERIFY(spy.wait(2500));
+        QVERIFY(spy.wait(5500));
         QCOMPARE(spy.count(), 1);
 
         QVERIFY2(!m_historyManager->contains(firstUrl), "HistoryManager::clearHistoryInRange did not remove the entry");
@@ -126,7 +126,7 @@ private slots:
 
         QVERIFY2(!m_historyManager->contains(secondUrl), "HistoryManager::clearHistoryFrom did not remove the entry");
 
-        QVERIFY(spy.wait(2500));
+        QVERIFY(spy.wait(5500));
         QCOMPARE(spy.count(), 2);
     }
 

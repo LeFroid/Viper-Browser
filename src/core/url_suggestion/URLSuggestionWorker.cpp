@@ -34,6 +34,10 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
     if (a.IsHostMatch != b.IsHostMatch)
         return a.IsHostMatch;
 
+    // Special case
+    if (!a.PercentMatch != !b.PercentMatch)
+        return a.PercentMatch > b.PercentMatch;
+
     if (a.VisitCount != b.VisitCount)
         return a.VisitCount > b.VisitCount;
 
@@ -148,7 +152,7 @@ void URLSuggestionWorker::searchForHits()
     }
 
     // Set upper bound on number of suggestions for each type of item being checked
-    const int maxSuggestedBookmarks = 15, maxSuggestedHistory = 50;
+    const int maxSuggestedBookmarks = 20, maxSuggestedHistory = 75;
     int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
 
     // Store urls being suggested in a set to avoid duplication when checking different data sources
@@ -174,10 +178,6 @@ void URLSuggestionWorker::searchForHits()
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
             suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm);
-            /*if (matchType == MatchType::URL)
-                suggestion.StartIndex = suggestion.URL.toUpper().indexOf(m_searchTerm);
-            else if (matchType == MatchType::Title)
-                suggestion.StartIndex = suggestion.Title.toUpper().indexOf(m_searchTerm);*/
 
             hits.insert(suggestion.URL);
             m_suggestions.push_back(suggestion);
@@ -213,9 +213,10 @@ void URLSuggestionWorker::searchForHits()
             continue;
 
         MatchType matchType = MatchType::None;
-        const int numWords = m_searchWords.size();
-        if (!m_historyWords.empty() && numWords > 1 && m_searchTerm.size() > 4)
+        int percentWordScore = 0;
+        if (!m_historyWords.empty() && m_searchWords.size() > 2 && m_searchTerm.size() > 4)
         {
+            int wordMatches = 0;
             float score = 0.0f;
 
             std::vector<QString> historyWords;
@@ -235,23 +236,39 @@ void URLSuggestionWorker::searchForHits()
                 {
                     const int offset = histWord.indexOf(searchWord);
                     if (offset >= 0)
+                    {
                         score += static_cast<float>(searchWord.size()) * (static_cast<float>(histWordLen - offset) / histWordLen);
+                        ++wordMatches;
+                    }
+                    else if (searchWord.contains(histWord))
+                        ++wordMatches;
                 }
             }
 
-            if ((score / static_cast<float>(url.size())) >= 0.275f)
+            const float scoreRatio = score / static_cast<float>(url.size());
+            if (wordMatches + 1 >= m_searchWords.size() && scoreRatio >= 0.275f)
             {
                 //qDebug() << "Search term: " << m_searchTerm << "Score: " << score << ", Ratio: " << (score / static_cast<float>(url.size()))
-                //         << " URL: " << url << "Title: " << record.getTitle();
+                //         << " URL: " << url << "Title: " << record.getTitle() << "Search Words: " << m_searchWords;
                 matchType = MatchType::SearchWords;
+                percentWordScore = static_cast<int>(100.0f * scoreRatio);
             }
             else if (isStringMatch(record.getTitle().toUpper()))
                 matchType = MatchType::Title;
-            else if (isStringMatch(url.toUpper()))
-                matchType = MatchType::URL;
         }
-        else
-            matchType = getMatchType(record.getTitle().toUpper(), url.toUpper());
+
+        if (matchType == MatchType::None)
+        {
+            const int urlIndex = url.toUpper().mid(7).indexOf(m_searchTerm);
+            if ((urlIndex >= 0 && urlIndex < 10)
+                    || (urlIndex > 0 && (static_cast<float>(m_searchTerm.size()) / static_cast<float>(url.size())) >= 0.25f))
+                matchType = MatchType::URL;
+            else if (isStringMatch(record.getTitle().toUpper()))
+                matchType = MatchType::Title;
+        }
+
+        //else
+        //    matchType = getMatchType(record.getTitle().toUpper(), url.toUpper());
 
         if (matchType != MatchType::None)
         {
@@ -260,13 +277,10 @@ void URLSuggestionWorker::searchForHits()
             QString suggestionHost = urlObj.host().toUpper();
             if (!inputStartsWithWww)
                 suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
-            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm);
-            /*
-                if (matchType == MatchType::URL)
-                    suggestion.StartIndex = suggestion.URL.toUpper().indexOf(m_searchTerm);
-                else if (matchType == MatchType::Title)
-                    suggestion.StartIndex = suggestion.Title.toUpper().indexOf(m_searchTerm);
-                */
+            suggestion.IsHostMatch = m_searchTerm.startsWith(suggestionHost);
+
+            if (matchType == MatchType::SearchWords)
+                suggestion.PercentMatch = percentWordScore;
 
             m_suggestions.push_back(suggestion);
             hits.insert(suggestion.URL);
@@ -292,6 +306,10 @@ MatchType URLSuggestionWorker::getMatchType(const QString &title, const QString 
     // Special case for small search terms
     if (m_searchTerm.size() < 5)
         return getMatchTypeForSmallSearchTerm(title, url);
+
+    if (url.indexOf(m_searchTerm) >= 0
+            && (static_cast<float>(m_searchTerm.size()) / static_cast<float>(url.size())) >= 0.325f)
+            return MatchType::URL;
 
     const int numWords = m_searchWords.size();
     if (numWords > 1)
