@@ -21,7 +21,7 @@ QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("popup"), ElementType::PopUp },                   { QStringLiteral("third-party"), ElementType::ThirdParty},
     { QStringLiteral("match-case"), ElementType::MatchCase },          { QStringLiteral("collapse"), ElementType::Collapse },
     { QStringLiteral("badfilter"), ElementType::BadFilter },           { QStringLiteral("inline-script"), ElementType::InlineScript },
-    { QStringLiteral("3p"), ElementType::ThirdParty },
+    { QStringLiteral("3p"), ElementType::ThirdParty },                 { QStringLiteral("css"), ElementType::Stylesheet },
     { QStringLiteral("other"), ElementType::Other }
 };
 
@@ -669,6 +669,10 @@ void FilterParser::parseOptions(const QString &optionString, Filter *filter) con
         else if (option.compare(QStringLiteral("first-party")) == 0 || option.compare(QStringLiteral("1p")) == 0)
         {
             filter->m_allowedTypes |= ElementType::ThirdParty;
+        }
+        else if (option.compare(QStringLiteral("all")) == 0)
+        {
+            filter->m_blockedTypes |= static_cast<ElementType>(0x001047FFULL);
         }
         else if (!filter->m_exception && (option.compare(QStringLiteral("important")) == 0))
         {

@@ -269,8 +269,6 @@ bool Filter::isMatch(const QString &baseUrl, const QString &requestUrl, const QS
         ElementType ignoreTypeMask = static_cast<ElementType>(~0x00038000ULL);
         if ((m_blockedTypes & ignoreTypeMask) != ElementType::None)
             return false;
-        //if (m_blockedTypes != ElementType::None && !hasElementType(m_blockedTypes, ElementType::ThirdParty))
-        //    return false;
     }
 
     return match;
