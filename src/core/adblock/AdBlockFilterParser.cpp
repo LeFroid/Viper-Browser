@@ -61,11 +61,11 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     }
 
     // Check if rule is a 'Match all' type
-    if (rule.size() == 1 && rule.at(0) == QLatin1Char('*'))
+    if (rule.isEmpty() || (rule.size() == 1 && rule.at(0) == QLatin1Char('*')))
         filterPtr->m_matchAll = true;
 
     // Check if rule is a regular expression
-    if (rule.startsWith(QLatin1Char('/')) && rule.endsWith(QLatin1Char('/')))
+    if (rule.size() > 1 && rule.startsWith(QLatin1Char('/')) && rule.endsWith(QLatin1Char('/')))
     {
         filterPtr->m_category = FilterCategory::RegExp;
 

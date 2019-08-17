@@ -49,12 +49,13 @@ bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QU
     const QUrl requestUrl = info.requestUrl();
     const QString requestUrlStr = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
 
-    const URL firstPartyUrlWrapper { firstPartyUrl };
+    //const URL firstPartyUrlWrapper { firstPartyUrl };
     const URL requestUrlWrapper { requestUrl };
 
-    QString baseUrl = firstPartyUrlWrapper.getSecondLevelDomain().toLower();
-    if (baseUrl.isEmpty())
-        baseUrl = firstPartyUrl.host().toLower();
+    const QString baseUrl = firstPartyUrl.host().toLower();
+    //QString baseUrl = firstPartyUrlWrapper.getSecondLevelDomain().toLower();
+    //if (baseUrl.isEmpty())
+    //    baseUrl = firstPartyUrl.host().toLower();
 
     // Get request domain
     QString domain = requestUrl.host().toLower();
@@ -170,6 +171,14 @@ ElementType RequestHandler::getRequestType(const QWebEngineUrlRequestInfo &info,
             elemType |= ElementType::Other;
             break;
     }
+
+    // Check for websocket
+    // Doesn't seem to work though. If only we could check for the presence of
+    // request headers such as Sec-WebSocket-Key or Sec-WebSocket-Version, then
+    // we could detect websocket requests..
+    const QString requestScheme = requestUrl.scheme();
+    if (requestScheme.compare(QStringLiteral("ws")) == 0 || requestScheme.compare(QStringLiteral("wss")) == 0)
+        elemType |= ElementType::WebSocket;
 
     // Check for third party request type
     if (firstPartyUrlWrapper.isEmpty()
