@@ -22,6 +22,7 @@ QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("match-case"), ElementType::MatchCase },          { QStringLiteral("collapse"), ElementType::Collapse },
     { QStringLiteral("badfilter"), ElementType::BadFilter },           { QStringLiteral("inline-script"), ElementType::InlineScript },
     { QStringLiteral("3p"), ElementType::ThirdParty },                 { QStringLiteral("css"), ElementType::Stylesheet },
+    { QStringLiteral("frame"), ElementType::Subdocument },             { QStringLiteral("xhr"), ElementType::XMLHTTPRequest },
     { QStringLiteral("other"), ElementType::Other }
 };
 
