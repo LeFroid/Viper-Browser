@@ -317,7 +317,7 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
     const bool isArgRegExp = evalArg.startsWith(QChar('/'))
             && (evalArg.endsWith(QChar('/'))
                 || (evalArg.lastIndexOf(QChar('/')) + 3 >= evalArg.size()));
-    if (!isArgRegExp)
+    if (!isArgRegExp || directive.DirectiveName == CosmeticFilter::XPath)
         evalArg.replace(QChar('\''), QString("\\\'"));
 
     switch (directive.DirectiveName)
