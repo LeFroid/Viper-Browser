@@ -86,7 +86,8 @@ enum class CosmeticFilter
     MatchesCSSBefore,    /// Same as :matches-css cosmetic filter, with the :before pseudo-class attached to the subject
     MatchesCSSAfter,     /// Same as :matches-css cosmetic filter, with the :after pseudo-class attached to the subject
     XPath,               /// Creates a new set of elements by evaluating a XPath. Uses an optional subject as the context node and the argument as the expression.
-    NthAncestor          /// Similar to the XPath filter, this selects the nth ancestor of all nodes that match the CSS selector
+    NthAncestor,         /// Similar to the XPath filter, this selects the nth ancestor of all nodes that match the CSS selector
+    MinTextLength        /// Selects any DOM elements that match the subject, and have a text length that is >= a given non-negative value
 };
 
 /**

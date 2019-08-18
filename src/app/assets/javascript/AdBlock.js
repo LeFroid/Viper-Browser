@@ -88,6 +88,25 @@ const hasText = function (selector, text, root) {
     });
     return subElems;
 };
+const minTextLength = function (selector, minLength, root) {
+    if (root === undefined)
+        root = document;
+
+    if (typeof(minLength) == 'string')
+        minLength = parseInt(minLength);
+    
+    if (isNaN(minLength) || minLength < 0)
+        return [];
+
+    let output = [];
+    let elements = selector === '' ? [ root ] : root.querySelectorAll(selector);
+    for (let i = 0; i < elements.length; ++i) {
+        let elem = elements[i];
+        if (elem.textContent.length >= minLength)
+            output.push(elem);
+    }
+    return output;
+};
 const matchesCSS = function (selector, text, root, pseudoSelector) {
     if (root === undefined)
         root = document;

@@ -382,6 +382,11 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
             filter->m_evalString = QString("hideNodes(nthAncestor, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
+        case CosmeticFilter::MinTextLength:
+        {
+            filter->m_evalString = QString("hideNodes(minTextLength, '%1', %2); ").arg(evalStr).arg(evalArg);
+            break;
+        }
     }
     filter->m_category = FilterCategory::StylesheetJS;
     return true;
@@ -506,6 +511,9 @@ CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const st
                 case CosmeticFilter::NthAncestor:
                     result.CallbackName = QStringLiteral("nthAncestor");
                     break;
+                case CosmeticFilter::MinTextLength:
+                    result.CallbackName = QStringLiteral("minTextLength");
+                    break;
                 default:
                     // If, IfNot and Has should not be nested
                     break;
@@ -539,7 +547,7 @@ std::vector<ProceduralDirective> FilterParser::getChainableDirectives(const QStr
         }
     };
 
-    const std::array<std::pair<QString, CosmeticFilter>, 10> targets = {
+    const std::array<std::pair<QString, CosmeticFilter>, 11> targets = {
         std::make_pair(QStringLiteral(":has("),                CosmeticFilter::Has),
         std::make_pair(QStringLiteral(":has-text("),           CosmeticFilter::HasText),
         std::make_pair(QStringLiteral(":if("),                 CosmeticFilter::If),
@@ -549,27 +557,12 @@ std::vector<ProceduralDirective> FilterParser::getChainableDirectives(const QStr
         std::make_pair(QStringLiteral(":matches-css-before("), CosmeticFilter::MatchesCSSBefore),
         std::make_pair(QStringLiteral(":matches-css-after("),  CosmeticFilter::MatchesCSSAfter),
         std::make_pair(QStringLiteral(":xpath("),              CosmeticFilter::XPath),
-        std::make_pair(QStringLiteral(":nth-ancestor("),       CosmeticFilter::NthAncestor)
+        std::make_pair(QStringLiteral(":nth-ancestor("),       CosmeticFilter::NthAncestor),
+        std::make_pair(QStringLiteral(":min-text-length("),     CosmeticFilter::MinTextLength)
     };
 
     for (const std::pair<QString, CosmeticFilter> &target : targets)
         lookForDirective(target.first, target.second);
-
-    /*
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":has(")),                 5, CosmeticFilter::Has });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":has-text(")),           10, CosmeticFilter::HasText });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":if(")),                  4, CosmeticFilter::If });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":if-not(")),              8, CosmeticFilter::IfNot });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":not(")),                 5, CosmeticFilter::IfNot });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css(")),        13, CosmeticFilter::MatchesCSS });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css-before(")), 20, CosmeticFilter::MatchesCSSBefore });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":matches-css-after(")),  19, CosmeticFilter::MatchesCSSAfter });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":xpath(")),               7, CosmeticFilter::XPath });
-    filters.push_back({ evalStr.indexOf(QStringLiteral(":nth-ancestor(")),       14, CosmeticFilter::NthAncestor });
-    filters.erase(std::remove_if(filters.begin(), filters.end(), [](const ProceduralDirective &d) {
-        return d.Index < 0;
-    }), filters.end());
-    */
 
     if (filters.empty())
         return filters;
