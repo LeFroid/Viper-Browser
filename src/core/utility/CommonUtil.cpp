@@ -162,6 +162,10 @@ namespace CommonUtil
         aString.remove(userInfoExpr);
         bString.remove(userInfoExpr);
 
+        QRegularExpression wwwExpr{QLatin1String("^www\\.")};
+        aString.remove(wwwExpr);
+        bString.remove(wwwExpr);
+
         if (aString.endsWith(QLatin1Char('/')))
             aString = aString.left(aString.size() - 1);
         if (bString.endsWith(QLatin1Char('/')))

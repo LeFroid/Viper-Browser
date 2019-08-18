@@ -7,8 +7,8 @@ const addScopeIfNeeded = function(str) {
     }
     return str;
 };
-const hideIfHasAsync = async function(subject, target) {
-    var nodes = document.querySelectorAll(subject);
+const hideIfHasAsync = async function(subject, target, root) {
+    var nodes = root.querySelectorAll(subject);
     var i = 0;
     for (; i < nodes.length; ++i) {
         if (nodes[i++].nodeName === 'BODY')
@@ -23,24 +23,27 @@ const hideIfHasAsync = async function(subject, target) {
     }
 };
 /// Handles the :has(...) cosmetic filter option
-const hideIfHas = function (subject, target) {
+const hideIfHas = function (subject, target, root) {
     target = addScopeIfNeeded(target);
 
+    if (root === undefined)
+        root = document;
+
     if (subject === '*') {
-        (async(sub, tar) => {
-            hideIfHasAsync(sub, tar);
-        })(subject, target);
+        (async(sub, tar, rt) => {
+            hideIfHasAsync(sub, tar, rt);
+        })(subject, target, root);
         return;
     }
-    var nodes = document.querySelectorAll(subject), i;
+    var nodes = root.querySelectorAll(subject), i;
     for (i = 0; i < nodes.length; ++i) {
         if (nodes[i].querySelector(target) !== null) {
             nodes[i].style.cssText = 'display: none !important;';
         }
     }
 };
-const hideIfNotHasAsync = async function(subject, target) {
-    var nodes = document.querySelectorAll(subject);
+const hideIfNotHasAsync = async function(subject, target, root) {
+    var nodes = root.querySelectorAll(subject);
     var i = 0;
     for (; i < nodes.length; ++i) {
         if (nodes[i++].nodeName === 'BODY')
@@ -55,16 +58,19 @@ const hideIfNotHasAsync = async function(subject, target) {
     }
 };
 /// Handles :if-not(...) cosmetic filter option if it does not have any nested cosmetic filter options
-const hideIfNotHas = function (subject, target) {
+const hideIfNotHas = function (subject, target, root) {
     target = addScopeIfNeeded(target);
 
+    if (root === undefined)
+        root = document;
+
     if (subject === '*') {
-        (async(sub, tar) => {
-            hideIfNotHasAsync(sub, tar);
-        })(subject, target);
+        (async(sub, tar, rt) => {
+            hideIfNotHasAsync(sub, tar, rt);
+        })(subject, target, root);
         return;
     }
-    var nodes = document.querySelectorAll(subject), i;
+    var nodes = root.querySelectorAll(subject), i;
     for (i = 0; i < nodes.length; ++i) {
         if (nodes[i].querySelector(target) === null) {
             nodes[i].style.cssText = 'display: none !important;';
@@ -76,7 +82,7 @@ const hasText = function (selector, text, root) {
     if (root === undefined) {
         root = document;
     }
-    var elements = root.querySelectorAll(selector);
+    var elements = selector === '' ? [ root ] : root.querySelectorAll(selector);
     var subElems = [].filter.call(elements, function(element) {
         return RegExp(text).test(element.textContent);
     });
@@ -90,8 +96,11 @@ const matchesCSS = function (selector, text, root, pseudoSelector) {
         pseudoSelector = null;
 
     var output = [];
-    var nodes = root.querySelectorAll(selector), i, colonIdx, attrName, attrVal;
-    if (!nodes || !nodes.length) { return output; }
+    var nodes, i, colonIdx, attrName, attrVal;
+    nodes = selector === '' ? [ root ] : root.querySelectorAll(selector);
+
+    if (!nodes || !nodes.length)
+        return output;
 
     colonIdx = text.indexOf(':');
     if (colonIdx < 0) { return output; }
@@ -152,7 +161,7 @@ const nthAncestor = function (subject, expr, root) {
         if (node)
             output.push(node);
     }
-    return output
+    return output;
 };
 
 /// Hides each subject in the document, for which the result of the callback with parameters chainSubject, chainTarget is not null or empty

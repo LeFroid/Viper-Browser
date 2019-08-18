@@ -269,6 +269,9 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
         return false;
     }
 
+    // Workaround until a better approach towards procedural filter parsing/execution is implemented
+    filter->m_evalString.replace(QLatin1String(":not(:has("), QLatin1String(":if-not("));
+
     // Search for each chainable type and handle the first one to appear, as any other
     // chainable filter options will appear as an argument of the first
     std::vector<ProceduralDirective> filters = getChainableDirectives(filter->m_evalString);
@@ -306,17 +309,14 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
 
     evalStr = evalStr.left(directive.Index);
 
-    /*
-    if (std::get<1>(p) == CosmeticFilter::XPath && evalStr.isEmpty())
-        evalStr = QStringLiteral("document");
-    else if (evalStr.isEmpty())
-        return false;*/
     if (evalStr.isEmpty())
         evalStr = QStringLiteral("*");
 
     evalStr.replace(QChar('\''), QString("\\\'"));
 
-    const bool isArgRegExp = evalArg.startsWith(QChar('/')) && evalArg.endsWith(QChar('/'));
+    const bool isArgRegExp = evalArg.startsWith(QChar('/'))
+            && (evalArg.endsWith(QChar('/'))
+                || (evalArg.lastIndexOf(QChar('/')) + 3 >= evalArg.size()));
     if (!isArgRegExp)
         evalArg.replace(QChar('\''), QString("\\\'"));
 
@@ -524,7 +524,38 @@ std::vector<ProceduralDirective> FilterParser::getChainableDirectives(const QStr
 {
     // Only search for chainable types
     std::vector<ProceduralDirective> filters;
-    // ProceduralDirective : { Index, ArgumentIndex, DirectiveName }
+    auto lookForDirective = [&filters, &evalStr](const QString &directive, CosmeticFilter filterType) {
+        const int directiveLen = directive.size();
+
+        int lastIndex = 0;
+        int dirIndex = evalStr.indexOf(directive);
+        while (dirIndex >= 0)
+        {
+            // ProceduralDirective : { Index, StringLength, DirectiveName }
+            filters.push_back({ dirIndex, directiveLen, filterType });
+
+            lastIndex = dirIndex + directiveLen;
+            dirIndex = evalStr.indexOf(directive, lastIndex);
+        }
+    };
+
+    const std::array<std::pair<QString, CosmeticFilter>, 10> targets = {
+        std::make_pair(QStringLiteral(":has("),                CosmeticFilter::Has),
+        std::make_pair(QStringLiteral(":has-text("),           CosmeticFilter::HasText),
+        std::make_pair(QStringLiteral(":if("),                 CosmeticFilter::If),
+        std::make_pair(QStringLiteral(":if-not("),             CosmeticFilter::IfNot),
+        std::make_pair(QStringLiteral(":not("),                CosmeticFilter::Not),
+        std::make_pair(QStringLiteral(":matches-css("),        CosmeticFilter::MatchesCSS),
+        std::make_pair(QStringLiteral(":matches-css-before("), CosmeticFilter::MatchesCSSBefore),
+        std::make_pair(QStringLiteral(":matches-css-after("),  CosmeticFilter::MatchesCSSAfter),
+        std::make_pair(QStringLiteral(":xpath("),              CosmeticFilter::XPath),
+        std::make_pair(QStringLiteral(":nth-ancestor("),       CosmeticFilter::NthAncestor)
+    };
+
+    for (const std::pair<QString, CosmeticFilter> &target : targets)
+        lookForDirective(target.first, target.second);
+
+    /*
     filters.push_back({ evalStr.indexOf(QStringLiteral(":has(")),                 5, CosmeticFilter::Has });
     filters.push_back({ evalStr.indexOf(QStringLiteral(":has-text(")),           10, CosmeticFilter::HasText });
     filters.push_back({ evalStr.indexOf(QStringLiteral(":if(")),                  4, CosmeticFilter::If });
@@ -538,17 +569,10 @@ std::vector<ProceduralDirective> FilterParser::getChainableDirectives(const QStr
     filters.erase(std::remove_if(filters.begin(), filters.end(), [](const ProceduralDirective &d) {
         return d.Index < 0;
     }), filters.end());
+    */
 
     if (filters.empty())
         return filters;
-
-    // TODO: Search again for the keywords that were found, in case there are more than one if, has, etc. in the string
-    /*
-    for (const ProceduralDirective &d : filters)
-    {
-        int startIndex = d.ArgumentIndex;
-    }
-    */
 
     std::sort(filters.begin(), filters.end(), [](const ProceduralDirective &d1, const ProceduralDirective &d2) {
         return d1.Index < d2.Index;
