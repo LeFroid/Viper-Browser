@@ -77,7 +77,7 @@ void HistoryManager::clearHistoryFrom(const QDateTime &start)
 
 void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 {
-    m_taskScheduler.post([=](){
+    m_taskScheduler.post([this, range](){
         m_recentItems.clear();
 
         m_historyStore->clearHistoryInRange(range);

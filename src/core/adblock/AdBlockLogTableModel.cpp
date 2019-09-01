@@ -77,6 +77,8 @@ QVariant LogTableModel::data(const QModelIndex &index, int role) const
                 case FilterAction::Redirect:
                     return tr("Redirected");
             }
+            // Will never make it past the above switch
+            return tr("?");
         }
         // Rule column
         case 2:

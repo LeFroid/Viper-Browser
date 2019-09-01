@@ -111,6 +111,8 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
         }
         return m_enableCookies;
     });
+#else
+    Q_UNUSED(value);
 #endif
 }
 

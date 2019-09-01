@@ -114,7 +114,7 @@ private slots:
 
         // Use signal spy to make sure the clear history call makes its way to the history store
         QSignalSpy spy(m_historyManager, &HistoryManager::historyCleared);
-        m_historyManager->clearHistoryInRange({firstDate, QDateTime::currentDateTime().addDays(-1)});
+        m_historyManager->clearHistoryInRange(std::make_pair(firstDate, QDateTime::currentDateTime().addDays(-1)));
 
         QVERIFY(spy.wait(5500));
         QCOMPARE(spy.count(), 1);
