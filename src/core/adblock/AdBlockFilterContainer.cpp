@@ -222,8 +222,8 @@ void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
     for (Subscription &sub : subscriptions)
     {
         // Add filters to appropriate containers
-        const int numFilters = sub.getNumFilters();
-        for (int i = 0; i < numFilters; ++i)
+        const size_t numFilters = sub.getNumFilters();
+        for (size_t i = 0; i < numFilters; ++i)
         {
             Filter *filter = sub.getFilter(i);
             if (!filter)

@@ -595,22 +595,22 @@ void AdBlockManager::loadSubscriptions()
 
         // Get last update as unix epoch value
         bool ok;
-        quint64 lastUpdateUInt = subscriptionObj.value(QLatin1String("last_update")).toVariant().toULongLong(&ok);
+        qint64 lastUpdateRaw = subscriptionObj.value(QLatin1String("last_update")).toVariant().toLongLong(&ok);
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
-        QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromSecsSinceEpoch(lastUpdateUInt) : QDateTime::currentDateTime());
+        QDateTime lastUpdate = (ok && lastUpdateRaw > 0 ? QDateTime::fromSecsSinceEpoch(lastUpdateRaw) : QDateTime::currentDateTime());
 #else
-        QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromMSecsSinceEpoch(lastUpdateUInt * 1000ULL) : QDateTime::currentDateTime());
+        QDateTime lastUpdate = (ok && lastUpdateRaw > 0 ? QDateTime::fromMSecsSinceEpoch(lastUpdateRaw * 1000LL) : QDateTime::currentDateTime());
 #endif
         subscription.setLastUpdate(lastUpdate);
 
         // Attempt to get next update time as unix epoch value
-        quint64 nextUpdateUInt = subscriptionObj.value(QLatin1String("next_update")).toVariant().toULongLong(&ok);
-        if (ok && nextUpdateUInt > 0)
+        qint64 nextUpdateRaw = subscriptionObj.value(QLatin1String("next_update")).toVariant().toLongLong(&ok);
+        if (ok && nextUpdateRaw > 0)
         {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
-            QDateTime nextUpdate = QDateTime::fromSecsSinceEpoch(nextUpdateUInt);
+            QDateTime nextUpdate = QDateTime::fromSecsSinceEpoch(nextUpdateRaw);
 #else
-            QDateTime nextUpdate = QDateTime::fromMSecsSinceEpoch(nextUpdateUInt * 1000ULL);
+            QDateTime nextUpdate = QDateTime::fromMSecsSinceEpoch(nextUpdateRaw * 1000LL);
 #endif
             subscription.setNextUpdate(nextUpdate);
         }

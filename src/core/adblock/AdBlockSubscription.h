@@ -2,6 +2,7 @@
 #define ADBLOCKSUBSCRIPTION_H
 
 #include "AdBlockFilter.h"
+
 #include <memory>
 #include <vector>
 #include <QDateTime>
@@ -16,7 +17,9 @@ class AdBlockManager;
 /**
  * @class Subscription
  * @ingroup AdBlock
- * @brief Manages a list of ad block filters
+ * @brief Manages a list of filter rules that are defined
+ *        according to the AdBlockPlus and/or uBlock Origin
+ *        filter specifications.
  */
 class Subscription
 {
@@ -81,10 +84,10 @@ protected:
     void setSourceUrl(const QUrl &source);
 
     /// Returns the number of filters that belong to the subscription
-    int getNumFilters() const;
+    size_t getNumFilters() const;
 
     /// Returns the filter at the given index
-    Filter *getFilter(int index);
+    Filter *getFilter(size_t index);
 
     /// Returns the absolute path of the subscription file
     const QString &getFilePath() const;

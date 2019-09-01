@@ -18,6 +18,9 @@ public:
     /// Constructor - same as a standard QObject
     explicit ITextFinder(QObject *parent = nullptr);
 
+    /// Destructor
+    virtual ~ITextFinder();
+
     /// Tells the text finder to stop searching for text, and to make sure that no prior
     /// text matches are still highlighted.
     virtual void stopSearching() = 0;

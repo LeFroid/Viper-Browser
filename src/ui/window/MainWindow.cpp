@@ -288,7 +288,7 @@ void MainWindow::checkPageForBookmark()
 
     const QUrl pageUrl = ww->url();
     QFutureWatcher<bool> *watcher = new QFutureWatcher<bool>(this);
-    connect(watcher, &QFutureWatcher<bool>::finished, [=](){
+    connect(watcher, &QFutureWatcher<bool>::finished, [this, pageUrl, watcher](){
         const bool isBookmarked = watcher->future().result();
         BookmarkNode *n = isBookmarked ? m_bookmarkManager->getBookmark(pageUrl) : nullptr;
         ui->menuBookmarks->setCurrentPageBookmarked(isBookmarked);

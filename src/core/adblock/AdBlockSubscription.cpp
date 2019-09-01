@@ -168,21 +168,22 @@ void Subscription::setSourceUrl(const QUrl &source)
     m_sourceUrl = source;
 }
 
-int Subscription::getNumFilters() const
+size_t Subscription::getNumFilters() const
 {
     if (!m_enabled)
         return 0;
 
-    return static_cast<int>(m_filters.size());
+    return m_filters.size();
 }
 
-Filter *Subscription::getFilter(int index)
+Filter *Subscription::getFilter(size_t index)
 {
     if (!m_enabled)
         return nullptr;
 
-    if (index < 0 || index >= static_cast<int>(m_filters.size()))
+    if (index >= m_filters.size())
         return nullptr;
+
     return m_filters[index].get();
 }
 

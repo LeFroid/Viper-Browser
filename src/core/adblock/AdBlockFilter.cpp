@@ -248,7 +248,7 @@ bool Filter::isMatch(const QString &baseUrl, const QString &requestUrl, const QS
     if (match)
     {
         // Check for element type restrictions (in specific order)
-        std::array<ElementType, 13> elemTypes = {  ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
+        static constexpr std::array<ElementType, 13> elemTypes = {  ElementType::XMLHTTPRequest,  ElementType::Document,   ElementType::Object,
                                                    ElementType::Subdocument,     ElementType::Image,      ElementType::Script,
                                                    ElementType::Stylesheet,      ElementType::WebSocket,  ElementType::ObjectSubrequest,
                                                    ElementType::InlineScript,    ElementType::Ping,       ElementType::CSP,
