@@ -30,7 +30,7 @@ public:
             worker->setup();
 
         worker->load();
-        return std::move(worker);
+        return worker;
     }
 
     /// Creates and returns a unique_ptr of an object that inherits the DatabaseWorker class
@@ -48,7 +48,7 @@ public:
             worker->setup();
 
         worker->load();
-        return std::move(worker);
+        return worker;
     }
 
     /// Creates and returns a unique_ptr of an object that inherits the DatabaseWorker class
@@ -66,7 +66,7 @@ public:
             worker->setup();
 
         worker->load();
-        return std::move(worker);
+        return worker;
     }
 };
 
