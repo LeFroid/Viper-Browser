@@ -9,6 +9,7 @@
 #include <QSslKey>
 #include <QTextEdit>
 #include <QTreeWidget>
+#include <QtGlobal>
 
 CertificateViewer::CertificateViewer(QWidget *parent) :
     QWidget(parent),
@@ -179,6 +180,11 @@ void CertificateViewer::onCertFieldSelected()
                 case QSsl::Opaque:
                     contents = QStringLiteral("Opaque");
                     break;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 13, 0))
+                case QSsl::Dh:
+                    contents = QStringLiteral("Diffie-Hellman");
+                    break;
+#endif
             }
 
             break;

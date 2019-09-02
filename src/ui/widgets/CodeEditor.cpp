@@ -54,6 +54,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTextBlock>
+#include <QtGlobal>
 
 CodeEditor::CodeEditor(QWidget *parent) :
     QPlainTextEdit(parent),
@@ -77,7 +78,11 @@ int CodeEditor::getLineNumberAreaWidth() const
         ++digits;
     }
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    return (3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits);
+#else
     return (3 + fontMetrics().width(QLatin1Char('9')) * digits);
+#endif
 }
 
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
