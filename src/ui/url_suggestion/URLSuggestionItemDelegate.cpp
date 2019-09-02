@@ -4,6 +4,7 @@
 #include <QFontMetrics>
 #include <QIcon>
 #include <QPainter>
+#include <QtGlobal>
 
 #include <QDebug>
 
@@ -63,8 +64,13 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->setPen(urlPen);
 
     QFontMetrics urlFontMetrics(urlFont);
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    const QPointF urlPos(titlePos.x() + titleFontMetrics.horizontalAdvance(title) + m_padding,
+                         cy - 1 - urlFontMetrics.height() / 2);
+#else
     const QPointF urlPos(titlePos.x() + titleFontMetrics.width(title) + m_padding,
                          cy - 1 - urlFontMetrics.height() / 2);
+#endif
     const QRectF urlRect(urlPos, QSize(itemRect.width() - m_padding - urlPos.x() - faviconRect.width(), urlFontMetrics.height()));
     QString url = index.data(URLSuggestionListModel::Link).toString();
     url = urlFontMetrics.elidedText(url, Qt::ElideRight, urlRect.width());

@@ -13,6 +13,8 @@
 #include <QStyle>
 #include <QUrl>
 
+#include <QtGlobal>
+
 BookmarkBar::BookmarkBar(QWidget *parent) :
     QWidget(parent),
     m_bookmarkManager(nullptr),
@@ -121,7 +123,11 @@ void BookmarkBar::refresh()
     int numChildren = folder->getNumChildren();
 
     QFontMetrics fMetrics = fontMetrics();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    const int maxTextWidth = fMetrics.horizontalAdvance(QLatin1Char('R')) * 12;
+#else
     const int maxTextWidth = fMetrics.width(QLatin1Char('R')) * 12;
+#endif
 
     int spaceLeft = window()->width();
 

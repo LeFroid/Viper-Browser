@@ -18,6 +18,7 @@
 #include <QWebEngineProfile>
 #include <QWheelEvent>
 #include <QQuickWidget>
+#include <QtGlobal>
 
 #include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
@@ -289,7 +290,11 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
 
         // Search for current selection menu option
         QFontMetrics fontMetrics(font());
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+        const QString selectedTextInMenu = fontMetrics.elidedText(text, Qt::ElideRight, fontMetrics.horizontalAdvance(QChar('R')) * 16);
+#else
         const QString selectedTextInMenu = fontMetrics.elidedText(text, Qt::ElideRight, fontMetrics.width(QChar('R')) * 16);
+#endif
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
         menu->addAction(tr("Search %1 for \"%2\"").arg(searchMgr->getDefaultSearchEngine()).arg(selectedTextInMenu), [=](){
             HttpRequest request = searchMgr->getSearchRequest(text);

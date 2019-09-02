@@ -14,6 +14,7 @@
 #include <QPixmap>
 #include <QUrl>
 #include <QWidget>
+#include <QtGlobal>
 
 AdBlockButton::AdBlockButton(QWidget *parent) :
     QToolButton(parent),
@@ -82,7 +83,11 @@ void AdBlockButton::updateCount()
 
             // Draw rect containing the count
             const int startX = adBlockPixmap.width() / 3, startY = adBlockPixmap.height() / 2;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+            const int containerWidth = std::min(metrics.horizontalAdvance(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
+#else
             const int containerWidth = std::min(metrics.width(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
+#endif
             const int containerHeight = std::min(metrics.height() + 4, adBlockPixmap.height() - startY);
             const QRect infoRect(startX, startY, containerWidth, containerHeight);
             painter.fillRect(infoRect, QBrush(QColor(67, 67, 67)));
