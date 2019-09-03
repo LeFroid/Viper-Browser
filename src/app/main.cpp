@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
     BrowserApplication a(&ipc, argc2, argv2);
 #else
     int argc2 = 2;
-    const char *argv2[] = { argv[0], "--remote-debugging-port=9477" };
+    char *argv2[] = { argv[0], "--remote-debugging-port=9477" };
     BrowserApplication a(&ipc, argc2, argv2);
 #endif
 
