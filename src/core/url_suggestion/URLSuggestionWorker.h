@@ -1,6 +1,7 @@
 #ifndef URLSUGGESTIONWORKER_H
 #define URLSUGGESTIONWORKER_H
 
+#include "IURLSuggestor.h"
 #include "ServiceLocator.h"
 #include "URLSuggestion.h"
 #include "URLSuggestionListModel.h"
@@ -8,6 +9,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -61,14 +63,6 @@ private:
     /// Check if, for a very small search term (< 5 chars), either a part of the page title or URL begins with
     /// the characters in the search term
     MatchType getMatchTypeForSmallSearchTerm(const QString &title, const QString &url);
-
-    /// Checks if an item with the given page title, url and optionally shortcut matches the search term, returning
-    /// true on a match and false if not matching
-    bool isEntryMatch(const QString &title, const QString &url, const QString &shortcut = QString());
-
-    /// Check if, for a very small search term (< 5 chars), either a part of the page title or URL begins with
-    /// the characters in the search term.
-    bool isMatchForSmallSearchTerm(const QString &title, const QString &url);
 
     /// Applies the Rabin-Karp string matching algorithm to determine whether or not the haystack contains the search term
     bool isStringMatch(const QString &haystack);
@@ -127,6 +121,9 @@ private:
 
     /// Map of history entry IDs to the IDs of associated words. Used to make educated suggestions based on user input
     std::map<int, std::vector<int>> m_historyWordMap;
+
+    /// URL suggestion implementations
+    std::vector<std::unique_ptr<IURLSuggestor>> m_handlers;
 };
 
 #endif // URLSUGGESTIONWORKER_H

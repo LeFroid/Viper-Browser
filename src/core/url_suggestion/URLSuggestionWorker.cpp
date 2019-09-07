@@ -1,5 +1,6 @@
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "BookmarkSuggestor.h"
 #include "CommonUtil.h"
 #include "FastHash.h"
 #include "FaviconManager.h"
@@ -9,6 +10,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iterator>
 
 #include <QtConcurrent>
 #include <QSet>
@@ -69,12 +71,15 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     m_mutex(),
     m_cv(),
     m_historyWords(),
-    m_historyWordMap()
+    m_historyWordMap(),
+    m_handlers()
 {
     m_suggestionWatcher = new QFutureWatcher<void>(this);
-    connect(m_suggestionWatcher, &QFutureWatcher<void>::finished, [this](){
+    connect(m_suggestionWatcher, &QFutureWatcher<void>::finished, this, [this](){
         emit finishedSearch(m_suggestions);
     });
+
+    m_handlers.push_back(std::make_unique<BookmarkSuggestor>());
 
     // Load word database from history manager every minute
     QTimer *wordTimer = new QTimer(this);
@@ -138,6 +143,9 @@ void URLSuggestionWorker::setServiceLocator(const ViperServiceLocator &serviceLo
     m_faviconManager  = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
     m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
 
+    for (auto &handler : m_handlers)
+        handler->setServiceLocator(serviceLocator);
+
     onWordTimerTick();
 }
 
@@ -152,44 +160,25 @@ void URLSuggestionWorker::searchForHits()
         return;
     }
 
-    // Set upper bound on number of suggestions for each type of item being checked
-    const int maxSuggestedBookmarks = 20, maxSuggestedHistory = 75;
-    int numSuggestedBookmarks = 0, numSuggestedHistory = 0;
-
-    // Store urls being suggested in a set to avoid duplication when checking different data sources
-    QSet<QString> hits;
-
-    const bool inputStartsWithWww = m_searchTerm.size() >= 3 && m_searchTerm.startsWith(QLatin1String("WWW"));
-
-    for (const auto &it : *m_bookmarkManager)
+    // TODO: Create HistorySuggestor class, move code below this range into history suggestor, and
+    //       simplify complexity of this flow
+    FastHashParameters hashParams { m_searchTermWideStr, m_differenceHash, m_searchTermHash };
+    for (auto &handler : m_handlers)
     {
         if (!m_working.load())
             return;
 
-        if (it->getType() != BookmarkNode::Bookmark)
-            continue;
-
-        const QString url = it->getURL().toString();
-        MatchType matchType = getMatchType(it->getName().toUpper(), url.toUpper(), it->getShortcut().toUpper());
-        if (matchType != MatchType::None)
-        {
-            URLSuggestion suggestion { it, m_historyManager->getEntry(it->getURL()), matchType };
-
-            QString suggestionHost = it->getURL().host().toUpper();
-            if (!inputStartsWithWww)
-                suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
-            suggestion.IsHostMatch = suggestionHost.startsWith(m_searchTerm);
-
-            hits.insert(suggestion.URL);
-            m_suggestions.push_back(suggestion);
-
-            if (++numSuggestedBookmarks == maxSuggestedBookmarks)
-                break;
-        }
+        std::vector<URLSuggestion> suggestions
+                = handler->getSuggestions(m_working, m_searchTerm, m_searchWords, hashParams);
+        m_suggestions.insert(m_suggestions.end(), suggestions.begin(), suggestions.end());
     }
 
-    if (!m_working.load())
-        return;
+    // Set upper bound on number of suggestions for each type of item being checked
+    const int maxSuggestedHistory = 75;
+    int numSuggestedHistory = 0;
+
+    const QRegularExpression prefixExpr = QRegularExpression(QLatin1String("^WWW\\."));
+    const bool inputStartsWithWww = m_searchTerm.size() >= 3 && m_searchTerm.startsWith(QLatin1String("WWW"));
 
     // Used to check if certain infrequently visited URLs should be ignored
     const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-259200);
@@ -202,9 +191,6 @@ void URLSuggestionWorker::searchForHits()
 
         const URLRecord &record = it.second;
         const QString &url = record.getUrl().toString();
-        if (hits.contains(url))
-            continue;
-
         const QUrl &urlObj = record.getUrl();
 
         // Rule out records that don't match any of these criteria
@@ -268,25 +254,21 @@ void URLSuggestionWorker::searchForHits()
                 matchType = MatchType::Title;
         }
 
-        //else
-        //    matchType = getMatchType(record.getTitle().toUpper(), url.toUpper());
-
         if (matchType != MatchType::None)
         {
             URLSuggestion suggestion { record, m_faviconManager->getFavicon(urlObj), matchType };
 
             QString suggestionHost = urlObj.host().toUpper();
             if (!inputStartsWithWww)
-                suggestionHost = suggestionHost.replace(QRegularExpression(QLatin1String("^WWW\\.")), QString());
+                suggestionHost = suggestionHost.replace(prefixExpr, QString());
             suggestion.IsHostMatch = m_searchTerm.startsWith(suggestionHost);
 
             if (matchType == MatchType::SearchWords)
                 suggestion.PercentMatch = percentWordScore;
 
             m_suggestions.push_back(suggestion);
-            hits.insert(suggestion.URL);
 
-            if (++numSuggestedHistory == maxSuggestedHistory)
+            if (++numSuggestedHistory >= maxSuggestedHistory)
                 break;
         }
     }
@@ -354,53 +336,6 @@ MatchType URLSuggestionWorker::getMatchTypeForSmallSearchTerm(const QString &tit
         urlMutable = urlMutable.mid(4);
 
     return urlMutable.startsWith(m_searchTerm) ? MatchType::URL : MatchType::None;
-}
-
-bool URLSuggestionWorker::isEntryMatch(const QString &title, const QString &url, const QString &shortcut)
-{
-    if (!shortcut.isEmpty() && m_searchTerm.startsWith(shortcut))
-        return true;
-
-    // Special case for small search terms
-    if (m_searchTerm.size() < 5)
-        return isMatchForSmallSearchTerm(title, url);
-
-    if (isStringMatch(title))
-        return true;
-
-    if (m_searchWords.size() > 1)
-    {
-        for (const QString &word : m_searchWords)
-        {
-            if (word.size() > 2 && title.contains(word, Qt::CaseSensitive))
-                return true;
-        }
-    }
-
-    return isStringMatch(url);
-}
-
-bool URLSuggestionWorker::isMatchForSmallSearchTerm(const QString &title, const QString &url)
-{
-    QStringList nameParts = title.split(QLatin1Char(' '), QString::SkipEmptyParts);
-    if (nameParts.empty())
-        nameParts.push_back(title);
-
-    for (const QString &part : nameParts)
-    {
-        if (part.startsWith(m_searchTerm))
-            return true;
-    }
-
-    const int prefix = url.indexOf(QLatin1String("://"));
-    QString urlMutable = url;
-    if (!m_searchTermHasScheme && prefix >= 0)
-        urlMutable = urlMutable.mid(prefix + 3);
-
-    if (m_searchTerm.at(0) != QLatin1Char('W') && urlMutable.startsWith(QLatin1String("WWW.")))
-        urlMutable = urlMutable.mid(4);
-
-    return urlMutable.startsWith(m_searchTerm);
 }
 
 void URLSuggestionWorker::hashSearchTerm()

@@ -57,6 +57,7 @@ set(viper_src
     text_finder/TextEditorTextFinder.cpp
     text_finder/WebPageTextFinder.cpp
     threading/DatabaseTaskScheduler.cpp
+    url_suggestion/BookmarkSuggestor.cpp
     url_suggestion/URLSuggestion.cpp
     url_suggestion/URLSuggestionListModel.cpp
     url_suggestion/URLSuggestionWorker.cpp
