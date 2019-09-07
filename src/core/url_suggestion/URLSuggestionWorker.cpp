@@ -5,6 +5,7 @@
 #include "FastHash.h"
 #include "FaviconManager.h"
 #include "HistoryManager.h"
+#include "HistorySuggestor.h"
 #include "URLSuggestion.h"
 #include "URLSuggestionWorker.h"
 
@@ -72,6 +73,7 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     });
 
     m_handlers.push_back(std::make_unique<BookmarkSuggestor>());
+    m_handlers.push_back(std::make_unique<HistorySuggestor>());
 
     // Allow url suggestion handlers to do things, such as refreshing data, on a regular interval
     QTimer *wordTimer = new QTimer(this);
