@@ -684,6 +684,16 @@ void FilterParser::parseOptions(const QString &optionString, Filter *filter) con
             filter->m_redirect = true;
             filter->m_redirectName = option.mid(9);
         }
+        else if (option.compare(QStringLiteral("empty")) == 0)
+        {
+            filter->m_redirect = true;
+            filter->m_redirectName = QStringLiteral("nooptext");
+        }
+        else if (option.compare(QStringLiteral("mp4")) == 0)
+        {
+            filter->m_redirect = true;
+            filter->m_redirectName = QStringLiteral("noopmp4-1s");
+        }
         else if (option.compare(QStringLiteral("first-party")) == 0 || option.compare(QStringLiteral("1p")) == 0)
         {
             filter->m_allowedTypes |= ElementType::ThirdParty;
