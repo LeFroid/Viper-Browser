@@ -7,10 +7,7 @@
 #include "URLSuggestionListModel.h"
 
 #include <atomic>
-#include <condition_variable>
-#include <map>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
@@ -19,10 +16,6 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
-
-class BookmarkManager;
-class FaviconManager;
-class HistoryManager;
 
 /**
  * @class URLSuggestionWorker
@@ -49,23 +42,12 @@ Q_SIGNALS:
     void finishedSearch(const std::vector<URLSuggestion> &results);
 
 private Q_SLOTS:
-    /// Called when the timer for reloading the history word database has completed a cycle
-    void onWordTimerTick();
+    /// Called when the data refresh timer has completed a cycle
+    void onHandlerTimerTick();
 
 private:
     /// The suggestion search operation working in a separate thread
     void searchForHits();
-
-    /// Checks if an item with the given page title, url and optionally shortcut matches the search term, returning
-    /// the corresponding type after evaluating all criteria. Returns MatchType::None when there is no match
-    MatchType getMatchType(const QString &title, const QString &url, const QString &shortcut = QString());
-
-    /// Check if, for a very small search term (< 5 chars), either a part of the page title or URL begins with
-    /// the characters in the search term
-    MatchType getMatchTypeForSmallSearchTerm(const QString &title, const QString &url);
-
-    /// Applies the Rabin-Karp string matching algorithm to determine whether or not the haystack contains the search term
-    bool isStringMatch(const QString &haystack);
 
     /// Generates a hash of the search term before looking for suggestions
     void hashSearchTerm();
@@ -79,9 +61,6 @@ private:
 
     /// The search term, split by the ' ' character for partial string matching
     QStringList m_searchWords;
-
-    /// True if the search term contains a scheme (used for string matching)
-    bool m_searchTermHasScheme;
 
     /// Future of the searchForHits operation
     QFuture<void> m_suggestionFuture;
@@ -100,27 +79,6 @@ private:
 
     /// Contains a hash of the search term string
     quint64 m_searchTermHash;
-
-    /// Pointer to the bookmark manager, used for suggeseting urls
-    BookmarkManager *m_bookmarkManager;
-
-    /// Gathers icons which are sent in the suggestion results
-    FaviconManager *m_faviconManager;
-
-    /// Used to determine history-based matches
-    HistoryManager *m_historyManager;
-
-    /// Mutex used to access the history word maps between threads
-    mutable std::mutex m_mutex;
-
-    /// CV used to access the history word maps between threads
-    std::condition_variable m_cv;
-
-    /// History-related word dictionary
-    std::map<int, QString> m_historyWords;
-
-    /// Map of history entry IDs to the IDs of associated words. Used to make educated suggestions based on user input
-    std::map<int, std::vector<int>> m_historyWordMap;
 
     /// URL suggestion implementations
     std::vector<std::unique_ptr<IURLSuggestor>> m_handlers;
