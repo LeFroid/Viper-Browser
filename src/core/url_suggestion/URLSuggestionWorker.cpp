@@ -39,7 +39,7 @@ bool compareUrlSuggestions(const URLSuggestion &a, const URLSuggestion &b)
         return a.IsHostMatch;
 
     // Special case
-    if (a.Type == b.Type && a.PercentMatch != b.PercentMatch)
+    if (a.Type == b.Type && a.Type == MatchType::SearchWords && a.PercentMatch != b.PercentMatch)
         return a.PercentMatch > b.PercentMatch;
 
     if (a.VisitCount != b.VisitCount)
@@ -131,6 +131,7 @@ void URLSuggestionWorker::searchForHits()
     m_working.store(true);
     m_suggestions.clear();
 
+    QSet<QString> hits;
     FastHashParameters hashParams { m_searchTermWideStr, m_differenceHash, m_searchTermHash };
     for (auto &handler : m_handlers)
     {
@@ -139,7 +140,14 @@ void URLSuggestionWorker::searchForHits()
 
         std::vector<URLSuggestion> suggestions
                 = handler->getSuggestions(m_working, m_searchTerm, m_searchWords, hashParams);
-        m_suggestions.insert(m_suggestions.end(), suggestions.begin(), suggestions.end());
+        for (auto &&suggestion : suggestions)
+        {
+            if (hits.contains(suggestion.URL))
+                continue;
+
+            hits.insert(suggestion.URL);
+            m_suggestions.emplace_back(suggestion);
+        }
     }
 
     if (!m_working.load())

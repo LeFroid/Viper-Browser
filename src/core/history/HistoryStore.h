@@ -88,6 +88,9 @@ public:
     /// Adds an entry to the history data store, given the URL, page title, time of visit, and the requested URL
     void addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser);
 
+    /// Returns the last unique id of an entry in the visit database. This is an auto-incrementing value
+    uint64_t getLastVisitId() const;
+
 protected:
     /// Returns true if the history database contains the table structures needed for it to function properly,
     /// false if else.

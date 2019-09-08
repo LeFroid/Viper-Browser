@@ -8,6 +8,7 @@
 #include <mutex>
 #include <vector>
 
+class BookmarkManager;
 class FaviconManager;
 class HistoryManager;
 
@@ -38,7 +39,13 @@ private:
     /// Loads the word database, and word-history entry mappings
     void loadHistoryWords();
 
+    /// Returns a list of words associated with the given history entry
+    std::vector<QString> getHistoryEntryWords(int historyId);
+
 private:
+    /// Determines whether or not a suggestion is also a bookmark
+    BookmarkManager *m_bookmarkManager;
+
     /// Gathers icons which are sent in the suggestion results
     FaviconManager *m_faviconManager;
 

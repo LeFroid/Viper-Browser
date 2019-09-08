@@ -148,6 +148,9 @@ private:
 
     /// Pointer to the history store
     HistoryStore *m_historyStore;
+
+    /// Unique id of the most recent entry in the database
+    uint64_t m_lastVisitId;
 };
 
 #endif // HISTORYMANAGER_H

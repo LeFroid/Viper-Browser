@@ -407,6 +407,11 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
     }
 }
 
+uint64_t HistoryStore::getLastVisitId() const
+{
+    return m_lastVisitID;
+}
+
 void HistoryStore::tokenizeAndSaveUrl(int visitId, const QUrl &url, const QString &title)
 {
     if (m_queryInsertWord == nullptr)

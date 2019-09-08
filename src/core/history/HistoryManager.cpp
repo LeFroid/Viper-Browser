@@ -21,7 +21,8 @@ HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, Databa
     m_historyItems(),
     m_recentItems(),
     m_storagePolicy(HistoryStoragePolicy::Remember),
-    m_historyStore(nullptr)
+    m_historyStore(nullptr),
+    m_lastVisitId(0)
 {
     setObjectName(QLatin1String("HistoryManager"));
 
@@ -42,6 +43,7 @@ HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, Databa
         onHistoryRecordsLoaded(m_historyStore->getEntries());
         onRecentItemsLoaded(m_historyStore->getRecentItems());
 
+        m_lastVisitId = m_historyStore->getLastVisitId();
         m_historyStore->clearEntriesInMemory();
     });
 }
@@ -153,7 +155,7 @@ void HistoryManager::addVisitToLocalStore(const QUrl &url, const QString &title,
     else
     {
         HistoryEntry entry;
-        entry.VisitID = -1;
+        entry.VisitID = static_cast<int>(++m_lastVisitId);
         entry.NumVisits = 1;
         entry.LastVisit = visitTime;
         entry.Title = title;

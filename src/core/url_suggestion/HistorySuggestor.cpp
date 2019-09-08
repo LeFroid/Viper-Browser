@@ -1,14 +1,19 @@
+#include "BookmarkManager.h"
 #include "FastHash.h"
 #include "FaviconManager.h"
 #include "HistoryManager.h"
 #include "HistorySuggestor.h"
 
+#include <algorithm>
 #include <QRegularExpression>
+
+#include <QDebug>
 
 void HistorySuggestor::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
-    m_faviconManager = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
-    m_historyManager = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
+    m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
+    m_faviconManager  = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
+    m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
 }
 
 std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bool &working,
@@ -32,6 +37,19 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
     // Used to check if certain infrequently visited URLs should be ignored
     const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-259200);
 
+    // Factored into an entry's score
+    const qint64 currentTime = QDateTime::currentDateTime().toSecsSinceEpoch();
+
+    // Sort search words by their string length, in descending order
+    std::vector<QString> searchWords;
+    searchWords.reserve(static_cast<size_t>(searchTermParts.size()));
+    for (const QString &word : searchTermParts)
+        searchWords.push_back(word);
+
+    std::sort(searchWords.begin(), searchWords.end(), [](const QString &a, const QString &b) -> bool {
+        return a.length() > b.length();
+    });
+
     {   
         std::lock_guard<std::mutex> lock{m_mutex};
         for (const auto &it : *m_historyManager)
@@ -53,20 +71,55 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
             int percentWordScore = 0;
 
             ///TODO: move inner portion of if statement into separate method
-            if (!m_historyWords.empty() && searchTermParts.size() > 2 && searchTerm.size() > 4)
+            if (!m_historyWords.empty() && searchTermParts.size() >= 2 && searchTerm.size() > 4)
             {
-                int wordMatches = 0;
+                // int wordMatches = 0;
                 float score = 0.0f;
 
-                std::vector<QString> historyWords;
-                auto wordIt = m_historyWordMap.find(record.getVisitId());
-                if (wordIt != m_historyWordMap.end())
+                bool skipCurrentEntry = false;
+
+                std::vector<QString> historyWords = getHistoryEntryWords(record.getVisitId());
+                for (const QString &searchWord : searchWords)
                 {
-                    std::vector<int> &wordIds = wordIt->second;
-                    for (int id : wordIds)
-                        historyWords.push_back(m_historyWords[id]);
+                    auto it = std::find_if(historyWords.begin(), historyWords.end(), [&searchWord](const QString &historyWord) -> bool {
+                       return historyWord.contains(searchWord);
+                    });
+
+                    if (it == historyWords.end())
+                    {
+                        skipCurrentEntry = true;
+                        break;
+                    }
+                    else
+                    {
+                        const int histWordLen = it->size();
+                        const int offset = it->indexOf(searchWord);
+                        score += static_cast<float>(searchWord.size()) * (static_cast<float>(histWordLen - offset) / histWordLen);
+                    }
                 }
 
+                if (skipCurrentEntry)
+                    continue;
+
+                matchType = MatchType::SearchWords;
+                const float scoreTermRatio = score / static_cast<float>(searchTerm.size());
+                const float scoreUrlRatio = score / static_cast<float>(url.size());
+                // Grant up to additional 15 points for non-direct factors
+                // These are:
+                //   (1) Recency of last visit: Within last week? + 5pts
+                //   (2) Number of total visits: >= 25 visits ? + 10 pts, otherwise, (visitCount/25.0) * 10 for partial credit
+                float bonus = (currentTime - record.getLastVisit().toSecsSinceEpoch()) <= 604800LL ? 5.0f : 0.0f;
+                if (record.getNumVisits() >= 25)
+                    bonus += 10.0f;
+                else
+                    bonus += 10.0f * (static_cast<float>(record.getNumVisits()) / 25.0f);
+
+                percentWordScore = static_cast<int>((50.0f * scoreUrlRatio) + (50.0f * scoreTermRatio));
+
+                // qDebug() << "Search term: " << searchTerm << ", URL: " << url << ", Percent Score: " << percentWordScore;
+
+                // Previous code:
+                /*
                 for (const QString &histWord : historyWords)
                 {
                     const int histWordLen = histWord.size();
@@ -92,6 +145,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                 }
                 else if (FastHash::isMatch(hashParams.needle, record.getTitle().toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
                     matchType = MatchType::Title;
+                */
             }
 
             if (matchType == MatchType::None)
@@ -115,6 +169,9 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
 
                 if (matchType == MatchType::SearchWords)
                     suggestion.PercentMatch = percentWordScore;
+
+                if (m_bookmarkManager)
+                    suggestion.IsBookmark = m_bookmarkManager->isBookmarked(urlObj);
 
                 result.push_back(suggestion);
 
@@ -141,6 +198,19 @@ void HistorySuggestor::loadHistoryWords()
         std::lock_guard<std::mutex> lock{m_mutex};
         m_historyWordMap = std::move(historyWordMap);
     });
+}
+
+std::vector<QString> HistorySuggestor::getHistoryEntryWords(int historyId)
+{
+    std::vector<QString> historyWords;
+    auto wordIt = m_historyWordMap.find(historyId);
+    if (wordIt != m_historyWordMap.end())
+    {
+        std::vector<int> &wordIds = wordIt->second;
+        for (int id : wordIds)
+            historyWords.push_back(m_historyWords[id]);
+    }
+    return historyWords;
 }
 
 void HistorySuggestor::timerEvent()
