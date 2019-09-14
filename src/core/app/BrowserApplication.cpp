@@ -74,8 +74,6 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     //                              std::bind(DatabaseFactory::createDBWorker<FaviconStore>, m_settings->getPathValue(BrowserSetting::FaviconPath)));
     m_faviconMgr = new FaviconManager(m_settings->getPathValue(BrowserSetting::FaviconPath));
     registerService(m_faviconMgr);
-    //m_faviconStorage = DatabaseFactory::createWorker<FaviconStore>(m_settings->getPathValue(BrowserSetting::FaviconPath));
-    //registerService(m_faviconStorage.get());
 
     // Bookmark setup
     m_databaseScheduler.addWorker("BookmarkStore",
@@ -84,9 +82,7 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     registerService(m_bookmarkManager);
 
     // Initialize cookie jar and cookie manager UI
-    const bool enableCookies = m_settings->getValue(BrowserSetting::EnableCookies).toBool();
-    m_cookieJar = new CookieJar(enableCookies, false);
-    m_cookieJar->setThirdPartyCookiesEnabled(m_settings->getValue(BrowserSetting::EnableThirdPartyCookies).toBool());
+    m_cookieJar = new CookieJar(m_settings, false);
     registerService(m_cookieJar);
 
     m_cookieUI = new CookieWidget();

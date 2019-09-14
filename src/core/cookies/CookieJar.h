@@ -1,6 +1,7 @@
 #ifndef COOKIEJAR_H
 #define COOKIEJAR_H
 
+#include "ISettingsObserver.h"
 #include "URL.h"
 
 #include <map>
@@ -12,11 +13,13 @@
 #include <QUrl>
 #include <QWebEngineCookieStore>
 
+class Settings;
+
 /**
  * @class CookieJar
  * @brief Implements ability to store and load cookies on disk
  */
-class CookieJar : public QNetworkCookieJar
+class CookieJar : public QNetworkCookieJar, public ISettingsObserver
 {
     friend class CookieTableModel;
 
@@ -24,7 +27,7 @@ class CookieJar : public QNetworkCookieJar
 
 public:
     /// Constructs the cookie jar
-    explicit CookieJar(bool enableCookies, bool privateJar = false, QObject *parent =nullptr);
+    explicit CookieJar(Settings *settings, bool privateJar = false, QObject *parent =nullptr);
 
     /// Saves cookies to database before calling ~QNetworkCookieJar
     ~CookieJar();
@@ -66,6 +69,9 @@ private Q_SLOTS:
     /// Called when a cookie has been removed from the cookie store
     void onCookieRemoved(const QNetworkCookie &cookie);
 
+    /// Listens for any changes to browser settings that may affect the behavior of the cookie jar
+    void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
+
 private:
     /// Loads a data file containing all third parties that are exempt to the cookie filter; used if the third party cookie filter is enabled
     void loadExemptThirdParties();
@@ -88,6 +94,9 @@ private:
 
     /// Set of exempt third party cookie setters
     QSet<URL> m_exemptParties;
+
+    /// Name of the file containing exceptions to the third-party cookie filtering policy (if enabled)
+    QString m_exemptThirdPartyCookieFileName;
 
     /// Mutex used within the handlers for a cookie being added or removed
     mutable std::mutex m_mutex;

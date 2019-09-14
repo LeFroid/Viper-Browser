@@ -13,15 +13,25 @@
 #include "CookieJar.h"
 #include "Settings.h"
 
-CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
+CookieJar::CookieJar(Settings *settings, bool privateJar, QObject *parent) :
     QNetworkCookieJar(parent),
-    m_enableCookies(enableCookies),
+    m_enableCookies(false),
     m_privateJar(privateJar),
     m_store(nullptr),
     m_exemptParties(),
+    m_exemptThirdPartyCookieFileName(),
     m_mutex()
 {
     setObjectName(QLatin1String("CookieJar"));
+
+    if (settings)
+    {
+        m_enableCookies = settings->getValue(BrowserSetting::EnableCookies).toBool();
+        m_exemptThirdPartyCookieFileName = settings->getPathValue(BrowserSetting::ExemptThirdPartyCookieFile);
+
+        // Subscribe to settings changes
+        connect(settings, &Settings::settingChanged, this, &CookieJar::onSettingChanged);
+    }
 
     if (!m_privateJar)
         m_store = QWebEngineProfile::defaultProfile()->cookieStore();
@@ -33,11 +43,15 @@ CookieJar::CookieJar(bool enableCookies, bool privateJar, QObject *parent) :
 
     if (!m_privateJar)
         loadExemptThirdParties();
+
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     connect(sBrowserApplication, &BrowserApplication::aboutToQuit, this, [this]() {
         if (m_store)
             m_store->setCookieFilter(nullptr);
     });
+
+    if (settings)
+        setThirdPartyCookiesEnabled(settings->getValue(BrowserSetting::EnableThirdPartyCookies).toBool());
 #endif
 }
 
@@ -135,7 +149,7 @@ void CookieJar::removeThirdPartyExemption(const QUrl &hostUrl)
 
 void CookieJar::loadExemptThirdParties()
 {
-    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(BrowserSetting::ExemptThirdPartyCookieFile));
+    QFile exemptFile(m_exemptThirdPartyCookieFileName);
     if (!exemptFile.exists() || !exemptFile.open(QIODevice::ReadOnly))
         return;
 
@@ -157,7 +171,7 @@ void CookieJar::saveExemptThirdParties()
     if (m_exemptParties.empty())
         return;
 
-    QFile exemptFile(sBrowserApplication->getSettings()->getPathValue(BrowserSetting::ExemptThirdPartyCookieFile));
+    QFile exemptFile(m_exemptThirdPartyCookieFileName);
     if (!exemptFile.open(QIODevice::WriteOnly))
         return;
 
@@ -198,6 +212,27 @@ void CookieJar::onCookieRemoved(const QNetworkCookie &cookie)
 {
     std::lock_guard<std::mutex> _(m_mutex);
     static_cast<void>(deleteCookie(cookie));
+}
+
+void CookieJar::onSettingChanged(BrowserSetting setting, const QVariant &value)
+{
+    if (setting == BrowserSetting::EnableCookies)
+    {
+        const bool enabled = value.toBool();
+        if (enabled != m_enableCookies)
+            setCookiesEnabled(enabled);
+    }
+    else if (setting == BrowserSetting::ExemptThirdPartyCookieFile)
+    {
+        if (Settings *settings = qobject_cast<Settings*>(sender()))
+            m_exemptThirdPartyCookieFileName = settings->getPathValue(BrowserSetting::ExemptThirdPartyCookieFile);
+    }
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    else if (setting == BrowserSetting::EnableThirdPartyCookies)
+    {
+        setThirdPartyCookiesEnabled(value.toBool());
+    }
+#endif
 }
 
 void CookieJar::removeExpired()
