@@ -16,6 +16,7 @@ WebPageTextFinder::~WebPageTextFinder()
 
 void WebPageTextFinder::stopSearching()
 {
+    m_lastSearchTerm = QString();
     m_searchTerm = QString();
     if (m_page != nullptr)
         m_page->findText(m_searchTerm);

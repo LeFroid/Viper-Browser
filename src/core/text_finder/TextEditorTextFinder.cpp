@@ -35,6 +35,8 @@ void TextEditorTextFinder::stopSearching()
     m_editor->setTextCursor(c);
 
     m_lastSearchCursor = QTextCursor();
+    m_lastSearchTerm = QString();
+    m_searchTerm = QString();
 }
 
 void TextEditorTextFinder::findNext()

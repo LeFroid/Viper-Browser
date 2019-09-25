@@ -350,43 +350,36 @@ void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, WebPage::
     switch (feature)
     {
         case WebPage::Geolocation:
-            featureStr.append("access your location?");
+            featureStr.append(tr("access your location?"));
             break;
         case WebPage::MediaAudioCapture:
-            featureStr.append("access your microphone?");
+            featureStr.append(tr("access your microphone?"));
             break;
         case WebPage::MediaVideoCapture:
-            featureStr = tr("access your webcam?");
+            featureStr.append(tr("access your webcam?"));
             break;
         case WebPage::MediaAudioVideoCapture:
-            featureStr = tr("access your microphone and webcam?");
+            featureStr.append(tr("access your microphone and webcam?"));
             break;
         case WebPage::MouseLock:
-            featureStr = tr("lock your mouse?");
+            featureStr.append(tr("lock your mouse?"));
             break;
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 10, 0))
         case WebPage::DesktopVideoCapture:
-            featureStr = tr("capture video of your desktop?");
+            featureStr.append(tr("capture video of your desktop?"));
             break;
         case WebPage::DesktopAudioVideoCapture:
-            featureStr = tr("capture audio and video of your desktop?");
+            featureStr.append(tr("capture audio and video of your desktop?"));
             break;
 #endif
         default:
-            featureStr = QString();
-            break;
-    }
-
-    // Deny unknown features
-    if (featureStr.isEmpty())
-    {
-        setFeaturePermission(securityOrigin, feature, PermissionDeniedByUser);
-        return;
+            setFeaturePermission(securityOrigin, feature, PermissionDeniedByUser);
+            return;
     }
 
     QString requestStr = featureStr.arg(securityOrigin.host());
-    auto choice = QMessageBox::question(view()->window(), tr("Web Permission Request"), requestStr);
-    PermissionPolicy policy = choice == QMessageBox::Yes ? PermissionGrantedByUser : PermissionDeniedByUser;
+    QMessageBox::StandardButton choice = QMessageBox::question(view()->window(), tr("Web Permission Request"), requestStr, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    PermissionPolicy policy = (choice == QMessageBox::Yes ? PermissionGrantedByUser : PermissionDeniedByUser);
     setFeaturePermission(securityOrigin, feature, policy);
 }
 
