@@ -97,12 +97,9 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     registerService(m_autoFill);
 
     // Initialize download manager
-    m_downloadMgr = new DownloadManager;
-    m_downloadMgr->setDownloadDir(m_settings->getValue(BrowserSetting::DownloadDir).toString());
+    const std::vector<QWebEngineProfile*> webProfiles { webProfile, m_privateProfile };
+    m_downloadMgr = new DownloadManager(m_settings, webProfiles);
     registerService(m_downloadMgr);
-
-    connect(webProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
-    connect(m_privateProfile, &QWebEngineProfile::downloadRequested, m_downloadMgr, &DownloadManager::onDownloadRequest);
 
     // Initialize advertisement blocking system
     m_adBlockManager = new adblock::AdBlockManager(m_serviceLocator, m_settings);

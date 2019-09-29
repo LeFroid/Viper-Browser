@@ -11,7 +11,11 @@ enum class AppInitKey
     ProcessModel,
 
     /// Flag determining whether or not to disable GPU hardware acceleration
-    DisableGPU
+    DisableGPU,
+
+    /// Flag representing whether or not the user has set their initial profile settings
+    /// through an interactive dialog
+    CompletedInitialSetup
 };
 
 /// Calculates the hash value of the \ref AppInitKey so it can be stored in a hash map

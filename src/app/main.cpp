@@ -5,6 +5,7 @@
 #include "SecurityManager.h"
 #include "SchemeRegistry.h"
 #include "WebWidget.h"
+#include "ui/welcome_window/WelcomeWindow.h"
 
 #include <memory>
 #include <vector>
@@ -241,6 +242,20 @@ int main(int argc, char *argv[])
     char *argv2[] = { argv[0], "--remote-debugging-port=9477" };
     BrowserApplication a(&ipc, argc2, argv2);
 #endif
+
+    if (!initSettings.hasSetting(AppInitKey::CompletedInitialSetup)
+            || initSettings.getValue(AppInitKey::CompletedInitialSetup).size() < 3)
+    {
+        initSettings.setValue(AppInitKey::CompletedInitialSetup, "yes");
+
+        MainWindow *mainWindow = a.getNewWindow();
+        mainWindow->show();
+
+        WelcomeWindow welcomeWindow;
+        welcomeWindow.show();
+
+        return a.exec();
+    }
 
     MainWindow *window = a.getNewWindow();
     if (!appArgUrls.empty())

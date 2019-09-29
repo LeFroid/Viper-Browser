@@ -13,10 +13,14 @@
 #include "WebView.h"
 
 #include <QAction>
+#include <QHideEvent>
 #include <QMouseEvent>
 #include <QQuickWidget>
+#include <QShowEvent>
 #include <QTimer>
 #include <QVBoxLayout>
+
+#include <QDebug>
 
 WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode, QWidget *parent) :
     QWidget(parent),
@@ -327,6 +331,29 @@ void WebWidget::mousePressEvent(QMouseEvent *event)
     QWidget::mousePressEvent(event);
 }
 
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+
+void WebWidget::hideEvent(QHideEvent *event)
+{
+    QWidget::hideEvent(event);
+
+    QTimer::singleShot(60000, this, [this](){
+        if (!isHidden()
+                || m_hibernating
+                || m_view == nullptr
+                || m_page == nullptr)
+            return;
+
+        if (m_inspector != nullptr
+                && m_inspector->page()->inspectedPage() == static_cast<QWebEnginePage*>(m_page))
+            return;
+
+        m_page->setLifecycleState(WebPage::LifecycleState::Frozen);
+    });
+}
+
+#endif
+
 void WebWidget::showContextMenuForView()
 {
     if (!m_hibernating)
@@ -406,6 +433,13 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                         m_viewFocusProxy->installEventFilter(this);
 
                         m_view->setViewFocusProxy(m_viewFocusProxy);
+
+                        QQuickWidget *qq = qobject_cast<QQuickWidget*>(proxy);
+                        const QColor &c = palette().color(QPalette::Window);
+                        qq->setClearColor(c);
+                        const bool transparent = c.alpha() < 255;
+                        setAttribute(Qt::WA_AlwaysStackOnTop, transparent);
+                        setAttribute(Qt::WA_OpaquePaintEvent, !transparent);
                     }
                     else
                     {

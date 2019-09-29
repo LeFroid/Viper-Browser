@@ -46,6 +46,7 @@ set(viper_ui_src
     web/WebState.cpp
     web/WebView.cpp
     web/WebWidget.cpp
+    welcome_window/WelcomeWindow.cpp
     widgets/CheckableTableView.cpp
     widgets/CodeEditor.cpp
     widgets/FileChooserLineEdit.cpp

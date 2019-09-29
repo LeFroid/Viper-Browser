@@ -27,15 +27,15 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         return result;
 
     // Upper bound on number of results
-    const int maxToSuggest = 75;
+    const int maxToSuggest = 50;
     int numSuggested = 0;
 
     // Strip www prefix from urls when user does not also have this in the search term
     const QRegularExpression prefixExpr = QRegularExpression(QLatin1String("^WWW\\."));
     const bool inputStartsWithWww = searchTerm.size() >= 3 && searchTerm.startsWith(QLatin1String("WWW"));
 
-    // Used to check if certain infrequently visited URLs should be ignored
-    const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-259200);
+    // Used to check if certain infrequently visited URLs should be ignored (5 days)
+    const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-432000);
 
     // Factored into an entry's score
     const qint64 currentTime = QDateTime::currentDateTime().toSecsSinceEpoch();
@@ -81,19 +81,19 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                 std::vector<QString> historyWords = getHistoryEntryWords(record.getVisitId());
                 for (const QString &searchWord : searchWords)
                 {
-                    auto it = std::find_if(historyWords.begin(), historyWords.end(), [&searchWord](const QString &historyWord) -> bool {
+                    auto wordIt = std::find_if(historyWords.begin(), historyWords.end(), [&searchWord](const QString &historyWord) -> bool {
                        return historyWord.contains(searchWord);
                     });
 
-                    if (it == historyWords.end())
+                    if (wordIt == historyWords.end())
                     {
                         skipCurrentEntry = true;
                         break;
                     }
                     else
                     {
-                        const int histWordLen = it->size();
-                        const int offset = it->indexOf(searchWord);
+                        const int histWordLen = wordIt->size();
+                        const int offset = wordIt->indexOf(searchWord);
                         score += static_cast<float>(searchWord.size()) * (static_cast<float>(histWordLen - offset) / histWordLen);
                     }
                 }

@@ -19,8 +19,9 @@ AppInitSettings::AppInitSettings() :
     m_fileName(),
     m_settings(),
     m_settingKeyMap {
-        { AppInitKey::ProcessModel, "ProcessModel" },
-        { AppInitKey::DisableGPU,   "DisableGPU" }
+        { AppInitKey::ProcessModel,          "ProcessModel" },
+        { AppInitKey::DisableGPU,            "DisableGPU"   },
+        { AppInitKey::CompletedInitialSetup, "CompletedInitialSetup" }
     }
 {
     load();

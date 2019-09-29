@@ -32,7 +32,11 @@ void WebPageTextFinder::findNext()
     if (m_matchCase)
         flags |= WebPage::FindCaseSensitively;
 
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    m_page->findText(m_searchTerm, flags);
+#else
     m_page->findText(m_searchTerm, flags, std::bind(&WebPageTextFinder::onFindTextResult, this, true, std::placeholders::_1));
+#endif
 }
 
 void WebPageTextFinder::findPrevious()
@@ -45,7 +49,11 @@ void WebPageTextFinder::findPrevious()
     if (m_matchCase)
         flags |= WebPage::FindCaseSensitively;
 
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    m_page->findText(m_searchTerm, flags);
+#else
     m_page->findText(m_searchTerm, flags, std::bind(&WebPageTextFinder::onFindTextResult, this, false, std::placeholders::_1));
+#endif
 }
 
 void WebPageTextFinder::setHighlightAll(bool on)
@@ -69,8 +77,34 @@ void WebPageTextFinder::searchTermChanged(const QString &text)
 
 void WebPageTextFinder::setWebPage(WebPage *page)
 {
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    if (page)
+        connect(page, &WebPage::findTextFinished, this, &WebPageTextFinder::onFindTextFinished);
+#endif
+
     m_page = page;
 }
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+
+void WebPageTextFinder::onFindTextFinished(const QWebEngineFindTextResult &result)
+{
+    if (WebPage *page = qobject_cast<WebPage*>(sender()))
+    {
+        if (page != m_page)
+            return;
+    }
+
+    const int numMatches = result.numberOfMatches();
+    QString resultText;
+    if (numMatches > 0)
+        resultText = tr("%1 of %2 matches").arg(result.activeMatchOrdinal()).arg(numMatches);
+    else
+        resultText = tr("Phrase not found");
+    emit showMatchResultText(resultText);
+}
+
+#endif
 
 void WebPageTextFinder::onFindTextResult(bool isFindingNext, bool isFound)
 {

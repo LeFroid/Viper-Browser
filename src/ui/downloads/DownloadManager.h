@@ -1,6 +1,10 @@
 #ifndef DOWNLOADMANAGER_H
 #define DOWNLOADMANAGER_H
 
+#include "ISettingsObserver.h"
+
+#include <vector>
+
 #include <QList>
 #include <QNetworkRequest>
 #include <QString>
@@ -13,14 +17,17 @@ class DownloadManager;
 class DownloadItem;
 class InternalDownloadItem;
 class NetworkAccessManager;
+class Settings;
+
 class QNetworkReply;
 class QWebEngineDownloadItem;
+class QWebEngineProfile;
 
 /**
  * @class DownloadManager
  * @brief Handles downloading of content from the web
  */
-class DownloadManager : public QWidget
+class DownloadManager : public QWidget, public ISettingsObserver
 {
     friend class DownloadListModel;
 
@@ -28,7 +35,12 @@ class DownloadManager : public QWidget
 
 public:
     /// Constructs the download manager
-    explicit DownloadManager(QWidget *parent = 0);
+    /**
+     * @brief DownloadManager Constructs the download manager
+     * @param settings Pointer to the application settings
+     * @param webProfiles Container storing pointers to each active web profile used by the browser (public, private, etc.)
+     */
+    explicit DownloadManager(Settings *settings, const std::vector<QWebEngineProfile*> &webProfiles);
 
     /// Deallocates interface items and download items
     ~DownloadManager();
@@ -52,6 +64,10 @@ public Q_SLOTS:
     /// Used for internal downloads (not explictly requested by the user)
     InternalDownloadItem *downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName = false, bool writeOverExisting = true);
 
+private Q_SLOTS:
+    /// Listens for any changes to browser settings that may affect the behavior of the download manager
+    void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
+
 private:
     /// User interface
     Ui::DownloadManager *ui;
@@ -61,6 +77,9 @@ private:
 
     /// Network access manager
     NetworkAccessManager *m_accessMgr;
+
+    /// Flag indicating whether or not the user should always be prompted for a download location and filename
+    bool m_askWhereToSaveDownloads;
 
 protected:
     /// List of downloads

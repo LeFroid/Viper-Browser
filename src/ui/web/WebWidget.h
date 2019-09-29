@@ -10,6 +10,9 @@
 #include <QUrl>
 #include <QWidget>
 
+#include <QtGlobal>
+#include <QtWebEngineCoreVersion>
+
 namespace adblock {
     class AdBlockManager;
 }
@@ -23,6 +26,9 @@ class WebLoadObserver;
 class WebPage;
 class WebView;
 class WebWidget;
+
+class QHideEvent;
+class QShowEvent;
 
 /**
  * @class WebWidget
@@ -188,6 +194,11 @@ protected:
     /// Handles mouse press events when the widget is in hibernate mode, otherwise forwards the event to the appropriate handler
     void mousePressEvent(QMouseEvent *event) override;
 
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    /// Handler for web widget hide events
+    void hideEvent(QHideEvent *event) override;
+#endif
+
 private Q_SLOTS:
     /// Shows the context menu on the web page
     void showContextMenuForView();
@@ -196,6 +207,9 @@ private Q_SLOTS:
     void onTabPinned(int index, bool value);
 
 private:
+    /// Forces a repaint of the inner web page
+    void forceRepaint();
+
     /// Saves the state of the web widget before it is hibernated
     void saveState();
 

@@ -11,16 +11,32 @@
 #include <QFileInfo>
 #include <QNetworkReply>
 #include <QWebEngineDownloadItem>
+#include <QWebEngineProfile>
 
-DownloadManager::DownloadManager(QWidget *parent) :
-    QWidget(parent),
+DownloadManager::DownloadManager(Settings *settings, const std::vector<QWebEngineProfile*> &webProfiles) :
+    QWidget(nullptr),
     ui(new Ui::DownloadManager),
     m_downloadDir(),
     m_accessMgr(nullptr),
+    m_askWhereToSaveDownloads(false),
     m_downloads()
 {
     ui->setupUi(this);
     setObjectName(QLatin1String("DownloadManager"));
+
+    if (settings)
+    {
+        m_downloadDir = settings->getValue(BrowserSetting::DownloadDir).toString();
+        m_askWhereToSaveDownloads = settings->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
+    }
+
+    for (QWebEngineProfile *profile : webProfiles)
+    {
+        if (profile != nullptr)
+        {
+            connect(profile, &QWebEngineProfile::downloadRequested, this, &DownloadManager::onDownloadRequest);
+        }
+    }
 
     connect(ui->pushButtonClear, &QPushButton::clicked, this, &DownloadManager::clearDownloads);
 }
@@ -66,11 +82,8 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
 
     QString fileName;
 
-    // Check settings to determine if download path should be set by the user or handled by the web engine
-    const bool askWhereToSave = sBrowserApplication->getSettings()->getValue(BrowserSetting::AskWhereToSaveDownloads).toBool();
-
-    // Get file path for download
-    if (askWhereToSave)
+    // Get file name / location when applicable
+    if (m_askWhereToSaveDownloads)
     {
         fileName = QFileInfo(item->path()).fileName();
         QString downloadPath = QString(m_downloadDir + QDir::separator() + fileName);
@@ -127,4 +140,16 @@ InternalDownloadItem *DownloadManager::downloadInternal(const QNetworkRequest &r
 
     InternalDownloadItem *item = new InternalDownloadItem(reply, downloadDir, askForFileName, writeOverExisting, this);
     return item;
+}
+
+void DownloadManager::onSettingChanged(BrowserSetting setting, const QVariant &value)
+{
+    if (setting == BrowserSetting::DownloadDir)
+    {
+        m_downloadDir = value.toString();
+    }
+    else if (setting == BrowserSetting::AskWhereToSaveDownloads)
+    {
+        m_askWhereToSaveDownloads = value.toBool();
+    }
 }

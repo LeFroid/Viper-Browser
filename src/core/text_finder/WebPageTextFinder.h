@@ -2,7 +2,14 @@
 #define WEBPAGETEXTFINDER_H
 
 #include "ITextFinder.h"
+
 #include <QObject>
+#include <QtGlobal>
+#include <QtWebEngineCoreVersion>
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+#  include <QWebEngineFindTextResult>
+#endif
 
 class WebPage;
 
@@ -43,6 +50,17 @@ public:
 
     /// Sets the web page that will be used to search for text
     void setWebPage(WebPage *page);
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+private Q_SLOTS:
+
+    /**
+     * @brief Called when a text search operation is complete
+     * @param result Stores the number of search term matches, and the
+     *               relative index of the currently highlighted/selected match.
+     */
+    void onFindTextFinished(const QWebEngineFindTextResult &result);
+#endif
 
 private:
     /**

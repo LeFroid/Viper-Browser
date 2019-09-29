@@ -217,12 +217,12 @@ WebWidget *BrowserTabWidget::createWebWidget()
 
     connect(ww, &WebWidget::openHttpRequestInBackgroundTab, this, &BrowserTabWidget::openHttpRequestInBackgroundTab);
 
-	connect(ww, &WebWidget::aboutToHibernate, [=]() {
+    connect(ww, &WebWidget::aboutToHibernate, this, [this, ww]() {
 		if (currentWebWidget() == ww) {
             emit aboutToHibernate();
 		}
 	});
-    connect(ww, &WebWidget::aboutToWake, [=]() {
+    connect(ww, &WebWidget::aboutToWake, this, [this, ww]() {
         if (currentWebWidget() == ww) {
             emit aboutToWake();
         }
@@ -230,7 +230,7 @@ WebWidget *BrowserTabWidget::createWebWidget()
 
     if (!m_privateBrowsing)
     {
-        connect(ww, &WebWidget::iconUrlChanged, [=](const QUrl &url) {
+        connect(ww, &WebWidget::iconUrlChanged, [this, ww](const QUrl &url) {
             m_faviconManager->updateIcon(url, ww->url(), ww->getIcon());
         });
     }
@@ -306,7 +306,7 @@ WebWidget *BrowserTabWidget::newBackgroundTabAtIndex(int index)
 
     ww->resize(currentWidget()->size());
     ww->view()->resize(ww->size());
-    ww->show();
+    //ww->show();
 
     emit newTabCreated(ww);
     return ww;
@@ -395,6 +395,22 @@ void BrowserTabWidget::onCurrentChanged(int index)
         return;
 
     ww->show();
+
+    if (!ww->isHibernating() && ww->view() != nullptr)
+    {
+        ww->view()->resize(ww->size());
+        ww->view()->show();
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+        if (WebPage *page = ww->page())
+        {
+            if (page->lifecycleState() != WebPage::LifecycleState::Active)
+                page->setLifecycleState(WebPage::LifecycleState::Active);
+        }
+#endif
+        ww->updateGeometry();
+    }
+
     m_activeView = ww;
 
     m_lastTabIndex = m_currentTabIndex;
