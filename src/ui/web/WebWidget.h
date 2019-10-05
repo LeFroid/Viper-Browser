@@ -197,6 +197,9 @@ protected:
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     /// Handler for web widget hide events
     void hideEvent(QHideEvent *event) override;
+
+    /// Handler for the web widget show event
+    void showEvent(QShowEvent *event) override;
 #endif
 
 private Q_SLOTS:

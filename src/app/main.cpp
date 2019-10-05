@@ -208,6 +208,9 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
+
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     AppInitSettings initSettings;
 

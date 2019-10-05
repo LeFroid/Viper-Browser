@@ -213,8 +213,9 @@ void WebWidget::setHibernation(bool on)
 
         unsetCursor();
 
-        QTimer::singleShot(500, this, [=](){
-            m_viewFocusProxy = m_view->getViewFocusProxy();
+        QTimer::singleShot(500, this, [this](){
+            if (m_viewFocusProxy.isNull())
+                m_viewFocusProxy = m_view->getViewFocusProxy();
         });
     }
 
@@ -337,6 +338,9 @@ void WebWidget::hideEvent(QHideEvent *event)
 {
     QWidget::hideEvent(event);
 
+    if (!m_hibernating && m_view)
+        m_view->hideEvent(event);
+
     QTimer::singleShot(60000, this, [this](){
         if (!isHidden()
                 || m_hibernating
@@ -350,6 +354,36 @@ void WebWidget::hideEvent(QHideEvent *event)
 
         m_page->setLifecycleState(WebPage::LifecycleState::Frozen);
     });
+}
+
+void WebWidget::showEvent(QShowEvent *event)
+{
+    const bool updateWebContents = !m_hibernating && m_view && m_page;
+    if (updateWebContents)
+    {
+        if (m_page->lifecycleState() != WebPage::LifecycleState::Active)
+            m_page->setLifecycleState(WebPage::LifecycleState::Active);
+    }
+
+    QWidget::showEvent(event);
+
+    if (updateWebContents && m_view->getProgress() == 100)
+    {
+        // Hack to force a frame into the view.
+        // With QtWebEngine 5.14 it is possible we could otherwise have a dead/blank frame
+        m_view->resize(width(), height() * 9 / 10);
+        m_view->show();
+
+        QTimer::singleShot(15, this, [this](){
+            if (m_hibernating || !m_view || !m_page)
+                return;
+
+            updateGeometry();
+
+            m_view->resize(size());
+            m_view->show();
+        });
+    }
 }
 
 #endif
@@ -391,7 +425,7 @@ void WebWidget::setupWebView()
     connect(m_page, &WebPage::windowCloseRequested, this, &WebWidget::closeRequest);
     connect(m_page, &WebPage::urlChanged,           this, &WebWidget::urlChanged);
 
-    connect(m_page, &WebPage::loadStarted, [=](){
+    connect(m_page, &WebPage::loadStarted, this, [this](){
         m_adBlockManager->loadStarted(m_page->url().adjusted(QUrl::RemoveFragment));
     });
 
@@ -419,10 +453,26 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
     switch (event->type())
     {
         case QEvent::ChildAdded:
-        case QEvent::ChildRemoved:
+        // case QEvent::ChildRemoved:
         {
             if (watched == m_view)
             {
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+                QChildEvent *childAddedEvent = static_cast<QChildEvent*>(event);
+                QPointer<QWidget> renderWidgetHostView = qobject_cast<QWidget*>(childAddedEvent->child());
+                QTimer::singleShot(0, this, [this, renderWidgetHostView](){
+                    if (m_hibernating
+                            || renderWidgetHostView.isNull()
+                            || qobject_cast<QQuickWidget*>(renderWidgetHostView.data()) == 0)
+                        return;
+
+                    m_viewFocusProxy = renderWidgetHostView;
+                    m_viewFocusProxy->installEventFilter(this);
+
+                    m_view->setViewFocusProxy(m_viewFocusProxy);
+                });
+#else
+
                 QTimer::singleShot(0, this, [this](){
                     if (m_hibernating)
                         return;
@@ -433,13 +483,14 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                         m_viewFocusProxy->installEventFilter(this);
 
                         m_view->setViewFocusProxy(m_viewFocusProxy);
-
+                        /*
                         QQuickWidget *qq = qobject_cast<QQuickWidget*>(proxy);
                         const QColor &c = palette().color(QPalette::Window);
                         qq->setClearColor(c);
                         const bool transparent = c.alpha() < 255;
                         setAttribute(Qt::WA_AlwaysStackOnTop, transparent);
                         setAttribute(Qt::WA_OpaquePaintEvent, !transparent);
+                        */
                     }
                     else
                     {
@@ -452,6 +503,7 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                         }
                     }
                 });
+#endif
             }
             break;
         }

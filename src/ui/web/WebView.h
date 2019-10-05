@@ -112,7 +112,7 @@ protected:
     void dropEvent(QDropEvent *event) override;
 
     /// Handles resize events
-    void resizeEvent(QResizeEvent *event) override;
+    //void resizeEvent(QResizeEvent *event) override;
 
 protected:
     /// returns the context menu helper script source, with the template parameters

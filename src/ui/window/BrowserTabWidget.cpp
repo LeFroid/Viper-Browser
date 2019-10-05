@@ -176,6 +176,9 @@ void BrowserTabWidget::closeTab(int index)
                 m_nextTabIndex = nextIndex;
             }
         }
+
+        if (WebWidget *webWidget = getWebWidget(currentIndex()))
+            webWidget->show();
     }
 
     removeTab(index);
@@ -394,22 +397,10 @@ void BrowserTabWidget::onCurrentChanged(int index)
     if (!ww)
         return;
 
+    if (m_activeView && m_activeView != ww && getWebWidget(m_lastTabIndex) != nullptr)
+        m_activeView->hide();
+
     ww->show();
-
-    if (!ww->isHibernating() && ww->view() != nullptr)
-    {
-        ww->view()->resize(ww->size());
-        ww->view()->show();
-
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-        if (WebPage *page = ww->page())
-        {
-            if (page->lifecycleState() != WebPage::LifecycleState::Active)
-                page->setLifecycleState(WebPage::LifecycleState::Active);
-        }
-#endif
-        ww->updateGeometry();
-    }
 
     m_activeView = ww;
 

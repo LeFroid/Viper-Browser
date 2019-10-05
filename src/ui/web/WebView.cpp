@@ -160,15 +160,16 @@ void WebView::setupPage(const ViperServiceLocator &serviceLocator)
     m_settings = serviceLocator.getServiceAs<Settings>("Settings");
 
     m_page = new WebPage(serviceLocator, profile);
-    m_page->setParent(this);
 
     QWebEngineView::setPage(m_page);
 
+    m_page->setParent(this);
+
     // Load start / progress / finish handlers
-    connect(m_page, &WebPage::loadStarted, [this](){
+    connect(m_page, &WebPage::loadStarted, this, [this](){
         emit iconChanged(icon());
     });
-    connect(m_page, &WebPage::loadProgress, [this](int value){
+    connect(m_page, &WebPage::loadProgress, this, [this](int value){
        m_progress = value;
     });
     connect(m_page, &WebPage::loadFinished, this, &WebView::onLoadFinished);
@@ -463,9 +464,11 @@ void WebView::dropEvent(QDropEvent *event)
 
     QWebEngineView::dropEvent(event);
 }
-
-void WebView::resizeEvent(QResizeEvent * /*event*/)
+/*
+void WebView::resizeEvent(QResizeEvent *event)
 {
+    QWebEngineView::resizeEvent(event);
     if (QWidget *viewFocusProxy = getViewFocusProxy())
         viewFocusProxy->setGeometry(rect());
 }
+*/

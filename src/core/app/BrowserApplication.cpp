@@ -50,7 +50,6 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     QCoreApplication::setApplicationName(QLatin1String("Viper Browser"));
     QCoreApplication::setApplicationVersion(QLatin1String("0.9.1"));
 
-    setAttribute(Qt::AA_EnableHighDpiScaling, true);
     setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
