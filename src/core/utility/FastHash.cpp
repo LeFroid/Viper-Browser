@@ -68,6 +68,8 @@ bool FastHash::isMatch(const std::wstring &needle, const std::wstring &haystack,
         {
             t = RadixLength * (t + Prime - differenceHash * (*(haystackPtr + i)) % Prime) % Prime;
             t = (t + (*(haystackPtr + needleLength + i))) % Prime;
+            // alternative form:
+            //t = ((RadixLength * ((t + Prime - differenceHash * haystackPtr[i] % Prime) % Prime) % Prime) + haystackPtr[needleLength + i]) % Prime;
         }
     }
 

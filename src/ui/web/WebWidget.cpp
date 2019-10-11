@@ -453,26 +453,10 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
     switch (event->type())
     {
         case QEvent::ChildAdded:
-        // case QEvent::ChildRemoved:
+        case QEvent::ChildRemoved:
         {
             if (watched == m_view)
             {
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-                QChildEvent *childAddedEvent = static_cast<QChildEvent*>(event);
-                QPointer<QWidget> renderWidgetHostView = qobject_cast<QWidget*>(childAddedEvent->child());
-                QTimer::singleShot(0, this, [this, renderWidgetHostView](){
-                    if (m_hibernating
-                            || renderWidgetHostView.isNull()
-                            || qobject_cast<QQuickWidget*>(renderWidgetHostView.data()) == 0)
-                        return;
-
-                    m_viewFocusProxy = renderWidgetHostView;
-                    m_viewFocusProxy->installEventFilter(this);
-
-                    m_view->setViewFocusProxy(m_viewFocusProxy);
-                });
-#else
-
                 QTimer::singleShot(0, this, [this](){
                     if (m_hibernating)
                         return;
@@ -483,14 +467,6 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                         m_viewFocusProxy->installEventFilter(this);
 
                         m_view->setViewFocusProxy(m_viewFocusProxy);
-                        /*
-                        QQuickWidget *qq = qobject_cast<QQuickWidget*>(proxy);
-                        const QColor &c = palette().color(QPalette::Window);
-                        qq->setClearColor(c);
-                        const bool transparent = c.alpha() < 255;
-                        setAttribute(Qt::WA_AlwaysStackOnTop, transparent);
-                        setAttribute(Qt::WA_OpaquePaintEvent, !transparent);
-                        */
                     }
                     else
                     {
@@ -503,7 +479,6 @@ bool WebWidget::eventFilter(QObject *watched, QEvent *event)
                         }
                     }
                 });
-#endif
             }
             break;
         }

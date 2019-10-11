@@ -91,6 +91,9 @@ public:
     /// Returns the last unique id of an entry in the visit database. This is an auto-incrementing value
     uint64_t getLastVisitId() const;
 
+    /// Returns a reference to the database connection
+    const QSqlDatabase &getHandle() const;
+
 protected:
     /// Returns true if the history database contains the table structures needed for it to function properly,
     /// false if else.

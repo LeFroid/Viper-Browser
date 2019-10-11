@@ -412,6 +412,11 @@ uint64_t HistoryStore::getLastVisitId() const
     return m_lastVisitID;
 }
 
+const QSqlDatabase &HistoryStore::getHandle() const
+{
+    return m_database;
+}
+
 void HistoryStore::tokenizeAndSaveUrl(int visitId, const QUrl &url, const QString &title)
 {
     if (m_queryInsertWord == nullptr)
@@ -490,7 +495,7 @@ void HistoryStore::load()
                 QLatin1String("SELECT MAX(Date) AS Date, COUNT(VisitID) AS NumVisits "
                               "FROM Visits WHERE VisitID = (:visitId)"));
 
-    const QDateTime recentTime = QDateTime::currentDateTime().addDays(-2);
+    const QDateTime recentTime = QDateTime::currentDateTime().addDays(-4);
     const qint64 recentTimeMSec = recentTime.toMSecsSinceEpoch();
     queryGetRecentVisits.prepare(
                 QLatin1String("SELECT Date FROM Visits WHERE VisitID = (:visitId) AND "
@@ -504,7 +509,7 @@ void HistoryStore::load()
     }
 
     // Prepare main query
-    const QDateTime lastWeek = QDateTime::currentDateTime().addDays(-7);
+    const QDateTime lastWeek = QDateTime::currentDateTime().addDays(-11);
     const qint64 lastWeekMSec = lastWeek.toMSecsSinceEpoch();
     query.prepare(QLatin1String("SELECT VisitID, URL, Title, URLTypedCount FROM History "
                                 "WHERE URLTypedCount > 0 OR EXISTS (SELECT 1 FROM Visits WHERE Date >= (:lastWeek) "
@@ -589,10 +594,10 @@ void HistoryStore::checkForUpdate()
 
 void HistoryStore::purgeOldEntries()
 {
-    // Clear visits that are 6+ months old
+    // Clear visits that are 4+ months old
     QSqlQuery query(m_database);
     quint64 purgeDate = static_cast<quint64>(QDateTime::currentMSecsSinceEpoch());
-    const quint64 tmp = quint64{15552000000};
+    const quint64 tmp = quint64{10368000000};
     if (purgeDate > tmp)
     {
         purgeDate -= tmp;

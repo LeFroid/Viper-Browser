@@ -205,10 +205,13 @@ void URLSuggestionWidget::alignAndShow(const QPoint &urlBarPos, const QRect &url
 
 void URLSuggestionWidget::suggestForInput(const QString &text)
 {
+    if (m_searchTerm.isEmpty() || !m_searchTerm.startsWith(text))
+        m_model->setSuggestions(std::vector<URLSuggestion>());
+
     if (text.isEmpty())
     {
         close();
-        m_model->setSuggestions(std::vector<URLSuggestion>());
+        m_searchTerm = text;
         return;
     }
 

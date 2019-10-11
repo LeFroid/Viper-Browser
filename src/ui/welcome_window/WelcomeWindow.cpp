@@ -28,9 +28,9 @@ IntroductionPage::IntroductionPage(QWidget *parent) :
     m_labelPageDescription
             = new QLabel(tr("Thank you for installing Viper Browser! The following pages will "
                             "ask you to set your profile settings for an optimal browsing experience. "
-                            "This includes choice of search engine, a home page, advertisement blocking "
-                            "subscriptions (\"filter lists\"), and whether or not you want to enable "
-                            "plugins such as Flash."));
+                            "This includes choice of search engine, home page, advertisement blocking "
+                            "subscriptions (\"filter lists\"), and whether or not plugins like Flash "
+                            "should be enabled."));
     m_labelPageDescription->setWordWrap(true);
 
     QVBoxLayout *vboxLayout = new QVBoxLayout;

@@ -27,7 +27,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         return result;
 
     // Upper bound on number of results
-    const int maxToSuggest = 50;
+    const int maxToSuggest = 30;
     int numSuggested = 0;
 
     // Strip www prefix from urls when user does not also have this in the search term
@@ -69,6 +69,10 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
 
             MatchType matchType = MatchType::None;
             int percentWordScore = 0;
+
+            //const QString haystack = QString("%1%2").arg(url).arg(record.getTitle());
+            //if (searchTerm.length() > 3 && !FastHash::isMatch(hashParams.needle, haystack.toStdWString(), hashParams.needleHash, hashParams.differenceHash))
+            //    continue;
 
             ///TODO: move inner portion of if statement into separate method
             if (!m_historyWords.empty() && searchTermParts.size() >= 2 && searchTerm.size() > 4)
@@ -115,37 +119,6 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                     bonus += 10.0f * (static_cast<float>(record.getNumVisits()) / 25.0f);
 
                 percentWordScore = static_cast<int>((50.0f * scoreUrlRatio) + (50.0f * scoreTermRatio));
-
-                // qDebug() << "Search term: " << searchTerm << ", URL: " << url << ", Percent Score: " << percentWordScore;
-
-                // Previous code:
-                /*
-                for (const QString &histWord : historyWords)
-                {
-                    const int histWordLen = histWord.size();
-
-                    for (const QString &searchWord : searchTermParts)
-                    {
-                        const int offset = histWord.indexOf(searchWord);
-                        if (offset >= 0)
-                        {
-                            score += static_cast<float>(searchWord.size()) * (static_cast<float>(histWordLen - offset) / histWordLen);
-                            ++wordMatches;
-                        }
-                        else if (searchWord.contains(histWord))
-                            ++wordMatches;
-                    }
-                }
-
-                const float scoreRatio = score / static_cast<float>(url.size());
-                if (wordMatches + 1 >= searchTermParts.size() && scoreRatio >= 0.275f)
-                {
-                    matchType = MatchType::SearchWords;
-                    percentWordScore = static_cast<int>(100.0f * scoreRatio);
-                }
-                else if (FastHash::isMatch(hashParams.needle, record.getTitle().toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
-                    matchType = MatchType::Title;
-                */
             }
 
             if (matchType == MatchType::None)
@@ -156,28 +129,35 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                     matchType = MatchType::URL;
                 else if (FastHash::isMatch(hashParams.needle, record.getTitle().toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
                     matchType = MatchType::Title;
+
+                /*
+                if (FastHash::isMatch(hashParams.needle, record.getTitle().toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
+                    matchType = MatchType::Title;
+                else if (FastHash::isMatch(hashParams.needle, url.toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
+                    matchType = MatchType::URL;
+                */
             }
 
-            if (matchType != MatchType::None)
-            {
-                URLSuggestion suggestion { record, m_faviconManager->getFavicon(urlObj), matchType };
+            if (matchType == MatchType::None)
+                continue;
 
-                QString suggestionHost = urlObj.host().toUpper();
-                if (!inputStartsWithWww)
-                    suggestionHost = suggestionHost.replace(prefixExpr, QString());
-                suggestion.IsHostMatch = searchTerm.startsWith(suggestionHost);
+            URLSuggestion suggestion { record, m_faviconManager->getFavicon(urlObj), matchType };
 
-                if (matchType == MatchType::SearchWords)
-                    suggestion.PercentMatch = percentWordScore;
+            QString suggestionHost = urlObj.host().toUpper();
+            if (!inputStartsWithWww)
+                suggestionHost = suggestionHost.replace(prefixExpr, QString());
+            suggestion.IsHostMatch = searchTerm.startsWith(suggestionHost);
 
-                if (m_bookmarkManager)
-                    suggestion.IsBookmark = m_bookmarkManager->isBookmarked(urlObj);
+            if (matchType == MatchType::SearchWords)
+                suggestion.PercentMatch = percentWordScore;
 
-                result.push_back(suggestion);
+            //if (m_bookmarkManager)
+            //    suggestion.IsBookmark = m_bookmarkManager->isBookmarked(urlObj);
 
-                if (++numSuggested >= maxToSuggest)
-                    return result;
-            }
+            result.push_back(suggestion);
+
+            if (++numSuggested >= maxToSuggest)
+                return result;
         }
     }
 

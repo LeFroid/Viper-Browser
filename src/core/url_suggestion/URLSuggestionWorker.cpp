@@ -142,10 +142,11 @@ void URLSuggestionWorker::searchForHits()
                 = handler->getSuggestions(m_working, m_searchTerm, m_searchWords, hashParams);
         for (auto &&suggestion : suggestions)
         {
-            if (hits.contains(suggestion.URL))
+            const auto urlUpper = suggestion.URL.toUpper();
+            if (hits.contains(urlUpper))
                 continue;
 
-            hits.insert(suggestion.URL);
+            hits.insert(urlUpper);
             m_suggestions.emplace_back(suggestion);
         }
     }
@@ -154,8 +155,8 @@ void URLSuggestionWorker::searchForHits()
         return;
 
     std::sort(m_suggestions.begin(), m_suggestions.end(), compareUrlSuggestions);
-    if (m_suggestions.size() > 35)
-        m_suggestions.erase(m_suggestions.begin() + 35, m_suggestions.end());
+    if (m_suggestions.size() > 25)
+        m_suggestions.erase(m_suggestions.begin() + 25, m_suggestions.end());
 
     m_working.store(false);
 }
