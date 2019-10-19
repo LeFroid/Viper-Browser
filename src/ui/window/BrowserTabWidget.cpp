@@ -233,7 +233,7 @@ WebWidget *BrowserTabWidget::createWebWidget()
 
     if (!m_privateBrowsing)
     {
-        connect(ww, &WebWidget::iconUrlChanged, [this, ww](const QUrl &url) {
+        connect(ww, &WebWidget::iconUrlChanged, this, [this, ww](const QUrl &url) {
             m_faviconManager->updateIcon(url, ww->url(), ww->getIcon());
         });
     }

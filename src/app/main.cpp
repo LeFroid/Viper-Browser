@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
         MainWindow *mainWindow = a.getNewWindow();
         mainWindow->show();
 
-        WelcomeWindow welcomeWindow;
+        WelcomeWindow welcomeWindow(a.getSettings());
         welcomeWindow.show();
 
         return a.exec();

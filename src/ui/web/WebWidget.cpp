@@ -366,24 +366,6 @@ void WebWidget::showEvent(QShowEvent *event)
     }
 
     QWidget::showEvent(event);
-
-    if (updateWebContents && m_view->getProgress() == 100)
-    {
-        // Hack to force a frame into the view.
-        // With QtWebEngine 5.14 it is possible we could otherwise have a dead/blank frame
-        m_view->resize(width(), height() * 9 / 10);
-        m_view->show();
-
-        QTimer::singleShot(15, this, [this](){
-            if (m_hibernating || !m_view || !m_page)
-                return;
-
-            updateGeometry();
-
-            m_view->resize(size());
-            m_view->show();
-        });
-    }
 }
 
 #endif
