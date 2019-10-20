@@ -98,7 +98,7 @@ void WebPageTextFinder::onFindTextFinished(const QWebEngineFindTextResult &resul
     const int numMatches = result.numberOfMatches();
     QString resultText;
     if (numMatches > 0)
-        resultText = tr("%1 of %2 matches").arg(result.activeMatchOrdinal()).arg(numMatches);
+        resultText = tr("%1 of %2 matches").arg(result.activeMatch()).arg(numMatches);
     else
         resultText = tr("Phrase not found");
     emit showMatchResultText(resultText);
