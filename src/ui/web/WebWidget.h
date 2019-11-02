@@ -200,6 +200,9 @@ protected:
 
     /// Handler for the web widget show event
     void showEvent(QShowEvent *event) override;
+
+    /// Handler for the lifecycle state check event
+    void timerEvent(QTimerEvent *event) override;
 #endif
 
 private Q_SLOTS:
@@ -225,6 +228,14 @@ private:
 
     /// Pointer to the advertisement blocking system manager
     adblock::AdBlockManager *m_adBlockManager;
+
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    /// Identifier of the timer that checks if the webpage should be frozen
+    int m_lifecycleFreezeTimerId;
+
+    /// Identifier of the timer that checks if the webpage should be discarded
+    int m_lifecycleDiscardTimerId;
+#endif
 
     /// The web page being shown by the web widget, unless the page is hibernating
     WebPage *m_page;

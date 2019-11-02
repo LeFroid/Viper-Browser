@@ -12,6 +12,7 @@
 #include "WebPageThumbnailStore.h"
 #include "WebView.h"
 
+#include <chrono>
 #include <QAction>
 #include <QHideEvent>
 #include <QMouseEvent>
@@ -26,6 +27,10 @@ WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode
     QWidget(parent),
     m_serviceLocator(serviceLocator),
     m_adBlockManager(serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager")),
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    m_lifecycleFreezeTimerId(-1),
+    m_lifecycleDiscardTimerId(-1),
+#endif
     m_page(nullptr),
     m_view(nullptr),
     m_inspector(nullptr),
@@ -336,24 +341,14 @@ void WebWidget::mousePressEvent(QMouseEvent *event)
 
 void WebWidget::hideEvent(QHideEvent *event)
 {
+    using namespace std::chrono_literals;
     QWidget::hideEvent(event);
 
     if (!m_hibernating && m_view)
         m_view->hideEvent(event);
 
-    QTimer::singleShot(60000, this, [this](){
-        if (!isHidden()
-                || m_hibernating
-                || m_view == nullptr
-                || m_page == nullptr)
-            return;
-
-        if (m_inspector != nullptr
-                && m_inspector->page()->inspectedPage() == static_cast<QWebEnginePage*>(m_page))
-            return;
-
-        m_page->setLifecycleState(WebPage::LifecycleState::Frozen);
-    });
+    if (m_lifecycleFreezeTimerId == -1 && m_lifecycleDiscardTimerId == -1)
+        m_lifecycleFreezeTimerId = startTimer(60s);
 }
 
 void WebWidget::showEvent(QShowEvent *event)
@@ -363,9 +358,64 @@ void WebWidget::showEvent(QShowEvent *event)
     {
         if (m_page->lifecycleState() != WebPage::LifecycleState::Active)
             m_page->setLifecycleState(WebPage::LifecycleState::Active);
+
+        if (m_lifecycleFreezeTimerId != -1)
+        {
+            killTimer(m_lifecycleFreezeTimerId);
+            m_lifecycleFreezeTimerId = -1;
+        }
+
+        if (m_lifecycleDiscardTimerId != -1)
+        {
+            killTimer(m_lifecycleDiscardTimerId);
+            m_lifecycleDiscardTimerId = -1;
+        }
     }
 
     QWidget::showEvent(event);
+}
+
+void WebWidget::timerEvent(QTimerEvent *event)
+{
+    const int timerId = event->timerId();
+    if (timerId == m_lifecycleFreezeTimerId || timerId == m_lifecycleDiscardTimerId)
+    {
+        killTimer(timerId);
+
+        WebPage::LifecycleState targetState;
+        if (timerId == m_lifecycleFreezeTimerId)
+        {
+            targetState = WebPage::LifecycleState::Frozen;
+            m_lifecycleFreezeTimerId = -1;
+        }
+        else
+        {
+            targetState = WebPage::LifecycleState::Discarded;
+            m_lifecycleDiscardTimerId = -1;
+        }
+
+        if (!isHidden()
+                || m_hibernating
+                || m_view == nullptr
+                || m_page == nullptr)
+        {
+            return;
+        }
+
+        if (m_inspector != nullptr
+                && m_inspector->page()->inspectedPage() == static_cast<QWebEnginePage*>(m_page))
+            return;
+
+        m_page->setLifecycleState(targetState);
+
+        if (targetState == WebPage::LifecycleState::Frozen)
+        {
+            using namespace std::chrono_literals;
+            m_lifecycleDiscardTimerId = startTimer(45min);
+        }
+    }
+    else
+        QWidget::timerEvent(event);
 }
 
 #endif
@@ -393,6 +443,20 @@ void WebWidget::saveState()
 
 void WebWidget::setupWebView()
 {
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    if (m_lifecycleFreezeTimerId != -1)
+    {
+        killTimer(m_lifecycleFreezeTimerId);
+        m_lifecycleFreezeTimerId = -1;
+    }
+
+    if (m_lifecycleDiscardTimerId != -1)
+    {
+        killTimer(m_lifecycleDiscardTimerId);
+        m_lifecycleDiscardTimerId = -1;
+    }
+#endif
+
     m_viewFocusProxy = nullptr;
     m_view = new WebView(m_privateMode, this);
     m_view->setupPage(m_serviceLocator);
