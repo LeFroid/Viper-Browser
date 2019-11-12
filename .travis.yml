@@ -4,7 +4,7 @@ matrix:
   include:
     - os: linux
       dist: xenial
-      env: QT_BASE=512 VER=6.0 STDFLAGS="-std=c++11 -std=c++14 -std=c++17" BUILD_TYPE=Release
+      env: QT_BASE=512 VER=6.0 STDFLAGS="-std=c++17" BUILD_TYPE=Release
       compiler: clang
       addons:
         apt:
@@ -29,7 +29,7 @@ install:
   - rm -f cmake.tar.gz
   - export PATH=/opt/cmake/bin:/opt/qt512/bin:${PATH}
   - export CMAKE_PREFIX_PATH=/opt/qt512:${CMAKE_PREFIX_PATH}
-  - export CXXFLAGS="-std=c++14 -stdlib=libc++"
+  - export CXXFLAGS="-std=c++17 -stdlib=libc++"
 
 before_script:
   - mkdir -p build/appdir/usr
