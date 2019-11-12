@@ -5,7 +5,7 @@ project(Viper-Browser VERSION 0.8)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -38,6 +38,9 @@ if(UNIX AND NOT APPLE)
     endif()
 endif()
 
+find_package (SQLite3)
+include_directories(${SQLite3_INCLUDE_DIR})
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/app
@@ -49,6 +52,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/core/cookies
     ${CMAKE_SOURCE_DIR}/src/core/credentials
     ${CMAKE_SOURCE_DIR}/src/core/database
+    ${CMAKE_SOURCE_DIR}/src/core/database/sqlite/src
     ${CMAKE_SOURCE_DIR}/src/core/downloads
     ${CMAKE_SOURCE_DIR}/src/core/extensions
     ${CMAKE_SOURCE_DIR}/src/core/highlighters

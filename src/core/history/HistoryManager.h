@@ -14,11 +14,15 @@
 #include <QIcon>
 #include <QList>
 #include <QMetaType>
+#include <QSqlDatabase>
 #include <QUrl>
 
 #include <deque>
 #include <unordered_map>
 #include <vector>
+
+///TODO: Eliminate use of m_historyItems , just pass requests on to the backend data store
+
 
 class HistoryStore;
 
@@ -57,6 +61,9 @@ public:
     /// Returns a const_iterator to the end of the history hash map
     const_iterator end() const { return m_historyItems.cend(); }
 
+    /// Returns the database handle
+    const QSqlDatabase &getHandle() const;
+
     /// Clears all browsing history
     void clearAllHistory();
 
@@ -77,9 +84,9 @@ public:
     /// the callback once the data has been fetched
     void getHistoryFrom(const QDateTime &startDate, std::function<void(std::vector<URLRecord>)> callback);
 
-    /// Returns true if the history contains the given url, false if else. Will return
-    /// false if private browsing mode is enabled
-    bool contains(const QUrl &url) const;
+    /// Checks if the given URL is contained in the history database, passing the result as a boolean
+    /// in the given callback function
+    void contains(const QUrl &url, std::function<void(bool)> callback);
 
     /// Returns a history record corresponding to the given URL, or an empty record if it was not found in the
     /// database
@@ -91,9 +98,6 @@ public:
     /// Fetches the number of times the host was visited, passing it to the given callback when the
     /// result has been retrieved
     void getTimesVisitedHost(const QUrl &host, std::function<void(int)> callback);
-
-    /// Returns the number of times that the given URL has been visited
-    int getTimesVisited(const QUrl &url) const;
 
     /// Returns the history manager's storage policy
     HistoryStoragePolicy getStoragePolicy() const;

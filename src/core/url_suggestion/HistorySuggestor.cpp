@@ -3,9 +3,22 @@
 #include "FaviconManager.h"
 #include "HistoryManager.h"
 #include "HistorySuggestor.h"
+#include "Settings.h"
+
+#include "SQLiteWrapper.h"
 
 #include <algorithm>
+#include <numeric>
+#include <thread>
+
+#include <QDateTime>
+#include <QRandomGenerator>
 #include <QRegularExpression>
+#include <QSet>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QSqlResult>
 
 #include <QDebug>
 
@@ -14,31 +27,31 @@ void HistorySuggestor::setServiceLocator(const ViperServiceLocator &serviceLocat
     m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
     m_faviconManager  = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
     m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
+
+    if (Settings *settings = serviceLocator.getServiceAs<Settings>("Settings"))
+    {
+        m_historyDatabaseFile = settings->getPathValue(BrowserSetting::HistoryPath);
+    }
+}
+
+void HistorySuggestor::setHistoryFile(const QString &historyDbFile)
+{
+    m_historyDatabaseFile = historyDbFile;
 }
 
 std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bool &working,
                                                             const QString &searchTerm,
                                                             const QStringList &searchTermParts,
-                                                            const FastHashParameters &hashParams)
+                                                            const FastHashParameters &/*hashParams*/)
 {
+    static thread_local std::unique_ptr<sqlite::Database> db;
     std::vector<URLSuggestion> result;
 
     if (!m_faviconManager || !m_historyManager)
         return result;
 
-    // Upper bound on number of results
-    const int maxToSuggest = 30;
-    int numSuggested = 0;
-
-    // Strip www prefix from urls when user does not also have this in the search term
-    const QRegularExpression prefixExpr = QRegularExpression(QLatin1String("^WWW\\."));
-    const bool inputStartsWithWww = searchTerm.size() >= 3 && searchTerm.startsWith(QLatin1String("WWW"));
-
-    // Used to check if certain infrequently visited URLs should be ignored (5 days)
-    const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-432000);
-
     // Factored into an entry's score
-    const qint64 currentTime = QDateTime::currentDateTime().toSecsSinceEpoch();
+    //const qint64 currentTime = QDateTime::currentDateTime().toSecsSinceEpoch();
 
     // Sort search words by their string length, in descending order
     std::vector<QString> searchWords;
@@ -50,38 +63,88 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         return a.length() > b.length();
     });
 
-    {   
-        std::lock_guard<std::mutex> lock{m_mutex};
-        for (const auto &it : *m_historyManager)
+    if (!db)
+    {
+        if (m_historyDatabaseFile.isEmpty())
+            return result;
+
+        db = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
+        if (!db || !db->isValid())
+            return result;
+
+        db->execute("PRAGMA journal_mode=WAL");
+        db->execute("PRAGMA foreign_keys=ON");
+    }
+
+    auto stmt = db->prepare("SELECT DISTINCT(HistoryID) FROM URLWords WHERE WordID IN (SELECT WordID FROM Words WHERE Word LIKE ?) LIMIT 50");
+
+    QSet<QString> wordIds;
+    for (const QString &word : searchWords)
+    {
+        QString wordBinding = word.size() > 3 ? QString("%%1%") : QString("%1%");
+        const std::string wordStdBinding = wordBinding.arg(word).toStdString();
+        stmt << wordStdBinding;
+
+        std::string wordId;
+        while (stmt.next())
         {
-            if (!working.load())
-                return result;
+            stmt >> wordId;
+            wordIds.insert(QString::fromStdString(wordId));
+        }
+    }
 
-            const URLRecord &record = it.second;
-            const QString &url = record.getUrl().toString();
-            const QUrl &urlObj = record.getUrl();
+    //TODO: Also perform raw check against url and title
+    if (wordIds.isEmpty())
+        return result;
 
-            // Rule out records that don't match any of these criteria
-            if (record.getUrlTypedCount() < 1
-                    && record.getNumVisits() < 4
-                    && record.getLastVisit() < cutoffTime)
-                continue;
+    QString wordIdString = std::accumulate(wordIds.begin() + 1, wordIds.end(), *wordIds.begin(), [](QString a, QString b) {
+        return std::move(a).append(QChar(',')).append(b);
+    });
 
-            MatchType matchType = MatchType::None;
-            int percentWordScore = 0;
+    const std::string wordBasedQuery = QString("SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit "
+                                               "FROM History AS H "
+                                               "INNER JOIN "
+                                               "(SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits GROUP BY VisitID) AS V "
+                                               "ON H.VisitID = V.VisitID "
+                                               "WHERE H.VisitID IN ( %1 ) "
+                                               "ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 100")
+                                        .arg(wordIdString)
+                                        .toStdString();
+    stmt = db->prepare(wordBasedQuery);
+    if (!stmt.execute())
+    {
+        qWarning() << "Could not fetch history matches for user input.";
+        return result;
+    }
 
-            //const QString haystack = QString("%1%2").arg(url).arg(record.getTitle());
-            //if (searchTerm.length() > 3 && !FastHash::isMatch(hashParams.needle, haystack.toStdWString(), hashParams.needleHash, hashParams.differenceHash))
-            //    continue;
+    auto wordQueryResult = getSuggestionsFromQuery(working, searchTerm, MatchType::SearchWords, stmt);
+    if (!working.load())
+        return result;
 
-            ///TODO: move inner portion of if statement into separate method
-            if (!m_historyWords.empty() && searchTermParts.size() >= 2 && searchTerm.size() > 4)
-            {
-                // int wordMatches = 0;
-                float score = 0.0f;
+    result.insert(result.end(), std::make_move_iterator(wordQueryResult.begin()), std::make_move_iterator(wordQueryResult.end()));
 
-                bool skipCurrentEntry = false;
+    return result;
 
+    /*
+    QSqlQuery rawTermQuery(db);
+    rawTermQuery.prepare(QString("SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit "
+                                 "FROM History AS H "
+                                 "INNER JOIN "
+                                 "(SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits GROUP BY VisitID) AS V "
+                                 "ON H.VisitID = V.VisitID "
+                                 "WHERE H.URL LIKE ? OR H.Title LIKE ? ) "
+                                 "ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 100"));
+    rawTermQuery.bindValue();
+
+    if (!rawTermQuery.exec())
+    {
+        qWarning() << "Could not fetch history matches for user input. Error: " << rawTermQuery.lastError().text();
+        return result;
+    }
+    */
+
+    // Old code below
+    /*
                 std::vector<QString> historyWords = getHistoryEntryWords(record.getVisitId());
                 for (const QString &searchWord : searchWords)
                 {
@@ -120,80 +183,57 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
 
                 percentWordScore = static_cast<int>((50.0f * scoreUrlRatio) + (50.0f * scoreTermRatio));
             }
-
-            if (matchType == MatchType::None)
-            {
-                const int urlIndex = url.toUpper().mid(7).indexOf(searchTerm);
-                if ((urlIndex >= 0 && urlIndex < 10)
-                        || (urlIndex > 0 && (static_cast<float>(searchTerm.size()) / static_cast<float>(url.size())) >= 0.25f))
-                    matchType = MatchType::URL;
-                else if (FastHash::isMatch(hashParams.needle, record.getTitle().toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
-                    matchType = MatchType::Title;
-
-                /*
-                if (FastHash::isMatch(hashParams.needle, record.getTitle().toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
-                    matchType = MatchType::Title;
-                else if (FastHash::isMatch(hashParams.needle, url.toUpper().toStdWString(), hashParams.needleHash, hashParams.differenceHash))
-                    matchType = MatchType::URL;
-                */
-            }
-
-            if (matchType == MatchType::None)
-                continue;
-
-            URLSuggestion suggestion { record, m_faviconManager->getFavicon(urlObj), matchType };
-
-            QString suggestionHost = urlObj.host().toUpper();
-            if (!inputStartsWithWww)
-                suggestionHost = suggestionHost.replace(prefixExpr, QString());
-            suggestion.IsHostMatch = searchTerm.startsWith(suggestionHost);
-
-            if (matchType == MatchType::SearchWords)
-                suggestion.PercentMatch = percentWordScore;
-
-            //if (m_bookmarkManager)
-            //    suggestion.IsBookmark = m_bookmarkManager->isBookmarked(urlObj);
-
-            result.push_back(suggestion);
-
-            if (++numSuggested >= maxToSuggest)
-                return result;
-        }
-    }
-
-    return result;
+    */
 }
 
-void HistorySuggestor::loadHistoryWords()
+std::vector<URLSuggestion> HistorySuggestor::getSuggestionsFromQuery(const std::atomic_bool &working,
+                                                                     const QString &searchTerm,
+                                                                     MatchType queryMatchType,
+                                                                     sqlite::PreparedStatement &query)
 {
-    if (!m_historyManager)
-        return;
+    const int maxToSuggest = 25;
+    int numSuggested = 0;
 
-    m_historyManager->loadWordDatabase([this](std::map<int, QString> &&wordMap){
-        std::lock_guard<std::mutex> lock{m_mutex};
-        m_historyWords = std::move(wordMap);
-    });
+    // Strip www prefix from urls when user does not also have this in the search term
+    const QRegularExpression prefixExpr = QRegularExpression(QLatin1String("^WWW\\."));
+    const bool inputStartsWithWww = searchTerm.size() >= 3 && searchTerm.startsWith(QLatin1String("WWW"));
 
-    m_historyManager->loadHistoryWordMapping([this](std::map<int, std::vector<int>> &&historyWordMap){
-        std::lock_guard<std::mutex> lock{m_mutex};
-        m_historyWordMap = std::move(historyWordMap);
-    });
-}
+    const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-864000);
 
-std::vector<QString> HistorySuggestor::getHistoryEntryWords(int historyId)
-{
-    std::vector<QString> historyWords;
-    auto wordIt = m_historyWordMap.find(historyId);
-    if (wordIt != m_historyWordMap.end())
+    std::vector<URLSuggestion> result;
+
+    while (query.next())
     {
-        std::vector<int> &wordIds = wordIt->second;
-        for (int id : wordIds)
-            historyWords.push_back(m_historyWords[id]);
-    }
-    return historyWords;
-}
+        if (!working.load())
+            return result;
 
-void HistorySuggestor::timerEvent()
-{
-    loadHistoryWords();
+        HistoryEntry entry;
+        query >> entry;
+
+        if (entry.URLTypedCount < 1
+                && entry.NumVisits < 4
+                && entry.LastVisit < cutoffTime)
+            continue;
+
+        std::vector<VisitEntry> emptyVisits;
+        URLRecord urlRecord{ std::move(entry), std::move(emptyVisits) };
+
+        URLSuggestion suggestion { urlRecord, m_faviconManager->getFavicon(urlRecord.getUrl()), queryMatchType };
+
+        QString suggestionHost = urlRecord.getUrl().host().toUpper();
+        if (!inputStartsWithWww)
+            suggestionHost = suggestionHost.replace(prefixExpr, QString());
+        suggestion.IsHostMatch = searchTerm.startsWith(suggestionHost);
+
+        //if (matchType == MatchType::SearchWords)
+        //    suggestion.PercentMatch = percentWordScore;
+
+        //if (m_bookmarkManager)
+        //    suggestion.IsBookmark = m_bookmarkManager->isBookmarked(urlObj);
+
+        result.push_back(suggestion);
+        if (++numSuggested >= maxToSuggest)
+            return result;
+    }
+    return result;
 }

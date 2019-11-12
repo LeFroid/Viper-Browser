@@ -1,4 +1,8 @@
-include_directories(${CMAKE_CURRENT_BINARY_DIR}) 
+include_directories(
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+add_subdirectory(database)
  
 set(viper_src
     adblock/AdBlockFilter.cpp
@@ -87,6 +91,7 @@ set(viper_core_deps
 
 add_library(viper-core STATIC ${viper_src}) 
 target_link_libraries(viper-core
+    sqlite-wrapper-cpp
     Qt5::Core
     Qt5::Concurrent
     Qt5::Gui

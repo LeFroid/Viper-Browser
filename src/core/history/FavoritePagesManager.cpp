@@ -4,6 +4,7 @@
 #include "HistoryManager.h"
 #include "WebPageThumbnailStore.h"
 
+#include <chrono>
 #include <QByteArray>
 #include <QBuffer>
 #include <QFile>
@@ -47,7 +48,8 @@ FavoritePagesManager::FavoritePagesManager(HistoryManager *historyMgr, WebPageTh
     loadFromHistory();
 
     // update history-based list every 10 minutes
-    m_timerId = startTimer(1000 * 60 * 10);
+    using namespace std::chrono_literals;
+    m_timerId = startTimer(10min);
 }
 
 FavoritePagesManager::~FavoritePagesManager()
@@ -122,7 +124,7 @@ void FavoritePagesManager::removeEntry(const QUrl &url)
     if (!isUrlHidden(url))
     {
         // Add and then automatically remove entry from exclusion list after 3 weeks
-        NewTabHiddenEntry entry { url, QDateTime::currentDateTime().addDays(21)};
+        NewTabHiddenEntry entry { url, QDateTime::currentDateTime().addDays(21) };
         m_excludedPages.push_back(entry);
     }
 
@@ -140,9 +142,12 @@ void FavoritePagesManager::removeEntry(const QUrl &url)
     removeFromContainer(m_mostVisitedPages);
 }
 
-void FavoritePagesManager::timerEvent(QTimerEvent */*event*/)
+void FavoritePagesManager::timerEvent(QTimerEvent *event)
 {
-    loadFromHistory();
+    if (event->timerId() == m_timerId)
+        loadFromHistory();
+    else
+        QObject::timerEvent(event);
 }
 
 bool FavoritePagesManager::isUrlHidden(const QUrl &url)

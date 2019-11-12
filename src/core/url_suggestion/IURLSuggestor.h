@@ -56,9 +56,6 @@ public:
                                                       const QString &searchTerm,
                                                       const QStringList &searchTermParts,
                                                       const FastHashParameters &hashParams) = 0;
-
-    /// Optional method that will be invoked by the URL suggestion worker on a regular basis
-    virtual void timerEvent() {}
 };
 
 #endif // IURLSUGGESTOR_H

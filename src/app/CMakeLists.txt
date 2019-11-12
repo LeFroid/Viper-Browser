@@ -12,6 +12,7 @@ set(viper_browser_src
 add_executable(viper-browser ${viper_qrc} ${viper_browser_src})
 
 target_link_libraries(viper-browser
+    sqlite-wrapper-cpp
     viper-core
     viper-ui
     Threads::Threads

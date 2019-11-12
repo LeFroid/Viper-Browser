@@ -41,10 +41,6 @@ Q_SIGNALS:
     /// Emitted when a suggestion search is finished, passing a reference to each URL matching the input pattern
     void finishedSearch(const std::vector<URLSuggestion> &results);
 
-private Q_SLOTS:
-    /// Called when the data refresh timer has completed a cycle
-    void onHandlerTimerTick();
-
 private:
     /// The suggestion search operation working in a separate thread
     void searchForHits();

@@ -1,6 +1,8 @@
 #ifndef URLRECORD_H
 #define URLRECORD_H
 
+#include "SQLiteWrapper.h"
+
 #include <utility>
 #include <vector>
 
@@ -14,7 +16,7 @@ using VisitEntry = QDateTime;
  * @struct HistoryEntry
  * @brief Contains data about a specific web URL visited by the user
  */
-struct HistoryEntry
+struct HistoryEntry final : public sqlite::Row
 {
     /// URL of the item
     QUrl URL;
@@ -59,6 +61,8 @@ struct HistoryEntry
     {
     }
 
+    virtual ~HistoryEntry(){}
+
     /// Copy assignment operator
     HistoryEntry &operator =(const HistoryEntry &other)
     {
@@ -95,6 +99,30 @@ struct HistoryEntry
     bool operator ==(const HistoryEntry &other) const
     {
         return (VisitID == other.VisitID || URL.toString().compare(other.URL.toString(), Qt::CaseSensitive) == 0);
+    }
+
+    void marshal(sqlite::PreparedStatement &stmt) const override
+    {
+        stmt << VisitID
+             << URL.toString().toStdString()
+             << Title.toStdString()
+             << URLTypedCount;
+    }
+
+    void unmarshal(sqlite::PreparedStatement &stmt) override
+    {
+        uint64_t lastVisitRaw;
+        std::string urlStr, titleStr;
+        stmt >> VisitID
+             >> urlStr
+             >> titleStr
+             >> URLTypedCount
+             >> NumVisits
+             >> lastVisitRaw;
+
+        URL = QUrl(QString::fromStdString(urlStr));
+        Title = QString::fromStdString(titleStr);
+        LastVisit = QDateTime::fromMSecsSinceEpoch(lastVisitRaw);
     }
 };
 

@@ -357,7 +357,16 @@ void WebWidget::showEvent(QShowEvent *event)
     if (updateWebContents)
     {
         if (m_page->lifecycleState() != WebPage::LifecycleState::Active)
+        {
+            if (m_page->lifecycleState() == WebPage::LifecycleState::Discarded)
+            {
+                QTimer::singleShot(50, this, [this](){
+                    hide();
+                    show();
+                });
+            }
             m_page->setLifecycleState(WebPage::LifecycleState::Active);
+        }
 
         if (m_lifecycleFreezeTimerId != -1)
         {

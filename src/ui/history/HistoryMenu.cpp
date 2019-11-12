@@ -42,7 +42,7 @@ void HistoryMenu::addHistoryItem(const QUrl &url, const QString &title, const QI
 {
     QAction *historyItem = new QAction(title);
     historyItem->setIcon(favicon);
-    connect(historyItem, &QAction::triggered, [=](){
+    connect(historyItem, &QAction::triggered, this, [this, url](){
         emit loadUrl(url);
     });
 
@@ -61,7 +61,7 @@ void HistoryMenu::prependHistoryItem(const QUrl &url, const QString &title, cons
 
     QAction *historyItem = new QAction(title);
     historyItem->setIcon(favicon);
-    connect(historyItem, &QAction::triggered, [=](){
+    connect(historyItem, &QAction::triggered, this, [this, url](){
         emit loadUrl(url);
     });
 

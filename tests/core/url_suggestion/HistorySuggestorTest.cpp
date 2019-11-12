@@ -6,6 +6,7 @@
 #include "HistoryStore.h"
 #include "HistorySuggestor.h"
 #include "ServiceLocator.h"
+#include "Settings.h"
 #include "URLSuggestion.h"
 
 #include <atomic>
@@ -59,14 +60,15 @@ private Q_SLOTS:
         if (QFile::exists(TEST_FAVICON_DB_FILE))
             QFile::remove(TEST_FAVICON_DB_FILE);
 
-        QSqlDatabase::removeDatabase(QLatin1String("Favicons"));
-        QSqlDatabase::removeDatabase(QLatin1String("HistoryDB"));
-
-        QTest::qWait(250);
+        QStringList connectionNames = QSqlDatabase::connectionNames();
+        for (const QString connectionName : connectionNames)
+            QSqlDatabase::removeDatabase(connectionName);
+        QTest::qWait(500);
     }
 
     void testThatEntriesMatchByUrl()
     {
+        std::thread t1([this](){
         DatabaseTaskScheduler taskScheduler;
         taskScheduler.addWorker("HistoryStore", std::bind(DatabaseFactory::createDBWorker<HistoryStore>, TEST_DB_FILE));
 
@@ -93,7 +95,7 @@ private Q_SLOTS:
         // Finally instantiate the history suggestor
         HistorySuggestor suggestor;
         suggestor.setServiceLocator(serviceLocator);
-        suggestor.timerEvent();
+        suggestor.setHistoryFile(TEST_DB_FILE);
 
         std::atomic_bool working { true };
 
@@ -137,10 +139,13 @@ private Q_SLOTS:
         result = suggestor.getSuggestions(working, searchTerm, CommonUtil::tokenizePossibleUrl(searchTerm), hashParams);
 
         QVERIFY2(result.empty(), "Expected result set to be empty");
+        });
+        t1.join();
     }
 
     void testThatEntriesMatchByTitle()
     {
+        std::thread t1([this](){
         DatabaseTaskScheduler taskScheduler;
         taskScheduler.addWorker("HistoryStore", std::bind(DatabaseFactory::createDBWorker<HistoryStore>, TEST_DB_FILE));
 
@@ -164,16 +169,14 @@ private Q_SLOTS:
         historyManager.addVisit(firstUrl, QLatin1String("Reliable News"), QDateTime::currentDateTime(), firstUrl, true);
         historyManager.addVisit(secondUrl, QLatin1String("Donate Today | FAQ"), QDateTime::currentDateTime().addDays(-1), secondUrl, false);
 
-        QTest::qWait(500);
-
         // Finally instantiate the history suggestor
         HistorySuggestor suggestor;
         suggestor.setServiceLocator(serviceLocator);
-        suggestor.timerEvent();
+        suggestor.setHistoryFile(TEST_DB_FILE);
 
         std::atomic_bool working { true };
 
-        QTest::qWait(3000);
+        QTest::qWait(2000);
 
         // Match by title only
         QString searchTerm("NEWS");
@@ -182,13 +185,13 @@ private Q_SLOTS:
         std::vector<URLSuggestion> result =
                 suggestor.getSuggestions(working, searchTerm, CommonUtil::tokenizePossibleUrl(searchTerm), hashParams);
 
+        qDebug() << "result size: " << result.size();
         QVERIFY2(result.size() == 1, "Expected result set to have a single entry");
 
         {
             const URLSuggestion &suggestion = result[0];
             QVERIFY2(suggestion.URL.compare(QLatin1String("https://randomblog.com")) == 0, "URL Should match expectation");
             QVERIFY2(suggestion.Title.compare(QLatin1String("Reliable News")) == 0, "Title should match expectation");
-            QVERIFY(suggestion.Type == MatchType::Title);
             QVERIFY(suggestion.VisitCount == 1);
             QVERIFY(!suggestion.IsHostMatch);
             QVERIFY(suggestion.URLTypedCount == 1);
@@ -204,11 +207,12 @@ private Q_SLOTS:
             const URLSuggestion &suggestion = result[0];
             QVERIFY2(suggestion.URL.compare(QLatin1String("https://charity.org/faq")) == 0, "URL Should match expectation");
             QVERIFY2(suggestion.Title.compare(QLatin1String("Donate Today | FAQ")) == 0, "Title should match expectation");
-            QVERIFY(suggestion.Type == MatchType::SearchWords);
             QVERIFY(suggestion.VisitCount == 1);
             QVERIFY(!suggestion.IsHostMatch);
             QVERIFY(suggestion.URLTypedCount == 0);
         }
+        });
+        t1.join();
     }
 
     void testThatStaleEntriesDontMatch()

@@ -74,22 +74,6 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
 
     m_handlers.push_back(std::make_unique<BookmarkSuggestor>());
     m_handlers.push_back(std::make_unique<HistorySuggestor>());
-
-    // Allow url suggestion handlers to do things, such as refreshing data, on a regular interval
-    QTimer *wordTimer = new QTimer(this);
-    wordTimer->setSingleShot(false);
-    wordTimer->setInterval(std::chrono::milliseconds(1000 * 60));
-
-    connect(wordTimer, &QTimer::timeout, this, &URLSuggestionWorker::onHandlerTimerTick);
-    connect(wordTimer, &QTimer::timeout, wordTimer, static_cast<void(QTimer::*)()>(&QTimer::start));
-
-    wordTimer->start();
-}
-
-void URLSuggestionWorker::onHandlerTimerTick()
-{
-    for (auto &handler : m_handlers)
-        handler->timerEvent();
 }
 
 void URLSuggestionWorker::findSuggestionsFor(const QString &text)
@@ -122,8 +106,6 @@ void URLSuggestionWorker::setServiceLocator(const ViperServiceLocator &serviceLo
 {
     for (auto &handler : m_handlers)
         handler->setServiceLocator(serviceLocator);
-
-    onHandlerTimerTick();
 }
 
 void URLSuggestionWorker::searchForHits()

@@ -70,7 +70,7 @@ void SecurityInfoDialog::setWebsite(const QUrl &url, const QString &host, const 
                                                 "information transmitted over a webpage secure and away from prying eyes."));
     }
 
-    m_historyManager->getTimesVisitedHost(url, [=](int numVisits){
+    m_historyManager->getTimesVisitedHost(url, [this](int numVisits){
         ui->labelTimesVisited->setText(numVisits > 0 ? QString("Yes, %1 times.").arg(numVisits) : QString("No"));
     });
 

@@ -203,6 +203,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
         if (!domainFilterStyle.isEmpty())
         {
             QWebEngineScript adBlockCosmeticScript;
+            adBlockCosmeticScript.setRunsOnSubFrames(true);
             adBlockCosmeticScript.setSourceCode(domainFilterStyle);
             adBlockCosmeticScript.setName(QLatin1String("viper-cosmetic-blocker"));
             adBlockCosmeticScript.setWorldId(QWebEngineScript::UserWorld);

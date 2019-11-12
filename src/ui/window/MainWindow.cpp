@@ -12,7 +12,6 @@
 #include "BookmarkWidget.h"
 #include "ClearHistoryDialog.h"
 #include "CookieJar.h"
-#include "HistoryManager.h"
 #include "HistoryWidget.h"
 #include "HttpRequest.h"
 #include "Preferences.h"

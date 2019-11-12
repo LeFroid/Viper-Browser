@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <set>
 #include <utility>
 #include <QBuffer>
@@ -35,7 +36,8 @@ WebPageThumbnailStore::WebPageThumbnailStore(const ViperServiceLocator &serviceL
     setObjectName(QLatin1String("WebPageThumbnailStore"));
 
     // Save thumbnails every 10 minutes
-    m_timerId = startTimer(1000 * 60 * 10);
+    using namespace std::chrono_literals;
+    m_timerId = startTimer(10min);
 }
 
 WebPageThumbnailStore::~WebPageThumbnailStore()
@@ -131,9 +133,12 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     });
 }
 
-void WebPageThumbnailStore::timerEvent(QTimerEvent */*event*/)
+void WebPageThumbnailStore::timerEvent(QTimerEvent *event)
 {
-    save();
+    if (event->timerId() == m_timerId)
+        save();
+    else
+        QObject::timerEvent(event);
 }
 
 bool WebPageThumbnailStore::hasProperStructure()

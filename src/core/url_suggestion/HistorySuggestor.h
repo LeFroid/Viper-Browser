@@ -4,13 +4,18 @@
 #include "IURLSuggestor.h"
 #include "URLSuggestionListModel.h"
 
-#include <map>
-#include <mutex>
 #include <vector>
 
 class BookmarkManager;
 class FaviconManager;
 class HistoryManager;
+
+class QSqlQuery;
+
+namespace sqlite
+{
+    class PreparedStatement;
+}
 
 /**
  * @class HistorySuggestor
@@ -26,21 +31,22 @@ public:
     /// Injects the history manager and favicon manager dependencies
     void setServiceLocator(const ViperServiceLocator &serviceLocator) override;
 
+    /// Specifies which history database file the suggestor should use. If not set, the
+    /// suggestor will use the application settings to get the value
+    void setHistoryFile(const QString &historyDbFile);
+
     /// Suggests history entries to the user, based on their text input
     std::vector<URLSuggestion> getSuggestions(const std::atomic_bool &working,
                                               const QString &searchTerm,
                                               const QStringList &searchTermParts,
                                               const FastHashParameters &hashParams) override;
 
-    /// Refreshes the history word database when invoked
-    void timerEvent() override;
-
 private:
-    /// Loads the word database, and word-history entry mappings
-    void loadHistoryWords();
-
-    /// Returns a list of words associated with the given history entry
-    std::vector<QString> getHistoryEntryWords(int historyId);
+    /// Returns a list of URL suggestions based on the result of a history suggestion query
+    std::vector<URLSuggestion> getSuggestionsFromQuery(const std::atomic_bool &working,
+                                                       const QString &searchTerm,
+                                                       MatchType queryMatchType,
+                                                       sqlite::PreparedStatement &query);
 
 private:
     /// Determines whether or not a suggestion is also a bookmark
@@ -52,14 +58,8 @@ private:
     /// Data source for the history-based suggestions
     HistoryManager *m_historyManager;
 
-    /// History-related word dictionary
-    std::map<int, QString> m_historyWords;
-
-    /// Map of history entry IDs to the IDs of associated words. Used to make educated suggestions based on user input
-    std::map<int, std::vector<int>> m_historyWordMap;
-
-    /// Used for access control to the history word maps
-    std::mutex m_mutex;
+    /// Stores the location of the history database
+    QString m_historyDatabaseFile;
 };
 
 #endif // HISTORYSUGGESTOR_H

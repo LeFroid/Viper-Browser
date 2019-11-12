@@ -65,6 +65,12 @@ HistoryStore::~HistoryStore()
 
 void HistoryStore::clearAllHistory()
 {
+    if (!exec(QLatin1String("DELETE FROM URLWords")))
+        qWarning() << "In HistoryStore::clearAllHistory - Unable to clear History Word Mapping table.";
+
+    if (!exec(QLatin1String("DELETE FROM Words")))
+        qWarning() << "In HistoryStore::clearAllHistory - Unable to clear History Word table.";
+
     if (!exec(QLatin1String("DELETE FROM History")))
         qWarning() << "In HistoryStore::clearAllHistory - Unable to clear History table.";
 
@@ -422,7 +428,7 @@ void HistoryStore::tokenizeAndSaveUrl(int visitId, const QUrl &url, const QStrin
     if (m_queryInsertWord == nullptr)
     {
         m_queryInsertWord = new QSqlQuery(m_database);
-        m_queryInsertWord->prepare(QLatin1String("INSERT OR IGNORE INTO Words(Word) VALUES(:word)"));
+        m_queryInsertWord->prepare(QLatin1String("INSERT OR IGNORE INTO Words(Word) VALUES(?)"));
 
         m_queryAssociateUrlWithWord = new QSqlQuery(m_database);
         m_queryAssociateUrlWithWord->prepare(QLatin1String("INSERT OR IGNORE INTO URLWords(HistoryID, WordID) "
@@ -467,7 +473,7 @@ void HistoryStore::setup()
         qDebug() << "[Error]: In HistoryStore::setup - unable to create visited table. Message: " << query.lastError().text();
     }
 
-    if (!query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS Words(WordID INTEGER PRIMARY KEY AUTOINCREMENT, Word TEXT UNIQUE NOT NULL)")))
+    if (!query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS Words(WordID INTEGER PRIMARY KEY AUTOINCREMENT, Word TEXT COLLATE NOCASE UNIQUE NOT NULL)")))
     {
         qDebug() << "[Error]: In HistoryStore::setup - unable to create words table. Message: " << query.lastError().text();
     }
@@ -477,6 +483,16 @@ void HistoryStore::setup()
                                   "FOREIGN KEY(WordID) REFERENCES Words(WordID) ON DELETE CASCADE, PRIMARY KEY(HistoryID, WordID))")))
     {
         qDebug() << "[Error]: In HistoryStore::setup - unable to create url-word association table. Message: " << query.lastError().text();
+    }
+
+    if (!query.exec(QLatin1String("CREATE INDEX IF NOT EXISTS Visit_Date_Index ON Visits(Date)")))
+    {
+        qWarning() << "In HistoryStore::setup - unable to create index on the date column of the visit table. Message: " << query.lastError().text();
+    }
+
+    if (!query.exec(QLatin1String("CREATE INDEX IF NOT EXISTS Word_Index ON Words(Word COLLATE NOCASE)")))
+    {
+        qWarning() << "In HistoryStore::setup - unable to create index on the word column of the words table. Message: " << query.lastError().text();
     }
 }
 

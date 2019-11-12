@@ -40,7 +40,7 @@ HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, Databa
     });
 
     m_taskScheduler.post([this](){
-        onHistoryRecordsLoaded(m_historyStore->getEntries());
+        //onHistoryRecordsLoaded(m_historyStore->getEntries());
         onRecentItemsLoaded(m_historyStore->getRecentItems());
 
         m_lastVisitId = m_historyStore->getLastVisitId();
@@ -62,14 +62,17 @@ HistoryManager::~HistoryManager()
     }
 }
 
+const QSqlDatabase &HistoryManager::getHandle() const
+{
+    return m_historyStore->getHandle();
+}
+
 void HistoryManager::clearAllHistory()
 {
     m_recentItems.clear();
     m_historyItems.clear();
 
-    m_taskScheduler.post([this](){
-        m_historyStore->clearAllHistory();
-    });
+    m_taskScheduler.post(&HistoryStore::clearAllHistory, std::ref(m_historyStore));
 }
 
 void HistoryManager::clearHistoryFrom(const QDateTime &start)
@@ -171,21 +174,23 @@ void HistoryManager::addVisitToLocalStore(const QUrl &url, const QString &title,
 
 void HistoryManager::getHistoryBetween(const QDateTime &startDate, const QDateTime &endDate, std::function<void(std::vector<URLRecord>)> callback)
 {
-    m_taskScheduler.post([=](){
+    m_taskScheduler.post([this, startDate, endDate, callback](){
         callback(m_historyStore->getHistoryBetween(startDate, endDate));
     });
 }
 
 void HistoryManager::getHistoryFrom(const QDateTime &startDate, std::function<void(std::vector<URLRecord>)> callback)
 {
-    m_taskScheduler.post([=](){
+    m_taskScheduler.post([this, startDate, callback](){
         callback(m_historyStore->getHistoryFrom(startDate));
     });
 }
 
-bool HistoryManager::contains(const QUrl &url) const
+void HistoryManager::contains(const QUrl &url, std::function<void(bool)> callback)
 {
-    return (m_historyItems.find(url.toString().toUpper()) != m_historyItems.end());
+    m_taskScheduler.post([this, url, callback](){
+        callback(m_historyStore->contains(url));
+    });
 }
 
 HistoryEntry HistoryManager::getEntry(const QUrl &url) const
@@ -201,18 +206,9 @@ HistoryEntry HistoryManager::getEntry(const QUrl &url) const
 
 void HistoryManager::getTimesVisitedHost(const QUrl &host, std::function<void(int)> callback)
 {
-    m_taskScheduler.post([=](){
+    m_taskScheduler.post([this, host, callback](){
         callback(m_historyStore->getTimesVisitedHost(host));
     });
-}
-
-int HistoryManager::getTimesVisited(const QUrl &url) const
-{
-    auto it = m_historyItems.find(url.toString().toUpper());
-    if (it != m_historyItems.end())
-        return it->second.getNumVisits();
-
-    return 0;
 }
 
 HistoryStoragePolicy HistoryManager::getStoragePolicy() const
@@ -251,21 +247,21 @@ void HistoryManager::onHistoryRecordsLoaded(std::vector<URLRecord> &&records)
 
 void HistoryManager::loadMostVisitedEntries(int limit, std::function<void(std::vector<WebPageInformation>)> callback)
 {
-    m_taskScheduler.post([=](){
+    m_taskScheduler.post([this, limit, callback](){
         callback(m_historyStore->loadMostVisitedEntries(limit));
     });
 }
 
 void HistoryManager::loadWordDatabase(std::function<void(std::map<int, QString>)> callback)
 {
-    m_taskScheduler.post([=](){
+    m_taskScheduler.post([this, callback](){
         callback(m_historyStore->getWords());
     });
 }
 
 void HistoryManager::loadHistoryWordMapping(std::function<void(std::map<int, std::vector<int>>)> callback)
 {
-    m_taskScheduler.post([=](){
+    m_taskScheduler.post([this, callback](){
         callback(m_historyStore->getEntryWordMapping());
     });
 }
