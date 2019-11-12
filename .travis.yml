@@ -4,16 +4,15 @@ matrix:
   include:
     - os: linux
       dist: xenial
-      env: QT_BASE=512 VER=6.0 STDFLAGS="-std=c++17" BUILD_TYPE=Release
-      compiler: clang
+      env: QT_BASE=512 VER=6.0 STDFLAGS="-std=c++17" BUILD_TYPE=Release STANDARD=17 COMPILER=g++-8
+      compiler: gcc
       addons:
         apt:
           sources:
           - ubuntu-toolchain-r-test
           - llvm-toolchain-xenial-7
           packages:
-          - clang-7
-          - libstdc++-7-dev
+          - g++-8
 
 before_install:
   - if [ "$QT_BASE" = "512" ]; then sudo add-apt-repository ppa:beineri/opt-qt-5.12.0-xenial -y; fi
@@ -30,13 +29,12 @@ install:
   - rm -f cmake.tar.gz
   - export PATH=/opt/cmake/bin:/opt/qt512/bin:${PATH}
   - export CMAKE_PREFIX_PATH=/opt/qt512:${CMAKE_PREFIX_PATH}
-  - export CXXFLAGS="-std=c++17 -stdlib=libc++"
 
 before_script:
   - mkdir -p build/appdir/usr
   - cd build
   - cmake --version
-  - cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=c++17 -stdlib=libc++" -DENABLE_TESTING=ON -DCMAKE_INSTALL_PREFIX=/usr ..
+  - cmake -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=c++17" -DENABLE_TESTING=ON -DCMAKE_INSTALL_PREFIX=/usr ..
 
 script:
   - make -j$(nproc)
