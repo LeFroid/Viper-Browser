@@ -52,7 +52,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/core/cookies
     ${CMAKE_SOURCE_DIR}/src/core/credentials
     ${CMAKE_SOURCE_DIR}/src/core/database
-    ${CMAKE_SOURCE_DIR}/src/core/database/sqlite/src
+    ${CMAKE_SOURCE_DIR}/src/core/database/sqlite
     ${CMAKE_SOURCE_DIR}/src/core/downloads
     ${CMAKE_SOURCE_DIR}/src/core/extensions
     ${CMAKE_SOURCE_DIR}/src/core/highlighters
