@@ -2,6 +2,7 @@
 #define URLRECORD_H
 
 #include "SQLiteWrapper.h"
+#include "../database/bindings/QtSQLite.h"
 
 #include <utility>
 #include <vector>
@@ -111,18 +112,12 @@ struct HistoryEntry final : public sqlite::Row
 
     void unmarshal(sqlite::PreparedStatement &stmt) override
     {
-        uint64_t lastVisitRaw;
-        std::string urlStr, titleStr;
         stmt >> VisitID
-             >> urlStr
-             >> titleStr
+             >> URL
+             >> Title
              >> URLTypedCount
              >> NumVisits
-             >> lastVisitRaw;
-
-        URL = QUrl(QString::fromStdString(urlStr));
-        Title = QString::fromStdString(titleStr);
-        LastVisit = QDateTime::fromMSecsSinceEpoch(lastVisitRaw);
+             >> LastVisit;
     }
 };
 

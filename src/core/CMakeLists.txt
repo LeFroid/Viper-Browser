@@ -31,6 +31,7 @@ set(viper_src
     cookies/DetailedCookieTableModel.cpp
     credentials/CredentialStore.cpp
     database/DatabaseWorker.cpp
+    database/bindings/QtSQLite.cpp
     downloads/InternalDownloadItem.cpp
     extensions/ExtStorage.cpp
     highlighters/HTMLHighlighter.cpp
