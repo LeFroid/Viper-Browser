@@ -1,12 +1,9 @@
 #include "FakeDatabaseWorker.h"
 
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QSqlRecord>
 #include <QTest>
 
 FakeDatabaseWorker::FakeDatabaseWorker(const QString &dbFile) :
-    DatabaseWorker(dbFile, QLatin1String("TestDB")),
+    DatabaseWorker(dbFile),
     m_entries()
 {
 }
@@ -16,7 +13,7 @@ FakeDatabaseWorker::~FakeDatabaseWorker()
     save();
 }
 
-QSqlDatabase &FakeDatabaseWorker::getHandle()
+sqlite::Database &FakeDatabaseWorker::getHandle()
 {
     return m_database;
 }
@@ -39,33 +36,32 @@ bool FakeDatabaseWorker::hasProperStructure()
 void FakeDatabaseWorker::setup()
 {
     // Setup table structures
-    QSqlQuery query(m_database);
-    QVERIFY(query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS Information(id INTEGER PRIMARY KEY, name TEXT NOT NULL)")));
+    QVERIFY(exec(QLatin1String("CREATE TABLE IF NOT EXISTS Information(id INTEGER PRIMARY KEY, name TEXT NOT NULL)")));
 }
 
 void FakeDatabaseWorker::save()
 {
     QVERIFY(exec(QLatin1String("DELETE FROM Information")));
 
-    QSqlQuery query(m_database);
-    QVERIFY(query.prepare(QLatin1String("INSERT INTO Information(name) VALUES(:name)")));
-
+    auto stmt = m_database.prepare(R"(INSERT INTO Information(name) VALUES (?))");
     for (const auto &name : m_entries)
     {
         if (name.empty())
             continue;
 
-        query.bindValue(QLatin1String(":name"), QVariant(QString::fromStdString(name)));
-        QVERIFY(query.exec());
+        stmt << name;
+        QVERIFY(stmt.execute());
+        stmt.reset();
     }
 }
 
 void FakeDatabaseWorker::load()
 {
-    QSqlQuery query(m_database);
-    QVERIFY(query.exec(QLatin1String("SELECT name FROM Information")));
+    auto query = m_database.prepare(R"(SELECT name FROM Information)");
     while (query.next())
     {
-        m_entries.push_back(query.value(0).toString().toStdString());
+        std::string name;
+        query >> name;
+        m_entries.push_back(name);
     }
 }

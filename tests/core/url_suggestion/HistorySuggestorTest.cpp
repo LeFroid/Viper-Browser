@@ -13,7 +13,6 @@
 #include <QDateTime>
 #include <QFile>
 #include <QObject>
-#include <QSqlDatabase>
 #include <QTest>
 
 const static QString TEST_FAVICON_DB_FILE = QStringLiteral("HISTORY_SUGGESTOR_TEST_FAVICON.db");
@@ -59,11 +58,6 @@ private Q_SLOTS:
 
         if (QFile::exists(TEST_FAVICON_DB_FILE))
             QFile::remove(TEST_FAVICON_DB_FILE);
-
-        QStringList connectionNames = QSqlDatabase::connectionNames();
-        for (const QString connectionName : connectionNames)
-            QSqlDatabase::removeDatabase(connectionName);
-        QTest::qWait(500);
     }
 
     void testThatEntriesMatchByUrl()

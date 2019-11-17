@@ -3,6 +3,7 @@
 #include "FaviconManager.h"
 #include "NetworkAccessManager.h"
 
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QFile>
 #include <QObject>
@@ -42,7 +43,6 @@ private slots:
 
         if (QFile::exists(m_dbFile))
             QFile::remove(m_dbFile);
-        QSqlDatabase::removeDatabase(QLatin1String("Favicons"));
     }
 
     void testCanAddAndThenFetchIcon()
@@ -64,11 +64,10 @@ private slots:
         QVERIFY(!favicon.isNull());
 
         QByteArray faviconBytes = CommonUtil::iconToBase64(favicon);
-        qDebug() << "Raw data: " << faviconBytes;
-        auto faviconEncoded = QLatin1String(faviconBytes.data());
 
-        QCOMPARE(faviconEncoded, iconEncoded);
-
+        auto hashOrig = QCryptographicHash::hash(CommonUtil::iconToBase64(icon), QCryptographicHash::Sha256);
+        auto hashNew = QCryptographicHash::hash(faviconBytes, QCryptographicHash::Sha256);
+        QCOMPARE(hashOrig, hashNew);
         QTest::qWait(500);
 
         m_faviconManager->setNetworkAccessManager(nullptr);

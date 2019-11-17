@@ -80,12 +80,12 @@ const std::string &Database::getLastError() const
     return m_lastError;
 }
 
-PreparedStatement Database::prepare(const std::string &sql)
+PreparedStatement Database::prepare(const std::string &sql) const
 {
     return PreparedStatement({}, m_handle, sql);
 }
 
-PreparedStatement Database::prepare(const char *sql, int nByte)
+PreparedStatement Database::prepare(const char *sql, int nByte) const
 {
     return PreparedStatement({}, m_handle, sql, nByte);
 }

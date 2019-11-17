@@ -2,6 +2,9 @@
 #define EXTSTORAGE_H
 
 #include "DatabaseWorker.h"
+
+#include <map>
+
 #include <QMap>
 #include <QMetaType>
 #include <QObject>
@@ -15,6 +18,14 @@
 class ExtStorage : public QObject, private DatabaseWorker
 {
     friend class DatabaseFactory;
+
+    enum class Statement
+    {
+        GetValue,
+        SetValue,
+        DeleteKey,
+        GetSimilarKeys
+    };
 
     Q_OBJECT
 
@@ -73,13 +84,14 @@ protected:
     bool hasProperStructure() override;
 
     /// Sets initial table structure in the database
-    void setup() override;
-
-    /// Saves information to the database - called in destructor
-    void save() override {}
+    void setup() override {}
 
     /// Loads records from the database
     void load() override {}
+
+private:
+    /// Map of prepared statements
+    std::map<Statement, sqlite::PreparedStatement> m_statements;
 };
 
 #endif // EXTSTORAGE_H

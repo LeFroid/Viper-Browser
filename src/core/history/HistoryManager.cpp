@@ -5,15 +5,11 @@
 
 #include <algorithm>
 #include <array>
-#include <QBuffer>
+
 #include <QDateTime>
-#include <QIcon>
-#include <QRegularExpression>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QSqlRecord>
-#include <QtConcurrent>
 #include <QUrl>
+
+#include <QDebug>
 
 HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler) :
     QObject(nullptr),
@@ -44,7 +40,6 @@ HistoryManager::HistoryManager(const ViperServiceLocator &serviceLocator, Databa
         onRecentItemsLoaded(m_historyStore->getRecentItems());
 
         m_lastVisitId = m_historyStore->getLastVisitId();
-        m_historyStore->clearEntriesInMemory();
     });
 }
 
@@ -60,11 +55,6 @@ HistoryManager::~HistoryManager()
             clearAllHistory();
             break;
     }
-}
-
-const QSqlDatabase &HistoryManager::getHandle() const
-{
-    return m_historyStore->getHandle();
 }
 
 void HistoryManager::clearAllHistory()

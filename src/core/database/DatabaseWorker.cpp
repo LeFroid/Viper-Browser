@@ -1,45 +1,41 @@
 #include "DatabaseWorker.h"
 
 #include <QDebug>
-#include <QSqlQuery>
-#include <QSqlError>
 
-DatabaseWorker::DatabaseWorker(const QString &dbFile, const QString &dbName) :
-    m_database(QSqlDatabase::addDatabase("QSQLITE", dbName))
+DatabaseWorker::DatabaseWorker(const QString &dbFile) :
+    m_database(dbFile.toStdString())
 {
-    m_database.setDatabaseName(dbFile);
-    if (!m_database.open())
-        qDebug() << "[Error]: Unable to open database " << dbFile;
+    if (!m_database.isValid())
+        qWarning() << "Unable to open database " << dbFile;
 
     // Turn synchronous setting off
-    if (!exec(QStringLiteral("PRAGMA journal_mode=WAL")))
-        qDebug() << "[Error]: In DatabaseWorker constructor - could not set journal mode.";
+    if (!m_database.execute("PRAGMA journal_mode=WAL"))
+        qWarning() << "In DatabaseWorker constructor - could not set journal mode.";
 
     // Foreign keys
-    if (!exec(QStringLiteral("PRAGMA foreign_keys=ON")))
-        qDebug() << "In DatabaseWorker constructor - could not enable foreign keys.";
+    if (!m_database.execute("PRAGMA foreign_keys=ON"))
+        qWarning() << "In DatabaseWorker constructor - could not enable foreign keys.";
 }
 
 DatabaseWorker::~DatabaseWorker()
 {
-    m_database.close();
 }
 
 bool DatabaseWorker::exec(const QString &queryString)
 {
-    QSqlQuery query(m_database);
-    return query.exec(queryString);
+    return m_database.execute(queryString.toStdString());
 }
 
 bool DatabaseWorker::hasTable(const QString &tableName)
 {
-    QSqlQuery query(m_database);
-
-    query.prepare(QStringLiteral("SELECT COUNT(*) FROM sqlite_master WHERE type= (:type) AND name = (:name)"));
-    query.bindValue(QStringLiteral(":type"), QStringLiteral("table"));
-    query.bindValue(QStringLiteral(":name"), tableName);
-    if (query.exec())
-        return (query.first() && query.value(0).toInt() == 1);
+    sqlite::PreparedStatement stmt = m_database.prepare(R"(SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?)");
+    stmt << tableName;
+    if (stmt.next())
+    {
+        int result = 0;
+        stmt >> result;
+        return result == 1;
+    }
 
     return false;
 }

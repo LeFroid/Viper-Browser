@@ -26,6 +26,16 @@ class HistoryStore : public DatabaseWorker
 {
     friend class DatabaseFactory;
 
+    enum class Statement
+    {
+        CreateHistoryRecord,  /// INSERT OR REPLACE INTO History(VisitID, URL, Title, URLTypedCount) VALUES(?, ?, ?, ?)
+        UpdateHistoryRecord,  /// UPDATE History SET Title = ?, URLTypedCount = ? WHERE VisitID = ?
+        CreateVisitRecord,    /// INSERT INTO Visits(VisitID, Date) VALUES (?, ?)
+        CreateWordRecord,     /// INSERT OR IGNORE INTO Words(Word) VALUES(?)
+        CreateUrlWordRecord,  /// INSERT OR IGNORE INTO URLWords(HistoryID, WordID) VALUES(?, (SELECT WordID FROM Words WHERE Word = ?))
+        GetHistoryRecord      /// SELECT History.VisitID, History.URL, History.Title, History.URLTypedCount, V.NumVisits, ...
+    };
+
 public:
     /// Constructs the history manager, given the path to the history database
     explicit HistoryStore(const QString &databaseFile);
@@ -49,13 +59,6 @@ public:
     /// Returns a history record corresponding to the given URL, or an empty record if it was not found in the
     /// database
     HistoryEntry getEntry(const QUrl &url);
-
-    /// Returns the history entries that were loaded during instantiation of the history store.
-    std::vector<URLRecord> getEntries() const;
-
-    /// Clears the vector of URLRecords that was populated during the initial database load.
-    /// This is called by the \ref HistoryManager , which keeps the records in its memory instead.
-    void clearEntriesInMemory();
 
     /// Returns the visits associated with a given \ref HistoryEntry
     std::vector<VisitEntry> getVisits(const HistoryEntry &record);
@@ -91,9 +94,6 @@ public:
     /// Returns the last unique id of an entry in the visit database. This is an auto-incrementing value
     uint64_t getLastVisitId() const;
 
-    /// Returns a reference to the database connection
-    const QSqlDatabase &getHandle() const;
-
 protected:
     /// Returns true if the history database contains the table structures needed for it to function properly,
     /// false if else.
@@ -104,9 +104,6 @@ protected:
 
     /// Loads browsing history from the database
     void load() override;
-
-    /// Saves browsing history into the database
-    void save() override;
 
 private:
     /// Splits the given URL into distinct words, saving the association in the database
@@ -122,27 +119,8 @@ private:
     /// Stores the last visit ID that has been used to record browsing history. Auto increments for each new history item
     uint64_t m_lastVisitID;
 
-    /// Contains the history entries at the time of the initial database load
-    std::vector<URLRecord> m_entries;
-
-    /// Queue of recently visited items
-    std::deque<HistoryEntry> m_recentItems;
-
-    /// Prepared query to update the title of a history entry
-    QSqlQuery *m_queryUpdateHistoryItem;
-
-    /// Prepared query to insert or replace an individual HistoryEntry entry
-    QSqlQuery *m_queryHistoryItem;
-
-    /// Prepared query for a visit entry regarding a HistoryEntry
-    QSqlQuery *m_queryVisit;
-
-    /// Prepared query to fetch a history entry by its URL
-    QSqlQuery *m_queryGetEntryByUrl;
-
-    /// Prepared statements to insert and retrieve the "words" or tokens in a URL
-    QSqlQuery *m_queryInsertWord,
-              *m_queryAssociateUrlWithWord;
+    /// Cache of prepared statements
+    std::map<Statement, sqlite::PreparedStatement> m_statements;
 };
 
 #endif // HISTORYSTORE_H

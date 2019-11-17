@@ -1,15 +1,26 @@
 #include "ExtStorage.h"
 
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QDebug>
 
 ExtStorage::ExtStorage(const QString &dbFile, QObject *parent) :
     QObject(parent),
-    DatabaseWorker(dbFile, QLatin1String("ExtStorage"))
+    DatabaseWorker(dbFile),
+    m_statements()
 {
     setObjectName("storage");
+
+    // Setup table structure
+    if (!exec(QLatin1String("CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB NOT NULL ON CONFLICT FAIL)")))
+        qWarning() << "ExtStorage - unable to setup data table.";
+
+    m_statements.insert(std::make_pair(Statement::GetValue,
+                                       m_database.prepare(R"(SELECT value FROM ItemTable WHERE key = ?)")));
+    m_statements.insert(std::make_pair(Statement::SetValue,
+                                       m_database.prepare(R"(INSERT OR REPLACE INTO ItemTable(key, value) VALUES (?, ?))")));
+    m_statements.insert(std::make_pair(Statement::DeleteKey,
+                                       m_database.prepare(R"(DELETE FROM ItemTable WHERE key = ?)")));
+    m_statements.insert(std::make_pair(Statement::GetSimilarKeys,
+                                       m_database.prepare(R"(SELECT key FROM ItemTable WHERE key LIKE ?)")));
 }
 
 ExtStorage::~ExtStorage()
@@ -18,15 +29,20 @@ ExtStorage::~ExtStorage()
 
 QVariantMap ExtStorage::getResult(const QString &extUID, const QVariantMap &keys)
 {
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT value FROM ItemTable WHERE key = (:key)"));
+    sqlite::PreparedStatement &stmt = m_statements.at(Statement::GetValue);
 
     QVariantMap results;
     for (auto it = keys.cbegin(); it != keys.cend(); ++it)
     {
-        query.bindValue(QLatin1String(":key"), QString("%1%2").arg(extUID).arg(it.key()));
-        if (query.exec() && query.first())
-            results.insert(it.key(), query.value(0));
+        std::string boundParam = QString("%1%2").arg(extUID).arg(it.key()).toStdString();
+        stmt.bind(0, boundParam);
+        if (stmt.next())
+        {
+            sqlite::Blob blob;
+            stmt >> blob;
+            QVariant temp = QVariant(QString::fromStdString(blob.data));
+            results.insert(it.key(), temp);
+        }
         else
             results.insert(it.key(), it.value());
     }
@@ -37,47 +53,62 @@ QVariant ExtStorage::getItem(const QString &extUID, const QString &key)
 {
     QVariant result;
 
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT value FROM ItemTable WHERE key = (:key)"));
-    query.bindValue(QLatin1String(":key"), QString("%1%2").arg(extUID).arg(key));
-    if (query.exec() && query.first())
-        result = query.value(0);
+    sqlite::PreparedStatement &stmt = m_statements.at(Statement::GetValue);
+    std::string boundParam = QString("%1%2").arg(extUID).arg(key).toStdString();
+    stmt.bind(0, boundParam);
+
+    if (stmt.next())
+    {
+        sqlite::Blob blob;
+        stmt >> blob;
+        result = QVariant(QString::fromStdString(blob.data));
+    }
 
     return result;
 }
 
 void ExtStorage::setItem(const QString &extUID, const QString &key, const QVariant &value)
 {
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("INSERT OR REPLACE INTO ItemTable(key, value) VALUES (:key, :value)"));
-    query.bindValue(QLatin1String(":key"), QString("%1%2").arg(extUID).arg(key));
-    query.bindValue(QLatin1String(":value"), value);
-    if (!query.exec())
-        qDebug() << "ExtStorage::setItem - could not update value in the database. Error message: "
-                 << query.lastError().text();
+    sqlite::PreparedStatement &stmt = m_statements.at(Statement::SetValue);
+
+    std::string boundKey = QString("%1%2").arg(extUID).arg(key).toStdString();
+    sqlite::Blob boundVal { value.toString().toStdString() };
+
+    stmt.bind(0, boundKey);
+    stmt.bind(1, boundVal);
+
+    if (!stmt.execute())
+        qDebug() << "ExtStorage::setItem - could not update value with key name " << QString::fromStdString(boundKey);
 }
 
 void ExtStorage::removeItem(const QString &extUID, const QString &key)
 {
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("DELETE FROM ItemTable WHERE KEY = (:key)"));
-    query.bindValue(QLatin1String(":key"), QString("%1%2").arg(extUID).arg(key));
-    if (!query.exec())
-        qDebug() << "ExtStorage::removeItem - could not remove key from the database. Error message: "
-                 << query.lastError().text();
+    sqlite::PreparedStatement &stmt = m_statements.at(Statement::DeleteKey);
+
+    std::string boundKey = QString("%1%2").arg(extUID).arg(key).toStdString();
+    stmt.bind(0, boundKey);
+    if (!stmt.execute())
+        qDebug() << "ExtStorage::removeItem - could not remove key from the database. Key name: "
+                 << QString::fromStdString(boundKey);
 }
 
 QVariantList ExtStorage::listKeys(const QString &extUID)
 {
+    sqlite::PreparedStatement &stmt = m_statements.at(Statement::GetSimilarKeys);
+
+    std::string boundKey = QString("%1%").arg(extUID).toStdString();
+    stmt.bind(0, boundKey);
+
     QVariantList result;
 
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT key FROM ItemTable WHERE key LIKE (:key)"));
-    query.bindValue(QLatin1String(":key"), QString("%1%").arg(extUID));
-    if (query.exec())
+    if (stmt.execute())
     {
-        while (query.next())
-            result.push_back(query.value(0));
+        while (stmt.next())
+        {
+            sqlite::Blob blob;
+            stmt >> blob;
+            result.push_back(QVariant(QString::fromStdString(blob.data)));
+        }
     }
 
     return result;
@@ -85,13 +116,5 @@ QVariantList ExtStorage::listKeys(const QString &extUID)
 
 bool ExtStorage::hasProperStructure()
 {
-    // Verify existence of ItemTable table
-    return hasTable(QStringLiteral("ItemTable"));
-}
-
-void ExtStorage::setup()
-{
-    // Setup table structure
-    if (!exec(QLatin1String("CREATE TABLE ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB NOT NULL ON CONFLICT FAIL)")))
-        qDebug() << "[Error]: In ExtStorage::setup - unable to create item table in database.";
+    return true;
 }

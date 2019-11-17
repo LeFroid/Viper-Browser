@@ -1,6 +1,9 @@
 #ifndef FAVICONTYPES_H
 #define FAVICONTYPES_H
 
+#include "SQLiteWrapper.h"
+#include "../database/bindings/QtSQLite.h"
+
 #include <QIcon>
 
 #include <unordered_map>
@@ -25,7 +28,7 @@ struct FaviconOrigin
 };
 
 /// Stores encoded icon data for a specific favicon
-struct FaviconData
+struct FaviconData final : public sqlite::Row
 {
     /// Unique data identifier
     int id;
@@ -38,6 +41,22 @@ struct FaviconData
 
     /// Default constructor
     FaviconData() : id(0), faviconId(0), iconData() {}
+
+    /// Marshals the data into a prepared statement
+    void marshal(sqlite::PreparedStatement &stmt) const override
+    {
+        stmt << id
+             << faviconId
+             << iconData;
+    }
+
+    /// Reads the data from a query result into this entity
+    void unmarshal(sqlite::PreparedStatement &stmt) override
+    {
+        stmt >> id
+             >> faviconId
+             >> iconData;
+    }
 };
 
 /// Mapping of specific web pages to their favicon records
@@ -66,4 +85,3 @@ using FaviconDataMap = std::unordered_map<int, FaviconData>;
 using WebPageIconMap = QHash<QUrl, int>;
 
 #endif // FAVICONTYPES_H
-

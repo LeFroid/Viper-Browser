@@ -26,7 +26,7 @@ public:
     ~FakeDatabaseWorker();
 
     /// Returns a reference to the database connection
-    QSqlDatabase &getHandle();
+    sqlite::Database &getHandle();
 
     /// Returns a list of each name in the Information table
     const std::vector<std::string> &getEntries() const;
@@ -42,7 +42,7 @@ protected:
     void setup() override;
 
     /// Saves information to the database - called in destructor
-    void save() override;
+    void save();
 
     /// Loads records from the database
     void load() override;

@@ -111,7 +111,6 @@ target_link_libraries(viper-ui
     Qt5::Gui
     Qt5::Network
     Qt5::PrintSupport
-    Qt5::Sql
     Qt5::Svg
     Qt5::QuickWidgets
     Qt5::Widgets

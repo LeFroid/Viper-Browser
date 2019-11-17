@@ -31,7 +31,6 @@ private slots:
     {
         if (QFile::exists(m_dbFile))
             QFile::remove(m_dbFile);
-        QSqlDatabase::removeDatabase(QLatin1String("HistoryDB"));
     }
 
     /// Tests that entries can be added to the history store

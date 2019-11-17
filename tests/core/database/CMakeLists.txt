@@ -10,6 +10,6 @@ set(DatabaseWorkerTest_src
 
 add_executable(DatabaseWorkerTest ${DatabaseWorkerTest_src})
 
-target_link_libraries(DatabaseWorkerTest viper-core Qt5::Test Qt5::WebEngine)
+target_link_libraries(DatabaseWorkerTest viper-core sqlite-wrapper-cpp Qt5::Test Qt5::WebEngine)
 
 add_test(NAME DatabaseWorker-Test COMMAND DatabaseWorkerTest)

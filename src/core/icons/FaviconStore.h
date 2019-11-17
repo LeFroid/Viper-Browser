@@ -10,7 +10,6 @@
 #include <QHash>
 #include <QIcon>
 #include <QSet>
-#include <QSqlQuery>
 #include <QString>
 #include <QUrl>
 
@@ -64,9 +63,6 @@ protected:
     /// Sets initial table structures of the database
     void setup() override;
 
-    /// Saves information to the database
-    void save() override;
-
     /// Loads records from the database
     void load() override;
 
@@ -96,8 +92,8 @@ private:
     /// Used when adding new records to the favicon data table
     int m_newDataID;
 
-    /// Map of query types to pointers of commonly used prepared statements
-    std::map< StoredQuery, std::unique_ptr<QSqlQuery> > m_queryMap;
+    /// Cache of frequently-executed sql statements
+    std::map<StoredQuery, sqlite::PreparedStatement> m_queryMap;
 };
 
 #endif // FAVICONSTORAGE_H

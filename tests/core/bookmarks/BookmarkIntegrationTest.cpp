@@ -14,7 +14,6 @@
 #include <QFile>
 #include <QObject>
 #include <QString>
-#include <QSqlDatabase>
 #include <QTest>
 #include <QUrl>
 
@@ -103,8 +102,6 @@ void BookmarkIntegrationTest::cleanup()
     m_bookmarkManager = nullptr;
 
     m_taskScheduler.reset(nullptr);
-
-    QSqlDatabase::removeDatabase(QLatin1String("Bookmarks"));
 }
 
 void BookmarkIntegrationTest::cleanupTestCase()

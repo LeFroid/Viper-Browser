@@ -61,13 +61,13 @@ protected:
     /// the thumbnails are loaded as needed and so this does nothing
     void load() override;
 
-    /// Saves thumbnails of web pages into the database
-    void save() override;
-
 private:
     /// Callback registered during a call to save() - handles the query to fetch the most frequently
     /// visited web pages
     void onMostVisitedPagesLoaded(std::vector<WebPageInformation> &&results);
+
+    /// Saves thumbnails of web pages into the database
+    void save();
 
 private:
     /// Identifier of the timer that is periodically invoked to call the save() method

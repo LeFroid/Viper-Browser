@@ -10,8 +10,6 @@ class BookmarkManager;
 class FaviconManager;
 class HistoryManager;
 
-class QSqlQuery;
-
 namespace sqlite
 {
     class PreparedStatement;

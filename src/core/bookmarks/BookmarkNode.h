@@ -1,6 +1,9 @@
 #ifndef BOOKMARKNODE_H
 #define BOOKMARKNODE_H
 
+#include "SQLiteWrapper.h"
+#include "../database/bindings/QtSQLite.h"
+
 #include "TreeNode.h"
 
 #include <QDataStream>
@@ -15,7 +18,7 @@
  *        can be a bookmark or a folder containing bookmarks and other folders
  * @ingroup Bookmarks
  */
-class BookmarkNode : public TreeNode<BookmarkNode>
+class BookmarkNode : public TreeNode<BookmarkNode> , public sqlite::Row
 {
     friend class BookmarkManager;
     friend class BookmarkStore;
@@ -92,6 +95,26 @@ protected:
 
     /// Type of node
     NodeType m_type;
+
+public:
+    /// Writes the bookmark node into the prepared statement
+    void marshal(sqlite::PreparedStatement &stmt) const override
+    {
+        int parentId = -1;
+        if (m_parent)
+            parentId = m_parent->getUniqueId();
+
+        stmt << m_id
+             << parentId
+             << static_cast<int>(m_type)
+             << m_name
+             << m_url
+             << m_shortcut
+             << getPosition();
+    }
+
+    /// Not used
+    void unmarshal(sqlite::PreparedStatement &/*stmt*/) override {}
 };
 
 Q_DECLARE_METATYPE(BookmarkNode::NodeType)

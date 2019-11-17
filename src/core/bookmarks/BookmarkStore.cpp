@@ -5,14 +5,10 @@
 #include <iterator>
 #include <cstdint>
 
-#include <QFuture>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QSqlRecord>
 #include <QDebug>
 
 BookmarkStore::BookmarkStore(const QString &databaseFile) :
-    DatabaseWorker(databaseFile, QLatin1String("Bookmarks")),
+    DatabaseWorker(databaseFile),
     m_rootNode(std::make_shared<BookmarkNode>(BookmarkNode::Folder, QLatin1String("Bookmarks")))
 {
 }
@@ -31,17 +27,16 @@ int BookmarkStore::getMaxUniqueId() const
 {
     int lastUniqueId = -1;
 
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT MAX(ID) FROM Bookmarks"));
-    if (query.exec() && query.first())
-        lastUniqueId = query.value(0).toInt();
+    auto stmt = m_database.prepare(R"(SELECT MAX(ID) FROM Bookmarks)");
+    if (stmt.next())
+        stmt >> lastUniqueId;
 
-    query.prepare(QLatin1String("SELECT MAX(ParentID) FROM Bookmarks"));
-    if (query.exec() && query.first())
+    stmt = m_database.prepare(R"(SELECT MAX(ParentID) FROM Bookmarks)");
+    if (stmt.next())
     {
-        int id = query.value(0).toInt();
-        if (id > lastUniqueId)
-            lastUniqueId = id;
+        int id = -1;
+        stmt >> id;
+        lastUniqueId = std::max(lastUniqueId, id);
     }
 
     return std::max(0, lastUniqueId);
@@ -49,84 +44,62 @@ int BookmarkStore::getMaxUniqueId() const
 
 void BookmarkStore::insertNode(int nodeId, int parentId, int nodeType, const QString &name, const QUrl &url, int position)
 {
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("INSERT OR REPLACE INTO Bookmarks(ID, ParentID, Type, Name, URL, Position) "
-                  "VALUES(:id, :parentID, :type, :name, :url, :position)"));
+    auto stmt = m_database.prepare(R"(INSERT OR REPLACE INTO Bookmarks(ID, ParentID, Type, Name, URL, Position) VALUES (?, ?, ?, ?, ?, ?))");
+    stmt << nodeId
+         << parentId
+         << nodeType
+         << name
+         << url
+         << position;
 
-    query.bindValue(QLatin1String(":id"), nodeId);
-    query.bindValue(QLatin1String(":parentID"), parentId);
-    query.bindValue(QLatin1String(":type"), nodeType);
-    query.bindValue(QLatin1String(":name"), name);
-    query.bindValue(QLatin1String(":url"), url);
-    query.bindValue(QLatin1String(":position"), position);
+    if (!stmt.execute())
+        qWarning() << "BookmarkStore::onBookmarkCreated - could not create bookmark node.";
 
-    if (!query.exec())
-    {
-        qWarning() << "BookmarkStore::onBookmarkCreated - could not create bookmark node. Error: "
-                   << query.lastError().text();
-    }
+    stmt = m_database.prepare(R"(UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = ? AND Position >= ?)");
+    stmt << parentId
+         << position;
 
-    query.prepare(QLatin1String("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentID) AND Position >= (:position)"));
-    query.bindValue(QLatin1String(":parentID"), parentId);
-    query.bindValue(QLatin1String(":position"), position);
-    if (!query.exec())
-    {
-        qWarning() << "BookmarkStore::onBookmarkCreated - could not update bookmark positions. Error: "
-                   << query.lastError().text();
-    }
+    if (!stmt.execute())
+        qWarning() << "BookmarkStore::onBookmarkCreated - could not update bookmark positions.";
 }
 
 void BookmarkStore::removeNode(int nodeId, int parentId, int position)
 {
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("DELETE FROM Bookmarks WHERE ID = (:id) OR ParentID = (:id)"));
-    query.bindValue(QLatin1String(":id"), nodeId);
-    if (!query.exec())
-    {
-        qWarning() << "BookmarkStore::onBookmarkDeleted - could not delete bookmark node. Error: "
-                   << query.lastError().text();
-    }
+    auto stmt = m_database.prepare(R"(DELETE FROM Bookmarks WHERE ID = ? OR ParentID = ?)");
+    stmt << nodeId
+         << nodeId;
+    if (!stmt.execute())
+        qWarning() << "BookmarkStore::onBookmarkDeleted - could not delete bookmark node.";
 
     // Update positions
-    query.prepare(QLatin1String("UPDATE Bookmarks SET Position = Position - 1 WHERE ParentID = (:parentID) AND Position >= (:position)"));
-    query.bindValue(QLatin1String(":parentID"), parentId);
-    query.bindValue(QLatin1String(":position"), position);
-    if (!query.exec())
-    {
-        qWarning() << "BookmarkStore::onBookmarkDeleted - could not update bookmark positions. Error: "
-                   << query.lastError().text();
-    }
+    stmt = m_database.prepare(R"(UPDATE Bookmarks SET Position = Position - 1 WHERE ParentID = ? AND Position >= ?)");
+    stmt << parentId
+         << position;
+    if (!stmt.execute())
+        qWarning() << "BookmarkStore::onBookmarkDeleted - could not update bookmark positions";
 }
 
 void BookmarkStore::updateNode(int nodeId, int parentId, const QString &name, const QUrl &url, const QString &shortcut, int position)
 {
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("UPDATE Bookmarks SET ParentID = (:parentID), Name = (:name), URL = (:url), "
-                                "Shortcut = (:shortcut), Position = (:position) WHERE ID = (:id)"));
+    auto stmt =
+            m_database.prepare(R"(UPDATE Bookmarks SET ParentID = ?, Name = ?, URL = ?, Shortcut = ?, Position = ? WHERE ID = ?)");
+    stmt << parentId
+         << name
+         << url
+         << shortcut
+         << position
+         << nodeId;
 
-    query.bindValue(QLatin1String(":parentID"), parentId);
-    query.bindValue(QLatin1String(":name"), name);
-    query.bindValue(QLatin1String(":url"), url);
-    query.bindValue(QLatin1String(":shortcut"), shortcut);
-    query.bindValue(QLatin1String(":position"), position);
-    query.bindValue(QLatin1String(":id"), nodeId);
+    if (!stmt.execute())
+        qWarning() << "BookmarkStore::onBookmarkChanged - could not update bookmark node.";
 
-    if (!query.exec())
-    {
-        qWarning() << "BookmarkStore::onBookmarkChanged - could not update bookmark node. Error: "
-                   << query.lastError().text();
-    }
+    stmt = m_database.prepare(R"(UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = ? AND Position >= ? AND ID != ?)");
+    stmt << parentId
+         << position
+         << nodeId;
 
-    query.prepare(QLatin1String("UPDATE Bookmarks SET Position = Position + 1 WHERE ParentID = (:parentID) "
-                                "AND Position >= (:position) AND ID != (:id)"));
-    query.bindValue(QLatin1String(":parentID"), parentId);
-    query.bindValue(QLatin1String(":position"), position);
-    query.bindValue(QLatin1String(":id"), nodeId);
-    if (!query.exec())
-    {
-        qWarning() << "BookmarkStore::onBookmarkCreated - could not update bookmark positions. Error: "
-                   << query.lastError().text();
-    }
+    if (!stmt.execute())
+        qWarning() << "BookmarkStore::onBookmarkChanged - could not update bookmark positions.";
 }
 
 void BookmarkStore::loadFolder(BookmarkNode *folder)
@@ -137,8 +110,7 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
         return;
     }
 
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT ID, Type, Name, URL, Shortcut FROM Bookmarks WHERE ParentID = (:id) ORDER BY Position ASC"));
+    auto stmt = m_database.prepare(R"(SELECT ID, Type, Name, URL, Shortcut FROM Bookmarks WHERE ParentID = ? ORDER BY Position ASC)");
 
     // Iteratively load folder and all of its subfolders
     std::deque<BookmarkNode*> subFolders;
@@ -146,20 +118,24 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
     while (!subFolders.empty())
     {
         BookmarkNode *n = subFolders.front();
-        query.bindValue(QLatin1String(":id"), n->getUniqueId());
-        if (!query.exec())
+        stmt << n->getUniqueId();
+        if (!stmt.execute())
         {
-            qDebug() << "Error loading bookmarks for folder " << n->getName() << ". Message: " << query.lastError().text();
+            qWarning() << "Error loading bookmarks for folder " << n->getName();
             subFolders.pop_front();
             continue;
         }
 
-        while (query.next())
+        while (stmt.next())
         {
-            int uniqueId = query.value(0).toInt();
+            int uniqueId = 0, nodeTypeInt = 0;
+            QString name;
+            stmt >> uniqueId
+                 >> nodeTypeInt
+                 >> name;
 
-            BookmarkNode::NodeType nodeType = static_cast<BookmarkNode::NodeType>(query.value(1).toInt());
-            BookmarkNode *subNode = n->appendNode(std::make_unique<BookmarkNode>(nodeType, query.value(2).toString()));
+            BookmarkNode::NodeType nodeType = static_cast<BookmarkNode::NodeType>(nodeTypeInt);
+            BookmarkNode *subNode = n->appendNode(std::make_unique<BookmarkNode>(nodeType, name));
             subNode->setUniqueId(uniqueId);
 
             switch (nodeType)
@@ -171,9 +147,15 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
                     break;
                 // Load bookmark data
                 case BookmarkNode::Bookmark:
-                    subNode->setURL(query.value(3).toString());
-                    subNode->setShortcut(query.value(4).toString());
+                {
+                    QUrl url;
+                    QString shortcut;
+                    stmt >> url
+                         >> shortcut;
+                    subNode->setURL(url);
+                    subNode->setShortcut(shortcut);
                     break;
+                }
             }
         }
 
@@ -190,19 +172,19 @@ bool BookmarkStore::hasProperStructure()
 void BookmarkStore::setup()
 {
     // Setup table structures
-    QSqlQuery query(m_database);
-    if (!query.exec(QLatin1String("CREATE TABLE Bookmarks(ID INTEGER PRIMARY KEY, ParentID INTEGER DEFAULT 0, "
-               "Type INTEGER DEFAULT 0, Name TEXT, URL TEXT, Shortcut TEXT, Position INTEGER DEFAULT 0)")))
-            qDebug() << "Error creating table Bookmarks. Message: " << query.lastError().text();
+    if (!m_database.execute(
+                "CREATE TABLE IF NOT EXISTS Bookmarks(ID INTEGER PRIMARY KEY, ParentID INTEGER DEFAULT 0, "
+                "Type INTEGER DEFAULT 0, Name TEXT, URL TEXT, Shortcut TEXT, Position INTEGER DEFAULT 0)"))
+        qWarning() << "Error creating table Bookmarks. Message: " << QString::fromStdString(m_database.getLastError());
 
     // Insert root bookmark folder
-    query.prepare(QLatin1String("INSERT INTO Bookmarks(ID, ParentID, Type, Name) VALUES (:id, :parentID, :type, :name)"));
-    query.bindValue(QLatin1String(":id"), 0);
-    query.bindValue(QLatin1String(":parentID"), -1);
-    query.bindValue(QLatin1String(":type"), static_cast<int>(BookmarkNode::Folder));
-    query.bindValue(QLatin1String(":name"), QLatin1String("Bookmarks"));
-    if (!query.exec())
-        qDebug() << "Error inserting root bookmark folder. Message: " << query.lastError().text();
+    auto stmt = m_database.prepare(R"(INSERT INTO Bookmarks(ID, ParentID, Type, Name) VALUES (?, ?, ?, ?))");
+    stmt.bind(0, 0);
+    stmt.bind(1, -1);
+    stmt.bind(2, static_cast<int>(BookmarkNode::Folder));
+    stmt.bind(3, "Bookmarks");
+    if (!stmt.execute())
+        qDebug() << "Error inserting root bookmark folder.";
 
     m_rootNode->setUniqueId(0);
 
@@ -218,34 +200,22 @@ void BookmarkStore::setup()
 
 void BookmarkStore::save()
 {
-    if (!m_database.transaction())
+    if (!m_database.beginTransaction())
     {
         qWarning() << "BookmarkStore::save - could not start transaction";
         return;
     }
 
-    if (!exec(QLatin1String("DELETE FROM Bookmarks")))
+    if (!m_database.execute("DELETE FROM Bookmarks"))
         qWarning() << "BookmarkStore::save - Could not clear bookmarks table";
 
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("INSERT INTO Bookmarks(ID, ParentID, Type, Name, URL, Shortcut, Position) "
-                                "VALUES(:id, :parentID, :type, :name, :url, :shortcut, :position)"));
+    auto stmt = m_database.prepare(R"(INSERT INTO Bookmarks(ID, ParentID, Type, Name, URL, Shortcut, Position) VALUES (?, ?, ?, ?, ?, ?, ?))");
 
-    auto saveNode = [&query](BookmarkNode *node) {
-        int parentId = -1;
-        if (BookmarkNode *parent = node->getParent())
-            parentId = parent->getUniqueId();
-
-        query.bindValue(QLatin1String(":id"), node->getUniqueId());
-        query.bindValue(QLatin1String(":parentID"), parentId);
-        query.bindValue(QLatin1String(":type"), static_cast<int>(node->getType()));
-        query.bindValue(QLatin1String(":name"), node->getName());
-        query.bindValue(QLatin1String(":url"), node->getURL());
-        query.bindValue(QLatin1String(":shortcut"), node->getShortcut());
-        query.bindValue(QLatin1String(":position"), node->getPosition());
-        if (!query.exec())
-            qWarning() << "Could not save bookmark " << node->getName() << ", id " << node->getUniqueId()
-                       << ". Message: " << query.lastError().text();
+    auto saveNode = [&stmt](BookmarkNode *node) {
+        stmt << *node;
+        if (!stmt.execute())
+            qWarning() << "Could not save bookmark " << node->getName() << ", id " << node->getUniqueId();
+        stmt.reset();
     };
 
     std::deque<BookmarkNode*> queue;
@@ -265,15 +235,15 @@ void BookmarkStore::save()
         }
     }
 
-    if (!m_database.commit())
+    if (!m_database.commitTransaction())
         qWarning() << "BookmarkStore::save - could not commit transaction";
 }
 
 void BookmarkStore::load()
 {
     // Check if table structure needs update before loading
-    QSqlQuery query(m_database);
-    if (query.exec(QLatin1String("PRAGMA table_info(Bookmarks)")))
+    auto stmt = m_database.prepare("PRAGMA table_info(Bookmarks)");
+    if (stmt.execute())
     {
         bool hasSortcutColumn = false;
         const QString shortcutColumn("Shortcut");
@@ -281,9 +251,12 @@ void BookmarkStore::load()
         bool hasFolderIdColumn = false;
         const QString folderIdColumn("FolderID");
 
-        while (query.next())
+        while (stmt.next())
         {
-            QString columnName = query.value(1).toString();
+            int cid = 0;
+            QString columnName;
+            stmt >> cid
+                 >> columnName;
             if (columnName.compare(shortcutColumn) == 0)
                 hasSortcutColumn = true;
             else if (columnName.compare(folderIdColumn) == 0)
@@ -292,29 +265,29 @@ void BookmarkStore::load()
 
         if (!hasSortcutColumn)
         {
-            if (!query.exec(QLatin1String("ALTER TABLE Bookmarks ADD Shortcut TEXT")))
+            if (!m_database.execute("ALTER TABLE Bookmarks ADD Shortcut TEXT"))
                 qDebug() << "Error updating bookmark table with shortcut column";
         }
 
         if (hasFolderIdColumn)
         {
-            if (!m_database.transaction())
+            if (!m_database.beginTransaction())
                 qWarning() << "BookmarkStore::load - could not start transaction";
 
-            if (!query.exec(QLatin1String("CREATE TABLE Bookmarks_New(ID INTEGER PRIMARY KEY, ParentID INTEGER DEFAULT 0, "
-                                          "Type INTEGER DEFAULT 0, Name TEXT, URL TEXT, Shortcut TEXT, Position INTEGER DEFAULT 0)")))
+            if (!m_database.execute("CREATE TABLE Bookmarks_New(ID INTEGER PRIMARY KEY, ParentID INTEGER DEFAULT 0, "
+                                          "Type INTEGER DEFAULT 0, Name TEXT, URL TEXT, Shortcut TEXT, Position INTEGER DEFAULT 0)"))
                 qWarning() << "BookmarkStore::load - could not update table structure";
 
-            if (!query.exec(QLatin1String("INSERT INTO Bookmarks_New SELECT ID, ParentID, Type, Name, URL, Shortcut, Position FROM Bookmarks")))
+            if (!m_database.execute("INSERT INTO Bookmarks_New SELECT ID, ParentID, Type, Name, URL, Shortcut, Position FROM Bookmarks"))
                 qWarning() << "BookmarkStore::load - could not migrate bookmark data";
 
-            if (!query.exec(QLatin1String("DROP TABLE Bookmarks")))
+            if (!m_database.execute("DROP TABLE Bookmarks"))
                 qWarning() << "BookmarkStore::load - could not migrate bookmark data";
 
-            if (!query.exec(QLatin1String("ALTER TABLE Bookmarks_New RENAME TO Bookmarks")))
+            if (!m_database.execute("ALTER TABLE Bookmarks_New RENAME TO Bookmarks"))
                 qWarning() << "BookmarkStore::load - could not migrate bookmark data";
 
-            if (!m_database.commit())
+            if (!m_database.commitTransaction())
                 qWarning() << "BookmarkStore::load - could not commit transaction";
         }
     }

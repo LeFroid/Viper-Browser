@@ -3,8 +3,6 @@
 
 #include <algorithm>
 #include <QFile>
-#include <QSqlDatabase>
-#include <QSqlQuery>
 #include <QString>
 #include <QTest>
 
@@ -33,7 +31,6 @@ void DatabaseWorkerTest::cleanup()
         return;
 
     QFile::remove(m_dbFile);
-    QSqlDatabase::removeDatabase(QLatin1String("TestDB"));
 }
 
 void DatabaseWorkerTest::testCreationAndSetupOfDatabase()
@@ -45,7 +42,6 @@ void DatabaseWorkerTest::testCreationAndSetupOfDatabase()
     QVERIFY2(QFile::exists(m_dbFile), "Database file does not exist after creating the database worker!");
 
     auto &dbHandle = testDatabase->getHandle();
-    QVERIFY2(dbHandle.isOpen(), "Database handle is not open after creating the worker!");
     QVERIFY2(dbHandle.isValid(), "Database handle is not valid!");
 
     QVERIFY2(testDatabase->hasProperStructure(), "Table structure should have been set when instantiating the database worker");
@@ -61,19 +57,20 @@ void DatabaseWorkerTest::testSaveAndRetrieveRecordsFromDatabase()
 
     auto &dbHandle = testDatabase->getHandle();
 
-    QSqlQuery query(dbHandle);
-    QVERIFY2(query.exec(QLatin1String("SELECT COUNT(id) FROM Information")), "SQL SELECT COUNT should execute successfully");
-    QVERIFY2(query.first(), "SQL SELECT COUNT should execute successfully");
+    auto query = dbHandle.prepare(R"(SELECT COUNT(id) FROM Information)");
+    QVERIFY2(query.execute(), "SQL SELECT COUNT should execute successfully");
+    QVERIFY2(query.next(), "SQL SELECT COUNT should execute successfully");
 
-    bool ok = false;
-    int count = query.value(0).toInt(&ok);
-    QVERIFY2(ok, "Should be able to retrieve result from SELECT COUNT query and assign to integer variable");
+    int count = -1;
+    query >> count;
     QCOMPARE(count, static_cast<int>(records.size()));
 
-    QVERIFY2(query.exec(QLatin1String("SELECT name FROM Information")), "SQL SELECT name should execute successfully");
+    query = dbHandle.prepare(R"(SELECT name FROM Information)");
+    QVERIFY2(query.execute(), "SQL SELECT name should execute successfully");
     while (query.next())
     {
-        std::string name = query.value(0).toString().toStdString();
+        std::string name;
+        query >> name;
         auto it = std::find(records.begin(), records.end(), name);
         QVERIFY2(it != records.end(), "Name in database should correspond to one of the known records");
     }

@@ -23,7 +23,7 @@ find_package(Threads)
 
 # Get Qt
 set(QT_VERSION_MIN "5.9.0")
-find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Core Concurrent Gui Network PrintSupport Sql Svg QuickWidgets Widgets WebChannel WebEngineWidgets)
+find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Core Concurrent Gui Network PrintSupport Svg QuickWidgets Widgets WebChannel WebEngineWidgets)
 
 if (ENABLE_TESTING)
     find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Test WebEngine)

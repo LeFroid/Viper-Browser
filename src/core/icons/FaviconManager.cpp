@@ -37,9 +37,7 @@ QIcon FaviconManager::getFavicon(const QUrl &url)
 {
     QString pageUrl = getUrlAsString(url);
     if (!m_faviconStore || pageUrl.isEmpty())
-    {
         return QIcon(QLatin1String(":/blank_favicon.png"));
-    }
 
     const std::string urlStdStr = pageUrl.toStdString();
 
@@ -63,7 +61,9 @@ QIcon FaviconManager::getFavicon(const QUrl &url)
     auto it = m_iconMap.find(iconId);
     if (it == m_iconMap.end())
     {
+        qDebug() << "At end of icon map";
         auto &record = m_faviconStore->getDataRecord(iconId);
+        qDebug() << "Got data record";
         if (record.iconData.isEmpty())
             return QIcon(QLatin1String(":/blank_favicon.png"));
 

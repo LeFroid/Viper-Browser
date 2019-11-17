@@ -1,8 +1,10 @@
 #ifndef DATABASEWORKER_H
 #define DATABASEWORKER_H
 
+#include "sqlite/SQLiteWrapper.h"
+#include "bindings/QtSQLite.h"
+
 #include <QString>
-#include <QSqlDatabase>
 
 /**
  * @class DatabaseWorker
@@ -15,9 +17,8 @@ public:
     /**
      * @brief DatabaseWorker Constructs an object that interacts with a SQLite database
      * @param dbFile Full path of the database file
-     * @param dbName Name of the database. If empty, will be the application's default database
      */
-    explicit DatabaseWorker(const QString &dbFile, const QString &dbName = QString());
+    explicit DatabaseWorker(const QString &dbFile);
 
     /// Closes the database connection
     virtual ~DatabaseWorker();
@@ -36,15 +37,12 @@ protected:
     /// Sets initial table structure(s) of the database
     virtual void setup() = 0;
 
-    /// Saves information to the database - called in destructor
-    virtual void save() = 0;
-
     /// Loads records from the database
     virtual void load() = 0;
 
 protected:
-    /// Database object
-    QSqlDatabase m_database;
+    /// Manages the database connection
+    sqlite::Database m_database;
 };
 
 #endif // DATABASEWORKER_H

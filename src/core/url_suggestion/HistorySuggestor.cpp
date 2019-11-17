@@ -15,10 +15,6 @@
 #include <QRandomGenerator>
 #include <QRegularExpression>
 #include <QSet>
-#include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QSqlResult>
 
 #include <QDebug>
 

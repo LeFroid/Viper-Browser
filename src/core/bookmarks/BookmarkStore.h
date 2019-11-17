@@ -10,7 +10,6 @@
 #include <vector>
 
 #include <QObject>
-#include <QSqlQuery>
 #include <QString>
 
 class BookmarkNode;
@@ -58,6 +57,9 @@ private:
     /// Loads bookmark information from the database
     void loadFolder(BookmarkNode *folder);
 
+    /// Saves all bookmarks to the database
+    void save();
+
 protected:
     /// Returns true if the bookmark database contains the table structure(s) needed for it to function properly,
     /// false if else.
@@ -65,9 +67,6 @@ protected:
 
     /// Creates the initial table structures and default bookmarks if necessary
     void setup() override;
-
-    /// Saves all bookmarks to the database
-    void save() override;
 
     /// Loads bookmarks from the database
     void load() override;

@@ -16,9 +16,6 @@
 #include <QMimeType>
 #include <QPixmap>
 #include <QPointer>
-#include <QSqlError>
-#include <QSqlRecord>
-#include <QSqlQuery>
 #include <QTimer>
 #include <QTimerEvent>
 
@@ -26,7 +23,7 @@
 
 WebPageThumbnailStore::WebPageThumbnailStore(const ViperServiceLocator &serviceLocator, const QString &databaseFile, QObject *parent) :
     QObject(parent),
-    DatabaseWorker(databaseFile, QLatin1String("ThumbnailDB")),
+    DatabaseWorker(databaseFile),
     m_timerId(0),
     m_thumbnails(),
     m_bookmarkManager(serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager")),
@@ -56,12 +53,12 @@ QImage WebPageThumbnailStore::getThumbnail(const QUrl &url)
     if (it != m_thumbnails.end())
         return it.value();
 
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("SELECT Thumbnail FROM Thumbnails WHERE Host = (:host)"));
-    query.bindValue(QLatin1String(":host"), host);
-    if (query.exec() && query.first())
+    auto stmt = m_database.prepare(R"(SELECT Thumbnail FROM Thumbnails WHERE Host = ?)");
+    stmt << host;
+    if (stmt.next())
     {
-        QByteArray data = query.value(0).toByteArray();
+        QByteArray data;
+        stmt >> data;
         QByteArray decoded = QByteArray::fromBase64(data);
 
         QBuffer buffer(&decoded);
@@ -153,10 +150,9 @@ void WebPageThumbnailStore::setup()
     // pk    string   string/blob
 
     // Setup table structure
-    QSqlQuery query(m_database);
-    if (!query.exec(QLatin1String("CREATE TABLE IF NOT EXISTS Thumbnails(Id INTEGER PRIMARY KEY, Host TEXT UNIQUE, Thumbnail BLOB)")))
+    if (!m_database.execute("CREATE TABLE IF NOT EXISTS Thumbnails(Id INTEGER PRIMARY KEY, Host TEXT UNIQUE, Thumbnail BLOB)"))
         qWarning() << "WebPageThumbnailStore - could not create thumbnail database. Error message: "
-                   << query.lastError().text();
+                   << QString::fromStdString(m_database.getLastError());
 }
 
 void WebPageThumbnailStore::load()
@@ -188,8 +184,7 @@ void WebPageThumbnailStore::onMostVisitedPagesLoaded(std::vector<WebPageInformat
     }
 
     // Save applicable thumbnails
-    QSqlQuery query(m_database);
-    query.prepare(QLatin1String("INSERT OR REPLACE INTO Thumbnails(Host, Thumbnail) VALUES(:host, :thumbnail)"));
+    auto stmt = m_database.prepare(R"(INSERT OR REPLACE INTO Thumbnails(Host, Thumbnail) VALUES (?, ?))");
 
     for (auto it = m_thumbnails.begin(); it != m_thumbnails.end(); ++it)
     {
@@ -205,11 +200,12 @@ void WebPageThumbnailStore::onMostVisitedPagesLoaded(std::vector<WebPageInformat
         QBuffer buffer(&data);
         image.save(&buffer, "PNG");
 
-        query.bindValue(QLatin1String(":host"), it.key());
-        query.bindValue(QLatin1String(":thumbnail"), data.toBase64());
-        if (!query.exec())
-            qWarning() << "WebPageThumbnailStore - could not save thumbnail to database. Message: "
-                       << query.lastError().text();
+        data = data.toBase64();
+        stmt << host
+             << data;
+
+        if (!stmt.execute())
+            qWarning() << "WebPageThumbnailStore - could not save thumbnail to database.";
     }
 }
 

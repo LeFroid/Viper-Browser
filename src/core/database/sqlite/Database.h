@@ -56,7 +56,7 @@ public:
      * @param sql The SQL string to be prepared
      * @return Prepared statement object
      */
-    PreparedStatement prepare(const std::string &sql);
+    PreparedStatement prepare(const std::string &sql) const;
 
     /**
      * @brief Prepares the given SQL statement
@@ -64,7 +64,7 @@ public:
      * @param nByte Length of the string, in bytes, including the null terminator ('\0')
      * @return Prepared statement object
      */
-    PreparedStatement prepare(const char *sql, int nByte);
+    PreparedStatement prepare(const char *sql, int nByte) const;
 
 private:
     /// Pointer to the database connection

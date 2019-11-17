@@ -14,15 +14,11 @@
 #include <QIcon>
 #include <QList>
 #include <QMetaType>
-#include <QSqlDatabase>
 #include <QUrl>
 
 #include <deque>
 #include <unordered_map>
 #include <vector>
-
-///TODO: Eliminate use of m_historyItems , just pass requests on to the backend data store
-
 
 class HistoryStore;
 
@@ -60,9 +56,6 @@ public:
 
     /// Returns a const_iterator to the end of the history hash map
     const_iterator end() const { return m_historyItems.cend(); }
-
-    /// Returns the database handle
-    const QSqlDatabase &getHandle() const;
 
     /// Clears all browsing history
     void clearAllHistory();
