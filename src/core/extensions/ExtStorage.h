@@ -4,6 +4,7 @@
 #include "DatabaseWorker.h"
 
 #include <map>
+#include <mutex>
 
 #include <QMap>
 #include <QMetaType>
@@ -92,6 +93,9 @@ protected:
 private:
     /// Map of prepared statements
     std::map<Statement, sqlite::PreparedStatement> m_statements;
+
+    /// Mutex
+    std::mutex m_mutex;
 };
 
 #endif // EXTSTORAGE_H
