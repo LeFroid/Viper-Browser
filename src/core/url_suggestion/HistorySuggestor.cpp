@@ -67,9 +67,6 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         db = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
         if (!db || !db->isValid())
             return result;
-
-        db->execute("PRAGMA journal_mode=WAL");
-        db->execute("PRAGMA foreign_keys=ON");
     }
 
     auto stmt = db->prepare("SELECT DISTINCT(HistoryID) FROM URLWords WHERE WordID IN (SELECT WordID FROM Words WHERE Word LIKE ?) LIMIT 50");

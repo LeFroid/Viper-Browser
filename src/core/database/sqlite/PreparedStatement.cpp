@@ -93,6 +93,8 @@ bool PreparedStatement::next()
 
         sqlite3_clear_bindings(m_handle);
         sqlite3_reset(m_handle);
+        m_colIdx = 0;
+        m_numCols = 0;
         m_state = State::Ready;
         return false;
     }

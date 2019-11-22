@@ -25,6 +25,8 @@ void ViperSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForData(contents);
     QByteArray mimeType = QByteArray::fromStdString(type.name().toStdString());
+    if (request && request->requestUrl().toString().endsWith(QLatin1String(".css")))
+        mimeType = QByteArray::fromStdString(R"(text/css)");
     request->reply(mimeType, contents);
 }
 

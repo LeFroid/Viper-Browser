@@ -16,9 +16,6 @@ public:
     /// Constructs a copy of the given URL
     URL(const QUrl &other);
 
-    /// Constructs a copy of the given URL
-    URL(const URL &other);
-
     /// Constructs a URL from the given string a parsing mode
     URL(const QString &url, ParsingMode parsingMode = URL::TolerantMode);
 

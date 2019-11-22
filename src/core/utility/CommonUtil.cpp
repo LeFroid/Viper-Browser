@@ -176,7 +176,7 @@ namespace CommonUtil
 
     QStringList tokenizePossibleUrl(QString str)
     {
-        str = str.replace(QRegularExpression(QLatin1String("[\\?=&\\./:]+")), QLatin1String(" "));
+        str = str.replace(QRegularExpression(QLatin1String("[\\?=&\\./:-]+")), QLatin1String(" "));
 
         const std::array<QRegularExpression, 2> delimExpressions {
             QRegularExpression(QLatin1String("[A-Z]{1}[0-9]{1}")),

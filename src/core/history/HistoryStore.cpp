@@ -84,9 +84,9 @@ std::vector<VisitEntry> HistoryStore::getVisits(const HistoryEntry &record)
     stmt << record.VisitID;
     while (stmt.next())
     {
-        QDateTime record;
-        stmt >> record;
-        result.push_back(record);
+        QDateTime currentDate;
+        stmt >> currentDate;
+        result.push_back(currentDate);
     }
 
     return result;
@@ -369,22 +369,21 @@ void HistoryStore::setup()
     {
         qWarning() << "In HistoryStore::setup - unable to create url-word association table.";
     }
-
-    if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Visit_Date_Index ON Visits(Date)")))
-    {
-        qWarning() << "In HistoryStore::setup - unable to create index on the date column of the visit table.";
-    }
-
-    if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Word_Index ON Words(Word COLLATE NOCASE)")))
-    {
-        qWarning() << "In HistoryStore::setup - unable to create index on the word column of the words table.";
-    }
 }
 
 void HistoryStore::load()
 {
     purgeOldEntries();
     checkForUpdate();
+
+    if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Visit_ID_Index ON Visits(VisitID)")))
+        qWarning() << "In HistoryStore::load - unable to create index on the visit ID column of the visit table.";
+
+    if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Visit_Date_Index ON Visits(Date)")))
+        qWarning() << "In HistoryStore::load - unable to create index on the date column of the visit table.";
+
+    if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Word_Index ON Words(Word COLLATE NOCASE)")))
+        qWarning() << "In HistoryStore::load - unable to create index on the word column of the words table.";
 
     // Create and cache our prepared statements
     auto cacheStatement = [this](Statement statement, const std::string &sql) {

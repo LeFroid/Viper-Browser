@@ -130,9 +130,13 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
         {
             int uniqueId = 0, nodeTypeInt = 0;
             QString name;
+            QUrl url;
+            QString shortcut;
             stmt >> uniqueId
                  >> nodeTypeInt
-                 >> name;
+                 >> name
+                 >> url
+                 >> shortcut;
 
             BookmarkNode::NodeType nodeType = static_cast<BookmarkNode::NodeType>(nodeTypeInt);
             BookmarkNode *subNode = n->appendNode(std::make_unique<BookmarkNode>(nodeType, name));
@@ -148,10 +152,6 @@ void BookmarkStore::loadFolder(BookmarkNode *folder)
                 // Load bookmark data
                 case BookmarkNode::Bookmark:
                 {
-                    QUrl url;
-                    QString shortcut;
-                    stmt >> url
-                         >> shortcut;
                     subNode->setURL(url);
                     subNode->setShortcut(shortcut);
                     break;

@@ -7,6 +7,7 @@
 #include <QString>
 #include <QWebEngineProfile>
 #include <QWebEngineSettings>
+#include <QtGlobal>
 #include <QtWebEngineCoreVersion>
 
 WebSettings::WebSettings(const ViperServiceLocator &serviceLocator, QWebEngineSettings *webEngineSettings, QWebEngineProfile *webEngineProfile, QWebEngineProfile *privateProfile) :

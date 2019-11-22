@@ -19,11 +19,20 @@ void SchemeRegistry::registerSchemes()
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 12, 0))
     QWebEngineUrlScheme blockedScheme("blocked");
     blockedScheme.setSyntax(QWebEngineUrlScheme::Syntax::Path);
-    blockedScheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::ContentSecurityPolicyIgnored);
+
+    QWebEngineUrlScheme::Flags blockedFlags = QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::ContentSecurityPolicyIgnored;
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    blockedFlags |= QWebEngineUrlScheme::CorsEnabled;
+#endif
+    blockedScheme.setFlags(blockedFlags);
     QWebEngineUrlScheme::registerScheme(blockedScheme);
 
     QWebEngineUrlScheme viperScheme("viper");
-    viperScheme.setFlags(QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::LocalAccessAllowed | QWebEngineUrlScheme::ContentSecurityPolicyIgnored);
+    QWebEngineUrlScheme::Flags viperFlags = QWebEngineUrlScheme::SecureScheme | QWebEngineUrlScheme::LocalAccessAllowed | QWebEngineUrlScheme::ContentSecurityPolicyIgnored;
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    viperFlags |= QWebEngineUrlScheme::CorsEnabled;
+#endif
+    viperScheme.setFlags(viperFlags);
     QWebEngineUrlScheme::registerScheme(viperScheme);
 #endif
 }

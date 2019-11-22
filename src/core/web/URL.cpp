@@ -10,11 +10,6 @@ URL::URL(const QUrl &other) :
 {
 }
 
-URL::URL(const URL &other) :
-    QUrl(other)
-{
-}
-
 URL::URL(const QString &url, URL::ParsingMode parsingMode) :
     QUrl(url, parsingMode)
 {

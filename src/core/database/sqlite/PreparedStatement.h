@@ -76,18 +76,20 @@ public:
         index++;
 
         using paramType = typename std::decay<T>::type;
-        auto bindingType = copyData ? SQLITE_TRANSIENT : SQLITE_STATIC;
-        
+
         if constexpr (std::is_same_v<char*, paramType> || std::is_same_v<const char*, paramType>)
         {
+            auto bindingType = copyData ? SQLITE_TRANSIENT : SQLITE_STATIC;
             sqlite3_bind_text(m_handle, index, value, -1, bindingType);
         }
         else if constexpr (std::is_same_v<std::string, paramType>)
         {
+            auto bindingType = copyData ? SQLITE_TRANSIENT : SQLITE_STATIC;
             sqlite3_bind_text(m_handle, index, value.data(), value.size(), bindingType);
         }
         else if constexpr (std::is_same_v<Blob, paramType>)
         {
+            auto bindingType = copyData ? SQLITE_TRANSIENT : SQLITE_STATIC;
             sqlite3_bind_blob(m_handle, index, value.data.data(), value.data.size(), bindingType);
         }
         else if constexpr (std::is_integral_v<paramType>)
