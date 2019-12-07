@@ -40,11 +40,21 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                                                             const QStringList &searchTermParts,
                                                             const FastHashParameters &/*hashParams*/)
 {
-    static thread_local std::unique_ptr<sqlite::Database> db;
+    thread_local static std::unique_ptr<sqlite::Database> db;
     std::vector<URLSuggestion> result;
 
     if (!m_faviconManager || !m_historyManager)
         return result;
+
+    if (!db)
+    {
+        if (m_historyDatabaseFile.isEmpty())
+            return result;
+
+        db = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
+        if (!db || !db->isValid())
+            return result;
+    }
 
     // Factored into an entry's score
     //const qint64 currentTime = QDateTime::currentDateTime().toSecsSinceEpoch();
@@ -59,17 +69,24 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         return a.length() > b.length();
     });
 
-    if (!db)
+    auto stmt = db->prepare(R"(SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
+                           FROM History AS H INNER JOIN
+                           (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits GROUP BY VisitID) AS V
+                           ON H.VisitID = V.VisitID
+                           WHERE H.URL LIKE ? OR H.Title LIKE ?
+                           ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 25)");
+    const QString fullTermParam = QString("%%1%").arg(searchTerm);
+    stmt << fullTermParam
+         << fullTermParam;
+    if (stmt.execute())
     {
-        if (m_historyDatabaseFile.isEmpty())
-            return result;
-
-        db = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
-        if (!db || !db->isValid())
+        auto fullTermResult = getSuggestionsFromQuery(working, searchTerm, MatchType::URL, stmt);
+        result.insert(result.end(), std::make_move_iterator(fullTermResult.begin()), std::make_move_iterator(fullTermResult.end()));
+        if (!working.load())
             return result;
     }
 
-    auto stmt = db->prepare("SELECT DISTINCT(HistoryID) FROM URLWords WHERE WordID IN (SELECT WordID FROM Words WHERE Word LIKE ?) LIMIT 50");
+    stmt = db->prepare("SELECT DISTINCT(HistoryID) FROM URLWords WHERE WordID IN (SELECT WordID FROM Words WHERE Word LIKE ?) LIMIT 50");
 
     QSet<QString> wordIds;
     for (const QString &word : searchWords)
@@ -86,8 +103,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         }
     }
 
-    //TODO: Also perform raw check against url and title
-    if (wordIds.isEmpty())
+    if (wordIds.isEmpty() || !working.load())
         return result;
 
     QString wordIdString = std::accumulate(wordIds.begin() + 1, wordIds.end(), *wordIds.begin(), [](QString a, QString b) {
@@ -114,7 +130,17 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
     if (!working.load())
         return result;
 
-    result.insert(result.end(), std::make_move_iterator(wordQueryResult.begin()), std::make_move_iterator(wordQueryResult.end()));
+    for (auto& suggestion : wordQueryResult)
+    {
+        auto match = std::find_if(result.begin(), result.end(), [&suggestion](const URLSuggestion &other){
+            return other.HistoryId == suggestion.HistoryId;
+        });
+
+        if (match == result.end())
+            result.emplace_back(std::move(suggestion));
+    }
+
+    //result.insert(result.end(), std::make_move_iterator(wordQueryResult.begin()), std::make_move_iterator(wordQueryResult.end()));
 
     return result;
 

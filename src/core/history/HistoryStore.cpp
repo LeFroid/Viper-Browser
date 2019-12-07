@@ -10,10 +10,12 @@ HistoryStore::HistoryStore(const QString &databaseFile) :
     m_lastVisitID(0),
     m_statements()
 {
+    m_database.execute("PRAGMA foreign_keys=\"0\"");
 }
 
 HistoryStore::~HistoryStore()
 {
+    m_statements.clear();
 }
 
 void HistoryStore::clearAllHistory()
@@ -264,11 +266,12 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
         if (wasTypedByUser)
             existingEntry.URLTypedCount++;
 
+        existingEntry.Title = title;
+
         sqlite::PreparedStatement &stmtUpdate = m_statements.at(Statement::UpdateHistoryRecord);
         stmtUpdate.reset();
-        stmtUpdate << title
-                   << existingEntry.VisitID
-                   << existingEntry.URLTypedCount;
+        stmtUpdate << existingEntry;
+
         if (!stmtUpdate.execute())
             qWarning() << "HistoryStore::addVisit - could not save entry to database.";
     }
@@ -390,8 +393,8 @@ void HistoryStore::load()
         m_statements.insert(std::make_pair(statement, m_database.prepare(sql)));
     };
 
-    cacheStatement(Statement::CreateHistoryRecord, R"(INSERT OR REPLACE INTO History(VisitID, URL, Title, URLTypedCount) VALUES(?, ?, ?, ?))");
-    cacheStatement(Statement::UpdateHistoryRecord, R"(UPDATE History SET Title = ?, URLTypedCount = ? WHERE VisitID = ?)");
+    cacheStatement(Statement::CreateHistoryRecord, R"(INSERT INTO History(VisitID, URL, Title, URLTypedCount) VALUES(?, ?, ?, ?))");
+    cacheStatement(Statement::UpdateHistoryRecord, R"(INSERT OR REPLACE INTO History(VisitID, URL, Title, URLTypedCount) VALUES(?, ?, ?, ?))");
     cacheStatement(Statement::CreateVisitRecord, R"(INSERT INTO Visits(VisitID, Date) VALUES (?, ?))");
     cacheStatement(Statement::CreateWordRecord, R"(INSERT OR IGNORE INTO Words(Word) VALUES (?))");
     cacheStatement(Statement::CreateUrlWordRecord, R"(INSERT OR IGNORE INTO URLWords(HistoryID, WordID) VALUES (?, (SELECT WordID FROM Words WHERE Word = ?)))");

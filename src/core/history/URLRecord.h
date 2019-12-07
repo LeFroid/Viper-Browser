@@ -105,8 +105,8 @@ struct HistoryEntry final : public sqlite::Row
     void marshal(sqlite::PreparedStatement &stmt) const override
     {
         stmt << VisitID
-             << URL.toString().toStdString()
-             << Title.toStdString()
+             << URL
+             << Title
              << URLTypedCount;
     }
 

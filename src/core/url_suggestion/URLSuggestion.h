@@ -71,6 +71,9 @@ struct URLSuggestion
 
     /// Type of matching to the search term
     MatchType Type;
+
+    /// History database identifier
+    int HistoryId;
 };
 
 #endif // URLSUGGESTION_H

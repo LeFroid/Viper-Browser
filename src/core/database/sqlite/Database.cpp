@@ -5,6 +5,8 @@
 #include "Database.h"
 #include "PreparedStatement.h"
 
+#include <iostream>
+
 namespace sqlite
 {
 

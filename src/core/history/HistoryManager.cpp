@@ -111,10 +111,12 @@ void HistoryManager::clearHistoryInRange(std::pair<QDateTime, QDateTime> range)
 
 void HistoryManager::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser)
 {
-    if (m_storagePolicy == HistoryStoragePolicy::Never)
+    if (m_storagePolicy == HistoryStoragePolicy::Never
+            || url.toString(QUrl::FullyEncoded).startsWith(QLatin1String("data:"), Qt::CaseInsensitive))
         return;
 
-    m_taskScheduler.post(&HistoryStore::addVisit, std::ref(m_historyStore), url, title, visitTime, requestedUrl, wasTypedByUser);
+    m_taskScheduler.post(&HistoryStore::addVisit, std::ref(m_historyStore), QUrl(url), QString(title),
+                         QDateTime(visitTime), QUrl(requestedUrl), wasTypedByUser);
 
     if (!CommonUtil::doUrlsMatch(requestedUrl, url))
     {

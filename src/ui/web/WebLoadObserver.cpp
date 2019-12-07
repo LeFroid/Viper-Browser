@@ -20,6 +20,7 @@ void WebLoadObserver::onLoadFinished(bool ok)
     if (!ok)
         return;
 
+    const QString title = m_webWidget->getTitle();
     const QUrl url = m_webWidget->url();
     const QUrl originalUrl = m_webWidget->getOriginalUrl();
     const QString scheme = url.scheme().toLower();
@@ -42,5 +43,5 @@ void WebLoadObserver::onLoadFinished(bool ok)
         m_webWidget->clearLastTypedUrl();
 
     // Notify the history manager
-    m_historyManager->addVisit(url, m_webWidget->getTitle(), QDateTime::currentDateTime(), originalUrl, wasTypedByUser);
+    m_historyManager->addVisit(url, title, QDateTime::currentDateTime(), originalUrl, wasTypedByUser);
 }

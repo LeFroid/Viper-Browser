@@ -12,7 +12,8 @@ URLSuggestion::URLSuggestion(const BookmarkNode *bookmark, const HistoryEntry &h
     PercentMatch(0),
     IsHostMatch(false),
     IsBookmark(true),
-    Type(matchType)
+    Type(matchType),
+    HistoryId(historyEntry.VisitID)
 {
 }
 
@@ -26,6 +27,7 @@ URLSuggestion::URLSuggestion(const URLRecord &record, const QIcon &icon, MatchTy
     PercentMatch(0),
     IsHostMatch(false),
     IsBookmark(false),
-    Type(matchType)
+    Type(matchType),
+    HistoryId(record.getVisitId())
 {
 }

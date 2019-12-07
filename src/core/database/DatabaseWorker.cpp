@@ -13,7 +13,7 @@ DatabaseWorker::DatabaseWorker(const QString &dbFile) :
         qWarning() << "In DatabaseWorker constructor - could not set journal mode.";
 
     // Foreign keys
-    if (!m_database.execute("PRAGMA foreign_keys=ON"))
+    if (!m_database.execute("PRAGMA foreign_keys=\"1\""))
         qWarning() << "In DatabaseWorker constructor - could not enable foreign keys.";
 }
 

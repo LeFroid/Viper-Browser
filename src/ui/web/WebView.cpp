@@ -401,7 +401,7 @@ void WebView::_mouseReleaseEvent(QMouseEvent *event)
                 }
                 else if (event->modifiers() & Qt::ControlModifier)
                 {
-                     emit openInNewBackgroundTab(linkUrl);
+                    emit openInNewBackgroundTab(linkUrl);
                     event->accept();
                 }
                 else if (event->modifiers() & Qt::ShiftModifier)
