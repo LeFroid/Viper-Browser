@@ -78,27 +78,43 @@ void AdBlockButton::updateCount()
 
         // Setup font
         QFont font = painter.font();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+        font.setPointSize(adBlockCount >= 100 ? 9 : 10);
+#else
         font.setPointSize(adBlockCount >= 100 ? 11 : 14);
+#endif
         //font.setBold(true);
         painter.setFont(font);
 
         QFontMetrics metrics(font);
 
         // Draw rect containing the count
-        const int startX = adBlockPixmap.width() / 3, startY = adBlockPixmap.height() / 2;
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+        const int startX = adBlockPixmap.width() / 3,
+                  startY = adBlockPixmap.height() / 2;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+        const int containerWidth = adBlockPixmap.width() - startX;
+#elif (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
         const int containerWidth = std::min(metrics.horizontalAdvance(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
 #else
         const int containerWidth = std::min(metrics.width(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
 #endif
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+        const int containerHeight = adBlockPixmap.height() - startY;
+
+        const int textWidth = metrics.horizontalAdvance(numAdsBlocked);
+        const int startTextX = startX + ((containerWidth - textWidth) / 2);
+        QPoint textPos(startTextX, height() - 3);
+#else
         const int containerHeight = std::min(metrics.height() + 6, adBlockPixmap.height() - startY);
+        QPoint textPos(startX + 1, startY + containerHeight - 2);
+        if (adBlockCount < 10)
+            textPos.setX(startX + containerWidth / 4);
+#endif
         const QRect infoRect(startX, startY, containerWidth, containerHeight);
         painter.fillRect(infoRect, QBrush(QColor(67, 67, 67)));
 
         // Draw the number of ads being blocked
-        QPoint textPos(startX + 1, startY + containerHeight - 2);
-        if (adBlockCount < 10)
-            textPos.setX(startX + containerWidth / 4);
         painter.setPen(QColor(255, 255, 255));
         painter.drawText(textPos, numAdsBlocked);
 
