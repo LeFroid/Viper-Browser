@@ -20,6 +20,7 @@ AdBlockButton::AdBlockButton(QWidget *parent) :
     QToolButton(parent),
     m_adBlockManager(nullptr),
     m_settings(nullptr),
+    m_mainWindow(nullptr),
     m_icon(QLatin1String(":/AdBlock.svg")),
     m_timer(),
     m_lastCount(0)
@@ -47,63 +48,64 @@ void AdBlockButton::updateCount()
     if (!isVisible())
         return;
 
-    if (MainWindow *win = qobject_cast<MainWindow*>(window()))
+    if (!m_mainWindow)
+        m_mainWindow = qobject_cast<MainWindow*>(window());
+
+    if (!m_mainWindow || m_mainWindow->isMinimized() || !m_mainWindow->isActiveWindow())
+        return;
+
+
+    if (WebWidget *ww = m_mainWindow->currentWebWidget())
     {
-        if (win->isMinimized())
+        const int adBlockCount = m_adBlockManager ? m_adBlockManager->getNumberAdsBlocked(ww->url().adjusted(QUrl::RemoveFragment)) : 0;
+        if (adBlockCount == m_lastCount)
             return;
 
-        if (WebWidget *ww = win->currentWebWidget())
+        m_lastCount = adBlockCount;
+
+        if (adBlockCount == 0)
         {
-            const int adBlockCount = m_adBlockManager ? m_adBlockManager->getNumberAdsBlocked(ww->url().adjusted(QUrl::RemoveFragment)) : 0;
-            if (adBlockCount == m_lastCount)
-                return;
-
-            m_lastCount = adBlockCount;
-
-            if (adBlockCount == 0)
-            {
-                setIcon(m_icon);
-                setToolTip(tr("No ads blocked on this page"));
-                return;
-            }
-
-            QString numAdsBlocked = QString::number(adBlockCount);
-
-            // Draw the count inside a box towards the bottom of the ad block icon
-            QPixmap adBlockPixmap = m_icon.pixmap(width(), height());
-            QPainter painter(&adBlockPixmap);
-
-            // Setup font
-            QFont font = painter.font();
-            font.setPointSize(adBlockCount >= 100 ? 11 : 14);
-            //font.setBold(true);
-            painter.setFont(font);
-
-            QFontMetrics metrics(font);
-
-            // Draw rect containing the count
-            const int startX = adBlockPixmap.width() / 3, startY = adBlockPixmap.height() / 2;
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-            const int containerWidth = std::min(metrics.horizontalAdvance(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
-#else
-            const int containerWidth = std::min(metrics.width(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
-#endif
-            const int containerHeight = std::min(metrics.height() + 4, adBlockPixmap.height() - startY);
-            const QRect infoRect(startX, startY, containerWidth, containerHeight);
-            painter.fillRect(infoRect, QBrush(QColor(67, 67, 67)));
-
-            // Draw the number of ads being blocked
-            QPoint textPos(startX + 1, startY + containerHeight - 2);
-            if (adBlockCount < 10)
-                textPos.setX(startX + containerWidth / 4);
-            painter.setPen(QColor(255, 255, 255));
-            painter.drawText(textPos, numAdsBlocked);
-
-            // Show the updated icon
-            QIcon renderedIcon(adBlockPixmap);
-            setIcon(renderedIcon);
-            setToolTip(QString("%1 ads blocked on this page").arg(numAdsBlocked));
+            setIcon(m_icon);
+            setToolTip(tr("No ads blocked on this page"));
+            return;
         }
+
+        QString numAdsBlocked = QString::number(adBlockCount);
+
+        // Draw the count inside a box towards the bottom of the ad block icon
+        QPixmap adBlockPixmap = m_icon.pixmap(width(), height());
+        QPainter painter(&adBlockPixmap);
+
+        // Setup font
+        QFont font = painter.font();
+        font.setPointSize(adBlockCount >= 100 ? 11 : 14);
+        //font.setBold(true);
+        painter.setFont(font);
+
+        QFontMetrics metrics(font);
+
+        // Draw rect containing the count
+        const int startX = adBlockPixmap.width() / 3, startY = adBlockPixmap.height() / 2;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+        const int containerWidth = std::min(metrics.horizontalAdvance(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
+#else
+        const int containerWidth = std::min(metrics.width(numAdsBlocked) * 3, adBlockPixmap.width()) - startX;
+#endif
+        const int containerHeight = std::min(metrics.height() + 6, adBlockPixmap.height() - startY);
+        const QRect infoRect(startX, startY, containerWidth, containerHeight);
+        painter.fillRect(infoRect, QBrush(QColor(67, 67, 67)));
+
+        // Draw the number of ads being blocked
+        QPoint textPos(startX + 1, startY + containerHeight - 2);
+        if (adBlockCount < 10)
+            textPos.setX(startX + containerWidth / 4);
+        painter.setPen(QColor(255, 255, 255));
+        painter.drawText(textPos, numAdsBlocked);
+
+        // Show the updated icon
+        QIcon renderedIcon(adBlockPixmap);
+        setIcon(renderedIcon);
+        setToolTip(QString("%1 ads blocked on this page").arg(numAdsBlocked));
     }
 }
 

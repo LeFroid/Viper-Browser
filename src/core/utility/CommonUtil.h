@@ -10,6 +10,8 @@
 #include <QtGlobal>
 #include <QUrl>
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+
 /// Allows use of QString in standard hashmaps and the like
 namespace std
 {
@@ -21,6 +23,8 @@ namespace std
         }
     };
 }
+
+#endif
 
 /// Collection of common utility functions
 namespace CommonUtil

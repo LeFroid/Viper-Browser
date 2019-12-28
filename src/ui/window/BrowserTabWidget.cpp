@@ -425,14 +425,9 @@ void BrowserTabWidget::onLoadFinished(bool ok)
         return;
 
     const QString pageTitle = ww->getTitle();
-    QIcon icon = ww->getIcon();
-    if (icon.isNull())
-        setTabIcon(tabIndex, m_faviconManager->getFavicon(ww->url()));
-    else
-        setTabIcon(tabIndex, icon);
-
     setTabText(tabIndex, pageTitle);
     setTabToolTip(tabIndex, pageTitle);
+    setTabIcon(tabIndex, ww->getIcon());
 
     if (ok && ww == m_activeView)
         emit loadFinished();

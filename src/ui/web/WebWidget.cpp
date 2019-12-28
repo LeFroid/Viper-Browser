@@ -1,5 +1,6 @@
 #include "AdBlockManager.h"
 #include "BrowserTabWidget.h"
+#include "FaviconManager.h"
 #include "HistoryManager.h"
 #include "HttpRequest.h"
 #include "MainWindow.h"
@@ -36,6 +37,7 @@ WebWidget::WebWidget(const ViperServiceLocator &serviceLocator, bool privateMode
     m_inspector(nullptr),
     m_pageLoadObserver(nullptr),
     m_mainWindow(nullptr),
+    m_faviconManager(serviceLocator.getServiceAs<FaviconManager>("FaviconManager")),
     m_privateMode(privateMode),
     m_contextMenuPosGlobal(),
     m_contextMenuPosRelative(),
@@ -114,7 +116,12 @@ QIcon WebWidget::getIcon() const
     if (m_hibernating)
         return m_savedState.icon;
 
-    return m_page->icon();
+    QIcon icon { m_page->icon() };
+
+    if (icon.isNull() && m_faviconManager != nullptr)
+        return m_faviconManager->getFavicon(m_page->url());
+
+    return icon;
 }
 
 QUrl WebWidget::getIconUrl() const

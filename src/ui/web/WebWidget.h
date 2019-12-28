@@ -18,6 +18,7 @@ namespace adblock {
 }
 
 class BrowserTabWidget;
+class FaviconManager;
 class HttpRequest;
 class MainWindow;
 class WebHistory;
@@ -251,6 +252,9 @@ private:
 
     /// Pointer to the widget's parent window
     MainWindow *m_mainWindow;
+
+    /// Pointer to the favicon manager
+    FaviconManager *m_faviconManager;
 
     /// True if the widget's view is on a private browsing setting, false if else
     bool m_privateMode;

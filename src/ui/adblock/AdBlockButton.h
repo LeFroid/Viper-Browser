@@ -9,6 +9,7 @@ namespace adblock {
     class AdBlockManager;
 }
 
+class MainWindow;
 class Settings;
 
 /**
@@ -54,6 +55,9 @@ private:
 
     /// Application settings
     Settings *m_settings;
+
+    /// Pointer to the parent window
+    MainWindow *m_mainWindow;
 
     /// Base icon shown in the button
     QIcon m_icon;
