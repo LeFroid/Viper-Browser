@@ -37,8 +37,12 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->drawPixmap(faviconRect, favicon.pixmap(16, 16));
 
     // Draw title
-    QFont titleFont = itemOption.font;//painter->font();
+    QFont titleFont = itemOption.font;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    titleFont.setPointSize(12);
+#else
     titleFont.setPointSize(14);
+#endif
     painter->setFont(titleFont);
 
     QPen titlePen = painter->pen();
@@ -55,7 +59,11 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
 
     // Draw url next to title
     QFont urlFont = itemOption.font;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    urlFont.setPointSize(10);
+#else
     urlFont.setPointSize(11);
+#endif
     painter->setFont(urlFont);
 
     QPen urlPen = painter->pen();
