@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-#include <QFuture>
-#include <QFutureWatcher>
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -29,13 +27,17 @@ public:
     /// Constructs the URL suggestion worker
     explicit URLSuggestionWorker(QObject *parent = nullptr);
 
-    /// Begins a new search operation for suggestions related to the given string.
-    /// Cancels any operations in progress at the time this method is called
-    void findSuggestionsFor(const QString &text);
-
     /// Sets a reference to the service locator, which is used to gather the dependencies required by this worker
     /// (namely, the \ref HistoryManager , \ref BookmarkManager , and \ref FaviconStore )
     void setServiceLocator(const ViperServiceLocator &serviceLocator);
+
+    /// Sets the internal "is working" flag to false, in order to prevent unnecessary suggestion determinations
+    void stopWork();
+
+public Q_SLOTS:
+    /// Begins a new search operation for suggestions related to the given string.
+    /// Cancels any operations in progress at the time this method is called
+    void findSuggestionsFor(const QString &text);
 
 Q_SIGNALS:
     /// Emitted when a suggestion search is finished, passing a reference to each URL matching the input pattern
@@ -57,12 +59,6 @@ private:
 
     /// The search term, split by the ' ' character for partial string matching
     QStringList m_searchWords;
-
-    /// Future of the searchForHits operation
-    QFuture<void> m_suggestionFuture;
-
-    /// Watches the searchForHits future, emits finishedSearch when the search operation is complete
-    QFutureWatcher<void> *m_suggestionWatcher;
 
     /// Stores the suggested URLs based on the current input
     std::vector<URLSuggestion> m_suggestions;

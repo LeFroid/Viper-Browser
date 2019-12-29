@@ -13,7 +13,6 @@
 #include <chrono>
 #include <iterator>
 
-#include <QtConcurrent>
 #include <QSet>
 #include <QTimer>
 #include <QUrl>
@@ -59,32 +58,23 @@ URLSuggestionWorker::URLSuggestionWorker(QObject *parent) :
     m_working(false),
     m_searchTerm(),
     m_searchWords(),
-    m_suggestionFuture(),
-    m_suggestionWatcher(nullptr),
     m_suggestions(),
     m_searchTermWideStr(),
     m_differenceHash(0),
     m_searchTermHash(0),
     m_handlers()
 {
-    m_suggestionWatcher = new QFutureWatcher<void>(this);
-    connect(m_suggestionWatcher, &QFutureWatcher<void>::finished, this, [this](){
-        emit finishedSearch(m_suggestions);
-    });
-
     m_handlers.push_back(std::make_unique<BookmarkSuggestor>());
     m_handlers.push_back(std::make_unique<HistorySuggestor>());
 }
 
+void URLSuggestionWorker::stopWork()
+{
+    m_working.store(false);
+}
+
 void URLSuggestionWorker::findSuggestionsFor(const QString &text)
 {
-    if (m_working)
-    {
-        m_working.store(false);
-        m_suggestionFuture.cancel();
-        m_suggestionFuture.waitForFinished();
-    }
-
     m_searchTerm = text.toUpper().trimmed();
 
     // Remove any http or https prefix from the term, since we do not want to
@@ -97,9 +87,7 @@ void URLSuggestionWorker::findSuggestionsFor(const QString &text)
     m_searchWords = CommonUtil::tokenizePossibleUrl(m_searchTerm);
 
     hashSearchTerm();
-
-    m_suggestionFuture = QtConcurrent::run(this, &URLSuggestionWorker::searchForHits);
-    m_suggestionWatcher->setFuture(m_suggestionFuture);
+    searchForHits();
 }
 
 void URLSuggestionWorker::setServiceLocator(const ViperServiceLocator &serviceLocator)
@@ -140,6 +128,7 @@ void URLSuggestionWorker::searchForHits()
     if (m_suggestions.size() > 25)
         m_suggestions.erase(m_suggestions.begin() + 25, m_suggestions.end());
 
+    emit finishedSearch(m_suggestions);
     m_working.store(false);
 }
 

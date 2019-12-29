@@ -31,10 +31,10 @@ QVariant URLSuggestionListModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void URLSuggestionListModel::setSuggestions(std::vector<URLSuggestion> suggestions)
+void URLSuggestionListModel::setSuggestions(const std::vector<URLSuggestion> &suggestions)
 {
     beginResetModel();
-    m_suggestions = std::move(suggestions);
+    m_suggestions = suggestions;
     endResetModel();
 }
 

@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <QIcon>
+#include <QMetaType>
 #include <QString>
 
 class BookmarkNode;
@@ -75,5 +76,7 @@ struct URLSuggestion
     /// History database identifier
     int HistoryId;
 };
+
+Q_DECLARE_METATYPE(URLSuggestion)
 
 #endif // URLSUGGESTION_H

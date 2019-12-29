@@ -4,11 +4,13 @@
 #include "MainWindow.h"
 #include "SecurityManager.h"
 #include "SchemeRegistry.h"
+#include "URLSuggestion.h"
 #include "WebWidget.h"
 #include "ui/welcome_window/WelcomeWindow.h"
 
 #include <memory>
 #include <vector>
+#include <QMetaType>
 #include <QUrl>
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
@@ -207,6 +209,9 @@ int main(int argc, char *argv[])
 
         return 0;
     }
+
+    qRegisterMetaType<URLSuggestion>();
+    qRegisterMetaType<std::vector<URLSuggestion>>();
 
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);

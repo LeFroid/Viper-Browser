@@ -20,7 +20,8 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     m_model(nullptr),
     m_worker(nullptr),
     m_lineEdit(nullptr),
-    m_searchTerm()
+    m_searchTerm(),
+    m_workerThread()
 {
     setAttribute(Qt::WA_ShowWithoutActivating, true);
     setAttribute(Qt::WA_X11NetWmWindowTypeCombo, true);
@@ -41,7 +42,10 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     m_suggestionList->setModel(m_model);
 
     // Setup suggestion worker
-    m_worker = new URLSuggestionWorker(this);
+    m_worker = new URLSuggestionWorker;//(this);
+    m_worker->moveToThread(&m_workerThread);
+    connect(&m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
+    connect(this, &URLSuggestionWidget::determineSuggestions, m_worker, &URLSuggestionWorker::findSuggestionsFor);
     connect(m_worker, &URLSuggestionWorker::finishedSearch, m_model, &URLSuggestionListModel::setSuggestions);
 
     // Setup layout
@@ -52,6 +56,15 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     vboxLayout->addWidget(m_suggestionList);
 
     sBrowserApplication->installEventFilter(this);
+
+    m_workerThread.start();
+}
+
+URLSuggestionWidget::~URLSuggestionWidget()
+{
+    m_worker->stopWork();
+    m_workerThread.quit();
+    m_workerThread.wait();
 }
 
 bool URLSuggestionWidget::eventFilter(QObject *watched, QEvent *event)
@@ -216,7 +229,9 @@ void URLSuggestionWidget::suggestForInput(const QString &text)
     }
 
     m_searchTerm = text;
-    m_worker->findSuggestionsFor(text);
+    //m_worker->findSuggestionsFor(text);
+    m_worker->stopWork();
+    emit determineSuggestions(text);
 
     if (!isVisible() && m_lineEdit != nullptr)
         alignAndShow(m_lineEdit->mapToGlobal(m_lineEdit->pos()), m_lineEdit->frameGeometry());

@@ -1,9 +1,9 @@
 #include "BookmarkManager.h"
 #include "FastHash.h"
 #include "FaviconManager.h"
-#include "HistoryManager.h"
 #include "HistorySuggestor.h"
 #include "Settings.h"
+#include "URLRecord.h"
 
 #include "SQLiteWrapper.h"
 
@@ -22,7 +22,6 @@ void HistorySuggestor::setServiceLocator(const ViperServiceLocator &serviceLocat
 {
     m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
     m_faviconManager  = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
-    m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
 
     if (Settings *settings = serviceLocator.getServiceAs<Settings>("Settings"))
     {
@@ -40,19 +39,18 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                                                             const QStringList &searchTermParts,
                                                             const FastHashParameters &/*hashParams*/)
 {
-    thread_local static std::unique_ptr<sqlite::Database> db;
     std::vector<URLSuggestion> result;
 
-    if (!m_faviconManager || !m_historyManager)
+    if (!m_faviconManager)
         return result;
 
-    if (!db)
+    if (!m_historyDb)
     {
         if (m_historyDatabaseFile.isEmpty())
             return result;
 
-        db = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
-        if (!db || !db->isValid())
+        m_historyDb = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
+        if (!m_historyDb || !m_historyDb->isValid())
             return result;
     }
 
@@ -69,7 +67,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         return a.length() > b.length();
     });
 
-    auto stmt = db->prepare(R"(SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
+    auto stmt = m_historyDb->prepare(R"(SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
                            FROM History AS H INNER JOIN
                            (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits GROUP BY VisitID) AS V
                            ON H.VisitID = V.VisitID
@@ -86,7 +84,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
             return result;
     }
 
-    stmt = db->prepare("SELECT DISTINCT(HistoryID) FROM URLWords WHERE WordID IN (SELECT WordID FROM Words WHERE Word LIKE ?) LIMIT 50");
+    stmt = m_historyDb->prepare("SELECT DISTINCT(HistoryID) FROM URLWords WHERE WordID IN (SELECT WordID FROM Words WHERE Word LIKE ?) LIMIT 50");
 
     QSet<QString> wordIds;
     for (const QString &word : searchWords)
@@ -119,7 +117,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                                                "ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 100")
                                         .arg(wordIdString)
                                         .toStdString();
-    stmt = db->prepare(wordBasedQuery);
+    stmt = m_historyDb->prepare(wordBasedQuery);
     if (!stmt.execute())
     {
         qWarning() << "Could not fetch history matches for user input.";

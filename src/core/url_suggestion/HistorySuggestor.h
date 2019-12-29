@@ -8,10 +8,10 @@
 
 class BookmarkManager;
 class FaviconManager;
-class HistoryManager;
 
 namespace sqlite
 {
+    class Database;
     class PreparedStatement;
 }
 
@@ -25,6 +25,9 @@ class HistorySuggestor final : public IURLSuggestor
 public:
     /// Default constructor
     HistorySuggestor() = default;
+
+    /// Default destructor
+    ~HistorySuggestor() = default;
 
     /// Injects the history manager and favicon manager dependencies
     void setServiceLocator(const ViperServiceLocator &serviceLocator) override;
@@ -53,8 +56,8 @@ private:
     /// Gathers icons which are sent in the suggestion results
     FaviconManager *m_faviconManager;
 
-    /// Data source for the history-based suggestions
-    HistoryManager *m_historyManager;
+    /// History database handle
+    std::unique_ptr<sqlite::Database> m_historyDb;
 
     /// Stores the location of the history database
     QString m_historyDatabaseFile;

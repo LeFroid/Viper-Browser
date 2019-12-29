@@ -45,7 +45,7 @@ public:
 
 public Q_SLOTS:
     /// Sets the suggested items to be displayed in the model
-    void setSuggestions(std::vector<URLSuggestion> suggestions);
+    void setSuggestions(const std::vector<URLSuggestion> &suggestions);
 
 private:
     /// Contains suggested URLs based on the current input

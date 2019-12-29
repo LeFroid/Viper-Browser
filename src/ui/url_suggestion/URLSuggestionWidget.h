@@ -4,6 +4,7 @@
 #include "ServiceLocator.h"
 
 #include <QString>
+#include <QThread>
 #include <QWidget>
 
 class URLLineEdit;
@@ -17,13 +18,16 @@ class QModelIndex;
  * @class URLSuggestionWidget
  * @brief Acts as a container for suggesting and displaying URLs based on user input in the \ref URLLineEdit
  */
-class URLSuggestionWidget : public QWidget
+class URLSuggestionWidget final : public QWidget
 {
     Q_OBJECT
 
 public:
     /// Constructs the URL suggestion widget
     explicit URLSuggestionWidget(QWidget *parent = nullptr);
+
+    /// Destructor
+    ~URLSuggestionWidget();
 
     /// Filters events if this object has been installed as an event filter for the watched object.
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -56,6 +60,9 @@ Q_SIGNALS:
      */
     void noSuggestionChosen(const QString &originalText);
 
+    /// Bound to the suggestion worker's findSuggestionsFor(...) slot
+    void determineSuggestions(const QString &text);
+
 private Q_SLOTS:
     /// Called when an item in the suggestion list at the given index is clicked
     void onSuggestionClicked(const QModelIndex &index);
@@ -75,6 +82,9 @@ private:
 
     /// The term being searched for suggestions
     QString m_searchTerm;
+
+    /// Worker thread
+    QThread m_workerThread;
 };
 
 #endif // URLSUGGESTIONWIDGET_H
