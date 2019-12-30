@@ -94,6 +94,6 @@ if (ENABLE_TESTING)
 endif()
 
 if(UNIX AND NOT APPLE)
-    install(FILES data/viper-browser.png DESTINATION share/icons/hicolor/64x64/viper-browser.png)
+    install(FILES data/viper-browser.png DESTINATION share/icons/hicolor/64x64)
     install(FILES data/viper-browser.desktop DESTINATION share/applications)
 endif()
