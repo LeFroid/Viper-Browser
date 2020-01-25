@@ -31,7 +31,9 @@
 #include <QWebEngineScriptCollection>
 #include <QtWebEngineCoreVersion>
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 
 WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEnginePage(parent),
@@ -40,7 +42,9 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),
     m_mainFrameAdBlockScript(),
-    m_injectedAdblock(false)
+    m_injectedAdblock(false),
+    m_permissionsAllowed(),
+    m_permissionsDenied()
 {
     setupSlots(serviceLocator);
 }
@@ -52,7 +56,9 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *p
     m_history(new WebHistory(serviceLocator, this)),
     m_originalUrl(),
     m_mainFrameAdBlockScript(),
-    m_injectedAdblock(false)
+    m_injectedAdblock(false),
+    m_permissionsAllowed(),
+    m_permissionsDenied()
 {
     setupSlots(serviceLocator);
 }
@@ -345,8 +351,37 @@ void WebPage::onProxyAuthenticationRequired(const QUrl &/*requestUrl*/, QAuthent
     }
 }
 
+bool WebPage::isPermissionAllowed(const QUrl &securityOrigin, WebPage::Feature feature) const
+{
+    if (!m_permissionsAllowed.contains(securityOrigin))
+        return false;
+
+    const auto features = m_permissionsAllowed.value(securityOrigin);
+    return std::find(std::begin(features), std::end(features), feature) != std::end(features);
+}
+
+bool WebPage::isPermissionDenied(const QUrl &securityOrigin, WebPage::Feature feature) const
+{
+    if (!m_permissionsDenied.contains(securityOrigin))
+        return false;
+
+    const auto features = m_permissionsDenied.value(securityOrigin);
+    return std::find(std::begin(features), std::end(features), feature) != std::end(features);
+}
+
 void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, WebPage::Feature feature)
 {
+    if (isPermissionAllowed(securityOrigin, feature))
+    {
+        setFeaturePermission(securityOrigin, feature, PermissionGrantedByUser);
+        return;
+    }
+    else if (isPermissionDenied(securityOrigin, feature))
+    {
+        setFeaturePermission(securityOrigin, feature, PermissionDeniedByUser);
+        return;
+    }
+
     QString featureStr = tr("Allow %1 to ");
     switch (feature)
     {
@@ -382,6 +417,20 @@ void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, WebPage::
     QMessageBox::StandardButton choice = QMessageBox::question(view()->window(), tr("Web Permission Request"), requestStr, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     PermissionPolicy policy = (choice == QMessageBox::Yes ? PermissionGrantedByUser : PermissionDeniedByUser);
     setFeaturePermission(securityOrigin, feature, policy);
+
+    // Save the decision in memory
+    QHash<QUrl, std::vector<WebPage::Feature>> *permissionStore 
+        = policy == PermissionGrantedByUser ? &m_permissionsAllowed : &m_permissionsDenied;
+    if (permissionStore->contains(securityOrigin))
+    {
+        std::vector<WebPage::Feature> &featureSet = (*permissionStore)[securityOrigin];
+        featureSet.push_back(feature);
+    }
+    else
+    {
+        std::vector<WebPage::Feature> featureSet{feature};
+        permissionStore->insert(securityOrigin, featureSet);
+    }
 }
 
 void WebPage::onLoadFinished(bool ok)

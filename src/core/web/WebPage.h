@@ -4,8 +4,10 @@
 #include "ServiceLocator.h"
 #include "UserScript.h"
 
+#include <utility>
 #include <vector>
 
+#include <QHash>
 #include <QString>
 #include <QWebEnginePage>
 #include <QtWebEngineCoreVersion>
@@ -108,6 +110,15 @@ private:
     /// Connects web engine page signals to their handlers
     void setupSlots(const ViperServiceLocator &serviceLocator);
 
+    /// Returns true if the web feature is permitted for the given origin, false if not explicitly
+    /// allowed (does not imply that a permission has been denied).
+    bool isPermissionAllowed(const QUrl &securityOrigin, WebPage::Feature feature) const;
+    
+    /// Returns true if the web feature has been denied by the user for the given origin, or false
+    /// if not explicitly blocked by the user. If isPermissionAllowed(...) and isPermissionDenied(...)
+    /// both return false, the user will be prompted to choose whether to allow or block the feature.
+    bool isPermissionDenied(const QUrl &securityOrigin, WebPage::Feature feature) const;
+
 private:
     /// Advertisement blocking system manager
     adblock::AdBlockManager *m_adBlockManager;
@@ -126,6 +137,14 @@ private:
 
     /// Flag indicating whether or not we need to inject the adblock script into the DOM
     bool m_injectedAdblock;
+
+    /// Stores feature permissions that were allowed by the user, in the current session, local to this page.
+    /// TODO: Later we can extend this to persistent storage, across web pages, through a permission manager,
+    ///       but only if the user "opts-in" to it.
+    QHash<QUrl, std::vector<WebPage::Feature>> m_permissionsAllowed;
+
+    /// Stores feature permissions that were denied by the user, in the current session, local to this page.
+    QHash<QUrl, std::vector<WebPage::Feature>> m_permissionsDenied;
 };
 
 #endif // WEBPAGE_H
