@@ -36,10 +36,10 @@ void FileChooserLineEdit::onClickBrowse()
             result = QFileDialog::getOpenFileName(this, tr("Select a file"), QDir::homePath());
             break;
         case QFileDialog::Directory:
-        case QFileDialog::DirectoryOnly:
             result = QFileDialog::getExistingDirectory(this, tr("Select a directory"), QDir::homePath());
             break;
         case QFileDialog::ExistingFiles:
+        default:
             break;
     }
     setText(result);

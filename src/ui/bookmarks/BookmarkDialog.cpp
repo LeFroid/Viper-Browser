@@ -28,7 +28,7 @@ BookmarkDialog::BookmarkDialog(BookmarkManager *bookmarkMgr, QWidget *parent) :
     for (const auto it : *m_bookmarkManager)
     {
         if (it != rootNode && it->getType() == BookmarkNode::Folder)
-            ui->comboBoxFolder->addItem(folderFontMetrics.elidedText(it->getName(), Qt::ElideRight, maxTextWidth) , qVariantFromValue((void *)it));
+            ui->comboBoxFolder->addItem(folderFontMetrics.elidedText(it->getName(), Qt::ElideRight, maxTextWidth) , QVariant::fromValue((void *)it));
     }
 
     ui->comboBoxFolder->setCurrentIndex(0);

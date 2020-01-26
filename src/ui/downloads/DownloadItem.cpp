@@ -30,7 +30,11 @@ DownloadItem::DownloadItem(QWebEngineDownloadItem *item, QWidget *parent) :
 {
     ui->setupUi(this);
 
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    m_downloadDir = m_download->downloadDirectory();
+#else
     m_downloadDir = QFileInfo(m_download->path()).absoluteDir().absolutePath();
+#endif
 
     // Connect "Open download folder" button to slot
     connect(ui->pushButtonOpenFolder, &QPushButton::clicked, this, &DownloadItem::openDownloadFolder);
@@ -79,10 +83,19 @@ void DownloadItem::contextMenuEvent(QContextMenuEvent *event)
 
 void DownloadItem::setupItem()
 {
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    ui->labelDownloadName->setText(m_download->downloadFileName());
+#else
     ui->labelDownloadName->setText(QFileInfo(m_download->path()).fileName());
+#endif
     ui->labelDownloadSize->setText(QString());
     ui->progressBarDownload->show();
-    ui->labelDownloadSource->setText(m_download->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash).mid(2));
+
+    const QString downloadSource = fontMetrics().elidedText(
+                m_download->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash).mid(2),
+                Qt::ElideRight,
+                std::max(250, width() - contentsMargins().left() - contentsMargins().right() - 2));
+    ui->labelDownloadSource->setText(downloadSource);
 
     ui->pushButtonOpenFolder->hide();
 
@@ -121,7 +134,11 @@ void DownloadItem::setupItem()
     connect(m_download, &QWebEngineDownloadItem::stateChanged,     this, &DownloadItem::onStateChanged);
 
     // Set icon for the download item
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    setIconForItem(m_download->downloadFileName());
+#else
     setIconForItem(QFileInfo(m_download->path()).fileName());
+#endif
 
     if (m_download->state() == QWebEngineDownloadItem::DownloadCompleted)
         onFinished();

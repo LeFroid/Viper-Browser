@@ -12,6 +12,8 @@
 #include <QNetworkReply>
 #include <QWebEngineDownloadItem>
 #include <QWebEngineProfile>
+#include <QtGlobal>
+#include <QtWebEngineCoreVersion>
 
 DownloadManager::DownloadManager(Settings *settings, const std::vector<QWebEngineProfile*> &webProfiles) :
     QWidget(nullptr),
@@ -82,7 +84,26 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
 
     QString fileName;
 
-    // Get file name / location when applicable
+    // Get file name / directory
+#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    if (m_askWhereToSaveDownloads)
+    {
+        fileName = QDir(m_downloadDir).filePath(item->suggestedFileName());
+        fileName = QFileDialog::getSaveFileName(sBrowserApplication->activeWindow(), tr("Save as..."),  fileName);
+    }
+    else
+    {
+        fileName = QDir(item->downloadDirectory()).filePath(item->suggestedFileName());
+    }
+
+    if (fileName.isEmpty())
+        return;
+
+    QFileInfo fileInfo(fileName);
+    m_downloadDir = fileInfo.absoluteDir().absolutePath();
+    item->setDownloadDirectory(m_downloadDir);
+    item->setDownloadFileName(fileInfo.fileName());
+#else
     if (m_askWhereToSaveDownloads)
     {
         fileName = QFileInfo(item->path()).fileName();
@@ -97,13 +118,14 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
     setDownloadDir(QFileInfo(fileName).absoluteDir().absolutePath());
 
     item->setPath(fileName);
+#endif
     item->accept();
 
     DownloadItem *dlItem = new DownloadItem(item, this);
 
     int downloadRow = m_downloads.size();
     m_downloads.append(dlItem);
-    connect(dlItem, &DownloadItem::removeFromList, this, [=](){
+    connect(dlItem, &DownloadItem::removeFromList, this, [this, dlItem](){
         int row = m_downloads.indexOf(dlItem);
         if (row >= 0)
         {
