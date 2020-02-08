@@ -439,7 +439,11 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
 
     // Fetch resource from AdBlockManager and set value as m_evalString
     if (m_adBlockManager != nullptr)
+    {
         filter->m_evalString = m_adBlockManager->getResource(resourceName);
+        if (filter->m_evalString.isEmpty())
+            return true;
+    }
 
     const static QString nonThrowingScript = QStringLiteral("try { \n"
                                                  " %1 \n"

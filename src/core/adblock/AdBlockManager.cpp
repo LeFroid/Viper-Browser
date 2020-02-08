@@ -30,6 +30,22 @@ AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObjec
     m_subscriptionDir(),
     m_cosmeticJSTemplate(),
     m_subscriptions(),
+    m_resourceAliasMap {
+        { QStringLiteral("acis"), QStringLiteral("abort-current-inline-script.js") },
+        { QStringLiteral("aopr"), QStringLiteral("abort-on-property-read.js") },
+        { QStringLiteral("aopw"), QStringLiteral("abort-on-property-write.js") },
+        { QStringLiteral("aeld"), QStringLiteral("addEventListener-defuser.js") },
+        { QStringLiteral("aell"), QStringLiteral("addEventListener-logger.js") },
+        { QStringLiteral("anano-sib"), QStringLiteral("nano-setInterval-booster.js") },
+        { QStringLiteral("anano-stb"), QStringLiteral("nano-setTimeout-booster.js") },
+        { QStringLiteral("ara"), QStringLiteral("remove-attr.js") },
+        { QStringLiteral("araf-if"), QStringLiteral("requestAnimationFrame-if.js") },
+        { QStringLiteral("aset"), QStringLiteral("set-constant.js") },
+        { QStringLiteral("asid"), QStringLiteral("setInterval-defuser.js") },
+        { QStringLiteral("anosiif"), QStringLiteral("no-setInterval-if.js") },
+        { QStringLiteral("astd"), QStringLiteral("setTimeout-defuser.js") },
+        { QStringLiteral("anostif"), QStringLiteral("no-setTimeout-if.js") }
+    },
     m_resourceMap(),
     m_resourceContentTypeMap(),
     m_domainStylesheetCache(24),
@@ -398,7 +414,15 @@ int AdBlockManager::getNumberAdsBlocked(const QUrl &url) const
 
 QString AdBlockManager::getResource(const QString &key) const
 {
+    if (!m_resourceMap.contains(key))
+        return m_resourceMap.value(getResourceFromAlias(key));
+
     return m_resourceMap.value(key);
+}
+
+QString AdBlockManager::getResourceFromAlias(const QString &alias) const
+{
+    return m_resourceAliasMap.value(alias);
 }
 
 QString AdBlockManager::getResourceContentType(const QString &key) const

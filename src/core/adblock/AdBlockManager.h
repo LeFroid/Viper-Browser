@@ -139,6 +139,10 @@ private Q_SLOTS:
     void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
 private:
+    /// Returns the proper resource name, given an alias (ex: acis -> abort-current-inline-script.js)
+    /// Returns an empty string if no mapping is found
+    QString getResourceFromAlias(const QString &alias) const;
+
     /// Returns the second-level domain string of the given url
     QString getSecondLevelDomain(const QUrl &url) const;
 
@@ -178,6 +182,9 @@ private:
 
     /// Container of content blocking subscriptions
     std::vector<Subscription> m_subscriptions;
+
+    /// Mapping of short names of resources to their full names
+    QHash<QString, QString> m_resourceAliasMap;
 
     /// Resources available to filters by referencing the key. Available for redirect options as well as script injections
     QHash<QString, QString> m_resourceMap;
