@@ -339,8 +339,8 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     }
     if (!stylesheetCustom.isEmpty())
     {
-        stylesheetCustom = stylesheet.replace(QLatin1String("'"), QLatin1String("\\'"));
-        stylesheetCustom = styleScript.arg(stylesheet);
+        stylesheetCustom = stylesheetCustom.replace(QLatin1String("'"), QLatin1String("\\'"));
+        stylesheetCustom = styleScript.arg(stylesheetCustom);
 
         stylesheet.append(QString("\n%1").arg(stylesheetCustom));
     }
