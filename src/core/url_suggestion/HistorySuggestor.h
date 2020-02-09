@@ -4,6 +4,7 @@
 #include "IURLSuggestor.h"
 #include "URLSuggestionListModel.h"
 
+#include <map>
 #include <vector>
 
 class BookmarkManager;
@@ -22,6 +23,13 @@ namespace sqlite
  */
 class HistorySuggestor final : public IURLSuggestor
 {
+    /// Prepared statement types
+    enum class Statement
+    {
+        SearchByWholeInput,
+        SearchBySingleWord
+    };
+
 public:
     /// Default constructor
     HistorySuggestor() = default;
@@ -61,6 +69,9 @@ private:
 
     /// Stores the location of the history database
     QString m_historyDatabaseFile;
+
+    /// Prepared statements used by the suggestor
+    std::map<Statement, sqlite::PreparedStatement> m_statements;
 };
 
 #endif // HISTORYSUGGESTOR_H

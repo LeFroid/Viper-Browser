@@ -305,40 +305,44 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
                                        "sheet.innerHTML = '%1';\n"
                                        "doc.head.appendChild(sheet);\n"
                                    "})();");
+    const static QString styleScriptAlt = QStringLiteral("(function() {\n"
+                                          "  const queries = [ %1 ];\n"
+                                          "  document.onreadystatechange = function() {\n"
+                                          "    if (document.readyState == 'interactive' || document.readyState == 'complete') { \n"
+                                          "      queries.forEach((q) => { \n"
+                                          "        const hits = document.querySelectorAll(q); \n"
+                                          "        hits.forEach((el) => { el.style.display = 'none'; }); \n"
+                                          "      });\n"
+                                          "    }\n"
+                                          "  }\n"
+                                          "})();");
 
     QString stylesheet;
-    int numStylesheetRules = 0;
+    QString stylesheetCustom;
     std::vector<Filter*> domainBasedHidingFilters = m_filterContainer.getDomainBasedHidingFilters(domain);
     for (Filter *filter : domainBasedHidingFilters)
     {
-        stylesheet.append(filter->getEvalString() + QChar(','));
-        if (numStylesheetRules > 1000)
-        {
-            stylesheet = stylesheet.left(stylesheet.size() - 1);
-            stylesheet.append(QLatin1String("{ display: none !important; } "));
-            numStylesheetRules = 0;
-        }
-        else
-            ++numStylesheetRules;
-    }
-
-    if (numStylesheetRules > 0)
-    {
-        stylesheet = stylesheet.left(stylesheet.size() - 1);
-        stylesheet.append(QLatin1String("{ display: none !important; } "));
+        stylesheet.append(QString("`%1`,").arg(filter->getEvalString()));
     }
 
     // Check for custom stylesheet rules
     domainBasedHidingFilters = m_filterContainer.getDomainBasedCustomHidingFilters(domain);
     for (Filter *filter : domainBasedHidingFilters)
     {
-        stylesheet.append(filter->getEvalString());
+        stylesheetCustom.append(filter->getEvalString());
     }
 
     if (!stylesheet.isEmpty())
     {
-        stylesheet = stylesheet.replace(QLatin1String("'"), QLatin1String("\\'"));
-        stylesheet = styleScript.arg(stylesheet);
+        stylesheet = stylesheet.left(stylesheet.size() - 1);
+        stylesheet = styleScriptAlt.arg(stylesheet);
+    }
+    if (!stylesheetCustom.isEmpty())
+    {
+        stylesheetCustom = stylesheet.replace(QLatin1String("'"), QLatin1String("\\'"));
+        stylesheetCustom = styleScript.arg(stylesheet);
+
+        stylesheet.append(QString("\n%1").arg(stylesheetCustom));
     }
 
     // Insert the stylesheet into cache
