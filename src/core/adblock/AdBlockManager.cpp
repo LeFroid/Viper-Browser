@@ -310,8 +310,8 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
                                           "  document.onreadystatechange = function() {\n"
                                           "    if (document.readyState == 'interactive' || document.readyState == 'complete') { \n"
                                           "      queries.forEach((q) => { \n"
-                                          "        const hits = document.querySelectorAll(q); \n"
-                                          "        hits.forEach((el) => { el.style.display = 'none'; }); \n"
+                                          "        try { const hits = document.querySelectorAll(q); \n"
+                                          "        hits.forEach((el) => { el.style.display = 'none'; }); } catch (ex) { console.error(`Cosmetic filter script: could not query for ${q} - ${ex.message}`); }\n"
                                           "      });\n"
                                           "    }\n"
                                           "  }\n"
@@ -322,7 +322,8 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     std::vector<Filter*> domainBasedHidingFilters = m_filterContainer.getDomainBasedHidingFilters(domain);
     for (Filter *filter : domainBasedHidingFilters)
     {
-        stylesheet.append(QString("`%1`,").arg(filter->getEvalString()));
+        QString filterArg = filter->getEvalString();
+        stylesheet.append(QString("'%1',").arg(filterArg.replace(QString("'"), QString("\\'"))));
     }
 
     // Check for custom stylesheet rules
@@ -561,6 +562,9 @@ void AdBlockManager::loadUBOResources()
     {
         loadResourceFile(resourceItr.next());
     }
+
+    // Load built-in resources as well
+    loadResourceFile(QStringLiteral(":/AdBlockResources.txt"));
 }
 
 void AdBlockManager::loadResourceFile(const QString &path)

@@ -1447,3 +1447,8 @@ Please refer to the Apache license below:
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
+
+
+======
+
+This project includes a static resource file, which was created by gorhill and belongs to the uBlock Origin project (https://github.com/gorhill/uBlock) . File is located at "src/app/assets/AdBlockResources.txt". License is GPLv3, included in line 1 of this file.

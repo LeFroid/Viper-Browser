@@ -1,7 +1,6 @@
 {
     "uBlock Filters": {
-        "source": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt",
-        "resource": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/resources.txt"
+        "source": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt"
     },
     "uBlock Filters - Privacy": {
         "source": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/privacy.txt" 
