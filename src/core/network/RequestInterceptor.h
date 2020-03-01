@@ -2,6 +2,8 @@
 #define REQUESTINTERCEPTOR_H
 
 #include "ServiceLocator.h"
+#include "Settings.h"
+#include "ISettingsObserver.h"
 
 #include <memory>
 #include <QWebEngineUrlRequestInterceptor>
@@ -10,14 +12,13 @@ namespace adblock {
     class AdBlockManager;
 }
 
-class Settings;
 class WebPage;
 
 /**
  * @class RequestInterceptor 
  * @brief Intercepts network requests before they are made, checking if they need special handlnig.
  */
-class RequestInterceptor : public QWebEngineUrlRequestInterceptor
+class RequestInterceptor : public QWebEngineUrlRequestInterceptor, public ISettingsObserver
 {
     Q_OBJECT
 
@@ -33,10 +34,11 @@ private:
     /// Attempts to fetch the settings and adblock manager services
     void fetchServices();
 
-private:
-    /// Pointer to application settings
-    Settings *m_settings;
+private Q_SLOTS:
+    /// Listens for any settings changes that affect the request interceptor (currently just the "do not track" header setting)
+    void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
+private:
     /// Service locator
     const ViperServiceLocator &m_serviceLocator;
 
@@ -45,6 +47,9 @@ private:
 
     /// Parent web page. Only used with QtWebEngine version 5.13 or greater.
     WebPage *m_parentPage;
+
+    /// Flag indicating whether or not to send the "Do not track" (DNT) header with requests
+    bool m_sendDoNotTrack;
 };
 
 #endif // REQUESTINTERCEPTOR_H 

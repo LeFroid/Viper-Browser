@@ -1,6 +1,5 @@
 #include "AdBlockManager.h"
 #include "RequestInterceptor.h"
-#include "Settings.h"
 #include "WebPage.h"
 
 #include <QWebEngineUrlRequestInfo>
@@ -9,30 +8,29 @@
 
 RequestInterceptor::RequestInterceptor(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEngineUrlRequestInterceptor(parent),
-    m_settings(nullptr),
     m_serviceLocator(serviceLocator),
     m_adBlockManager(nullptr),
-    m_parentPage(qobject_cast<WebPage*>(parent))
+    m_parentPage(qobject_cast<WebPage*>(parent)),
+    m_sendDoNotTrack(false)
 {
     setObjectName(QLatin1String("RequestInterceptor"));
 }
 
 void RequestInterceptor::fetchServices()
 {
-    if (!m_settings)
+    if (Settings *settings = m_serviceLocator.getServiceAs<Settings>("Settings"))
     {
-        m_settings = m_serviceLocator.getServiceAs<Settings>("Settings");
-        connect(m_settings, &Settings::destroyed, this, [this](){
-            m_settings = nullptr;
-        });
+        m_sendDoNotTrack = settings->getValue(BrowserSetting::SendDoNotTrack).toBool();
+        connect(settings, &Settings::settingChanged, this, &RequestInterceptor::onSettingChanged);
     }
+
     if (!m_adBlockManager)
         m_adBlockManager = m_serviceLocator.getServiceAs<adblock::AdBlockManager>("AdBlockManager");
 }
 
 void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 {
-    if (!m_settings || !m_adBlockManager)
+    if (!m_adBlockManager)
         fetchServices();
 
     const QString requestScheme = info.requestUrl().scheme();
@@ -51,7 +49,13 @@ void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
             info.block(true);
     }
 
-    // Check if do not track setting enabled, if so, send header DNT with value 1
-    if (m_settings && m_settings->getValue(BrowserSetting::SendDoNotTrack).toBool())
+    // Check if we need to send the do not track header
+    if (m_sendDoNotTrack)
         info.setHttpHeader("DNT", "1");
+}
+
+void RequestInterceptor::onSettingChanged(BrowserSetting setting, const QVariant &value)
+{
+    if (setting == BrowserSetting::SendDoNotTrack)
+        m_sendDoNotTrack = value.toBool();
 }
