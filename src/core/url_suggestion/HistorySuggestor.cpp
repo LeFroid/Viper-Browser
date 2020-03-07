@@ -56,7 +56,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
         m_statements.insert(std::make_pair(Statement::SearchByWholeInput,
                                            m_historyDb->prepare(R"(SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
                                                                 FROM History AS H INNER JOIN
-                                                                (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits GROUP BY VisitID) AS V
+                                                                (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V
                                                                 ON H.VisitID = V.VisitID
                                                                 WHERE H.Title LIKE ? OR H.URL LIKE ?
                                                                 ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 25)")));
@@ -116,7 +116,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
     const std::string wordBasedQuery = QString("SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit "
                                                "FROM History AS H "
                                                "INNER JOIN "
-                                               "(SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits GROUP BY VisitID) AS V "
+                                               "(SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V "
                                                "ON H.VisitID = V.VisitID "
                                                "WHERE H.VisitID IN ( %1 ) "
                                                "ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 100")
