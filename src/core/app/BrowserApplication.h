@@ -62,6 +62,9 @@ public:
     /// Returns the browser application singleton
     static BrowserApplication *instance();
 
+    /// Returns the advertisement blocking manager
+    adblock::AdBlockManager *getAdBlockManager();
+
     /// Returns a pointer to the AutoFill manager
     AutoFill *getAutoFill();
 

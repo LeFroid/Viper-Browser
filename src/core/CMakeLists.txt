@@ -15,6 +15,7 @@ set(viper_src
     adblock/AdBlockRequestHandler.cpp
     adblock/AdBlockSubscription.cpp
     adblock/FilterBucket.cpp
+    adblock/RecommendedSubscriptions.cpp
     app/BrowserApplication.cpp
     app/BrowserScripts.cpp
     autofill/AutoFill.cpp

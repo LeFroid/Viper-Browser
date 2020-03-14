@@ -1,4 +1,5 @@
 #include "AppInitSettings.h"
+#include "AdBlockManager.h"
 #include "BrowserApplication.h"
 #include "BrowserIPC.h"
 #include "MainWindow.h"
@@ -263,7 +264,7 @@ int main(int argc, char *argv[])
         MainWindow *mainWindow = a.getNewWindow();
         mainWindow->show();
 
-        WelcomeWindow welcomeWindow(a.getSettings());
+        WelcomeWindow welcomeWindow(a.getSettings(), a.getAdBlockManager());
         welcomeWindow.show();
 
         return a.exec();

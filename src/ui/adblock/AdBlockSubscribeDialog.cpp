@@ -1,10 +1,7 @@
 #include "AdBlockSubscribeDialog.h"
 #include "ui_AdBlockSubscribeDialog.h"
 
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
+#include "RecommendedSubscriptions.h"
 
 AdBlockSubscribeDialog::AdBlockSubscribeDialog(QWidget *parent) :
     QDialog(parent),
@@ -41,27 +38,15 @@ std::vector<AdBlockSubscriptionInfo> AdBlockSubscribeDialog::getSubscriptions() 
 
 void AdBlockSubscribeDialog::load()
 {
-    QFile f(QLatin1String(":/adblock_recommended.json"));
-    if (!f.exists() || !f.open(QIODevice::ReadOnly))
+    adblock::RecommendedSubscriptions recommendedSubs;
+    if (recommendedSubs.empty())
         return;
 
-    QByteArray subData = f.readAll();
-    f.close();
-
-    // Parse the JSON object for recommended subscription objects
-    QJsonDocument subscriptionDoc(QJsonDocument::fromJson(subData));
-    QJsonObject subscriptionObj = subscriptionDoc.object();
-    for (auto it = subscriptionObj.begin(); it != subscriptionObj.end(); ++it)
+    for (const std::pair<QString, QUrl> &item : recommendedSubs)
     {
         AdBlockSubscriptionInfo subInfo;
-        subInfo.Name = it.key();
-
-        QJsonObject itemInfoObj = it.value().toObject();
-        subInfo.SubscriptionURL = QUrl(itemInfoObj.value(QLatin1String("source")).toString());
-
-        if (itemInfoObj.contains(QLatin1String("resource")))
-            subInfo.ResourceURL = QUrl(itemInfoObj.value(QLatin1String("resource")).toString());
-
+        subInfo.Name = item.first;
+        subInfo.SubscriptionURL = item.second;
         m_subscriptions.push_back(subInfo);
     }
 

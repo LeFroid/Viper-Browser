@@ -1,24 +1,28 @@
 #include "welcome_window/WelcomeWindow.h"
 
+#include "AdBlockManager.h"
 #include "BrowserSetting.h"
+#include "RecommendedSubscriptions.h"
 #include "SearchEngineManager.h"
 #include "Settings.h"
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QString>
 #include <QVBoxLayout>
 
 #include <QDebug>
 
-//TODO: page for adblock/ublock subscriptions, option to enable/disable ppapi plugins in perhaps the general page
-
-WelcomeWindow::WelcomeWindow(Settings *settings) :
+WelcomeWindow::WelcomeWindow(Settings *settings, adblock::AdBlockManager *adBlockManager) :
     QWizard(nullptr),
     m_settings(settings),
-    m_comboBoxSearchEngine(nullptr)
+    m_comboBoxSearchEngine(nullptr),
+    m_adBlockManager(adBlockManager),
+    m_adBlockPage(nullptr)
 {
     setWindowTitle(tr("Profile Setup"));
 
@@ -27,17 +31,28 @@ WelcomeWindow::WelcomeWindow(Settings *settings) :
     GeneralSettingsPage *generalPage = new GeneralSettingsPage;
     m_comboBoxSearchEngine = generalPage->getSearchEngineComboBox();
     addPage(generalPage);
+
+    m_adBlockPage = new AdBlockPage;
+    addPage(m_adBlockPage);
 }
 
 void WelcomeWindow::accept()
 {
-    qDebug() << "WelcomeWindow::accept()";
-
     m_settings->setValue(BrowserSetting::StartupMode, field(QLatin1String("StartupMode")));
     m_settings->setValue(BrowserSetting::HomePage, field(QLatin1String("HomePage")));
+    m_settings->setValue(BrowserSetting::EnablePlugins, field(QLatin1String("PlugIns")));
 
     if (m_comboBoxSearchEngine != nullptr)
         SearchEngineManager::instance().setDefaultSearchEngine(m_comboBoxSearchEngine->itemText(m_comboBoxSearchEngine->currentIndex()));
+
+    if (m_adBlockManager)
+    {
+        const std::vector<QUrl> adblockSubscriptions = m_adBlockPage->getSelectedSubscriptions();
+        for (const QUrl &subscription : adblockSubscriptions)
+        {
+            m_adBlockManager->installSubscription(subscription);
+        }
+    }
 }
 
 IntroductionPage::IntroductionPage(QWidget *parent) :
@@ -48,9 +63,8 @@ IntroductionPage::IntroductionPage(QWidget *parent) :
 
     m_labelPageDescription
             = new QLabel(tr("Thank you for installing Viper Browser! The following pages will "
-                            "ask you to set your profile settings for an optimal browsing experience. "
-                            "This includes choice of search engine, home page, advertisement blocking "
-                            "subscriptions (\"filter lists\"), and optional plugins like the Flash player."));
+                            "ask you some questions, which will allow us to custom-tailor the "
+                            "browser for a more enjoyable experience."));
     m_labelPageDescription->setWordWrap(true);
 
     QVBoxLayout *vboxLayout = new QVBoxLayout;
@@ -62,7 +76,8 @@ GeneralSettingsPage::GeneralSettingsPage(QWidget *parent) :
     QWizardPage(parent),
     m_comboBoxStartup(new QComboBox(this)),
     m_lineEditHomePage(new QLineEdit(this)),
-    m_comboBoxSearchEngine(new QComboBox(this))
+    m_comboBoxSearchEngine(new QComboBox(this)),
+    m_checkboxEnablePlugins(new QCheckBox(tr("Enable browser plug-ins (eg Flash, Pdfium)"), this))
 {
     m_comboBoxStartup->addItem(tr("Show my home page"), QVariant::fromValue(static_cast<int>(StartupMode::LoadHomePage)));
     m_comboBoxStartup->addItem(tr("Show a blank page"), QVariant::fromValue(static_cast<int>(StartupMode::LoadBlankPage)));
@@ -75,12 +90,14 @@ GeneralSettingsPage::GeneralSettingsPage(QWidget *parent) :
 
     registerField(QLatin1String("StartupMode"), m_comboBoxStartup);
     registerField(QLatin1String("HomePage"), m_lineEditHomePage);
+    registerField(QLatin1String("PlugIns"), m_checkboxEnablePlugins);
 
     QFormLayout *formLayout = new QFormLayout;
 
     formLayout->addRow(tr("When the browser starts:"), m_comboBoxStartup);
     formLayout->addRow(tr("Home page:"), m_lineEditHomePage);
     formLayout->addRow(tr("Default search engine:"), m_comboBoxSearchEngine);
+    formLayout->addRow(m_checkboxEnablePlugins);
 
     setLayout(formLayout);
 }
@@ -103,4 +120,46 @@ void GeneralSettingsPage::loadSearchEngines()
         m_comboBoxSearchEngine->addItem(engine);
 
     m_comboBoxSearchEngine->setCurrentIndex(defaultEngineIdx);
+}
+
+AdBlockPage::AdBlockPage(QWidget *parent) :
+    QWizardPage(parent),
+    m_subscriptionList(new QListWidget(this))
+{
+    setTitle(tr("Advertisement Blocking"));
+    setSubTitle(tr("Select from any of the below featured subscription lists, or ignore to "
+                   "disable advertisement blocking."));
+
+    adblock::RecommendedSubscriptions recommendations;
+
+    // Populate the list widget
+    for (const std::pair<QString, QUrl> &sub : recommendations)
+    {
+        QListWidgetItem* listItem = new QListWidgetItem(sub.first, m_subscriptionList);
+        listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
+        listItem->setCheckState(Qt::Unchecked);
+        listItem->setData(Qt::UserRole, sub.second);
+    }
+
+    QVBoxLayout *vboxLayout = new QVBoxLayout;
+    vboxLayout->addWidget(m_subscriptionList);
+    setLayout(vboxLayout);
+}
+
+const std::vector<QUrl> AdBlockPage::getSelectedSubscriptions() const
+{
+    std::vector<QUrl> selection;
+
+    int numItems = m_subscriptionList->count();
+    for (int i = 0; i < numItems; ++i)
+    {
+        QListWidgetItem *item = m_subscriptionList->item(i);
+        if (item == nullptr)
+            continue;
+
+        if (item->checkState() == Qt::Checked)
+            selection.push_back(item->data(Qt::UserRole).toUrl());
+    }
+
+    return selection;
 }

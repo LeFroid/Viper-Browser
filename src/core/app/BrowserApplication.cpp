@@ -198,6 +198,11 @@ BrowserApplication *BrowserApplication::instance()
     return static_cast<BrowserApplication*>(QCoreApplication::instance());
 }
 
+adblock::AdBlockManager *BrowserApplication::getAdBlockManager()
+{
+    return m_adBlockManager;
+}
+
 AutoFill *BrowserApplication::getAutoFill()
 {
     return m_autoFill;

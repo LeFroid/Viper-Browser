@@ -1,13 +1,24 @@
 #ifndef WELCOMEWINDOW_H
 #define WELCOMEWINDOW_H
 
+#include <vector>
+
+#include <QUrl>
 #include <QWizard>
 
+namespace adblock
+{
+    class AdBlockManager;
+}
+
+class AdBlockPage;
 class Settings;
 
+class QCheckBox;
 class QComboBox;
 class QLabel;
 class QLineEdit;
+class QListWidget;
 
 /**
  * @class WelcomeWindow
@@ -20,8 +31,8 @@ class WelcomeWindow : public QWizard
     Q_OBJECT
 
 public:
-    /// Constructs the welcome window, with a pointer to the profile settings
-    explicit WelcomeWindow(Settings *settings);
+    /// Constructs the welcome window, with a pointer to the profile settings, and a pointer to the adblock manager
+    explicit WelcomeWindow(Settings *settings, adblock::AdBlockManager *adBlockManager);
 
     /// Invoked when the dialog is accepted or submitted by the user
     void accept() override;
@@ -33,6 +44,12 @@ private:
 
     /// Combo box pointer is stored here for special handling of the search engine preference
     QComboBox *m_comboBoxSearchEngine;
+
+    /// Advertisement blocking manager
+    adblock::AdBlockManager *m_adBlockManager;
+
+    /// Advertisement blocking page
+    AdBlockPage *m_adBlockPage;
 };
 
 /**
@@ -86,6 +103,25 @@ private:
     /// user can add new search engines through the \ref SearchTab
     /// in the \ref Preferences window
     QComboBox *m_comboBoxSearchEngine;
+
+    /// Checkbox for the preference to enable plugins like PPAPI and Pdfium (if checked)
+    QCheckBox *m_checkboxEnablePlugins;
+};
+
+class AdBlockPage : public QWizardPage
+{
+    Q_OBJECT
+
+public:
+    /// Constructs the advertisement blocking page
+    AdBlockPage(QWidget *parent = nullptr);
+
+    /// Returns the filter lists to which the user will subscribe
+    const std::vector<QUrl> getSelectedSubscriptions() const;
+
+private:
+    /// List of potential subscriptions
+    QListWidget *m_subscriptionList;
 };
 
 #endif // WELCOMEWINDOW_H
