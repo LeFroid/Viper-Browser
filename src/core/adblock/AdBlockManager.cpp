@@ -450,10 +450,19 @@ int AdBlockManager::getNumberAdsBlocked(const QUrl &url) const
 
 QString AdBlockManager::getResource(const QString &key) const
 {
-    if (!m_resourceMap.contains(key))
-        return m_resourceMap.value(getResourceFromAlias(key));
+    QString keyNoSuffix = key;
+    keyNoSuffix = keyNoSuffix.replace(QRegularExpression("(\\.[a-zA-Z]+)$"), QString());
+    const bool hasKey = m_resourceMap.contains(key);
 
-    return m_resourceMap.value(key);
+    QString resource;
+
+    if (!hasKey && !m_resourceMap.contains(keyNoSuffix))
+        resource = m_resourceMap.value(getResourceFromAlias(key));
+
+    if (resource.isEmpty())
+        resource = hasKey ? m_resourceMap.value(key) : m_resourceMap.value(keyNoSuffix);
+
+    return resource;
 }
 
 QString AdBlockManager::getResourceFromAlias(const QString &alias) const

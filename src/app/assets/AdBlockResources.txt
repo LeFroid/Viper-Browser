@@ -1,4 +1,6 @@
 # Resources to be used as redirect destinations.
+# Copyright (C) 2019-present Raymond Hill (https://github.com/gorhill/uBlock)
+# See LICENSE file for accredation
 #
 # - Each distinct resource entry is separated by an empty line.
 # - The first line in a resource entry is: token mime-type[;encoding]
@@ -1886,27 +1888,72 @@ abort-current-inline-script.js application/javascript
 # https://github.com/uBlockOrigin/uAssets/commit/a6c77af4afb45800d4fd7c268a2a5eab5a64daf3#commitcomment-24611606
 window.open-defuser.js application/javascript
 (function() {
-	var wo = window.open,
-		target = '{{1}}',
-		needle = '{{2}}';
-	if ( target === '' || target === '{{1}}' ) {
-		target = false;
-	} else {
-		target = !(+target);
-	}
-	if ( needle === '' || needle === '{{2}}' ) {
-		needle = '.?';
-	} else if ( /^\/.+\/$/.test(needle) ) {
-		needle = needle.slice(1,-1);
-	} else {
-		needle = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	}
-	needle = new RegExp(needle);
-	window.open = (function(a) {
-		if ( needle.test(a) === target ) {
-			return wo.apply(window, arguments);
-		}
-	}).bind(window);
+    'use strict';
+    let arg1 = '{{1}}';
+    if ( arg1 === '{{1}}' ) { arg1 = ''; }
+    let arg2 = '{{2}}';
+    if ( arg2 === '{{2}}' ) { arg2 = ''; }
+    let arg3 = '{{3}}';
+    if ( arg3 === '{{3}}' ) { arg3 = ''; }
+    const log = arg3 !== ''
+        ? console.log.bind(console)
+        : ( ) => { };
+    const newSyntax = /^[01]?$/.test(arg1) === false;
+    let pattern = '';
+    let targetResult = true;
+    let autoRemoveAfter = -1;
+    if ( newSyntax ) {
+        pattern = arg1;
+        if ( pattern.startsWith('!') ) {
+            targetResult = false;
+            pattern = pattern.slice(1);
+        }
+        autoRemoveAfter = parseInt(arg2);
+        if ( isNaN(autoRemoveAfter) ) {
+            autoRemoveAfter = -1;
+        } 
+    } else {
+        pattern = arg2;
+        if ( arg1 === '0' ) {
+            targetResult = false;
+        }
+    }
+    if ( pattern === '' ) {
+        pattern = '.?';
+    } else if ( /^\/.+\/$/.test(pattern) ) {
+        pattern = pattern.slice(1,-1);
+    } else {
+        pattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    const rePattern = new RegExp(pattern);
+    window.open = new Proxy(window.open, {
+        apply: function(target, thisArg, args) {
+            log('window.open:', ...args);
+            const url = args[0];
+            if ( rePattern.test(url) !== targetResult ) {
+                return target.apply(thisArg, args);
+            }
+            if ( autoRemoveAfter < 0 ) { return null; }
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.style.setProperty('display','none', 'important');
+            iframe.style.setProperty('height','1px', 'important');
+            iframe.style.setProperty('width','1px', 'important');
+            document.body.appendChild(iframe);
+            setTimeout(( ) => iframe.remove(), autoRemoveAfter * 1000);
+            if ( arg3 === '' ) { return iframe.contentWindow; }
+            return new Proxy(iframe.contentWindow, {
+                get: function(target, prop) {
+                    log('window.open / get', prop, '===', target[prop]);
+                    return target[prop];
+                },
+                set: function(target, prop, value) {
+                    log('window.open / set', prop, '=', value);
+                    target[prop] = value;
+                },
+            });
+        }
+    });
 })();
 
 
@@ -1993,79 +2040,87 @@ disable-newtab-links.js application/javascript
 
 set-constant.js application/javascript
 (function() {
-	var cValue = '{{2}}';
-	if ( cValue === 'undefined' ) {
-		cValue = undefined;
-	} else if ( cValue === 'false' ) {
-		cValue = false;
-	} else if ( cValue === 'true' ) {
-		cValue = true;
-	} else if ( cValue === 'null' ) {
-		cValue = null;
-	} else if ( cValue === 'noopFunc' ) {
-		cValue = function(){};
-	} else if ( cValue === 'trueFunc' ) {
-		cValue = function(){ return true; };
-	} else if ( cValue === 'falseFunc' ) {
-		cValue = function(){ return false; };
-	} else if ( /^\d+$/.test(cValue) ) {
-		cValue = parseFloat(cValue);
-		if ( isNaN(cValue) ) { return; }
-		if ( Math.abs(cValue) > 0x7FFF ) { return; }
-	} else if ( cValue === "''" ) {
-		cValue = '';
-	} else {
-		return;
-	}
-	var aborted = false;
-	var mustAbort = function(v) {
-		if ( aborted ) { return true; }
-		aborted = v !== undefined && cValue !== undefined && typeof v !== typeof cValue;
-		return aborted;
-	};
-	var chain = '{{1}}', owner = window;
-	var makeProxy = function(owner, chain) {
-		var desc;
-		var pos = chain.indexOf('.');
-		if ( pos === -1 ) {
-			if ( mustAbort(owner[chain]) ) { return; }
-			desc = Object.getOwnPropertyDescriptor(owner, chain);
-			if ( desc === undefined || desc.get === undefined ) {
-				Object.defineProperty(owner, chain, {
-					get: function() {
-						return cValue;
-					},
-					set: function(a) {
-						if ( mustAbort(a) ) {
-							cValue = a;
-						}
-					}
-				});
-			}
-			return;
-		}
-		var prop = chain.slice(0, pos),
-			v = owner[prop];
-		chain = chain.slice(pos + 1); 
-		if ( v !== undefined ) {
-			makeProxy(v, chain);
-			return;
-		}
-		desc = Object.getOwnPropertyDescriptor(owner, prop);
-		if ( desc && desc.set ) { return; }
-		Object.defineProperty(owner, prop, {
-			get: function() {
-				return v;
-			},
-			set: function(a) {
-				v = a;
-				if ( a instanceof Object ) {
-					makeProxy(a, chain);
-				}
-			}
-		});
-	};
-	makeProxy(owner, chain);
+    const thisScript = document.currentScript;
+    let cValue = '{{2}}';
+    if ( cValue === 'undefined' ) {
+        cValue = undefined;
+    } else if ( cValue === 'false' ) {
+        cValue = false;
+    } else if ( cValue === 'true' ) {
+        cValue = true;
+    } else if ( cValue === 'null' ) {
+        cValue = null;
+    } else if ( cValue === 'noopFunc' ) {
+        cValue = function(){};
+    } else if ( cValue === 'trueFunc' ) {
+        cValue = function(){ return true; };
+    } else if ( cValue === 'falseFunc' ) {
+        cValue = function(){ return false; };
+    } else if ( /^\d+$/.test(cValue) ) {
+        cValue = parseFloat(cValue);
+        if ( isNaN(cValue) ) { return; }
+        if ( Math.abs(cValue) > 0x7FFF ) { return; }
+    } else if ( cValue === "''" ) {
+        cValue = '';
+    } else {
+        return;
+    }
+    let aborted = false;
+    const mustAbort = function(v) {
+        if ( aborted ) { return true; }
+        aborted =
+            (v !== undefined && v !== null) &&
+            (cValue !== undefined && cValue !== null) &&
+            (typeof v !== typeof cValue);
+        return aborted;
+    };
+    const makeProxy = function(owner, chain) {
+        const pos = chain.indexOf('.');
+        if ( pos === -1 ) {
+            const original = owner[chain];
+            if ( mustAbort(original) ) { return; }
+            const desc = Object.getOwnPropertyDescriptor(owner, chain);
+            if ( desc === undefined || desc.get === undefined ) {
+                Object.defineProperty(owner, chain, {
+                    get: function() {
+                        return document.currentScript === thisScript
+                            ? original
+                            : cValue;
+                    },
+                    set: function(a) {
+                        if ( mustAbort(a) ) {
+                            cValue = a;
+                        }
+                    }
+                });
+            }
+            return;
+        }
+        const prop = chain.slice(0, pos);
+        let v = owner[prop];
+        chain = chain.slice(pos + 1);
+        if (
+            (v instanceof Object) ||
+            (typeof v === 'object' && v !== null)
+        ) {
+            makeProxy(v, chain);
+            return;
+        }
+        const desc = Object.getOwnPropertyDescriptor(owner, prop);
+        if ( desc && desc.set !== undefined ) { return; }
+        Object.defineProperty(owner, prop, {
+            get: function() {
+                return v;
+            },
+            set: function(a) {
+                v = a;
+                if ( a instanceof Object ) {
+                    makeProxy(a, chain);
+                }
+            }
+        });
+    };
+    makeProxy(window, '{{1}}');
 })();
 
 
