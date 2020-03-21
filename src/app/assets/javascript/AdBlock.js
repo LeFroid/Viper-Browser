@@ -183,6 +183,56 @@ const nthAncestor = function (subject, expr, root) {
     return output;
 };
 
+/// Successor to the :nth-ancestor directive. Accepts an integer or CSS selector as an argument, and looks for the matching ancestor (or nearest match)
+const upwardMatch = function (subject, expr, root) {
+    if (root === undefined)
+        root = document;
+
+    let output = [], i, j;
+    let nodes = root.querySelectorAll(subject), node = null;
+
+    const exprAsNum = parseInt(expr, 10);
+    const isExprNum = !isNaN(exprAsNum);
+
+    for (i = 0; i < nodes.length; ++i) {
+        node = nodes[i];
+
+        if (isExprNum) {
+            for (j = 0; j < exprAsNum; ++j) {
+                node = node.parentElement;
+                if (!node) {
+                    break;
+                }
+            }
+        } else {
+            const nodeParent = node.parentElement;
+            if (!nodeParent) {
+                continue;
+            }
+            node = nodeParent.closest(expr);
+        }
+
+        if (node) {
+            output.push(node);
+        }
+    }
+    return output;
+};
+
+/// Simply removes any matching nodes from the DOM. This will always return an empty list, even when a match is removed
+const removeNodes = function (subject, expr, root) {
+    if (root === undefined) {
+        root = document;
+    }
+
+    const nodes = root.querySelectorAll(subject);
+    for (const node of nodes) {
+        node.remove();
+    }
+
+    return [];
+}
+
 /// Hides each subject in the document, for which the result of the callback with parameters chainSubject, chainTarget is not null or empty
 function hideIfChain(subject, chainSubject, chainTarget, callback) {
     chainSubject = addScopeIfNeeded(chainSubject);

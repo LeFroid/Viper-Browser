@@ -387,6 +387,11 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
             filter->m_evalString = QString("hideNodes(minTextLength, '%1', %2); ").arg(evalStr).arg(evalArg);
             break;
         }
+        case CosmeticFilter::Upward:
+        {
+            filter->m_evalString = QString("hideNodes(upwardMatch, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            break;
+        }
     }
     filter->m_category = FilterCategory::StylesheetJS;
     return true;
@@ -518,8 +523,11 @@ CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const st
                 case CosmeticFilter::MinTextLength:
                     result.CallbackName = QStringLiteral("minTextLength");
                     break;
+                case CosmeticFilter::Upward:
+                    result.CallbackName = QStringLiteral("upwardMatch");
+                    break;
                 default:
-                    // If, IfNot and Has should not be nested
+                    // If, IfNot, Has, Remove should not be nested
                     break;
             }
 
@@ -551,7 +559,7 @@ std::vector<ProceduralDirective> FilterParser::getChainableDirectives(const QStr
         }
     };
 
-    const std::array<std::pair<QString, CosmeticFilter>, 11> targets = {
+    const std::array<std::pair<QString, CosmeticFilter>, 13> targets = {
         std::make_pair(QStringLiteral(":has("),                CosmeticFilter::Has),
         std::make_pair(QStringLiteral(":has-text("),           CosmeticFilter::HasText),
         std::make_pair(QStringLiteral(":if("),                 CosmeticFilter::If),
@@ -562,7 +570,9 @@ std::vector<ProceduralDirective> FilterParser::getChainableDirectives(const QStr
         std::make_pair(QStringLiteral(":matches-css-after("),  CosmeticFilter::MatchesCSSAfter),
         std::make_pair(QStringLiteral(":xpath("),              CosmeticFilter::XPath),
         std::make_pair(QStringLiteral(":nth-ancestor("),       CosmeticFilter::NthAncestor),
-        std::make_pair(QStringLiteral(":min-text-length("),     CosmeticFilter::MinTextLength)
+        std::make_pair(QStringLiteral(":min-text-length("),    CosmeticFilter::MinTextLength),
+        std::make_pair(QStringLiteral(":upward("),             CosmeticFilter::Upward),
+        std::make_pair(QStringLiteral(":remove("),             CosmeticFilter::Remove)
     };
 
     for (const std::pair<QString, CosmeticFilter> &target : targets)
