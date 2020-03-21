@@ -392,6 +392,11 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
             filter->m_evalString = QString("hideNodes(upwardMatch, '%1', '%2'); ").arg(evalStr).arg(evalArg);
             break;
         }
+        case CosmeticFilter::Remove:
+        {
+            filter->m_evalString = QString("hideNodes(removeNodes, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            break;
+        }
     }
     filter->m_category = FilterCategory::StylesheetJS;
     return true;
@@ -526,8 +531,11 @@ CosmeticJSCallback FilterParser::getTranslation(const QString &evalArg, const st
                 case CosmeticFilter::Upward:
                     result.CallbackName = QStringLiteral("upwardMatch");
                     break;
+                case CosmeticFilter::Remove:
+                    result.CallbackName = QStringLiteral("removeNodes");
+                    break;
                 default:
-                    // If, IfNot, Has, Remove should not be nested
+                    // If, IfNot, and Has should not be nested (we really should support this however)
                     break;
             }
 
