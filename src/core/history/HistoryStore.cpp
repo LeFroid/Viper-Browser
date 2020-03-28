@@ -172,7 +172,7 @@ std::vector<URLRecord> HistoryStore::getHistoryBetween(const QDateTime &startDat
 int HistoryStore::getTimesVisitedHost(const QUrl &url) const
 {
     auto query = m_database.prepare(R"(SELECT COUNT(NumVisits) FROM (SELECT VisitID, COUNT(VisitID) AS NumVisits
-                                    FROM Visits GROUP BY VisitID ) WHERE VisitID IN (SELECT VisitID FROM History
+                                    FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID ) WHERE VisitID IN (SELECT VisitID FROM History
                                     WHERE URL LIKE ?))");
     std::string param = QString("%%1%").arg(url.host().remove(QRegularExpression("^www\\.")).toLower()).toStdString();
     query << param;
@@ -190,7 +190,7 @@ int HistoryStore::getTimesVisited(const QUrl &url) const
 {
     auto query = m_database.prepare(R"(SELECT h.VisitID, v.NumVisits FROM History AS h
                                     INNER JOIN (SELECT VisitID, COUNT(VisitID) AS NumVisits
-                                    FROM Visits GROUP BY VisitID) AS v
+                                    FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS v
                                     ON h.VisitID = v.VisitID WHERE h.URL = ?)");
     query << url;
     if (query.next())
@@ -401,7 +401,7 @@ void HistoryStore::load()
     cacheStatement(Statement::GetHistoryRecord, "SELECT History.VisitID, History.URL, History.Title, History.URLTypedCount, V.NumVisits, "
                                                 " V.RecentVisit FROM History INNER JOIN"
                                                 " (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS NumVisits "
-                                                " FROM Visits GROUP BY VisitID) AS V"
+                                                " FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V"
                                                 " ON History.VisitID = V.VisitID "
                                                 " WHERE History.URL = ?");
 
