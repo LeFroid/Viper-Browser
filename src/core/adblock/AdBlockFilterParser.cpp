@@ -213,6 +213,15 @@ bool FilterParser::isStylesheetRule(const QString &rule, Filter *filter) const
 
             filter->setEvalString(rule.mid(pos + supportedRule.size()));
 
+            // Sanitize
+            if (filter->getEvalString().contains(QStringLiteral("\"\\\"")))
+            {
+                QString sanitized = filter->getEvalString();
+                sanitized.replace(QStringLiteral("\"\\\""), QStringLiteral("'\\\""))
+                         .replace(QStringLiteral("\\\"\""), QStringLiteral("\\\"'"));
+                filter->setEvalString(sanitized);
+            }
+
             // Check for custom stylesheets, cosmetic options, and/or script injection filter rules
             if (parseCustomStylesheet(filter) || parseCosmeticOptions(filter) || parseScriptInjection(filter))
                 return true;

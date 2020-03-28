@@ -1357,6 +1357,74 @@ nowebrtc.js application/javascript
 })();
 
 
+webrtc-if.js application/javascript
+(function() {
+    let good = '{{1}}';
+    if ( good.startsWith('/') && good.endsWith('/') ) {
+        good = good.slice(1, -1);
+    } else {
+        good = good.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    let reGood;
+    try {
+        reGood = new RegExp(good);
+    } catch(ex) {
+        return;
+    }
+    const rtcName = window.RTCPeerConnection
+        ? 'RTCPeerConnection'
+        : (window.webkitRTCPeerConnection ? 'webkitRTCPeerConnection' : '');
+    if ( rtcName === '' ) { return; }
+    const log = console.log.bind(console);
+    const neuteredPeerConnections = new WeakSet();
+    const isGoodConfig = function(instance, config) {
+        if ( neuteredPeerConnections.has(instance) ) { return false; }
+        if ( config instanceof Object === false ) { return true; }
+        if ( Array.isArray(config.iceServers) === false ) { return true; }
+        for ( const server of config.iceServers ) {
+            const urls = typeof server.urls === 'string'
+                ? [ server.urls ]
+                : server.urls;
+            if ( Array.isArray(urls) ) {
+                for ( const url of urls ) {
+                    if ( reGood.test(url) ) { return true; }
+                }
+            }
+            if ( typeof server.username === 'string' ) {
+                if ( reGood.test(server.username) ) { return true; }
+            }
+            if ( typeof server.credential === 'string' ) {
+                if ( reGood.test(server.credential) ) { return true; }
+            }
+        }
+        neuteredPeerConnections.add(instance);
+        return false;
+    };
+    const peerConnectionCtor = window[rtcName];
+    const peerConnectionProto = peerConnectionCtor.prototype;
+    peerConnectionProto.createDataChannel =
+        new Proxy(peerConnectionProto.createDataChannel, {
+            apply: function(target, thisArg, args) {
+                if ( isGoodConfig(target, args[1]) === false ) {
+                    log(args[1]);
+                    return Reflect.apply(target, thisArg, args.slice(0, 1));
+                }
+                return Reflect.apply(target, thisArg, args);
+            },
+        });
+    window[rtcName] =
+        new Proxy(peerConnectionCtor, {
+            construct: function(target, args) {
+                if ( isGoodConfig(target, args[0]) === false ) {
+                    log(args[0]);
+                    return Reflect.construct(target);
+                }
+                return Reflect.construct(target, args);
+            }
+        });
+})();
+
+
 # https://github.com/gorhill/uBlock/issues/1340#issuecomment-230495317
 __$dc-defuser.js application/javascript
 (function() {
@@ -1571,86 +1639,85 @@ static.chartbeat.com/chartbeat.js application/javascript
 # https://github.com/gorhill/uBlock/issues/2132
 abort-on-property-write.js application/javascript
 (function() {
-	var magic = String.fromCharCode(Date.now() % 26 + 97) +
-				Math.floor(Math.random() * 982451653 + 982451653).toString(36);
-	var prop = '{{1}}',
-		owner = window,
-		pos;
-	for (;;) {
-		pos = prop.indexOf('.');
-		if ( pos === -1 ) { break; }
-		owner = owner[prop.slice(0, pos)];
-		if ( owner instanceof Object === false ) { return; }
-		prop = prop.slice(pos + 1);
-	}
-	delete owner[prop];
-	Object.defineProperty(owner, prop, {
-		set: function() {
-			throw new ReferenceError(magic);
-		}
-	});
-	var oe = window.onerror;
-	window.onerror = function(msg, src, line, col, error) {
-		if ( typeof msg === 'string' && msg.indexOf(magic) !== -1 ) {
-			return true;
-		}
-		if ( oe instanceof Function ) {
-			return oe(msg, src, line, col, error);
-		}
-	}.bind();
+    const magic = String.fromCharCode(Date.now() % 26 + 97) +
+                  Math.floor(Math.random() * 982451653 + 982451653).toString(36);
+    let prop = '{{1}}';
+    let owner = window;
+    for (;;) {
+        const pos = prop.indexOf('.');
+        if ( pos === -1 ) { break; }
+        owner = owner[prop.slice(0, pos)];
+        if ( owner instanceof Object === false ) { return; }
+        prop = prop.slice(pos + 1);
+    }
+    delete owner[prop];
+    Object.defineProperty(owner, prop, {
+        set: function() {
+            throw new ReferenceError(magic);
+        }
+    });
+    const oe = window.onerror;
+    window.onerror = function(msg, src, line, col, error) {
+        if ( typeof msg === 'string' && msg.indexOf(magic) !== -1 ) {
+            return true;
+        }
+        if ( oe instanceof Function ) {
+            return oe(msg, src, line, col, error);
+        }
+    }.bind();
 })();
 
 
 abort-on-property-read.js application/javascript
 (function() {
-	var magic = String.fromCharCode(Date.now() % 26 + 97) +
-				Math.floor(Math.random() * 982451653 + 982451653).toString(36);
-	var abort = function() {
-		throw new ReferenceError(magic);
-	};
-	var chain = '{{1}}', owner = window, pos, desc;
-	var makeProxy = function(owner, chain) {
-		pos = chain.indexOf('.');
-		if ( pos === -1 ) {
-			desc = Object.getOwnPropertyDescriptor(owner, chain);
-			if ( !desc || desc.get !== abort ) {
-				Object.defineProperty(owner, chain, { get: abort, set: function(){} });
-			}
-			return;
-		}
-		var prop = chain.slice(0, pos),
-			v = owner[prop];
-		chain = chain.slice(pos + 1); 
-		if ( v !== undefined ) {
-			makeProxy(v, chain);
-			return;
-		}
-		desc = Object.getOwnPropertyDescriptor(owner, prop);
-		if ( desc && desc.set && desc.set.hasOwnProperty(magic) ) {
-			return;
-		}
-		var setter = function(a) {
-			v = a;
-			if ( a instanceof Object ) {
-				makeProxy(a, chain);
-			}
-		};
-		setter[magic] = undefined;
-		Object.defineProperty(owner, prop, {
-			get: function() { return v; },
-			set: setter
-		});
-	};
-	makeProxy(owner, chain);
-	var oe = window.onerror;
-	window.onerror = function(msg, src, line, col, error) {
-		if ( typeof msg === 'string' && msg.indexOf(magic) !== -1 ) {
-			return true;
-		}
-		if ( oe instanceof Function ) {
-			return oe(msg, src, line, col, error);
-		}
-	}.bind();
+    const magic = String.fromCharCode(Date.now() % 26 + 97) +
+                  Math.floor(Math.random() * 982451653 + 982451653).toString(36);
+    const abort = function() {
+        throw new ReferenceError(magic);
+    };
+    const makeProxy = function(owner, chain) {
+        const pos = chain.indexOf('.');
+        if ( pos === -1 ) {
+            const desc = Object.getOwnPropertyDescriptor(owner, chain);
+            if ( !desc || desc.get !== abort ) {
+                Object.defineProperty(owner, chain, {
+                    get: abort,
+                    set: function(){}
+                });
+            }
+            return;
+        }
+        const prop = chain.slice(0, pos);
+        let v = owner[prop];
+        chain = chain.slice(pos + 1);
+        if ( v ) {
+            makeProxy(v, chain);
+            return;
+        }
+        const desc = Object.getOwnPropertyDescriptor(owner, prop);
+        if ( desc && desc.set !== undefined ) { return; }
+        Object.defineProperty(owner, prop, {
+            get: function() { return v; },
+            set: function(a) {
+                v = a;
+                if ( a instanceof Object ) {
+                    makeProxy(a, chain);
+                }
+            }
+        });
+    };
+    const owner = window;
+    let chain = '{{1}}';
+    makeProxy(owner, chain);
+    const oe = window.onerror;
+    window.onerror = function(msg, src, line, col, error) {
+        if ( typeof msg === 'string' && msg.indexOf(magic) !== -1 ) {
+            return true;
+        }
+        if ( oe instanceof Function ) {
+            return oe(msg, src, line, col, error);
+        }
+    }.bind();
 })();
 
 
@@ -1829,59 +1896,73 @@ palacesquare.rambler.ru-defuser.js application/javascript
 # https://github.com/uBlockOrigin/uAssets/issues/618
 abort-current-inline-script.js application/javascript
 (function() {
-	var target = '{{1}}';
-	if ( target === '' || target === '{{1}}' ) { return; }
-	var needle = '{{2}}', reText = '.?';
-	if ( needle !== '' && needle !== '{{2}}' ) {
-		reText = /^\/.+\/$/.test(needle)
-			? needle.slice(1,-1)
-			: needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	}
-	var thisScript = document.currentScript;
-	var re = new RegExp(reText);
-	var chain = target.split('.');
-	var owner = window, prop;
-	for (;;) {
-		prop = chain.shift();
-		if ( chain.length === 0 ) { break; }
-		owner = owner[prop];
-		if ( owner instanceof Object === false ) { return; }
-	}
-	var desc = Object.getOwnPropertyDescriptor(owner, prop);
-	if ( desc && desc.get !== undefined ) { return; }
-	var magic = String.fromCharCode(Date.now() % 26 + 97) +
-				Math.floor(Math.random() * 982451653 + 982451653).toString(36);
-	var value = owner[prop];
-	var validate = function() {
-		var e = document.currentScript;
-		if (
-			e instanceof HTMLScriptElement &&
-			e.src === '' &&
-			e !== thisScript &&
-			re.test(e.textContent)
-		) {
-			throw new ReferenceError(magic);
-		}
-	};
-	Object.defineProperty(owner, prop, {
-		get: function() {
-			validate();
-			return value;
-		},
-		set: function(a) {
-			validate();
-			value = a;
-		}
-	});
-	var oe = window.onerror;
-	window.onerror = function(msg) {
-		if ( typeof msg === 'string' && msg.indexOf(magic) !== -1 ) {
-			return true;
-		}
-		if ( oe instanceof Function ) {
-			return oe.apply(this, arguments);
-		}
-	}.bind();
+    const target = '{{1}}';
+    if ( target === '' || target === '{{1}}' ) { return; }
+    const needle = '{{2}}';
+    let reText = '.?';
+    if ( needle !== '' && needle !== '{{2}}' ) {
+        reText = /^\/.+\/$/.test(needle)
+            ? needle.slice(1,-1)
+            : needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    const thisScript = document.currentScript;
+    const re = new RegExp(reText);
+    const chain = target.split('.');
+    let owner = window;
+    let prop;
+    for (;;) {
+        prop = chain.shift();
+        if ( chain.length === 0 ) { break; }
+        owner = owner[prop];
+        if ( owner instanceof Object === false ) { return; }
+    }
+    let value;
+    let desc = Object.getOwnPropertyDescriptor(owner, prop);
+    if (
+        desc instanceof Object === false ||
+        desc.get instanceof Function === false
+    ) {
+        value = owner[prop];
+        desc = undefined;
+    }
+    const magic = String.fromCharCode(Date.now() % 26 + 97) +
+                  Math.floor(Math.random() * 982451653 + 982451653).toString(36);
+    const validate = function() {
+        const e = document.currentScript;
+        if (
+            e instanceof HTMLScriptElement &&
+            e.src === '' &&
+            e !== thisScript &&
+            re.test(e.textContent)
+        ) {
+            throw new ReferenceError(magic);
+        }
+    };
+    Object.defineProperty(owner, prop, {
+        get: function() {
+            validate();
+            return desc instanceof Object
+                ? desc.get()
+                : value;
+        },
+        set: function(a) {
+            validate();
+            if ( desc instanceof Object ) {
+                desc.set(a);
+            } else {
+                value = a;
+            }
+        }
+    });
+    const oe = window.onerror;
+    window.onerror = function(msg) {
+        if ( typeof msg === 'string' && msg.indexOf(magic) !== -1 ) {
+            return true;
+        }
+        if ( oe instanceof Function ) {
+            return oe.apply(this, arguments);
+        }
+    }.bind();
 })();
 
 
@@ -1953,6 +2034,61 @@ window.open-defuser.js application/javascript
                 },
             });
         }
+    });
+})();
+
+
+json-prune.js application/javascript
+(function() {
+    const log = console.log.bind(console);
+    const rawPrunePaths = '{{1}}';
+    const rawNeedlePaths = '{{2}}';
+    const prunePaths = rawPrunePaths !== '{{1}}' && rawPrunePaths !== ''
+        ? rawPrunePaths.split(/ +/)
+        : [];
+    const needlePaths = rawNeedlePaths !== '{{2}}' && rawNeedlePaths !== ''
+        ? rawNeedlePaths.split(/ +/)
+        : [];
+    const findOwner = function(root, path) {
+        let owner = root;
+        let chain = path;
+        for (;;) {
+            if ( owner instanceof Object === false ) { return; }
+            const pos = chain.indexOf('.');
+            if ( pos === -1 ) {
+                return owner.hasOwnProperty(chain)
+                    ? [ owner, chain ]
+                    : undefined;
+            }
+            const prop = chain.slice(0, pos);
+            if ( owner.hasOwnProperty(prop) === false ) { return; }
+            owner = owner[prop];
+            chain = chain.slice(pos + 1);
+        }
+    };
+    const mustProcess = function(root) {
+        for ( const needlePath of needlePaths ) {
+            const details = findOwner(root, needlePath);
+            if ( details === undefined ) { return false; }
+        }
+        return true;
+    };
+    JSON.parse = new Proxy(JSON.parse, {
+        apply: function() {
+            const r = Reflect.apply(...arguments);
+            if ( prunePaths.length === 0 ) {
+                log(location.hostname, r);
+                return r;
+            }
+            if ( mustProcess(r) === false ) { return r; }
+            for ( const path of prunePaths ) {
+                const details = findOwner(r, path);
+                if ( details !== undefined ) {
+                    delete details[0][details[1]];
+                }
+            }
+            return r;
+        },
     });
 })();
 
@@ -2236,6 +2372,36 @@ remove-attr.js application/javascript
 	} else {
 		rmattr();
 	}
+})();
+
+
+remove-class.js application/javascript
+(function() {
+    const token = '{{1}}';
+    if ( token === '' || token === '{{1}}' ) { return; }
+    const tokens = token.split(/\s*\|\s*/);
+    let selector = '{{2}}';
+    if ( selector === '' || selector === '{{2}}' ) {
+        selector = '.' + tokens.map(a => CSS.escape(a)).join(',.');
+    }
+    const rmclass = function() {
+        try {
+            const nodes = document.querySelectorAll(selector);
+            for ( const node of nodes ) {
+                node.classList.remove(...tokens);
+            }
+        } catch(ex) {
+        }
+    };
+    if ( document.readyState === 'loading' ) {
+        window.addEventListener(
+            'DOMContentLoaded',
+            rmclass,
+            { capture: true, once: true }
+        );
+    } else {
+        rmclass();
+    }
 })();
 
 
