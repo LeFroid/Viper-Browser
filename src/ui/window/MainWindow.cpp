@@ -797,10 +797,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
-
-    const int winWidth = event->size().width();
-    //m_tabWidget->setMaximumWidth(winWidth);
-    ui->bookmarkBar->setMaximumWidth(winWidth);
+    ui->bookmarkBar->setMaximumWidth(event->size().width());
 }
 
 void MainWindow::onLinkHovered(const QString &url)
@@ -808,25 +805,10 @@ void MainWindow::onLinkHovered(const QString &url)
     if (!url.isEmpty())
     {
         QFontMetrics urlFontMetrics(m_linkHoverLabel->font());
-        m_linkHoverLabel->setText(urlFontMetrics.elidedText(url, Qt::ElideRight, std::max(ui->statusBar->width() - 12, 0)));
+        m_linkHoverLabel->setText(urlFontMetrics.elidedText(url, Qt::ElideRight, std::max(ui->statusBar->width() - 14, 0)));
     }
     else
         m_linkHoverLabel->setText(url);
-
-    /*
-    if (!urlStr.isEmpty())
-    {
-        QFontMetrics urlFMetrics(m_linkHoverLabel->font());
-        int urlWidth = urlFMetrics.width(urlStr);
-        ui->statusBar->setMaximumWidth(std::min(urlWidth + 6, width()));
-        ui->statusBar->show();
-    }
-    else
-    {
-        QTimer::singleShot(250, this, [this](){
-            ui->statusBar->hide();
-        });
-    }*/
 }
 
 void MainWindow::onSavePageTriggered()

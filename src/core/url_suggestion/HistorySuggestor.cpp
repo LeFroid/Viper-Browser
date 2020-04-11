@@ -78,6 +78,9 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
             return result;
     }
 
+    if (searchTermParts.size() == 1)
+        return result;
+
     // Sort search words by their string length, in descending order
     std::vector<QString> searchWords;
     searchWords.reserve(static_cast<size_t>(searchTermParts.size()));
@@ -211,7 +214,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestionsFromQuery(const std::
                                                                      MatchType queryMatchType,
                                                                      sqlite::PreparedStatement &query)
 {
-    const int maxToSuggest = 25;
+    constexpr int maxToSuggest = 25;
     int numSuggested = 0;
 
     // Strip www prefix from urls when user does not also have this in the search term

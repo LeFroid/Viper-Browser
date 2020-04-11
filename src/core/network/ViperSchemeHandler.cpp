@@ -20,8 +20,6 @@ void ViperSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
         return;
     }
 
-    //connect(request, &QWebEngineUrlRequestJob::destroyed, contents, &QIODevice::deleteLater);
-
     QMimeDatabase db;
     QMimeType type = db.mimeTypeForData(contents);
     QByteArray mimeType = QByteArray::fromStdString(type.name().toStdString());
