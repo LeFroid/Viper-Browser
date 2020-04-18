@@ -46,7 +46,9 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QObject *parent) :
     m_permissionsAllowed(),
     m_permissionsDenied()
 {
-    setupSlots(serviceLocator);
+    QTimer::singleShot(0, this, [this, &serviceLocator](){
+        setupSlots(serviceLocator);
+    });
 }
 
 WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent) :
@@ -60,7 +62,9 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *p
     m_permissionsAllowed(),
     m_permissionsDenied()
 {
-    setupSlots(serviceLocator);
+    QTimer::singleShot(0, this, [this, &serviceLocator](){
+        setupSlots(serviceLocator);
+    });
 }
 
 WebPage::~WebPage()
@@ -193,7 +197,6 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             scriptCollection.insert(adBlockScript);
 
             // Inject into the DOM as a script tag
-            QString scriptAdjusted = m_mainFrameAdBlockScript;
             m_mainFrameAdBlockScript.replace(QString("\\"), QString("\\\\"));
             m_mainFrameAdBlockScript.replace(QString("${"), QString("\\${"));
             const static QString mutationScript = QStringLiteral("function selfInject() { "

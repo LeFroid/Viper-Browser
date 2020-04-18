@@ -6,6 +6,7 @@
 #include <QtWebEngineCoreVersion>
 #include <QtGlobal>
 
+#include <QDebug>
 RequestInterceptor::RequestInterceptor(const ViperServiceLocator &serviceLocator, QObject *parent) :
     QWebEngineUrlRequestInterceptor(parent),
     m_serviceLocator(serviceLocator),
@@ -42,7 +43,12 @@ void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
 
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
         if (m_parentPage)
-            firstPartyUrl = m_parentPage->url();
+        {
+            if (!m_parentPage->url().isEmpty())
+                firstPartyUrl = m_parentPage->url();
+            else if (!m_parentPage->requestedUrl().isEmpty())
+                firstPartyUrl = m_parentPage->requestedUrl();
+        }
 #endif
 
         if (m_adBlockManager && m_adBlockManager->shouldBlockRequest(info, firstPartyUrl))
