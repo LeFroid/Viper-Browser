@@ -274,6 +274,15 @@ function hideNodes(cb, cbSubj, cbTarget) {
     }
 }
 
+const mutOptions = { childList: true, subtree: true };
+const mutCallback = () => {
+
 {{ADBLOCK_INTERNAL}}
+
+};
+
+mutCallback();
+const docObserver = new MutationObserver(mutCallback);
+docObserver.observe(document.documentElement, mutOptions);
 
 })();

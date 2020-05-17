@@ -1,6 +1,7 @@
 #include "AdBlockFilterContainer.h"
 #include "URL.h"
 
+#include <algorithm>
 #include <QHash>
 
 namespace adblock
@@ -219,6 +220,14 @@ void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
     // Setup global stylesheet string
     m_stylesheet = QLatin1String("<style>");
 
+    auto isDuplicate = [](const Filter *filter, const std::deque<Filter*> &container) -> bool {
+        const QString &filterText = filter->getRule();
+        const auto match = std::find_if(std::begin(container), std::end(container), [&filterText](const Filter *f) {
+            return filterText.compare(f->getRule()) == 0;
+        });
+        return match != std::end(container);
+    };
+
     for (Subscription &sub : subscriptions)
     {
         // Add filters to appropriate containers
@@ -271,7 +280,8 @@ void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
                 }
                 else if (filter->getCategory() == FilterCategory::StringContains)
                 {
-                    m_blockFiltersByPattern.push_back(filter);
+                    if (!isDuplicate(filter, m_blockFiltersByPattern))
+                        m_blockFiltersByPattern.push_back(filter);
                 }
                 else if (filter->getCategory() == FilterCategory::Domain)
                 {
@@ -280,7 +290,8 @@ void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
                     auto it = m_blockFiltersByDomain.find(filterDomain);
                     if (it != m_blockFiltersByDomain.end())
                     {
-                        it->push_back(filter);
+                        if (!isDuplicate(filter, it.value()))
+                            it->push_back(filter);
                     }
                     else
                     {
@@ -289,7 +300,7 @@ void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
                         m_blockFiltersByDomain.insert(filterDomain, queue);
                     }
                 }
-                else
+                else if (!isDuplicate(filter, m_blockFilters))
                 {
                     m_blockFilters.push_back(filter);
                 }
