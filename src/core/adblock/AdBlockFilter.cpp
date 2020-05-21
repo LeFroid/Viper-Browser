@@ -214,6 +214,7 @@ bool Filter::isMatch(const QString &baseUrl, const QString &requestUrl, const QS
             case FilterCategory::Stylesheet:    // Handled in AdBlockManager
             case FilterCategory::StylesheetJS:
             case FilterCategory::StylesheetCustom:
+            case FilterCategory::Scriptlet:
                 return false;
             case FilterCategory::Domain:
                 match = isDomainMatch(requestDomain, m_evalString);

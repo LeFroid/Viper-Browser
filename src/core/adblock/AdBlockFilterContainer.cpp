@@ -137,6 +137,17 @@ std::vector<Filter*> FilterContainer::getDomainBasedScriptInjectionFilters(const
     return result;
 }
 
+std::vector<Filter*> FilterContainer::getDomainBasedCosmeticProceduralFilters(const QString &domain) const
+{
+    std::vector<Filter*> result;
+    for (Filter *filter : m_domainProceduralFilters)
+    {
+        if (filter->isDomainStyleMatch(domain))
+            result.push_back(filter);
+    }
+    return result;
+}
+
 std::vector<Filter*> FilterContainer::getMatchingCSPFilters(const QString &requestUrl, const QString &domain) const
 {
     std::vector<Filter*> result;
@@ -203,6 +214,7 @@ void FilterContainer::clearFilters()
     m_stylesheet.clear();
     m_domainStyleFilters.clear();
     m_domainJSFilters.clear();
+    m_domainProceduralFilters.clear();
     m_customStyleFilters.clear();
     m_genericHideFilters.clear();
     m_cspFilters.clear();
@@ -246,6 +258,10 @@ void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
                     stylesheetFilterMap.insert(filter->getEvalString(), filter);
             }
             else if (filter->getCategory() == FilterCategory::StylesheetJS)
+            {
+                m_domainProceduralFilters.push_back(filter);
+            }
+            else if (filter->getCategory() == FilterCategory::Scriptlet)
             {
                 m_domainJSFilters.push_back(filter);
             }

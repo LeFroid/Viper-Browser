@@ -68,7 +68,8 @@ enum class FilterCategory
     StringEndMatch,      /// Block or allow based on strings ending with the filter expression
     StringExactMatch,    /// Block or allow if request has an exact match
     StringContains,      /// Block or allow if request contains the string in this filter
-    RegExp               /// Block or allow based on a regular expression
+    RegExp,              /// Block or allow based on a regular expression
+    Scriptlet            /// JavaScript directive meant to counteract any malevolent behavior
 };
 
 /**

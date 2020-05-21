@@ -76,6 +76,9 @@ public:
     /// Returns a vector containing any filters that have specific javascript code to be injected on the given domain
     std::vector<Filter*> getDomainBasedScriptInjectionFilters(const QString &domain) const;
 
+    /// Returns a vector containing any filters that have use a dynamic method of hiding one or more elements on the given domain
+    std::vector<Filter*> getDomainBasedCosmeticProceduralFilters(const QString &domain) const;
+
     /// Returns a vector containing any filters that have a CSP rule to be applied to the given request
     std::vector<Filter*> getMatchingCSPFilters(const QString &requestUrl, const QString &domain) const;
 
@@ -118,6 +121,9 @@ private:
 
     /// Container of filters that have domain-specific javascript rules
     std::vector<Filter*> m_domainJSFilters;
+
+    /// Container of filters that have domain-specific procedural filter rules
+    std::vector<Filter*> m_domainProceduralFilters;
 
     /// Container of filters that have custom stylesheet values (:style filter option)
     std::vector<Filter*> m_customStyleFilters;

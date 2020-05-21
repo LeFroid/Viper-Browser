@@ -274,15 +274,47 @@ function hideNodes(cb, cbSubj, cbTarget) {
     }
 }
 
+{{ADBLOCK_INTERNAL_SCRIPTLET}}
+
+const observerLimit = 7;
+let mutCount = 0;
+let docObserver = {};
+let currentLocation = window.location ? window.location.pathname : '/';
 const mutOptions = { childList: true, subtree: true };
 const mutCallback = () => {
 
-{{ADBLOCK_INTERNAL}}
+  if (mutCount++ >= observerLimit) {
+    docObserver.disconnect();
+    return;
+  }
+
+{{ADBLOCK_INTERNAL_COSMETIC}}
 
 };
 
 mutCallback();
-const docObserver = new MutationObserver(mutCallback);
-docObserver.observe(document.documentElement, mutOptions);
+
+docObserver = new MutationObserver(mutCallback);
+
+if (document.body) {
+  docObserver.observe(document.body, mutOptions);
+} else {
+  document.addEventListener('readystatechange', (e) => {
+    if (document.readyState == 'interactive') {
+      docObserver.observe(document.body, mutOptions);
+    }
+  });
+}
+
+const urlEventTypes = [ 'click', 'popstate', 'onload' ];
+urlEventTypes.forEach((eventName) => {
+  window.addEventListener(eventName, (e) => {
+    if (window.location.pathname != currentLocation) {
+      mutCount = 0;
+      currentLocation = window.location.pathname;
+      setTimeout(() => { mutCallback(); }, 500);
+    }
+  });
+});
 
 })();

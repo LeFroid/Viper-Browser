@@ -447,7 +447,7 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
     if (keywordLength == 0)
         return false;
 
-    filter->m_category = FilterCategory::StylesheetJS;
+    filter->m_category = FilterCategory::Scriptlet;
 
     // Extract inner arguments and separate by ',' delimiter
     QString injectionStr = filter->m_evalString.mid(keywordLength);

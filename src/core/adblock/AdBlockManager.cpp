@@ -392,12 +392,17 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
     if (m_jsInjectionCache.has(requestHostStdStr))
         return m_jsInjectionCache.get(requestHostStdStr);
 
-    QString javascript;
+    QString scriptlets;
+    QString proceduralFilters;
     std::vector<QString> cspDirectives;
 
     std::vector<Filter*> domainBasedScripts = m_filterContainer.getDomainBasedScriptInjectionFilters(domain);
     for (Filter *filter : domainBasedScripts)
-        javascript.append(filter->getEvalString());
+        scriptlets.append(filter->getEvalString());
+
+    std::vector<Filter*> cosmeticProceduralFilters = m_filterContainer.getDomainBasedCosmeticProceduralFilters(domain);
+    for (Filter *filter : cosmeticProceduralFilters)
+        proceduralFilters.append(filter->getEvalString());
 
     const Filter *inlineScriptBlockingRule = m_filterContainer.findInlineScriptBlockingFilter(requestUrl, domain);
     if (inlineScriptBlockingRule != nullptr)
@@ -418,13 +423,14 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
                 cspConcatenated.append(QLatin1String("; "));
         }
         cspConcatenated.replace(QLatin1String("\""), QLatin1String("\\\""));
-        javascript.append(cspScript.arg(cspConcatenated));
+        scriptlets.append(cspScript.arg(cspConcatenated));
     }
 
-    if (!javascript.isEmpty())
+    if (!scriptlets.isEmpty() || !proceduralFilters.isEmpty())
     {
         result = m_cosmeticJSTemplate;
-        result.replace(QLatin1String("{{ADBLOCK_INTERNAL}}"), javascript);
+        result.replace(QStringLiteral("{{ADBLOCK_INTERNAL_SCRIPTLET}}"), scriptlets);
+        result.replace(QStringLiteral("{{ADBLOCK_INTERNAL_COSMETIC}}"), proceduralFilters);
     }
 
     m_jsInjectionCache.put(requestHostStdStr, result);
