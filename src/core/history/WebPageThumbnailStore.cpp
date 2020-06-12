@@ -120,11 +120,15 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
             if (pixmap.isNull())
                 return;
 
+            const QImage image = pixmap.toImage();
+            if (image.allGray())
+                return;
+
             for (const QUrl &url : urls)
             {
                 const QString host = url.host().toLower();
                 if (!host.isEmpty())
-                    m_thumbnails.insert(host, pixmap.toImage());
+                    m_thumbnails.insert(host, image);
             }
         }
     });
