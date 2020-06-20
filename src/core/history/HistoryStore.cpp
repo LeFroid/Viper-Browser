@@ -405,10 +405,6 @@ void HistoryStore::load()
                                                 " ON History.VisitID = V.VisitID "
                                                 " WHERE History.URL = ?");
 
-    // Clear history entries that are not referenced by any specific visits
-    if (!m_database.execute("DELETE FROM History WHERE VisitID NOT IN (SELECT DISTINCT VisitID FROM Visits)"))
-        qWarning() << "In HistoryStore::load - Could not remove non-referenced history entries from the database.";
-
     auto stmt = m_database.prepare(R"(SELECT MAX(VisitID) FROM History)");
     if (stmt.next())
         stmt >> m_lastVisitID;
@@ -448,9 +444,9 @@ void HistoryStore::checkForUpdate()
 
 void HistoryStore::purgeOldEntries()
 {
-    // Clear visits that are 4+ months old
+    // Clear visits that are >8 weeks old
     quint64 purgeDate = static_cast<quint64>(QDateTime::currentMSecsSinceEpoch());
-    const quint64 tmp = quint64{10368000000};
+    const quint64 tmp = quint64{4838400000};
     if (purgeDate > tmp)
     {
         purgeDate -= tmp;
@@ -461,6 +457,9 @@ void HistoryStore::purgeOldEntries()
         {
             qWarning() << "HistoryStore - Could not purge old history entries.";
         }
+
+        if (!m_database.execute(R"(DELETE FROM History WHERE VisitID NOT IN (SELECT VisitID FROM Visits);)"))
+            qWarning() << "HistoryStore - Error purging unused history entries. Message: " << QString::fromStdString(m_database.getLastError());
     }
 }
 
