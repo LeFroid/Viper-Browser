@@ -288,7 +288,11 @@ const mutCallback = () => {
     return;
   }
 
+setTimeout(() => {
+
 {{ADBLOCK_INTERNAL_COSMETIC}}
+
+}, 50);
 
 };
 
