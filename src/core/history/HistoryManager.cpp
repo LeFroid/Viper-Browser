@@ -158,7 +158,6 @@ void HistoryManager::addVisitToLocalStore(const QUrl &url, const QString &title,
         entry.URLTypedCount = wasTypedByUser ? 1 : 0;
         std::vector<VisitEntry> visits {visit};
 
-        QString urlUpper = url.toString().toUpper();
         m_historyItems.insert(std::make_pair(url.toString().toUpper(), URLRecord(std::move(entry), std::move(visits))));
         m_recentItems.push_front(entry);
     }
