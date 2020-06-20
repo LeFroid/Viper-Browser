@@ -42,7 +42,7 @@ URLSuggestionWidget::URLSuggestionWidget(QWidget *parent) :
     m_suggestionList->setModel(m_model);
 
     // Setup suggestion worker
-    m_worker = new URLSuggestionWorker;//(this);
+    m_worker = new URLSuggestionWorker;
     m_worker->moveToThread(&m_workerThread);
     connect(&m_workerThread, &QThread::finished, m_worker, &QObject::deleteLater);
     connect(this, &URLSuggestionWidget::determineSuggestions, m_worker, &URLSuggestionWorker::findSuggestionsFor);
@@ -258,7 +258,9 @@ QSize URLSuggestionWidget::sizeHint() const
 
 void URLSuggestionWidget::needResizeWidth(int width)
 {
-    QTimer::singleShot(150, [=](){ setMinimumWidth(width); });
+    QTimer::singleShot(150, [this, width]() {
+        setMinimumWidth(width);
+    });
 }
 
 void URLSuggestionWidget::onSuggestionClicked(const QModelIndex &index)
