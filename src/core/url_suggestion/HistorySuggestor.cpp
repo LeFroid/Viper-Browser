@@ -61,7 +61,15 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                                                                 WHERE H.Title LIKE ? OR H.URL LIKE ?
                                                                 ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 25)")));
         m_statements.insert(std::make_pair(Statement::SearchBySingleWord,
-                                           m_historyDb->prepare(R"(SELECT DISTINCT(HistoryID) FROM URLWords WHERE WordID IN (SELECT WordID FROM Words WHERE Word LIKE ?) LIMIT 50)")));
+                                           m_historyDb->prepare(R"(SELECT U.HistoryID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
+                                                                FROM URLWords AS U INNER JOIN Words
+                                                                  ON U.WordID = Words.WordID
+                                                                INNER JOIN History AS H
+                                                                  ON U.HistoryID = H.VisitID
+                                                                INNER JOIN (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V
+                                                                  ON H.VisitID = V.VisitID
+                                                                WHERE Words.Word LIKE ?
+                                                                ORDER BY V.VisitCount DESC, V.RecentVisit DESC, H.URLTypedCount DESC LIMIT 5)")));
     }
 
     const QString fullTermParam = QString("%%1%").arg(searchTerm);
@@ -93,80 +101,35 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
 
     sqlite::PreparedStatement &stmtWords = m_statements.at(Statement::SearchBySingleWord);
 
-    QSet<QString> wordIds;
     for (const QString &word : searchWords)
     {
-        QString wordBinding = word.size() > 3 ? QString("%%1%") : QString("%1%");
-        const std::string wordStdBinding = wordBinding.arg(word).toStdString();
+        if (!working.load())
+            return result;
+
+        QString wordTemp = word.size() < 4 ? QString("%%1%") : QString("%1%");
+        wordTemp = wordTemp.arg(word.trimmed().toUpper());
+        const std::string wordStdBinding = wordTemp.toStdString();
+
         stmtWords.reset();
         stmtWords << wordStdBinding;
 
-        std::string wordId;
-        while (stmtWords.next())
+        if (!stmtWords.execute())
+            continue;
+
+        auto wordQueryResult = getSuggestionsFromQuery(working, searchTerm, MatchType::SearchWords, stmtWords);
+        for (auto& suggestion : wordQueryResult)
         {
-            stmtWords >> wordId;
-            wordIds.insert(QString::fromStdString(wordId));
+            auto match = std::find_if(result.begin(), result.end(), [&suggestion](const URLSuggestion &other){
+                return other.HistoryId == suggestion.HistoryId;
+            });
+
+            if (match == result.end())
+                result.emplace_back(std::move(suggestion));
         }
     }
 
-    if (wordIds.isEmpty() || !working.load())
-        return result;
-
-    QString wordIdString = std::accumulate(wordIds.begin() + 1, wordIds.end(), *wordIds.begin(), [](QString a, QString b) {
-        return std::move(a).append(QChar(',')).append(b);
-    });
-
-    const std::string wordBasedQuery = QString("SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit "
-                                               "FROM History AS H "
-                                               "INNER JOIN "
-                                               "(SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V "
-                                               "ON H.VisitID = V.VisitID "
-                                               "WHERE H.VisitID IN ( %1 ) "
-                                               "ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 100")
-                                        .arg(wordIdString)
-                                        .toStdString();
-    auto stmtWordCombo = m_historyDb->prepare(wordBasedQuery);
-    if (!stmtWordCombo.execute())
-    {
-        qWarning() << "Could not fetch history matches for user input.";
-        return result;
-    }
-
-    auto wordQueryResult = getSuggestionsFromQuery(working, searchTerm, MatchType::SearchWords, stmtWordCombo);
-    if (!working.load())
-        return result;
-
-    for (auto& suggestion : wordQueryResult)
-    {
-        auto match = std::find_if(result.begin(), result.end(), [&suggestion](const URLSuggestion &other){
-            return other.HistoryId == suggestion.HistoryId;
-        });
-
-        if (match == result.end())
-            result.emplace_back(std::move(suggestion));
-    }
-
     return result;
-
-    /*
-    QSqlQuery rawTermQuery(db);
-    rawTermQuery.prepare(QString("SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit "
-                                 "FROM History AS H "
-                                 "INNER JOIN "
-                                 "(SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits GROUP BY VisitID) AS V "
-                                 "ON H.VisitID = V.VisitID "
-                                 "WHERE H.URL LIKE ? OR H.Title LIKE ? ) "
-                                 "ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 100"));
-    rawTermQuery.bindValue();
-
-    if (!rawTermQuery.exec())
-    {
-        qWarning() << "Could not fetch history matches for user input. Error: " << rawTermQuery.lastError().text();
-        return result;
-    }
-    */
-
-    // Old code below
+}
     /*
                 std::vector<QString> historyWords = getHistoryEntryWords(record.getVisitId());
                 for (const QString &searchWord : searchWords)
@@ -207,7 +170,6 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
                 percentWordScore = static_cast<int>((50.0f * scoreUrlRatio) + (50.0f * scoreTermRatio));
             }
     */
-}
 
 std::vector<URLSuggestion> HistorySuggestor::getSuggestionsFromQuery(const std::atomic_bool &working,
                                                                      const QString &searchTerm,

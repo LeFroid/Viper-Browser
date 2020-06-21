@@ -196,6 +196,7 @@ private Q_SLOTS:
 
         result = suggestor.getSuggestions(working, searchTerm, CommonUtil::tokenizePossibleUrl(searchTerm), hashParams);
 
+        qDebug() << "Result size: " << result.size();
         QVERIFY2(result.size() == 1, "Expected result set to have a single entry");
         {
             const URLSuggestion &suggestion = result[0];

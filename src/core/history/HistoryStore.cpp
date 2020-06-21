@@ -274,6 +274,8 @@ void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTi
 
         if (!stmtUpdate.execute())
             qWarning() << "HistoryStore::addVisit - could not save entry to database.";
+
+        tokenizeAndSaveUrl(static_cast<int>(visitId), url, title);
     }
     else
     {
@@ -361,7 +363,7 @@ void HistoryStore::setup()
         qWarning() << "In HistoryStore::setup - unable to create visit table.";
     }
 
-    if (!exec(QLatin1String("CREATE TABLE IF NOT EXISTS Words(WordID INTEGER PRIMARY KEY AUTOINCREMENT, Word TEXT COLLATE NOCASE UNIQUE NOT NULL)")))
+    if (!exec(QLatin1String("CREATE TABLE IF NOT EXISTS Words(WordID INTEGER PRIMARY KEY AUTOINCREMENT, Word TEXT NOT NULL, UNIQUE (Word))")))
     {
         qWarning() << "In HistoryStore::setup - unable to create words table.";
     }
@@ -385,7 +387,7 @@ void HistoryStore::load()
     if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Visit_Date_Index ON Visits(Date)")))
         qWarning() << "In HistoryStore::load - unable to create index on the date column of the visit table.";
 
-    if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Word_Index ON Words(Word COLLATE NOCASE)")))
+    if (!exec(QLatin1String("CREATE INDEX IF NOT EXISTS Word_Index ON Words(Word)")))
         qWarning() << "In HistoryStore::load - unable to create index on the word column of the words table.";
 
     // Create and cache our prepared statements
