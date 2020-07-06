@@ -304,7 +304,9 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         });
 
         QUrl selectionUrl = QUrl::fromUserInput(text);
-        if (selectionUrl.isValid() && !selectionUrl.host().isEmpty())
+        if (selectionUrl.isValid() 
+                && (selectionUrl.host().contains(QStringLiteral(".")) 
+                    || selectionUrl.host().compare(QStringLiteral("localhost"), Qt::CaseInsensitive) == 0))
         {
             menu->addAction(tr("Go to %1").arg(text), this, [this, selectionUrl](){
                 emit openInNewTab(selectionUrl);
