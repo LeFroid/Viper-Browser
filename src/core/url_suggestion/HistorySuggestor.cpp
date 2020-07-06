@@ -41,36 +41,14 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestions(const std::atomic_bo
 {
     std::vector<URLSuggestion> result;
 
-    if (!m_faviconManager)
+    if (!m_faviconManager || m_historyDatabaseFile.isEmpty())
         return result;
 
     if (!m_historyDb)
-    {
-        if (m_historyDatabaseFile.isEmpty())
-            return result;
+        setupConnection();
 
-        m_historyDb = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
-        if (!m_historyDb || !m_historyDb->isValid())
-            return result;
-
-        m_statements.insert(std::make_pair(Statement::SearchByWholeInput,
-                                           m_historyDb->prepare(R"(SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
-                                                                FROM History AS H INNER JOIN
-                                                                (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V
-                                                                ON H.VisitID = V.VisitID
-                                                                WHERE H.Title LIKE ? OR H.URL LIKE ?
-                                                                ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 25)")));
-        m_statements.insert(std::make_pair(Statement::SearchBySingleWord,
-                                           m_historyDb->prepare(R"(SELECT U.HistoryID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
-                                                                FROM URLWords AS U INNER JOIN Words
-                                                                  ON U.WordID = Words.WordID
-                                                                INNER JOIN History AS H
-                                                                  ON U.HistoryID = H.VisitID
-                                                                INNER JOIN (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V
-                                                                  ON H.VisitID = V.VisitID
-                                                                WHERE Words.Word LIKE ?
-                                                                ORDER BY V.VisitCount DESC, V.RecentVisit DESC, H.URLTypedCount DESC LIMIT 5)")));
-    }
+    if (!m_historyDb || !m_historyDb->isValid())
+        return result;
 
     const QString fullTermParam = QString("%%1%").arg(searchTerm);
 
@@ -215,4 +193,26 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestionsFromQuery(const std::
             return result;
     }
     return result;
+}
+
+void HistorySuggestor::setupConnection()
+{
+    m_historyDb = std::make_unique<sqlite::Database>(m_historyDatabaseFile.toStdString());
+    m_statements.insert(std::make_pair(Statement::SearchByWholeInput,
+                                       m_historyDb->prepare(R"(SELECT H.VisitID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
+                                                            FROM History AS H INNER JOIN
+                                                            (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V
+                                                            ON H.VisitID = V.VisitID
+                                                            WHERE H.Title LIKE ? OR H.URL LIKE ?
+                                                            ORDER BY V.VisitCount DESC, H.URLTypedCount DESC LIMIT 25)")));
+    m_statements.insert(std::make_pair(Statement::SearchBySingleWord,
+                                       m_historyDb->prepare(R"(SELECT U.HistoryID, H.URL, H.Title, H.URLTypedCount, V.VisitCount, V.RecentVisit
+                                                            FROM URLWords AS U INNER JOIN Words
+                                                              ON U.WordID = Words.WordID
+                                                            INNER JOIN History AS H
+                                                              ON U.HistoryID = H.VisitID
+                                                            INNER JOIN (SELECT VisitID, MAX(Date) AS RecentVisit, COUNT(Date) AS VisitCount FROM Visits INDEXED BY Visit_ID_Index GROUP BY VisitID) AS V
+                                                              ON H.VisitID = V.VisitID
+                                                            WHERE Words.Word LIKE ?
+                                                            ORDER BY V.VisitCount DESC, V.RecentVisit DESC, H.URLTypedCount DESC LIMIT 5)")));
 }

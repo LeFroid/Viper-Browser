@@ -4,11 +4,19 @@
 #include "CommonUtil.h"
 #include "FastHash.h"
 #include "HistoryManager.h"
+#include "Settings.h"
 
 void BookmarkSuggestor::setServiceLocator(const ViperServiceLocator &serviceLocator)
 {
     m_bookmarkManager = serviceLocator.getServiceAs<BookmarkManager>("BookmarkManager");
     m_historyManager  = serviceLocator.getServiceAs<HistoryManager>("HistoryManager");
+
+    /*
+    if (Settings *settings = serviceLocator.getServiceAs<Settings>("Settings"))
+    {
+        m_databaseFile = settings->getPathValue(BrowserSetting::BookmarkPath);
+    }
+    */
 }
 
 std::vector<URLSuggestion> BookmarkSuggestor::getSuggestions(const std::atomic_bool &working,

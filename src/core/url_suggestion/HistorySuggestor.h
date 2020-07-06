@@ -57,6 +57,9 @@ private:
                                                        MatchType queryMatchType,
                                                        sqlite::PreparedStatement &query);
 
+    /// Connects to the history database and creates the prepared statement cache
+    void setupConnection();
+
 private:
     /// Determines whether or not a suggestion is also a bookmark
     BookmarkManager *m_bookmarkManager;

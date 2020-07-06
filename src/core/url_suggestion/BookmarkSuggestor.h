@@ -47,6 +47,9 @@ private:
 
     /// Used to fetch metadata about bookmark URL entries
     HistoryManager *m_historyManager;
+
+    /// String representing the location of the bookmark database
+    //QString m_databaseFile;
 };
 
 #endif // BOOKMARKSUGGESTOR_H
