@@ -181,8 +181,8 @@ void FaviconManager::onReplyFinished(QNetworkReply *reply)
     else
     {
         QBuffer buffer(&data);
-        const char *imgFormat = format.isEmpty() ? nullptr : format.toStdString().c_str();
-        success = img.load(&buffer, imgFormat);
+        const std::string imageFormat = format.isEmpty() ? R"()" : format.toStdString();
+        success = img.load(&buffer, imageFormat.c_str());
     }
 
     if (success)

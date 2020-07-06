@@ -134,7 +134,7 @@ QWebEngineHttpRequest HttpRequest::toWebEngineRequest() const
     QWebEngineHttpRequest engineRequest(m_url, engineMethod);
     engineRequest.setPostData(m_postData);
 
-    for (const auto it : m_headers)
+    for (const auto &it : m_headers)
         engineRequest.setHeader(it.first, it.second);
 
     return engineRequest;

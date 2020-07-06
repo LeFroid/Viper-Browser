@@ -235,7 +235,7 @@ void URLLineEdit::onInputEntered()
         return;
 
     QUrl location = QUrl::fromUserInput(urlText);
-    if (location.isValid() && !location.topLevelDomain().isNull())
+    if (location.isValid() && !location.host().isNull())
     {
         setURL(location);
         emit loadRequested(location);

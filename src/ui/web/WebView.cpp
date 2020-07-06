@@ -213,10 +213,10 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     const auto linkUrl = contextMenuData.linkUrl();
     if (!linkUrl.isEmpty())
     {
-        menu->addAction(tr("Open link in new tab"), this, [=](){
+        menu->addAction(tr("Open link in new tab"), this, [this, linkUrl](){
             emit openInNewBackgroundTab(linkUrl);
         });
-        menu->addAction(tr("Open link in new window"), this, [=](){
+        menu->addAction(tr("Open link in new window"), this, [this, linkUrl](){
             emit openInNewWindowRequest(linkUrl, m_privateView);
         });
         menu->addSeparator();
@@ -227,11 +227,12 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     // Image menu options
     if (mediaType == WebHitTestResult::MediaTypeImage)
     {
-        menu->addAction(tr("Open image in new tab"), this, [=](){
-            emit openInNewBackgroundTab(contextMenuData.mediaUrl());
+        const QUrl mediaUrl = contextMenuData.mediaUrl();
+        menu->addAction(tr("Open image in new tab"), this, [this, mediaUrl](){
+            emit openInNewBackgroundTab(mediaUrl);
         });
-        menu->addAction(tr("Open image"), this, [=](){
-            emit openRequest(contextMenuData.mediaUrl());
+        menu->addAction(tr("Open image"), this, [this, mediaUrl](){
+            emit openRequest(mediaUrl);
         });
         menu->addSeparator();
 
@@ -297,15 +298,15 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         const QString selectedTextInMenu = fontMetrics.elidedText(text, Qt::ElideRight, fontMetrics.width(QChar('R')) * 16);
 #endif
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
-        menu->addAction(tr("Search %1 for \"%2\"").arg(searchMgr->getDefaultSearchEngine()).arg(selectedTextInMenu), [=](){
+        menu->addAction(tr("Search %1 for \"%2\"").arg(searchMgr->getDefaultSearchEngine()).arg(selectedTextInMenu), this, [this, text, searchMgr](){
             HttpRequest request = searchMgr->getSearchRequest(text);
             emit openHttpRequestInBackgroundTab(request);
         });
 
         QUrl selectionUrl = QUrl::fromUserInput(text);
-        if (selectionUrl.isValid() && !selectionUrl.topLevelDomain().isEmpty())
+        if (selectionUrl.isValid() && !selectionUrl.host().isEmpty())
         {
-            menu->addAction(tr("Go to %1").arg(text), this, [=](){
+            menu->addAction(tr("Go to %1").arg(text), this, [this, selectionUrl](){
                 emit openInNewTab(selectionUrl);
             });
         }
