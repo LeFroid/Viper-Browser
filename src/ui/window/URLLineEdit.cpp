@@ -235,7 +235,9 @@ void URLLineEdit::onInputEntered()
         return;
 
     QUrl location = QUrl::fromUserInput(urlText);
-    if (location.isValid() && !location.host().isNull())
+    const QString urlHost = location.host();
+    if (location.isValid() && (urlHost.contains(QStringLiteral("."))
+                || urlHost.compare(QStringLiteral("localhost"), Qt::CaseInsensitive) == 0))
     {
         setURL(location);
         emit loadRequested(location);
