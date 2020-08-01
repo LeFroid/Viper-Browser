@@ -111,7 +111,7 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
         if (request.thirdParty && m_enableCookies)
         {
             const QString originHost = request.origin.host();
-            for (auto &url : m_exemptParties)
+            for (const auto &url : qAsConst(m_exemptParties))
             {
                 const QString urlHost = url.host();
                 if (urlHost == originHost)
@@ -177,7 +177,7 @@ void CookieJar::saveExemptThirdParties()
 
     QTextStream out(&exemptFile);
 
-    for (const auto &url : m_exemptParties)
+    for (const auto &url : qAsConst(m_exemptParties))
     {
         QString scheme = url.scheme();
         if (scheme.isEmpty())
@@ -187,7 +187,7 @@ void CookieJar::saveExemptThirdParties()
         if (host.isEmpty())
             host = url.toString(URL::EncodeUnicode);
 
-        QString output = QString("%1://%2").arg(scheme).arg(host);
+        QString output = QString("%1://%2").arg(scheme, host);
         out << output << '\n';
     }
     out.flush();

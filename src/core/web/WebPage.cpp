@@ -67,10 +67,6 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *p
     });
 }
 
-WebPage::~WebPage()
-{
-}
-
 void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
 {
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
@@ -372,7 +368,7 @@ bool WebPage::isPermissionDenied(const QUrl &securityOrigin, WebPage::Feature fe
     return std::find(std::begin(features), std::end(features), feature) != std::end(features);
 }
 
-void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, WebPage::Feature feature)
+void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, QWebEnginePage::Feature feature)
 {
     if (isPermissionAllowed(securityOrigin, feature))
     {
@@ -459,8 +455,7 @@ void WebPage::onQuotaRequested(QWebEngineQuotaRequest quotaRequest)
 {
     auto response = QMessageBox::question(view()->window(), tr("Permission Request"),
                                           tr("Allow %1 to increase its storage quota to %2?")
-                                          .arg(quotaRequest.origin().host())
-                                          .arg(CommonUtil::bytesToUserFriendlyStr(quotaRequest.requestedSize())));
+                                          .arg(quotaRequest.origin().host(), CommonUtil::bytesToUserFriendlyStr(quotaRequest.requestedSize())));
     if (response == QMessageBox::Yes)
         quotaRequest.accept();
     else
@@ -471,7 +466,7 @@ void WebPage::onRegisterProtocolHandlerRequested(QWebEngineRegisterProtocolHandl
 {
     //todo: save user response, add a "Site Preferences" UI where site permissions and such can be modified
     auto response = QMessageBox::question(view()->window(), tr("Permission Request"),
-                                          tr("Allow %1 to open all %2 links?").arg(request.origin().host()).arg(request.scheme()));
+                                          tr("Allow %1 to open all %2 links?").arg(request.origin().host(), request.scheme()));
     if (response == QMessageBox::Yes)
         request.accept();
     else
@@ -479,7 +474,7 @@ void WebPage::onRegisterProtocolHandlerRequested(QWebEngineRegisterProtocolHandl
 }
 #endif
 
-void WebPage::onRenderProcessTerminated(RenderProcessTerminationStatus terminationStatus, int exitCode)
+void WebPage::onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode)
 {
     if (terminationStatus == WebPage::NormalTerminationStatus)
         return;
@@ -492,7 +487,7 @@ void WebPage::onRenderProcessTerminated(RenderProcessTerminationStatus terminati
 
 void WebPage::showTabCrashedPage()
 {
-    QFile resource(":/crash");
+    QFile resource(QStringLiteral(":/crash"));
     if (resource.open(QIODevice::ReadOnly))
     {
         QString pageHtml = QString::fromUtf8(resource.readAll().constData()).arg(title());

@@ -26,6 +26,12 @@ namespace std
 
 #endif
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+    using QStringSplitFlag = Qt::SplitBehaviorFlags;
+#else
+    using QStringSplitFlag = QString::SplitBehavior;
+#endif
+
 /// Collection of common utility functions
 namespace CommonUtil
 {

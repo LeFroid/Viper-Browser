@@ -67,7 +67,7 @@ void SearchEngineLineEdit::loadSearchEngines()
     QList<QString> searchEngines = manager.getSearchEngineNames();
 
     // Add search engines to the options menu
-    for (auto engineName : searchEngines)
+    for (const auto &engineName : searchEngines)
     {
         // Add search engine to the options menu
         QIcon icon = m_faviconManager->getFavicon(QUrl(manager.getQueryString(engineName)));

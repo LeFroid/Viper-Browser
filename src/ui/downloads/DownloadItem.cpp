@@ -171,7 +171,8 @@ void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     ui->progressBarDownload->setValue(downloadPct);
 
     // Update download file size label
-    ui->labelDownloadSize->setText(tr("%1 of %2").arg(CommonUtil::bytesToUserFriendlyStr(bytesReceived)).arg(CommonUtil::bytesToUserFriendlyStr(bytesTotal)));
+    ui->labelDownloadSize->setText(
+                tr("%1 of %2").arg(CommonUtil::bytesToUserFriendlyStr(bytesReceived), CommonUtil::bytesToUserFriendlyStr(bytesTotal)));
 }
 
 void DownloadItem::onFinished()

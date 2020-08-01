@@ -48,11 +48,11 @@ void InternalDownloadItem::setupItem()
     QString fileNameDefault = QString("%1%2").arg(m_downloadDir).arg(QDir::separator());
     if (!m_writeOverExisting)
     {
-        fileNameDefault = getDefaultFileName(QString("%1%2").arg(fileNameDefault).arg((externalName.isEmpty() ? "unknown" : externalName)),
+        fileNameDefault = getDefaultFileName(QString("%1%2").arg(fileNameDefault, (externalName.isEmpty() ? "unknown" : externalName)),
                                              info.completeSuffix());
     }
     else
-        fileNameDefault = QString("%1%2.%3").arg(fileNameDefault).arg((externalName.isEmpty() ? "unknown" : externalName)).arg(info.completeSuffix());
+        fileNameDefault = QString("%1%2.%3").arg(fileNameDefault, (externalName.isEmpty() ? "unknown" : externalName), info.completeSuffix());
 
     QString fileName = fileNameDefault;
 
@@ -136,7 +136,7 @@ void InternalDownloadItem::onMetaDataChanged()
 QString InternalDownloadItem::getDefaultFileName(const QString &pathWithoutSuffix, const QString &completeSuffix) const
 {
     int attempts = 0;
-    QString fileAttempt = QString("%1.%2").arg(pathWithoutSuffix).arg(completeSuffix);
+    QString fileAttempt = QString("%1.%2").arg(pathWithoutSuffix, completeSuffix);
 
     while (QFile::exists(fileAttempt))
     {

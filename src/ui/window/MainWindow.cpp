@@ -222,7 +222,7 @@ void MainWindow::setupMenuBar()
     connect(ui->actionAbout, &QAction::triggered, [=](){
         QString appName = sBrowserApplication->applicationName();
         QString appVersion = sBrowserApplication->applicationVersion();
-        QMessageBox::about(this, tr("About %1").arg(appName), tr("%1 - Version %2\nDeveloped by Timothy Vaccarelli").arg(appName).arg(appVersion));
+        QMessageBox::about(this, tr("About %1").arg(appName), tr("%1 - Version %2\nDeveloped by Timothy Vaccarelli").arg(appName, appVersion));
     });
     connect(ui->actionAbout_Qt, &QAction::triggered, [=](){
         QMessageBox::aboutQt(this, tr("About Qt"));
@@ -287,7 +287,7 @@ void MainWindow::checkPageForBookmark()
 
     const QUrl pageUrl = ww->url();
     QFutureWatcher<bool> *watcher = new QFutureWatcher<bool>(this);
-    connect(watcher, &QFutureWatcher<bool>::finished, [this, pageUrl, watcher](){
+    connect(watcher, &QFutureWatcher<bool>::finished, this, [this, pageUrl, watcher](){
         const bool isBookmarked = watcher->future().result();
         BookmarkNode *n = isBookmarked ? m_bookmarkManager->getBookmark(pageUrl) : nullptr;
         ui->menuBookmarks->setCurrentPageBookmarked(isBookmarked);

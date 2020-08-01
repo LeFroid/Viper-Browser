@@ -263,7 +263,7 @@ void UserScriptModel::loadDependencies(int scriptIdx)
         if (!depFile.contains("://"))
             continue;
 
-        localFilePath = QString("%1/%2").arg(m_scriptDepDir).arg(depFile.mid(depFile.lastIndexOf('/') + 1));
+        localFilePath = QString("%1/%2").arg(m_scriptDepDir, depFile.mid(depFile.lastIndexOf('/') + 1));
         QFile f(localFilePath);
         if (!f.exists() || !f.open(QIODevice::ReadOnly))
         {

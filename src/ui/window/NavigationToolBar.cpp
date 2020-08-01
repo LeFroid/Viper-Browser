@@ -298,7 +298,7 @@ void NavigationToolBar::onHistoryChanged()
             backMenu->insertAction(prevAction, histAction);
         }
 
-        connect(histAction, &QAction::triggered, [=](){
+        connect(histAction, &QAction::triggered, backMenu, [hist, entry](){
             hist->goToEntry(entry);
         });
         prevAction = histAction;
@@ -306,12 +306,13 @@ void NavigationToolBar::onHistoryChanged()
 
     // Setup forward button history menu
     histItems = hist->getForwardEntries(maxMenuSize);
-    histAction = nullptr, prevAction = nullptr;
+    histAction = nullptr;
+    prevAction = nullptr;
     for (const auto &entry : histItems)
     {
         histAction = forwardMenu->addAction(entry.icon, entry.title);
 
-        connect(histAction, &QAction::triggered, [=](){
+        connect(histAction, &QAction::triggered, forwardMenu, [hist, entry](){
             hist->goToEntry(entry);
         });
     }

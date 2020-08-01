@@ -124,7 +124,7 @@ MatchType BookmarkSuggestor::getMatchTypeForSmallSearchTerm(const QString &searc
     }
 
     haystackParts = CommonUtil::tokenizePossibleUrl(url);
-    for (const QString &part : haystackParts)
+    for (const QString &part : qAsConst(haystackParts))
     {
         if (searchTerm.compare(part) == 0)
             return MatchType::URL;

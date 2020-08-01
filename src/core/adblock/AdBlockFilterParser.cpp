@@ -1,6 +1,7 @@
 #include "AdBlockFilterParser.h"
 #include "AdBlockManager.h"
 #include "Bitfield.h"
+#include "CommonUtil.h"
 
 #include <algorithm>
 #include <array>
@@ -337,7 +338,7 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
             if (!isArgRegExp)
                 evalArg = QString("'%1'").arg(evalArg);
 
-            filter->m_evalString = QString("hideNodes(hasText, '%1', %2); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(hasText, '%1', %2); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::Has:
@@ -353,57 +354,57 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
                 if (c.IsValid)
                 {
                     if (isNegation)
-                        filter->m_evalString = QString("hideIfNotChain('%1', '%2', '%3', %4); ").arg(evalStr).arg(c.CallbackSubject).arg(c.CallbackTarget).arg(c.CallbackName);
+                        filter->m_evalString = QString("hideIfNotChain('%1', '%2', '%3', %4); ").arg(evalStr, c.CallbackSubject, c.CallbackTarget, c.CallbackName);
                     else
-                        filter->m_evalString = QString("hideIfChain('%1', '%2', '%3', %4); ").arg(evalStr).arg(c.CallbackSubject).arg(c.CallbackTarget).arg(c.CallbackName);
+                        filter->m_evalString = QString("hideIfChain('%1', '%2', '%3', %4); ").arg(evalStr, c.CallbackSubject, c.CallbackTarget, c.CallbackName);
                     filter->m_category = FilterCategory::StylesheetJS;
                     return true;
                 }
             }
             if (isNegation)
-                filter->m_evalString = QString("hideIfNotHas('%1', '%2'); ").arg(evalStr).arg(evalArg);
+                filter->m_evalString = QString("hideIfNotHas('%1', '%2'); ").arg(evalStr, evalArg);
             else
-                filter->m_evalString = QString("hideIfHas('%1', '%2'); ").arg(evalStr).arg(evalArg);
+                filter->m_evalString = QString("hideIfHas('%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSS:
         {
-            filter->m_evalString = QString("hideNodes(matchesCSS, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(matchesCSS, '%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSSBefore:
         {
-            filter->m_evalString = QString("hideNodes(matchesCSSBefore, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(matchesCSSBefore, '%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::MatchesCSSAfter:
         {
-            filter->m_evalString = QString("hideNodes(matchesCSSAfter, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(matchesCSSAfter, '%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::XPath:
         {
-            filter->m_evalString = QString("hideNodes(doXPath, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(doXPath, '%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::NthAncestor:
         {
-            filter->m_evalString = QString("hideNodes(nthAncestor, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(nthAncestor, '%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::MinTextLength:
         {
-            filter->m_evalString = QString("hideNodes(minTextLength, '%1', %2); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(minTextLength, '%1', %2); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::Upward:
         {
-            filter->m_evalString = QString("hideNodes(upwardMatch, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(upwardMatch, '%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
         case CosmeticFilter::Remove:
         {
-            filter->m_evalString = QString("hideNodes(removeNodes, '%1', '%2'); ").arg(evalStr).arg(evalArg);
+            filter->m_evalString = QString("hideNodes(removeNodes, '%1', '%2'); ").arg(evalStr, evalArg);
             break;
         }
     }
@@ -453,7 +454,7 @@ bool FilterParser::parseScriptInjection(Filter *filter) const
     QString injectionStr = filter->m_evalString.mid(keywordLength);
     injectionStr = injectionStr.left(injectionStr.lastIndexOf(QChar(')')));
 
-    QStringList injectionArgs = injectionStr.split(QChar(','), QString::SkipEmptyParts);
+    QStringList injectionArgs = injectionStr.split(QChar(','), QStringSplitFlag::SkipEmptyParts);
     const QString &resourceName = injectionArgs.at(0);
 
     // Fetch resource from AdBlockManager and set value as m_evalString
@@ -657,7 +658,7 @@ void FilterParser::parseForCSP(Filter *filter) const
 
 void FilterParser::parseDomains(const QString &domainString, QChar delimiter, Filter *filter) const
 {
-    QStringList domainList = domainString.split(delimiter, QString::SkipEmptyParts);
+    QStringList domainList = domainString.split(delimiter, QStringSplitFlag::SkipEmptyParts);
 	if (domainList.isEmpty())
 		domainList.append(domainString);
 
@@ -676,7 +677,7 @@ void FilterParser::parseDomains(const QString &domainString, QChar delimiter, Fi
 
 void FilterParser::parseOptions(const QString &optionString, Filter *filter) const
 {
-    QStringList optionsList = optionString.split(QChar(','), QString::SkipEmptyParts);
+    QStringList optionsList = optionString.split(QChar(','), QStringSplitFlag::SkipEmptyParts);
     for (const QString &option : optionsList)
     {
         const bool optionException = (option.at(0) == QChar('~'));

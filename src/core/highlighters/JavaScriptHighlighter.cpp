@@ -20,7 +20,7 @@ JavaScriptHighlighter::JavaScriptHighlighter(QTextDocument *parent) :
              << "export" << "super" << "debugger" << "as" << "async" << "await" << "static"
              << "import" << "from" << "as";
     QString keywordStr("\\b(");
-    for (const QString &keyword : keywords)
+    for (const QString &keyword : qAsConst(keywords))
         keywordStr.append(QString("%1|").arg(keyword));
     keywordStr = keywordStr.left(keywordStr.size() - 1);
     keywordStr.append(")\\b");
@@ -56,7 +56,7 @@ JavaScriptHighlighter::JavaScriptHighlighter(QTextDocument *parent) :
              << "document" << "Symbol" << "Set" << "Map" << "WeakSet" << "WeakMap"
              << "Proxy" << "Reflect" << "Promise";
     keywordStr = QString("\\b(");
-    for (const QString &keyword : keywords)
+    for (const QString &keyword : qAsConst(keywords))
         keywordStr.append(QString("%1|").arg(keyword));
     keywordStr = keywordStr.left(keywordStr.size() - 1);
     keywordStr.append(")\\b");

@@ -91,7 +91,7 @@ void UserAgentManager::addUserAgent()
 
         // Add categories to dialog
         auto uaCategories = m_userAgents.keys();
-        for (auto cat : uaCategories)
+        for (const auto &cat : uaCategories)
             m_addAgentDialog->addAgentCategory(cat);
 
         connect(m_addAgentDialog, &AddUserAgentDialog::userAgentAdded, this, &UserAgentManager::onUserAgentAdded);

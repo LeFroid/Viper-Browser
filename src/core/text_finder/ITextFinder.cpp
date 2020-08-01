@@ -9,7 +9,3 @@ ITextFinder::ITextFinder(QObject *parent) :
     m_occurrenceCounter(0)
 {
 }
-
-ITextFinder::~ITextFinder()
-{
-}

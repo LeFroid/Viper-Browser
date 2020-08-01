@@ -196,7 +196,7 @@ void CookieTableModel::searchFor(const QString &text)
 
     // Search for cookies with a name or domain value that match the search parameter
     QByteArray textBytesLower = text.toLower().toUtf8();
-    for (const QNetworkCookie &cookie : m_cookies)
+    for (const QNetworkCookie &cookie : qAsConst(m_cookies))
     {
         if (cookie.name().toLower().contains(textBytesLower)
                 || cookie.domain().contains(text, Qt::CaseInsensitive))

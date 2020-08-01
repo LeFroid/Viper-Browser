@@ -57,14 +57,14 @@ Filter::Filter(const Filter &other) :
 
 Filter::Filter(Filter &&other) noexcept :
     m_category(other.m_category),
-    m_ruleString(other.m_ruleString),
-    m_evalString(other.m_evalString),
-    m_contentSecurityPolicy(other.m_contentSecurityPolicy),
+    m_ruleString(std::move(other.m_ruleString)),
+    m_evalString(std::move(other.m_evalString)),
+    m_contentSecurityPolicy(std::move(other.m_contentSecurityPolicy)),
     m_exception(other.m_exception),
     m_important(other.m_important),
     m_disabled(other.m_disabled),
     m_redirect(other.m_redirect),
-    m_redirectName(other.m_redirectName),
+    m_redirectName(std::move(other.m_redirectName)),
     m_allowedTypes(other.m_allowedTypes),
     m_blockedTypes(other.m_blockedTypes),
     m_matchCase(other.m_matchCase),
@@ -74,7 +74,7 @@ Filter::Filter(Filter &&other) noexcept :
     m_regExp(std::move(other.m_regExp)),
     m_differenceHash(other.m_differenceHash),
     m_evalStringHash(other.m_evalStringHash),
-    m_needleWStr(other.m_needleWStr)
+    m_needleWStr(std::move(other.m_needleWStr))
 {
 }
 

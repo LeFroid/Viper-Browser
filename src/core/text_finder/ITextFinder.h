@@ -19,7 +19,7 @@ public:
     explicit ITextFinder(QObject *parent = nullptr);
 
     /// Destructor
-    virtual ~ITextFinder();
+    virtual ~ITextFinder() = default;
 
     /// Tells the text finder to stop searching for text, and to make sure that no prior
     /// text matches are still highlighted.

@@ -195,6 +195,6 @@ namespace CommonUtil
             }
         }
 
-        return str.split(QLatin1Char(' '), QString::SkipEmptyParts);
+        return str.split(QLatin1Char(' '), QStringSplitFlag::SkipEmptyParts);
     }
 }

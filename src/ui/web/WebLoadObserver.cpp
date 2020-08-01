@@ -26,7 +26,7 @@ void WebLoadObserver::onLoadFinished(bool ok)
     const QString scheme = url.scheme().toLower();
 
     // Check if we should ignore this page
-    const std::array<QString, 2> ignoreSchemes { QLatin1String("qrc"), QLatin1String("viper") };
+    const std::array<QString, 2> ignoreSchemes { QStringLiteral("qrc"), QStringLiteral("viper") };
     if (url.isEmpty() || originalUrl.isEmpty() || scheme.isEmpty())
         return;
 

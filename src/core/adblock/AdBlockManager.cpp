@@ -158,7 +158,7 @@ void AdBlockManager::updateSubscriptions()
                 request.setUrl(srcUrl);
 
                 InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_subscriptionDir, false, true);
-                connect(item, &InternalDownloadItem::downloadFinished, [item, now, subPtr](const QString &filePath) {
+                connect(item, &InternalDownloadItem::downloadFinished, this, [item, now, subPtr](const QString &filePath) {
                     if (filePath != subPtr->getFilePath())
                     {
                         QFile oldFile(subPtr->getFilePath());
@@ -195,7 +195,7 @@ void AdBlockManager::installSubscription(const QUrl &url)
     request.setUrl(url);
 
     InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_subscriptionDir, false);
-    connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
+    connect(item, &InternalDownloadItem::downloadFinished, this, [this, url](const QString &filePath){
         Subscription subscription(filePath);
         subscription.setSourceUrl(url);
 

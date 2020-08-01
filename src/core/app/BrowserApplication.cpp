@@ -6,6 +6,7 @@
 #include "BookmarkManager.h"
 #include "BookmarkStore.h"
 #include "BrowserIPC.h"
+#include "CommonUtil.h"
 #include "CookieJar.h"
 #include "CookieWidget.h"
 #include "DatabaseFactory.h"
@@ -461,7 +462,7 @@ void BrowserApplication::checkBrowserIPC()
         if (!activeWin)
             activeWin = getNewWindow();
 
-        QStringList urlList = messageStr.split(QChar('\t'), QString::SkipEmptyParts);
+        QStringList urlList = messageStr.split(QChar('\t'), QStringSplitFlag::SkipEmptyParts);
         for (const QString &urlStr : urlList)
         {
             QUrl url = QUrl::fromUserInput(urlStr);

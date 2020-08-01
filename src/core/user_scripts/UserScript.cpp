@@ -141,7 +141,7 @@ bool UserScript::load(const QString &file, const QString &templateData)
 
     // Copy template file into script data member, then replace variables with user script specific data
     m_scriptData = templateData;
-    m_scriptData.replace(QStringLiteral("{{SCRIPT_UUID}}"), QString("%1.%2").arg(m_namespace).arg(m_name));
+    m_scriptData.replace(QStringLiteral("{{SCRIPT_UUID}}"), QString("%1.%2").arg(m_namespace, m_name));
     m_scriptData.replace(QStringLiteral("{{SCRIPT_OBJECT}}"), getScriptJSON());
     m_scriptData.replace(QStringLiteral("{{SCRIPT_META_STR}}"), QString(metaData));
     m_scriptData.replace(QStringLiteral("{{USER_SCRIPT}}"), QString(scriptData));
@@ -206,5 +206,5 @@ QString UserScript::getScriptJSON() const
     return QString("{ 'description': '%1', 'excludes': [ %2 ], "
     "'includes': [ %3 ], 'matches': [], 'name': '%4', "
     "'namespace': '%5', 'resources': {}, 'run-at': '%6', "
-    "'version': '%7' }").arg(descrFix).arg(excludes).arg(includes).arg(nameFix).arg(namespaceFix).arg(runTime).arg(m_version);
+    "'version': '%7' }").arg(descrFix, excludes, includes, nameFix, namespaceFix, runTime, m_version);
 }

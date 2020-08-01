@@ -198,7 +198,7 @@ QString WebView::getContextMenuScript(const QPoint &pos)
 {
     QString scriptCopy = m_contextMenuHelper;
     QPointF posF(pos);
-    return scriptCopy.arg(QString::number(posF.x() / zoomFactor())).arg(QString::number(posF.y() / zoomFactor()));
+    return scriptCopy.arg(QString::number(posF.x() / zoomFactor()), QString::number(posF.y() / zoomFactor()));
 }
 
 void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos)
@@ -298,7 +298,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         const QString selectedTextInMenu = fontMetrics.elidedText(text, Qt::ElideRight, fontMetrics.width(QChar('R')) * 16);
 #endif
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
-        menu->addAction(tr("Search %1 for \"%2\"").arg(searchMgr->getDefaultSearchEngine()).arg(selectedTextInMenu), this, [this, text, searchMgr](){
+        menu->addAction(tr("Search %1 for \"%2\"").arg(searchMgr->getDefaultSearchEngine(), selectedTextInMenu), this, [this, text, searchMgr](){
             HttpRequest request = searchMgr->getSearchRequest(text);
             emit openHttpRequestInBackgroundTab(request);
         });

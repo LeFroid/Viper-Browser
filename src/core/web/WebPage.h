@@ -45,7 +45,7 @@ public:
     WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *profile, QObject *parent = nullptr);
 
     /// WebPage destructor
-    ~WebPage();
+    ~WebPage() = default;
 
     /// Returns a pointer to the web page's history
     WebHistory *getHistory() const;
@@ -84,7 +84,7 @@ private Q_SLOTS:
     void onProxyAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator, const QString &proxyHost);
 
     /// Handles the feature permission request signal
-    void onFeaturePermissionRequested(const QUrl &securityOrigin, Feature feature);
+    void onFeaturePermissionRequested(const QUrl &securityOrigin, QWebEnginePage::Feature feature);
 
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
@@ -98,7 +98,7 @@ private Q_SLOTS:
 #endif
 
     /// Handler for render process termination
-    void onRenderProcessTerminated(RenderProcessTerminationStatus terminationStatus, int exitCode);
+    void onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode);
 
     /// Shows the render / tab crash page
     void showTabCrashedPage();

@@ -148,7 +148,7 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
     if (m_certChains.find(hostStripped) == m_certChains.end())
         m_certChains.insert(hostStripped, certChain);
 
-    for (auto errCode : sslErrors)
+    for (const auto &errCode : sslErrors)
     {
         if (errCode.error() != QSslError::NoError && errCode.error() != QSslError::UnspecifiedError)
         {
@@ -179,7 +179,7 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
 void SecurityManager::onSSLErrors(QNetworkReply *reply, const QList<QSslError> &errors)
 {
     QString message = tr("This website is not secure. The following errors were found: ");
-    for (QSslError err : errors)
+    for (const QSslError &err : errors)
         message.append(QString("%1, ").arg(err.errorString()));
     message.chop(2);
     message.append(QString(". Do you wish to proceed?"));

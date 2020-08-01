@@ -146,11 +146,11 @@ void UserScriptManager::createScript(const QString &name, const QString &nameSpa
     if (name.isEmpty() || nameSpace.isEmpty())
         return;
 
-    QString fileName = QString("%1%2%3.%4.user.js").arg(m_model->m_userScriptDir).arg(QDir::separator()).arg(nameSpace).arg(name);
+    QString fileName = QString("%1%2%3.%4.user.js").arg(m_model->m_userScriptDir, QDir::separator(), nameSpace, name);
     QFile f(fileName);
     if (f.exists())
     {
-        fileName = QString("%1%2%3.%4.user.js").arg(m_model->m_userScriptDir).arg(QDir::separator()).arg(name).arg(nameSpace);
+        fileName = QString("%1%2%3.%4.user.js").arg(m_model->m_userScriptDir, QDir::separator(), name, nameSpace);
         f.setFileName(fileName);
 
         // Exit if the second attempt to find an unused name fails

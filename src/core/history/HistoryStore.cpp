@@ -259,6 +259,9 @@ std::map<int, std::vector<int>> HistoryStore::getEntryWordMapping() const
 
 void HistoryStore::addVisit(const QUrl &url, const QString &title, const QDateTime &visitTime, const QUrl &requestedUrl, bool wasTypedByUser)
 {
+    if (url.toString(QUrl::FullyEncoded).startsWith(QStringLiteral("data:")))
+        return;
+
     auto existingEntry = getEntry(url);
     qulonglong visitId = existingEntry.VisitID >= 0 ? static_cast<qulonglong>(existingEntry.VisitID) : ++m_lastVisitID;
     if (existingEntry.VisitID >= 0)
@@ -324,12 +327,12 @@ void HistoryStore::tokenizeAndSaveUrl(int visitId, const QUrl &url, const QStrin
     QStringList urlWords = CommonUtil::tokenizePossibleUrl(url.toString().toUpper());
 
     if (!title.startsWith(QLatin1String("http"), Qt::CaseInsensitive))
-        urlWords = urlWords + title.toUpper().split(QLatin1Char(' '), QString::SkipEmptyParts);
+        urlWords = urlWords + title.toUpper().split(QLatin1Char(' '), QStringSplitFlag::SkipEmptyParts);
 
     sqlite::PreparedStatement &stmtInsertWord = m_statements.at(Statement::CreateWordRecord);
     sqlite::PreparedStatement &stmtAssociateWord = m_statements.at(Statement::CreateUrlWordRecord);
 
-    for (const QString &word : urlWords)
+    for (const QString &word : qAsConst(urlWords))
     {
         stmtInsertWord.reset();
         stmtAssociateWord.reset();
