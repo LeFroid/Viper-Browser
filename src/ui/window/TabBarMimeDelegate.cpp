@@ -25,7 +25,7 @@ TabBarMimeDelegate::TabBarMimeDelegate(MainWindow *window, BrowserTabWidget *tab
     m_tabBar(tabBar),
     m_dragPixmap(),
     m_dragStartPoint(),
-    m_draggedWebWidget(nullptr),
+    m_draggedWebWidget(),
     m_externalDropInfo()
 {
 }
@@ -114,11 +114,11 @@ bool TabBarMimeDelegate::onDrop(QDropEvent *dropEvent)
         if (static_cast<qulonglong>(m_window->winId()) != mimeData->property("tab-origin-window-id").toULongLong())
         {
             m_window->dropEvent(dropEvent);
-            m_draggedWebWidget = nullptr;
+            m_draggedWebWidget.clear();
             return true;
         }
 
-        int originalTabIndex = m_tabWidget->indexOf(m_draggedWebWidget);//mimeData->property("tab-index").toInt();
+        int originalTabIndex = m_tabWidget->indexOf(m_draggedWebWidget);
         int tabIndexAtPos = m_tabBar->tabAt(dropEvent->pos());
         if (tabIndexAtPos < 0)
         {
@@ -142,7 +142,7 @@ bool TabBarMimeDelegate::onDrop(QDropEvent *dropEvent)
             m_tabBar->forceRepaint();
         }
 
-        m_draggedWebWidget = nullptr;
+        m_draggedWebWidget.clear();
 
         dropEvent->acceptProposedAction();
         return true;
@@ -174,7 +174,7 @@ void TabBarMimeDelegate::onMousePress(QMouseEvent *mouseEvent)
 
 void TabBarMimeDelegate::onMouseMove(QMouseEvent *mouseEvent)
 {
-    if (!m_draggedWebWidget)
+    if (m_draggedWebWidget.isNull())
         return;
 
     if (std::abs(mouseEvent->pos().y() - m_dragStartPoint.y()) < m_tabBar->height())

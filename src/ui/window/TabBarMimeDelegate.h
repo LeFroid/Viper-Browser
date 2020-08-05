@@ -3,6 +3,7 @@
 
 #include <QPixmap>
 #include <QPoint>
+#include <QPointer>
 
 class BrowserTabBar;
 class BrowserTabWidget;
@@ -131,7 +132,7 @@ private:
     QPoint m_dragStartPoint;
 
     /// Points to the web widget that is associated with a drag-and-drop event
-    WebWidget *m_draggedWebWidget;
+    QPointer<WebWidget> m_draggedWebWidget;
 
     /// Information about a drag and drop event from a resource external to the browser
     ExternalDropInfo m_externalDropInfo;
