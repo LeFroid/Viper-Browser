@@ -1,0 +1,5 @@
+viper-browser (git-1) buster; urgency=low
+
+  * Initial packaging
+
+ -- Timothy Vaccarelli <tmvfroid@gmail.com>  Fri, 28 Aug 2020 12:41:05 -0500

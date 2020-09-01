@@ -1,0 +1,17 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Viper-Browser
+Upstream-Contact: Timothy Vaccarelli <tmvfroid@gmail.com>
+Source: https://github.com/LeFroid/Viper-Browser
+
+Files: *
+Copyright: 2017-2020, Timothy Vaccarelli
+License: GPL-3+
+
+Files: src/app/assets/AdBlockResources.txt
+Copyright: gorhill
+License: GPL-3+
+
+License: GPL-3+
+ The text of the license is available on Debian systems in
+ the /usr/share/common-licenses/GPL-3 file.
+
