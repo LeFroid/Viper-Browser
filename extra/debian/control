@@ -1,0 +1,40 @@
+Source: viper-browser
+Section: web
+Priority: optional
+Maintainer: Timothy Vaccarelli <tmvfroid@gmail.com>
+Build-Depends: debhelper (>= 11), cmake, qttools5-dev, libqt5svg5-dev, qtwebengine5-dev, libsqlite3-dev
+Standards-Version: 4.1.5
+Homepage: https://github.com/LeFroid/Viper-Browser
+
+Package: viper-browser
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: powerful yet lightweight web browser built with the Qt framework
+ A powerful yet lightweight web browser built with the Qt framework.
+ .
+ Features:
+  * All development is done with a focus on privacy, minimalism, and
+    customization ability
+  * Bookmark management
+  * Built-in ad blocker, compatible with AdBlock Plus and uBlock Origin
+    filters
+  * Cookie viewer, editor, and support for cookie filters
+  * Compatible with Pepper Plugin API
+  * Custom user agent support
+  * Fast and lightweight
+  * Fullscreen support
+  * Granular control over browser settings and web permissions
+  * Gives the user control over their data, no invasions of privacy like
+    other browsers are known to do
+  * GreaseMonkey-style UserScript support
+  * Multiple options for home page- any URL, blank page, or a card layout
+    page with favorite and most visited websites
+  * PDF.js embedded into the browser
+  * Save and restore browsing sessions, local tab history, pinned tabs
+  * Secure AutoFill manager
+  * Tab drag-and-drop support for HTML links, local files, other browser
+    window tabs, etc
+  * Tab hibernation / wake up support
+  * Traditional browser UI design instead of WebUI and chromium-based
+    interfaces
