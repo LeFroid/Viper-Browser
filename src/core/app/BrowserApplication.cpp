@@ -30,10 +30,14 @@
 #include "WebPageThumbnailStore.h"
 #include "WebSettings.h"
 #include "WebWidget.h"
+#include "config.h"
 
 #include <vector>
 #include <QDesktopServices>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QPluginLoader>
 #include <QUrl>
 #include <QDebug>
 #include <QWebEngineCookieStore>
@@ -48,8 +52,8 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     QApplication(argc, argv)
 {
     QCoreApplication::setOrganizationName(QLatin1String("Vaccarelli"));
-    QCoreApplication::setApplicationName(QLatin1String("Viper Browser"));
-    QCoreApplication::setApplicationVersion(QLatin1String("0.9.1"));
+    QCoreApplication::setApplicationName(QLatin1String("Viper-Browser"));
+    QCoreApplication::setApplicationVersion(QLatin1String(VIPER_VERSION_STR));
 
     setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
@@ -248,6 +252,11 @@ MainWindow *BrowserApplication::getWindowById(WId windowId) const
     return nullptr;
 }
 
+QObject *BrowserApplication::getService(const QString &serviceName) const
+{
+    return m_serviceLocator.getService(serviceName.toStdString());
+}
+
 MainWindow *BrowserApplication::getNewWindow()
 {
     bool firstWindow = m_browserWindows.empty();
@@ -266,6 +275,8 @@ MainWindow *BrowserApplication::getNewWindow()
     // the startup mode behavior depending on the user's configuration setting
     if (firstWindow)
     {
+        loadPlugins();
+
         StartupMode mode = static_cast<StartupMode>(m_settings->getValue(BrowserSetting::StartupMode).toInt());
         switch (mode)
         {
@@ -475,6 +486,20 @@ void BrowserApplication::checkBrowserIPC()
             }
         }
     }
+}
+
+void BrowserApplication::loadPlugins()
+{
+    QDir dir = QDir(VIPER_PLUGIN_DIR);
+    const auto entryList = dir.entryList(QDir::Files);
+    for (const QString &fileName : entryList)
+    {
+        QPluginLoader loader(dir.absoluteFilePath(fileName));
+        if (QObject *plugin = loader.instance())
+            registerService(plugin);
+    }
+
+    emit pluginsLoaded();
 }
 
 void BrowserApplication::beforeBrowserQuit()

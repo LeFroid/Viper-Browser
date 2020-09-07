@@ -9,6 +9,7 @@
 #include <QString>
 #include <QUrl>
 #include <QVariant>
+#include <QtPlugin>
 
 /// Contains information used to log in to a certain website
 struct WebCredentials
@@ -40,11 +41,8 @@ QDataStream& operator>>(QDataStream &in, WebCredentials &creds);
 class CredentialStore
 {
 public:
-    /// Default constructor
-    CredentialStore();
-
     /// Credential store destructor
-    virtual ~CredentialStore() {}
+    virtual ~CredentialStore() = default;
 
     /// Returns a list of the hosts which have at least one set of credentials in the store
     virtual std::vector<QString> getHostNames() = 0;
@@ -60,6 +58,13 @@ public:
 
     /// Updates the credentials
     virtual void updateCredentials(const WebCredentials &credentials) = 0;
+
+protected:
+    /// Default constructor
+    CredentialStore() = default;
 };
+
+#define CredentialStore_iid "org.viper-browser.core.credential-store/1.0"
+Q_DECLARE_INTERFACE(CredentialStore, CredentialStore_iid)
 
 #endif // CREDENTIALSTORE_H

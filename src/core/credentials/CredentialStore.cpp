@@ -21,7 +21,3 @@ QDataStream& operator>>(QDataStream &in, WebCredentials &creds)
 
     return in;
 }
-
-CredentialStore::CredentialStore()
-{
-}

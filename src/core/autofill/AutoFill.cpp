@@ -1,7 +1,7 @@
 #include "AutoFill.h"
 #include "AutoFillDialog.h"
 #include "BrowserApplication.h"
-#include "CredentialStoreImpl.h"
+// #include "CredentialStoreImpl.h"
 #include "Settings.h"
 #include "WebPage.h"
 
@@ -11,6 +11,8 @@
 #include <QFile>
 #include <QWebEngineScript>
 
+#include <QDebug>
+
 AutoFill::AutoFill(Settings *settings) :
     QObject(nullptr),
     m_credentialStore(nullptr),
@@ -19,8 +21,8 @@ AutoFill::AutoFill(Settings *settings) :
 {
     setObjectName(QLatin1String("AutoFill"));
 
-    if (std::is_class<CredentialStoreImpl>::value)
-        m_credentialStore = std::make_unique<CredentialStoreImpl>();
+   // if (std::is_class<CredentialStoreImpl>::value)
+   //     m_credentialStore = std::make_unique<CredentialStoreImpl>();
 
     QFile scriptFile(QLatin1String(":/AutoFill.js"));
     if (scriptFile.open(QIODevice::ReadOnly))
@@ -28,6 +30,7 @@ AutoFill::AutoFill(Settings *settings) :
     scriptFile.close();
 
     connect(settings, &Settings::settingChanged, this, &AutoFill::onSettingChanged);
+    connect(sBrowserApplication, &BrowserApplication::pluginsLoaded, this, &AutoFill::onPluginsLoaded);
 }
 
 AutoFill::~AutoFill()
@@ -157,4 +160,12 @@ void AutoFill::onSettingChanged(BrowserSetting setting, const QVariant &value)
 {
     if (setting == BrowserSetting::EnableAutoFill)
         m_enabled = value.toBool();
+}
+
+void AutoFill::onPluginsLoaded()
+{
+    if (CredentialStore *store = qobject_cast<CredentialStore*>(sBrowserApplication->getService("CredentialStore")))
+        m_credentialStore = store;
+    else
+        qWarning() << "No credential store found. Disabling AutoFill.";
 }

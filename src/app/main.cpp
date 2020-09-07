@@ -8,6 +8,7 @@
 #include "URLSuggestion.h"
 #include "WebWidget.h"
 #include "ui/welcome_window/WelcomeWindow.h"
+#include "config.h"
 
 #include <memory>
 #include <vector>
@@ -125,7 +126,7 @@ int main(int argc, char *argv[])
             if (strcmp(argv[i], "-v") == 0
                     || strcmp(argv[i], "--version") == 0)
             {
-                std::cout << "Viper-Browser 0.9.1, written by Timothy Vaccarelli." << std::endl;
+                std::cout << "Viper-Browser " << VIPER_VERSION_STR << ", written by Timothy Vaccarelli." << std::endl;
                 std::cout << "For more information visit https://github.com/LeFroid/Viper-Browser" << std::endl;
                 return 0;
             }

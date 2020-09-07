@@ -9,6 +9,7 @@
 
 #include <QMap>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <QUrl>
 #include <QVariant>
@@ -67,9 +68,13 @@ private Q_SLOTS:
     /// Listens for any settings changes that affect the AutoFill system (ex: enable/disable autofill)
     void onSettingChanged(BrowserSetting setting, const QVariant &value) override;
 
+    /// Attempts to load a credential store, after the application sends a plugin notification signal
+    void onPluginsLoaded();
+
 private:
     /// Credential storage system
-    std::unique_ptr<CredentialStore> m_credentialStore;
+    CredentialStore *m_credentialStore;
+    //std::unique_ptr<CredentialStore> m_credentialStore;
 
     /// Form filling javascript template
     QString m_formFillScript;

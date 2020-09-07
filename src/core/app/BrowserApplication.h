@@ -87,6 +87,13 @@ public:
     /// MainWindow if found, or a nullptr otherwise.
     MainWindow *getWindowById(WId windowId) const;
 
+    /// Wrapper around service locator call
+    QObject *getService(const QString &serviceName) const;
+
+Q_SIGNALS:
+    /// Emitted when any and all runtime plugins have been loaded into the application
+    void pluginsLoaded();
+
 public Q_SLOTS:
     /// Spawns and returns the pointer to a new browser window
     MainWindow *getNewWindow();
@@ -132,6 +139,9 @@ private:
     /// Checks for any unread inter-process messages. This would be empty, or it would
     /// contain a request to open one or more URLs.
     void checkBrowserIPC();
+
+    /// Loads any dynamic plugins found in the installation directory
+    void loadPlugins();
 
 private:
     /// Inter-process communication handler

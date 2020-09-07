@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-project(Viper-Browser VERSION 0.8)
+project(Viper-Browser VERSION 0.9.1)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -16,6 +16,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+if(UNIX)
+  include(GNUInstallDirs)
+  set(VIPER_PLUGIN_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/viper-browser/plugins")
+else()
+  set(VIPER_PLUGIN_DIR "${CMAKE_INSTALL_PREFIX}/plugins")
+endif()
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
@@ -33,13 +40,15 @@ endif()
 if(UNIX AND NOT APPLE)
     find_package(KF5Wallet)
     if (KF5Wallet_FOUND)
-        message("Using KWallet for Autofill backend")
+        message("-- Found KWallet")
         add_definitions(-DUSE_KWALLET)
     endif()
 endif()
 
 find_package (SQLite3)
 include_directories(${SQLite3_INCLUDE_DIR})
+
+configure_file(${CMAKE_SOURCE_DIR}/src/config.h.in ${CMAKE_SOURCE_DIR}/src/config.h)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/src
