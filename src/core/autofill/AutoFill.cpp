@@ -10,7 +10,7 @@
 
 #include <QFile>
 #include <QWebEngineScript>
-
+#include <QtGlobal>
 #include <QDebug>
 
 AutoFill::AutoFill(Settings *settings) :
@@ -164,7 +164,18 @@ void AutoFill::onSettingChanged(BrowserSetting setting, const QVariant &value)
 
 void AutoFill::onPluginsLoaded()
 {
-    if (CredentialStore *store = qobject_cast<CredentialStore*>(sBrowserApplication->getService("CredentialStore")))
+    // Use platform-specific plugins for Mac (Q_OS_MACOS), Windows (Q_OS_WIN), *nix
+    // For *nix platforms, use kwallet or libsecret, depending on user's environment
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    const bool kdeIndicator = qEnvironmentVariableIsSet("KDE_SESSION_VERSION")
+            || (qEnvironmentVariable("XDG_CURRENT_DESKTOP", QString()).compare(QStringLiteral("KDE")) == 0);
+    const QString providerName = kdeIndicator ? QStringLiteral("CredentialStoreKWallet") : QStringLiteral("CredentialStoreSecret");
+    QObject *provider = sBrowserApplication->getService(providerName);
+#else
+    QObject *provider = nullptr;
+#endif
+
+    if (CredentialStore *store = qobject_cast<CredentialStore*>(provider))
         m_credentialStore = store;
     else
         qWarning() << "No credential store found. Disabling AutoFill.";

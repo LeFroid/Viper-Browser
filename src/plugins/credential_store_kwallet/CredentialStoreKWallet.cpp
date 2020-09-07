@@ -13,13 +13,12 @@ CredentialStoreKWallet::CredentialStoreKWallet() :
     m_wallet(nullptr),
     m_credentials()
 {
-    setObjectName(QStringLiteral("CredentialStore"));
+    setObjectName(QStringLiteral("CredentialStoreKWallet"));
     openWallet();
 }
 
 CredentialStoreKWallet::~CredentialStoreKWallet()
 {
-    qDebug() << "~CredentialStoreKWallet()";
     if (m_wallet != nullptr)
         delete m_wallet;
 }
