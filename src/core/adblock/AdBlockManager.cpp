@@ -41,6 +41,7 @@ AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObjec
         { QStringLiteral("ra"), QStringLiteral("remove-attr.js") },
         { QStringLiteral("rc"), QStringLiteral("remove-class.js") },
         { QStringLiteral("raf-if"), QStringLiteral("requestAnimationFrame-if.js") },
+        { QStringLiteral("norafif"), QStringLiteral("no-requestAnimationFrame-if.js") },
         { QStringLiteral("set"), QStringLiteral("set-constant.js") },
         { QStringLiteral("sid"), QStringLiteral("setInterval-defuser.js") },
         { QStringLiteral("nosiif"), QStringLiteral("no-setInterval-if.js") },

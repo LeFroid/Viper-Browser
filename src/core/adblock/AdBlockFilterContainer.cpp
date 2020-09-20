@@ -247,7 +247,7 @@ void FilterContainer::extractFilters(std::vector<Subscription> &subscriptions)
         for (size_t i = 0; i < numFilters; ++i)
         {
             Filter *filter = sub.getFilter(i);
-            if (!filter)
+            if (!filter || filter->getCategory() == FilterCategory::None || filter->getCategory() == FilterCategory::NotImplemented)
                 continue;
 
             if (filter->getCategory() == FilterCategory::Stylesheet)

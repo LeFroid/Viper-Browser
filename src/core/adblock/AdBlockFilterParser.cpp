@@ -24,6 +24,7 @@ QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("badfilter"), ElementType::BadFilter },           { QStringLiteral("inline-script"), ElementType::InlineScript },
     { QStringLiteral("3p"), ElementType::ThirdParty },                 { QStringLiteral("css"), ElementType::Stylesheet },
     { QStringLiteral("frame"), ElementType::Subdocument },             { QStringLiteral("xhr"), ElementType::XMLHTTPRequest },
+    { QStringLiteral("doc"), ElementType::Document },                  { QStringLiteral("cname"), ElementType::NotImplemented },
     { QStringLiteral("other"), ElementType::Other }
 };
 
@@ -60,6 +61,10 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
         parseOptions(rule.mid(pos + 1), filterPtr);
         rule = rule.left(pos);
     }
+
+    // Stop now if we can't support the filter yet
+    if (filter->getCategory() == FilterCategory::NotImplemented)
+        return filter;
 
     // Check if rule is a 'Match all' type
     if (rule.isEmpty() || (rule.size() == 1 && rule.at(0) == QLatin1Char('*')))
@@ -197,7 +202,10 @@ bool FilterParser::isStylesheetRule(const QString &rule, Filter *filter) const
     for (const QString &unsupported : unsupportedTypes)
     {
         if (rule.indexOf(unsupported) >= 0)
+        {
+            filter->m_category = FilterCategory::NotImplemented;
             return true;
+        }
     }
 
     // Check if CSS rule
@@ -705,6 +713,9 @@ void FilterParser::parseOptions(const QString &optionString, Filter *filter) con
         {
             parseDomains(option.mid(7), QChar('|'), filter);
         }
+        //else if (option.startsWith(QStringLiteral("denyallow="))) - parse like domain option list, but,
+        //                                                            different ruleset applies. this filter option means
+        //                                                            to deny everything not listed in the denyallow list
         else if (option.startsWith(QStringLiteral("csp=")))
         {
             filter->m_blockedTypes |= ElementType::CSP;
@@ -749,6 +760,10 @@ void FilterParser::parseOptions(const QString &optionString, Filter *filter) con
         else if (filter->m_ruleString.endsWith(QStringLiteral("$badfilter")))
             filter->m_ruleString = filter->m_ruleString.left(filter->m_ruleString.indexOf(QStringLiteral("$badfilter")));
     }
+
+    if (filter->hasElementType(filter->m_blockedTypes, ElementType::NotImplemented)
+            || filter->hasElementType(filter->m_allowedTypes, ElementType::NotImplemented))
+        filter->m_category = FilterCategory::NotImplemented;
 }
 
 QString FilterParser::parseRegExp(const QString &regExpString) const

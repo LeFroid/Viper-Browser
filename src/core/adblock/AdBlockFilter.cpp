@@ -255,6 +255,7 @@ bool Filter::isMatch(const QString &baseUrl, const QString &requestUrl, const QS
                                                    ElementType::InlineScript,    ElementType::Ping,       ElementType::CSP,
                                                    ElementType::Other };
 
+        // bool allowForHost = () => { if (m_denyAllowHosts.empty()) { true } else { return domainOf(requestUrl) in m_denyAllowHosts } };
         for (std::size_t i = 0; i < elemTypes.size(); ++i)
         {
             ElementType currentType = elemTypes[i];

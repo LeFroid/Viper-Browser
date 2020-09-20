@@ -39,7 +39,9 @@ enum class ElementType : uint64_t
     BadFilter        = 0x00040000,
     CSP              = 0x00080000,
     InlineScript     = 0x00100000,
-    Other            = 0x00200000
+    DenyAllow        = 0x00200000,
+    Other            = 0x00400000,
+    NotImplemented   = 0x00800000
 };
 
 template<>
@@ -69,7 +71,8 @@ enum class FilterCategory
     StringExactMatch,    /// Block or allow if request has an exact match
     StringContains,      /// Block or allow if request contains the string in this filter
     RegExp,              /// Block or allow based on a regular expression
-    Scriptlet            /// JavaScript directive meant to counteract any malevolent behavior
+    Scriptlet,           /// JavaScript directive meant to counteract any malevolent behavior
+    NotImplemented       /// Functionality of the underlying filter rule is not implemented
 };
 
 /**
