@@ -73,8 +73,8 @@ QString UserScriptManager::getScriptsFor(const QUrl &url, ScriptInjectionTime in
         if (isInclude)
         {
             resultBuffer.append(script.m_dependencyData);
-            resultBuffer.append(QChar('\n'));
-            resultBuffer.append(script.m_scriptData);
+            resultBuffer.append('\n');
+            resultBuffer.append(script.m_scriptData.toUtf8());
         }
     }
 
@@ -133,7 +133,7 @@ void UserScriptManager::installScript(const QUrl &url)
     request.setUrl(url);
 
     InternalDownloadItem *item = m_downloadManager->downloadInternal(request, m_model->m_userScriptDir, false);
-    connect(item, &InternalDownloadItem::downloadFinished, [=](const QString &filePath){
+    connect(item, &InternalDownloadItem::downloadFinished, [this](const QString &filePath){
         UserScript script;
         if (script.load(filePath, m_model->m_scriptTemplate))
             m_model->addScript(std::move(script));
@@ -163,13 +163,13 @@ void UserScriptManager::createScript(const QString &name, const QString &nameSpa
 
     // Create metadata block and write to file
     QByteArray scriptData;
-    scriptData.append(QString("// ==UserScript==\n"));
-    scriptData.append(QString("// @name    %1\n").arg(name));
-    scriptData.append(QString("// @namespace    %1\n").arg(nameSpace));
-    scriptData.append(QString("// @description    %1\n").arg(description));
-    scriptData.append(QString("// @version    %1\n").arg(version));
-    scriptData.append(QString("// ==/UserScript==\n\n"));
-    scriptData.append(QString("// Don't forget to add @include, @exclude and/or @match rules to the script header!"));
+    scriptData.append("// ==UserScript==\n");
+    scriptData.append("// @name    ").append(name.toUtf8()).append('\n');
+    scriptData.append("// @namespace    ").append(nameSpace.toUtf8()).append('\n');
+    scriptData.append("// @description    ").append(description.toUtf8()).append('\n');
+    scriptData.append("// @version    ").append(version.toUtf8()).append('\n');
+    scriptData.append("// ==/UserScript==\n\n");
+    scriptData.append("// Don't forget to add @include, @exclude and/or @match rules to the script header!");
     f.write(scriptData);
     f.close();
 

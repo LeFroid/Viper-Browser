@@ -69,7 +69,7 @@ void UserScriptEditor::saveScript()
         return;
 
     QByteArray scriptData;
-    scriptData.append(ui->scriptEditor->toPlainText());
+    scriptData.append(ui->scriptEditor->toPlainText().toUtf8());
     outFile.write(scriptData);
     outFile.close();
 

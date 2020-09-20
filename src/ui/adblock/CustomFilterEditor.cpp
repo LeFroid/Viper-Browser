@@ -60,7 +60,7 @@ void CustomFilterEditor::saveFilters()
         return;
 
     QByteArray filterData;
-    filterData.append(ui->filterEditor->toPlainText());
+    filterData.append(ui->filterEditor->toPlainText().toUtf8());
     outFile.write(filterData);
     outFile.close();
 
