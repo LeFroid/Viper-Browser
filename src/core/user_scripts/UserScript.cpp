@@ -122,15 +122,14 @@ bool UserScript::load(const QString &file, const QString &templateData)
                         m_injectionTime = ScriptInjectionTime::DocumentIdle;
                 }
 
-                metaData.append(line.replace("'", "\\'"));
+                metaData.append(line.replace("'", "\\'").toUtf8());
             }
             else
                 foundMetaDataEnd = metaDataEnd.match(line).hasMatch();
         }
         else
         {
-            scriptData.append(line);
-            scriptData.append(QChar('\n'));
+            scriptData.append(line.toUtf8()).append('\n');
         }
     }
     f.close();

@@ -153,8 +153,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
             data.insert(endTag - 1, QString("<script>window.Response = undefined; document.addEventListener(\"DOMContentLoaded\", function() {"
                                             " window.PDFViewerApplicationOptions.set('verbosity', pdfjsLib.VerbosityLevel.INFOS); "
                                             " window.PDFViewerApplication.open(\"%1\");});</script>").arg(urlString));
-            QByteArray bytes;
-            bytes.append(data.toUtf8());
+            QByteArray bytes = data.toUtf8();
             setHtml(bytes, url);
             return false;
         }
@@ -321,7 +320,7 @@ void WebPage::onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *a
 {
     AuthDialog authDialog(view()->window());
     authDialog.setMessage(tr("%1 is requesting your username and password for %2")
-                          .arg(requestUrl.host()).arg(authenticator->realm()));
+                          .arg(requestUrl.host(), authenticator->realm()));
 
     if (authDialog.exec() == QDialog::Accepted)
     {

@@ -148,7 +148,9 @@ void BookmarkWidget::onBookmarkContextMenu(const QPoint &pos)
         {
             int nodeIdx = index.row();
             BookmarkNode *subFolder = currentFolder->getNode(nodeIdx);
-            menu.addAction(tr("Open all items in tabs"), [=](){ openAllBookmarksNewTabs(subFolder); });
+            menu.addAction(tr("Open all items in tabs"), this, [this, subFolder](){
+                openAllBookmarksNewTabs(subFolder);
+            });
             menu.addSeparator();
         }
     }
@@ -180,7 +182,9 @@ void BookmarkWidget::onFolderContextMenu(const QPoint &pos)
         // Allow user to open all bookmark items if there are > 0 within the folder
         if (f->getNumChildren() > 0)
         {
-            menu.addAction(tr("Open all items in tabs"), [=](){ openAllBookmarksNewTabs(f); });
+            menu.addAction(tr("Open all items in tabs"), this, [this, f](){
+                openAllBookmarksNewTabs(f);
+            });
             menu.addSeparator();
         }
 

@@ -29,9 +29,9 @@ WebState::WebState(WebState &&other) noexcept :
     index(other.index),
     isPinned(other.isPinned),
     icon(std::move(other.icon)),
-    iconUrl(other.iconUrl),
-    title(other.title),
-    url(other.url),
+    iconUrl(std::move(other.iconUrl)),
+    title(std::move(other.title)),
+    url(std::move(other.url)),
     pageHistory(std::move(other.pageHistory))
 {
 }
@@ -43,9 +43,9 @@ WebState &WebState::operator=(WebState &&other) noexcept
         index = other.index;
         isPinned = other.isPinned;
         icon = std::move(other.icon);
-        iconUrl = other.iconUrl;
-        title = other.title;
-        url = other.url;
+        iconUrl = std::move(other.iconUrl);
+        title = std::move(other.title);
+        url = std::move(other.url);
         pageHistory = std::move(other.pageHistory);
     }
 

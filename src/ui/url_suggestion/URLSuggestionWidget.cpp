@@ -258,7 +258,7 @@ QSize URLSuggestionWidget::sizeHint() const
 
 void URLSuggestionWidget::needResizeWidth(int width)
 {
-    QTimer::singleShot(150, [this, width]() {
+    QTimer::singleShot(150, this, [this, width]() {
         setMinimumWidth(width);
     });
 }

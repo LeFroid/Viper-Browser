@@ -36,7 +36,7 @@ QVariantMap ExtStorage::getResult(const QString &extUID, const QVariantMap &keys
     QVariantMap results;
     for (auto it = keys.cbegin(); it != keys.cend(); ++it)
     {
-        std::string boundParam = QString("%1%2").arg(extUID).arg(it.key()).toStdString();
+        std::string boundParam = QString("%1%2").arg(extUID, it.key()).toStdString();
         stmt.bind(0, boundParam);
         if (stmt.next())
         {
@@ -58,7 +58,7 @@ QVariant ExtStorage::getItem(const QString &extUID, const QString &key)
     sqlite::PreparedStatement &stmt = m_statements.at(Statement::GetValue);
     stmt.reset();
 
-    std::string boundParam = QString("%1%2").arg(extUID).arg(key).toStdString();
+    std::string boundParam = QString("%1%2").arg(extUID, key).toStdString();
     stmt.bind(0, boundParam);
 
     if (stmt.next())
@@ -76,7 +76,7 @@ void ExtStorage::setItem(const QString &extUID, const QString &key, const QVaria
     sqlite::PreparedStatement &stmt = m_statements.at(Statement::SetValue);
     stmt.reset();
 
-    std::string boundKey = QString("%1%2").arg(extUID).arg(key).toStdString();
+    std::string boundKey = QString("%1%2").arg(extUID, key).toStdString();
     sqlite::Blob boundVal { value.toString().toStdString() };
 
     stmt.bind(0, boundKey);
@@ -91,7 +91,7 @@ void ExtStorage::removeItem(const QString &extUID, const QString &key)
     sqlite::PreparedStatement &stmt = m_statements.at(Statement::DeleteKey);
     stmt.reset();
 
-    std::string boundKey = QString("%1%2").arg(extUID).arg(key).toStdString();
+    std::string boundKey = QString("%1%2").arg(extUID, key).toStdString();
     stmt.bind(0, boundKey);
     if (!stmt.execute())
         qDebug() << "ExtStorage::removeItem - could not remove key from the database. Key name: "

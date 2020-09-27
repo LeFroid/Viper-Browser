@@ -28,8 +28,7 @@ WebEngineScriptAdapter::WebEngineScriptAdapter(const UserScript &script) :
 
     QByteArray codeBuffer;
     codeBuffer.append(script.getDependencyData());
-    codeBuffer.append(QChar('\n'));
-    codeBuffer.append(script.getScriptData());
+    codeBuffer.append('\n').append(script.getScriptData().toUtf8());
 
     m_script.setSourceCode(QString::fromUtf8(codeBuffer));
 }

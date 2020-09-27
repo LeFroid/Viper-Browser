@@ -78,7 +78,9 @@ void BookmarkMenu::resetMenu()
             QAction *item = currentMenu->addAction(n->getIcon(), n->getName());
             item->setIconVisibleInMenu(true);
             currentMenu->addAction(item);
-            connect(item, &QAction::triggered, [=](){ emit loadUrlRequest(link); });
+            connect(item, &QAction::triggered, [this, link](){
+                emit loadUrlRequest(link);
+            });
         }
 
         folders.pop_front();
@@ -87,8 +89,8 @@ void BookmarkMenu::resetMenu()
 
 void BookmarkMenu::setup()
 {
-    connect(m_addPageBookmarks,    &QAction::triggered, [=](){ emit addPageToBookmarks(); });
-    connect(m_removePageBookmarks, &QAction::triggered, [=](){ emit removePageFromBookmarks(false); });
+    connect(m_addPageBookmarks,    &QAction::triggered, parent(), [this](){ emit addPageToBookmarks(); });
+    connect(m_removePageBookmarks, &QAction::triggered, parent(), [this](){ emit removePageFromBookmarks(false); });
 
     connect(m_bookmarkManager, &BookmarkManager::bookmarksChanged, this, &BookmarkMenu::resetMenu);
 

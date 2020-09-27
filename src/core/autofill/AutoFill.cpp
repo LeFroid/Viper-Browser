@@ -1,7 +1,6 @@
 #include "AutoFill.h"
 #include "AutoFillDialog.h"
 #include "BrowserApplication.h"
-// #include "CredentialStoreImpl.h"
 #include "Settings.h"
 #include "WebPage.h"
 
@@ -20,9 +19,6 @@ AutoFill::AutoFill(Settings *settings) :
     m_enabled(settings->getValue(BrowserSetting::EnableAutoFill).toBool())
 {
     setObjectName(QLatin1String("AutoFill"));
-
-   // if (std::is_class<CredentialStoreImpl>::value)
-   //     m_credentialStore = std::make_unique<CredentialStoreImpl>();
 
     QFile scriptFile(QLatin1String(":/AutoFill.js"));
     if (scriptFile.open(QIODevice::ReadOnly))
@@ -110,7 +106,7 @@ void AutoFill::onPageLoaded(bool ok)
     QString scriptData;
 
     for (auto it = lastUsedCreds.FormData.cbegin(); it != lastUsedCreds.FormData.cend(); ++it)
-        scriptData.append(QString("autoFillVals['%1'] = '%2';\n").arg(it.key()).arg(it.value()));
+        scriptData.append(QString("autoFillVals['%1'] = '%2';\n").arg(it.key(), it.value()));
 
     page->runJavaScript(m_formFillScript.arg(scriptData), QWebEngineScript::ApplicationWorld);
 }

@@ -74,13 +74,13 @@ void HistoryWidget::onContextMenuRequested(const QPoint &pos)
     QUrl url = QUrl(m_proxyModel->data(urlIndex, Qt::DisplayRole).toString());
 
     QMenu menu(this);
-    menu.addAction(tr("Open"), [=](){
+    menu.addAction(tr("Open"), this, [this, url](){
         emit openLink(url);
     });
-    menu.addAction(tr("Open in a new tab"), [=](){
+    menu.addAction(tr("Open in a new tab"), this, [this, url](){
         emit openLinkNewTab(url);
     });
-    menu.addAction(tr("Open in a new window"), [=](){
+    menu.addAction(tr("Open in a new window"), this, [this, url](){
         emit openLinkNewWindow(url);
     });
     menu.exec(ui->tableView->mapToGlobal(pos));

@@ -121,18 +121,18 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
     }
 
     menu.addSeparator();
-    QAction *reloadAction = menu.addAction(tr("Reload"), [=]() {
+    QAction *reloadAction = menu.addAction(tr("Reload"), this, [this, tabIndex]() {
         emit reloadTabRequest(tabIndex);
     });
     reloadAction->setShortcut(QKeySequence(tr("Ctrl+R")));
 
     const bool isPinned = m_tabPinMap.at(tabIndex);
     const QString pinTabText = isPinned ? tr("Unpin tab") : tr("Pin tab");
-    menu.addAction(pinTabText, [=](){
+    menu.addAction(pinTabText, this, [this, tabIndex, isPinned](){
         setTabPinned(tabIndex, !isPinned);
     });
 
-    menu.addAction(tr("Duplicate tab"), [=]() {
+    menu.addAction(tr("Duplicate tab"), this, [this, tabIndex]() {
         emit duplicateTabRequest(tabIndex);
     });
 
@@ -145,20 +145,20 @@ void BrowserTabBar::onContextMenuRequest(const QPoint &pos)
                 const bool isTabMuted = page->isAudioMuted();
 
                 const QString muteActionText = isTabMuted ? tr("Unmute tab") : tr("Mute tab");
-                menu.addAction(muteActionText, [=]() {
+                menu.addAction(muteActionText, this, [page, isTabMuted]() {
                     page->setAudioMuted(!isTabMuted);
                 });
             }
 
             const QString hibernateActionText = ww->isHibernating() ? tr("Wake up tab") : tr("Hibernate tab");
-            menu.addAction(hibernateActionText, [ww](){
+            menu.addAction(hibernateActionText, this, [ww](){
                 ww->setHibernation(!ww->isHibernating());
             });
         }
     }
 
     menu.addSeparator();
-    QAction *closeAction = menu.addAction(tr("Close tab"), [=]() {
+    QAction *closeAction = menu.addAction(tr("Close tab"), this, [this, tabIndex]() {
         removeTab(tabIndex);
     });
     closeAction->setShortcut(QKeySequence(tr("Ctrl+W")));

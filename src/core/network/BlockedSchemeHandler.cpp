@@ -27,11 +27,9 @@ void BlockedSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request)
     if (isB64)
         mimeTypeStr = mimeTypeStr.left(mimeTypeStr.indexOf(QLatin1String(";base64")));
 
-    QByteArray mimeType;
-    mimeType.append(mimeTypeStr);
+    QByteArray mimeType = mimeTypeStr.toUtf8();
 
-    QByteArray resourceData;
-    resourceData.append(m_adBlockManager->getResource(resourceName));
+    QByteArray resourceData = m_adBlockManager->getResource(resourceName).toUtf8();
     if (isB64)
         resourceData = QByteArray::fromBase64(resourceData);
 
