@@ -726,11 +726,27 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
     if (!m_privateWindow)
     {
-        StartupMode mode = static_cast<StartupMode>(m_settings->getValue(BrowserSetting::StartupMode).toInt());
-        if (mode == StartupMode::RestoreSession)
+        QMainWindow::closeEvent(event);
+        return;
+    }
+
+    int numTabsOpen = m_tabWidget->count();
+    if (numTabsOpen > 1)
+    {
+        //TODO: Consider asking the user if they want this prompt or not; save their preference.
+        auto response = QMessageBox::question(this,tr("Warning"),
+                                              tr("You are about to close %1 tabs. Do you wish to proceed?").arg(numTabsOpen));
+        if (response == QMessageBox::No)
         {
-            emit aboutToClose();
+            event->ignore();
+            return;
         }
+    }
+
+    StartupMode mode = static_cast<StartupMode>(m_settings->getValue(BrowserSetting::StartupMode).toInt());
+    if (mode == StartupMode::RestoreSession)
+    {
+        Q_EMIT aboutToClose();
     }
 
     QMainWindow::closeEvent(event);
