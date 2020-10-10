@@ -67,6 +67,9 @@ public:
     /// Returns a pointer to the current web widget
     WebWidget *currentWebWidget() const;
 
+    /// Informs the window that the application is about to exit
+    void prepareToClose();
+
 Q_SIGNALS:
     /// Emitted when the window is about to be closed
     void aboutToClose();

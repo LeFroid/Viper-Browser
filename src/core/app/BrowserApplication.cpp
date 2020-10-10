@@ -160,7 +160,7 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     SecurityManager::instance().setServiceLocator(m_serviceLocator);
 
     // Connect aboutToQuit signal to browser's session management slot
-    connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
+    // connect(this, &BrowserApplication::aboutToQuit, this, &BrowserApplication::beforeBrowserQuit);
 
     // Set URL handlers while application is active
     const std::vector<QString> urlSchemes { QLatin1String("http"), QLatin1String("https"), QLatin1String("viper") };
@@ -255,6 +255,12 @@ MainWindow *BrowserApplication::getWindowById(WId windowId) const
 QObject *BrowserApplication::getService(const QString &serviceName) const
 {
     return m_serviceLocator.getService(serviceName.toStdString());
+}
+
+void BrowserApplication::prepareToQuit()
+{
+    beforeBrowserQuit();
+    QCoreApplication::exit(0);
 }
 
 MainWindow *BrowserApplication::getNewWindow()
@@ -514,6 +520,7 @@ void BrowserApplication::beforeBrowserQuit()
         if (!m.isNull() && !m->isPrivate())
         {
             windows.push_back(m.data());
+            m->prepareToClose();
         }
     }
 

@@ -130,6 +130,11 @@ WebWidget *MainWindow::currentWebWidget() const
     return m_tabWidget->currentWebWidget();
 }
 
+void MainWindow::prepareToClose()
+{
+    m_closing.store(true);
+}
+
 void MainWindow::loadBlankPage()
 {
     m_tabWidget->currentWebWidget()->loadBlankPage();
@@ -183,7 +188,7 @@ void MainWindow::setupMenuBar()
     connect(ui->actionNew_Window,         &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewWindow);
     connect(ui->actionNew_Private_Window, &QAction::triggered, sBrowserApplication, &BrowserApplication::getNewPrivateWindow);
     connect(ui->actionClose_Tab,          &QAction::triggered, m_tabWidget,         &BrowserTabWidget::closeCurrentTab);
-    connect(ui->action_Quit,              &QAction::triggered, sBrowserApplication, &BrowserApplication::quit);
+    connect(ui->action_Quit,              &QAction::triggered, sBrowserApplication, &BrowserApplication::prepareToQuit);
     //connect(ui->action_Save_Page_As, &QAction::triggered, this, &MainWindow::onSavePageTriggered);
     addWebProxyAction(WebPage::SavePage, ui->action_Save_Page_As);
 
@@ -722,9 +727,7 @@ BrowserTabWidget *MainWindow::getTabWidget() const
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    m_closing.store(true);
-
-    if (m_privateWindow)
+    if (m_privateWindow || m_closing)
     {
         QMainWindow::closeEvent(event);
         return;

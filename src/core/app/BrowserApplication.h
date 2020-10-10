@@ -95,6 +95,9 @@ Q_SIGNALS:
     void pluginsLoaded();
 
 public Q_SLOTS:
+    /// Graceful exit handler
+    void prepareToQuit();
+
     /// Spawns and returns the pointer to a new browser window
     MainWindow *getNewWindow();
 
