@@ -724,7 +724,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     m_closing.store(true);
 
-    if (!m_privateWindow)
+    if (m_privateWindow)
     {
         QMainWindow::closeEvent(event);
         return;
