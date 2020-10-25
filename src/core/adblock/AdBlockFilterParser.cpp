@@ -25,7 +25,7 @@ QHash<QString, ElementType> eOptionMap = {
     { QStringLiteral("3p"), ElementType::ThirdParty },                 { QStringLiteral("css"), ElementType::Stylesheet },
     { QStringLiteral("frame"), ElementType::Subdocument },             { QStringLiteral("xhr"), ElementType::XMLHTTPRequest },
     { QStringLiteral("doc"), ElementType::Document },                  { QStringLiteral("cname"), ElementType::NotImplemented },
-    { QStringLiteral("other"), ElementType::Other }
+    { QStringLiteral("popunder"), ElementType::NotImplemented },       { QStringLiteral("other"), ElementType::Other }
 };
 
 FilterParser::FilterParser(AdBlockManager *adBlockManager) :
