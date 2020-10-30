@@ -326,7 +326,7 @@ bool Filter::isDomainMatch(QString base, const QString &domainStr) const
         return false;
 
     int evalIdx = base.indexOf(domainStr); //domainStr.indexOf(base);
-    return (evalIdx > 0 && base.at(evalIdx - 1) == QChar('.'));
+    return evalIdx == 0 || (evalIdx > 0 && base.at(evalIdx - 1) == QChar('.'));
 }
 
 bool Filter::isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const
