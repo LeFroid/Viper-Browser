@@ -110,6 +110,8 @@ void Subscription::load(AdBlockManager *adBlockManager)
     QTextStream stream(&subFile);
     while (stream.readLineInto(&line))
     {
+        line = line.trimmed();
+
         // Check for metadata
         if (line.startsWith(QChar('!')))
         {
@@ -142,6 +144,17 @@ void Subscription::load(AdBlockManager *adBlockManager)
         else if (line.isEmpty() || line.compare(QStringLiteral("#")) == 0 || line.startsWith(QStringLiteral("# ")) || line.startsWith(QStringLiteral("[Adblock")))
             continue;
 
+        // uBO compatibility, see https://github.com/gorhill/uBlock/commit/703c525b01aa3fb9dab94d6a9918a0a69c6d18da
+        // and https://github.com/gorhill/uBlock/commit/ca80d2826bfd92a3081f20da8ba60138509a183b
+        while (line.endsWith(QStringLiteral(" \\")))
+        {
+            QString nextLine;
+            if (!stream.readLineInto(&nextLine))
+                break;
+            if (!nextLine.startsWith(QStringLiteral("    ")))
+                break;
+            line = line.left(line.size() - 2).append(nextLine.trimmed());
+        }
         m_filters.push_back(parser.makeFilter(line));
     }
 
