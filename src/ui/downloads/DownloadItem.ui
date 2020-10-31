@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>615</width>
-    <height>85</height>
+    <height>131</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,6 +49,16 @@
       <widget class="QLabel" name="labelDownloadSize">
        <property name="text">
         <string>Download Size</string>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::NoTextInteraction</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="labelEstimatedTimeLeft">
+       <property name="text">
+        <string>Time Remaining</string>
        </property>
        <property name="textInteractionFlags">
         <set>Qt::NoTextInteraction</set>

@@ -6,6 +6,7 @@
 #include "NetworkAccessManager.h"
 
 #include <QContextMenuEvent>
+#include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
@@ -26,7 +27,9 @@ DownloadItem::DownloadItem(QWebEngineDownloadItem *item, QWidget *parent) :
     m_download(item),
     m_downloadDir(),
     m_bytesReceived(0),
-    m_pushButtonPauseResume(nullptr)
+    m_pushButtonPauseResume(nullptr),
+    m_startTimeMs(QDateTime::currentMSecsSinceEpoch()),
+    m_lastUpdateMs(QDateTime::currentMSecsSinceEpoch())
 {
     ui->setupUi(this);
 
@@ -89,12 +92,13 @@ void DownloadItem::setupItem()
     ui->labelDownloadName->setText(QFileInfo(m_download->path()).fileName());
 #endif
     ui->labelDownloadSize->setText(QString());
+    ui->labelEstimatedTimeLeft->setText(QString());
     ui->progressBarDownload->show();
 
     const QString downloadSource = fontMetrics().elidedText(
                 m_download->url().toDisplayString(QUrl::RemoveScheme | QUrl::RemoveFilename | QUrl::StripTrailingSlash).mid(2),
                 Qt::ElideRight,
-                std::max(250, width() - contentsMargins().left() - contentsMargins().right() - 2));
+                std::max(100, width() - contentsMargins().left() - contentsMargins().right() - 2));
     ui->labelDownloadSource->setText(downloadSource);
 
     ui->pushButtonOpenFolder->hide();
@@ -170,6 +174,13 @@ void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     qint64 downloadPct = 100 * (static_cast<float>(bytesReceived) / bytesTotal);
     ui->progressBarDownload->setValue(downloadPct);
 
+    qint64 timeInMs = QDateTime::currentMSecsSinceEpoch();
+    if (bytesTotal >= 1048576L && bytesReceived < bytesTotal && timeInMs - m_lastUpdateMs > 4000)
+    {
+        m_lastUpdateMs = timeInMs;
+        updateEstimatedTimeLeft(bytesReceived, bytesTotal);
+    }
+
     // Update download file size label
     ui->labelDownloadSize->setText(
                 tr("%1 of %2").arg(CommonUtil::bytesToUserFriendlyStr(bytesReceived), CommonUtil::bytesToUserFriendlyStr(bytesTotal)));
@@ -180,6 +191,7 @@ void DownloadItem::onFinished()
     ui->progressBarDownload->setValue(100);
     ui->progressBarDownload->setDisabled(true);
     ui->labelDownloadSize->setText(CommonUtil::bytesToUserFriendlyStr(m_bytesReceived));
+    ui->labelEstimatedTimeLeft->setText(QString());
 
     if (m_pushButtonPauseResume)
         m_pushButtonPauseResume->hide();
@@ -196,6 +208,7 @@ void DownloadItem::onStateChanged(QWebEngineDownloadItem::DownloadState state)
 
         ui->progressBarDownload->setValue(0);
         ui->progressBarDownload->setDisabled(true);
+        ui->labelEstimatedTimeLeft->setText(QString());
         ui->labelDownloadSize->setText(tr("Cancelled - %1 downloaded").arg(CommonUtil::bytesToUserFriendlyStr(m_bytesReceived)));
     }
     else if (state == QWebEngineDownloadItem::DownloadInterrupted)
@@ -205,6 +218,7 @@ void DownloadItem::onStateChanged(QWebEngineDownloadItem::DownloadState state)
 
         ui->progressBarDownload->setValue(0);
         ui->progressBarDownload->setDisabled(true);
+        ui->labelEstimatedTimeLeft->setText(QString());
         ui->labelDownloadSize->setText(tr("Interrupted - %1").arg(m_download->interruptReasonString()));
     }
 }
@@ -213,4 +227,47 @@ void DownloadItem::openDownloadFolder()
 {
     QString folderUrlStr = QString("file://%1").arg(m_downloadDir);
     static_cast<void>(QDesktopServices::openUrl(QUrl(folderUrlStr, QUrl::TolerantMode)));
+}
+
+void DownloadItem::updateEstimatedTimeLeft(qint64 bytesReceived, qint64 bytesTotal)
+{
+    qint64 timeElapsedMs = QDateTime::currentMSecsSinceEpoch() - m_startTimeMs;
+
+    // TODO: Account for pause/resume times
+    double roughCompletionTime = (static_cast<double>(timeElapsedMs) / static_cast<double>(bytesReceived)) * static_cast<double>(bytesTotal);
+    qint64 etaInMsec = static_cast<qint64>(roughCompletionTime) - timeElapsedMs;
+
+    qint64 numHours = etaInMsec / 3600000;
+    qint64 numMins = (etaInMsec % 3600000) / 60000; 
+    qint64 numSeconds = (etaInMsec % 60000) / 1000;
+
+    QString eta;
+    if (numHours > 0)
+    {
+        eta = tr("%1 hour").arg(numHours);
+        if (numHours > 1)
+            eta.append('s');
+
+        if (numMins > 1)
+            eta.append(tr(", %1 minutes").arg(numMins));
+        else if (numMins == 1)
+            eta.append(tr(", 1 minute"));
+    }
+    else if (numMins > 0)
+    {
+        eta = tr("%1 minute").arg(numMins);
+        if (numMins > 1)
+            eta.append('s');
+
+        if (numSeconds > 1)
+            eta.append(tr(", %1 seconds").arg(numSeconds));
+    }
+    else if (numSeconds > 0)
+    {
+        eta = tr("%1 second").arg(numSeconds);
+        if (numSeconds > 1)
+            eta.append('s');
+    }
+    eta.append(tr(" remaining"));
+    ui->labelEstimatedTimeLeft->setText(eta);
 }

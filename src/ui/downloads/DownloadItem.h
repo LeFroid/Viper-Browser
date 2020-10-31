@@ -68,6 +68,9 @@ private:
     /// Sets the icon for the download's file type
     void setIconForItem(const QString &fileName);
 
+    /// Updates the ETA label, based on current progress
+    void updateEstimatedTimeLeft(qint64 bytesReceived, qint64 bytesTotal);
+
 private:
     /// User interface
     Ui::DownloadItem *ui;
@@ -83,6 +86,12 @@ private:
 
     /// Button used to pause or resume the download (only enabled if QtWebEngine version is >= 5.10)
     QPushButton *m_pushButtonPauseResume;
+
+    /// The time when this download was initiated (milliseconds)
+    qint64 m_startTimeMs;
+
+    /// Time of last update to the ETA
+    qint64 m_lastUpdateMs;
 };
 
 #endif // DOWNLOADITEM_H
