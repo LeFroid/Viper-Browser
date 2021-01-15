@@ -6,6 +6,7 @@
 #include "ISettingsObserver.h"
 
 #include <memory>
+#include <QByteArray>
 #include <QWebEngineUrlRequestInterceptor>
 
 namespace adblock {
@@ -50,6 +51,12 @@ private:
 
     /// Flag indicating whether or not to send the "Do not track" (DNT) header with requests
     bool m_sendDoNotTrack;
+
+    /// Flag indicating whether or not to send a custom user agent in network requests
+    bool m_sendCustomUserAgent;
+
+    /// Custom user agent (Qt does not send the custom user agent in many types of requests. We have to override when enabled by the user)
+    QByteArray m_userAgent;
 };
 
 #endif // REQUESTINTERCEPTOR_H 
