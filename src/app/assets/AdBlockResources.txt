@@ -1302,21 +1302,95 @@ silent-noeval.js application/javascript
 
 noeval-if.js application/javascript
 (function() {
-	var needle = '{{1}}';
-	if ( needle === '' || needle === '{{1}}' ) {
-		needle = '.?';
-	} else if ( needle.slice(0,1) === '/' && needle.slice(-1) === '/' ) {
-		needle = needle.slice(1,-1);
-	} else {
-		needle = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-	}
-	needle = new RegExp(needle);
-	realNoEval = window.eval;
-	window.eval = function(a) {
-		if ( !needle.test(a.toString()) ) {
-			realNoEval.call(window, a);
-		}
-	}.bind(window);
+    let needle = '{{1}}';
+    if ( needle === '' || needle === '{{1}}' ) {
+        needle = '.?';
+    } else if ( needle.slice(0,1) === '/' && needle.slice(-1) === '/' ) {
+        needle = needle.slice(1,-1);
+    } else {
+        needle = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    needle = new RegExp(needle);
+    window.eval = new Proxy(window.eval, {          // jshint ignore: line
+        apply: function(target, thisArg, args) {
+            const a = args[0];
+            if ( needle.test(a.toString()) === false ) {
+                return target.apply(thisArg, args);
+            }
+        }
+    });
+})();
+
+
+no-fetch-if.js application/javascript
+(function() {
+    let arg1 = '{{1}}';
+    if ( arg1 === '{{1}}' ) { arg1 = ''; }
+    const needles = [];
+    for ( const condition of arg1.split(/\s+/) ) {
+        if ( condition === '' ) { continue; }
+        const pos = condition.indexOf(':');
+        let key, value;
+        if ( pos !== -1 ) {
+            key = condition.slice(0, pos);
+            value = condition.slice(pos + 1);
+        } else {
+            key = 'url';
+            value = condition;
+        }
+        if ( value === '' ) {
+            value = '^';
+        } else if ( value.startsWith('/') && value.endsWith('/') ) {
+            value = value.slice(1, -1);
+        } else {
+            value = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        needles.push({ key, re: new RegExp(value) });
+    }
+    const log = needles.length === 0 ? console.log.bind(console) : undefined;
+    self.fetch = new Proxy(self.fetch, {
+        apply: function(target, thisArg, args) {
+            let proceed = true;
+            try {
+                let details;
+                if ( args[0] instanceof self.Request ) {
+                    details = args[0];
+                } else {
+                    details = Object.assign({ url: args[0] }, args[1]);
+                }
+                const props = new Map();
+                for ( const prop in details ) {
+                    let v = details[prop];
+                    if ( typeof v !== 'string' ) {
+                        try { v = JSON.stringify(v); }
+                        catch(ex) { }
+                    }
+                    if ( typeof v !== 'string' ) { continue; }
+                    props.set(prop, v);
+                }
+                if ( log !== undefined ) {
+                    const out = Array.from(props)
+                                     .map(a => `${a[0]}:${a[1]}`)
+                                     .join(' ');
+                    log(`uBO: fetch(${out})`);
+                }
+                proceed = needles.length === 0;
+                for ( const { key, re } of needles ) {
+                    if (
+                        props.has(key) === false ||
+                        re.test(props.get(key)) === false
+                    ) {
+                        proceed = true;
+                        break;
+                    }
+                }
+            } catch(ex) {
+            }
+            return proceed
+                ? Reflect.apply(target, thisArg, args)
+                : Promise.resolve(new Response());
+        }
+    });
 })();
 
 
@@ -2017,61 +2091,98 @@ window.open-defuser.js application/javascript
 
 json-prune.js application/javascript
 (function() {
-    const log = console.log.bind(console);
     const rawPrunePaths = '{{1}}';
     const rawNeedlePaths = '{{2}}';
     const prunePaths = rawPrunePaths !== '{{1}}' && rawPrunePaths !== ''
         ? rawPrunePaths.split(/ +/)
         : [];
-    const needlePaths = rawNeedlePaths !== '{{2}}' && rawNeedlePaths !== ''
-        ? rawNeedlePaths.split(/ +/)
-        : [];
-    const findOwner = function(root, path) {
+    let needlePaths;
+    let log, reLogNeedle;
+    if ( prunePaths.length !== 0 ) {
+        needlePaths = prunePaths.length !== 0 &&
+                      rawNeedlePaths !== '{{2}}' && rawNeedlePaths !== ''
+            ? rawNeedlePaths.split(/ +/)
+            : [];
+    } else {
+        log = console.log.bind(console);
+        let needle;
+        if ( rawNeedlePaths === '' || rawNeedlePaths === '{{2}}' ) {
+            needle = '.?';
+        } else if ( rawNeedlePaths.charAt(0) === '/' && rawNeedlePaths.slice(-1) === '/' ) {
+            needle = rawNeedlePaths.slice(1, -1);
+        } else {
+            needle = rawNeedlePaths.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        reLogNeedle = new RegExp(needle);
+    }
+    const findOwner = function(root, path, prune = false) {
         let owner = root;
         let chain = path;
         for (;;) {
-            if ( owner instanceof Object === false ) { return; }
+            if ( typeof owner !== 'object' || owner === null  ) {
+                return false;
+            }
             const pos = chain.indexOf('.');
             if ( pos === -1 ) {
-                return owner.hasOwnProperty(chain)
-                    ? [ owner, chain ]
-                    : undefined;
+                const found = owner.hasOwnProperty(chain);
+                if ( found === false ) { return false; }
+                if ( prune ) {
+                    delete owner[chain];
+                }
+                return true;
             }
             const prop = chain.slice(0, pos);
-            if ( owner.hasOwnProperty(prop) === false ) { return; }
+            if (
+                prop === '[]' && Array.isArray(owner) ||
+                prop === '*' && owner instanceof Object
+            ) {
+                const next = chain.slice(pos + 1);
+                let found = false;
+                for ( const key of Object.keys(owner) ) {
+                    found = findOwner(owner[key], next, prune) || found;
+                }
+                return found;
+            }
+            if ( owner.hasOwnProperty(prop) === false ) { return false; }
             owner = owner[prop];
             chain = chain.slice(pos + 1);
         }
     };
     const mustProcess = function(root) {
         for ( const needlePath of needlePaths ) {
-            const details = findOwner(root, needlePath);
-            if ( details === undefined ) { return false; }
+            if ( findOwner(root, needlePath) === false ) {
+                return false;
+            }
         }
         return true;
     };
+    const pruner = function(o) {
+        if ( log !== undefined ) {
+            const json = JSON.stringify(o, null, 2);
+            if ( reLogNeedle.test(json) ) {
+                log('uBO:', location.hostname, json);
+            }
+            return o;
+        }
+        if ( mustProcess(o) === false ) { return o; }
+        for ( const path of prunePaths ) {
+            findOwner(o, path, true);
+        }
+        return o;
+    };
     JSON.parse = new Proxy(JSON.parse, {
         apply: function() {
-            const r = Reflect.apply(...arguments);
-            if ( prunePaths.length === 0 ) {
-                log(location.hostname, r);
-                return r;
-            }
-            if ( mustProcess(r) === false ) { return r; }
-            for ( const path of prunePaths ) {
-                const details = findOwner(r, path);
-                if ( details !== undefined ) {
-                    delete details[0][details[1]];
-                }
-            }
-            return r;
+            return pruner(Reflect.apply(...arguments));
+        },
+    });
+    Response.prototype.json = new Proxy(Response.prototype.json, {
+        apply: function() {
+            return Reflect.apply(...arguments).then(o => pruner(o));
         },
     });
 })();
 
 
-# https://github.com/reek/anti-adblock-killer/issues/3774#issuecomment-348536138
-# https://github.com/uBlockOrigin/uAssets/issues/883
 adfly-defuser.js application/javascript
 (function() {
 	// Based on AdsBypasser
@@ -2153,8 +2264,9 @@ disable-newtab-links.js application/javascript
 
 set-constant.js application/javascript
 (function() {
-    const thisScript = document.currentScript;
+    const chain = '{{1}}';
     let cValue = '{{2}}';
+    const thisScript = document.currentScript;
     if ( cValue === 'undefined' ) {
         cValue = undefined;
     } else if ( cValue === 'false' ) {
@@ -2187,53 +2299,84 @@ set-constant.js application/javascript
             (typeof v !== typeof cValue);
         return aborted;
     };
-    const makeProxy = function(owner, chain) {
+    // https://github.com/uBlockOrigin/uBlock-issues/issues/156
+    //   Support multiple trappers for the same property.
+    const trapProp = function(owner, prop, configurable, handler) {
+        if ( handler.init(owner[prop]) === false ) { return; }
+        const odesc = Object.getOwnPropertyDescriptor(owner, prop);
+        let prevGetter, prevSetter;
+        if ( odesc instanceof Object ) {
+            if ( odesc.configurable === false ) { return; }
+            if ( odesc.get instanceof Function ) {
+                prevGetter = odesc.get;
+            }
+            if ( odesc.set instanceof Function ) {
+                prevSetter = odesc.set;
+            }
+        }
+        Object.defineProperty(owner, prop, {
+            configurable,
+            get() {
+                if ( prevGetter !== undefined ) {
+                    prevGetter();
+                }
+                return handler.getter(); // cValue
+            },
+            set(a) {
+                if ( prevSetter !== undefined ) {
+                    prevSetter(a);
+                }
+                handler.setter(a);
+            }
+        });
+    };
+    const trapChain = function(owner, chain) {
         const pos = chain.indexOf('.');
         if ( pos === -1 ) {
-            const original = owner[chain];
-            if ( mustAbort(original) ) { return; }
-            const desc = Object.getOwnPropertyDescriptor(owner, chain);
-            if ( desc === undefined || desc.get === undefined ) {
-                Object.defineProperty(owner, chain, {
-                    get: function() {
-                        return document.currentScript === thisScript
-                            ? original
-                            : cValue;
-                    },
-                    set: function(a) {
-                        if ( mustAbort(a) ) {
-                            cValue = a;
-                        }
-                    }
-                });
-            }
+            trapProp(owner, chain, false, {
+                v: undefined,
+                init: function(v) {
+                    if ( mustAbort(v) ) { return false; }
+                    this.v = v;
+                    return true;
+                },
+                getter: function() {
+                    return document.currentScript === thisScript
+                        ? this.v
+                        : cValue;
+                },
+                setter: function(a) {
+                    if ( mustAbort(a) === false ) { return; }
+                    cValue = a;
+                }
+            });
             return;
         }
         const prop = chain.slice(0, pos);
-        let v = owner[prop];
+        const v = owner[prop];
         chain = chain.slice(pos + 1);
-        if (
-            (v instanceof Object) ||
-            (typeof v === 'object' && v !== null)
-        ) {
-            makeProxy(v, chain);
+        if ( v instanceof Object || typeof v === 'object' && v !== null ) {
+            trapChain(v, chain);
             return;
         }
-        const desc = Object.getOwnPropertyDescriptor(owner, prop);
-        if ( desc && desc.set !== undefined ) { return; }
-        Object.defineProperty(owner, prop, {
-            get: function() {
-                return v;
+        trapProp(owner, prop, true, {
+            v: undefined,
+            init: function(v) {
+                this.v = v;
+                return true;
             },
-            set: function(a) {
-                v = a;
+            getter: function() {
+                return this.v;
+            },
+            setter: function(a) {
+                this.v = a;
                 if ( a instanceof Object ) {
-                    makeProxy(a, chain);
+                    trapChain(a, chain);
                 }
             }
         });
     };
-    makeProxy(window, '{{1}}');
+    trapChain(window, chain);
 })();
 
 
@@ -2326,29 +2469,61 @@ nano-setInterval-booster.js application/javascript
 
 remove-attr.js application/javascript
 (function() {
-	var attr = '{{1}}';
-	if ( attr === '' || attr === '{{1}}' ) { return; }
-	var attrs = attr.split(/\s*\|\s*/);
-	var selector = '{{2}}';
-	if ( selector === '' || selector === '{{2}}' ) {
-		selector = '[' + attrs.join('],[') + ']';
-	}
-	var rmattr = function(ev) {
-		if ( ev ) { window.removeEventListener(ev.type, rmattr, true); }
-		try {
-			var nodes = document.querySelectorAll(selector), i = nodes.length;
-			while ( i-- ) {
-				var node = nodes[i], j = attrs.length;
-				while ( j-- ) { node.removeAttribute(attrs[j]); }
-			}
-		} catch(ex) {
-		}
-	};
-	if ( document.readyState === 'loading' ) {
-		window.addEventListener('DOMContentLoaded', rmattr, true);
-	} else {
-		rmattr();
-	}
+    const token = '{{1}}';
+    if ( token === '' || token === '{{1}}' ) { return; }
+    const tokens = token.split(/\s*\|\s*/);
+    let selector = '{{2}}';
+    if ( selector === '' || selector === '{{2}}' ) {
+        selector = `[${tokens.join('],[')}]`;
+    }
+    let behavior = '{{3}}';
+    let timer;
+    const rmattr = ( ) => {
+        timer = undefined;
+        try {
+            const nodes = document.querySelectorAll(selector);
+            for ( const node of nodes ) {
+                for ( const attr of tokens ) {
+                    node.removeAttribute(attr);
+                }
+            }
+        } catch(ex) {
+        }
+    };
+    const mutationHandler = mutations => {
+        if ( timer !== undefined ) { return; }
+        let skip = true;
+        for ( let i = 0; i < mutations.length && skip; i++ ) {
+            const { type, addedNodes, removedNodes } = mutations[i];
+            if ( type === 'attributes' ) { skip = false; }
+            for ( let j = 0; j < addedNodes.length && skip; j++ ) {
+                if ( addedNodes[j].nodeType === 1 ) { skip = false; break; }
+            }
+            for ( let j = 0; j < removedNodes.length && skip; j++ ) {
+                if ( removedNodes[j].nodeType === 1 ) { skip = false; break; }
+            }
+        }
+        if ( skip ) { return; }
+        timer = self.requestIdleCallback(rmattr, { timeout: 67 });
+    };
+    const start = ( ) => {
+        rmattr();
+        if ( /\bstay\b/.test(behavior) === false ) { return; }
+        const observer = new MutationObserver(mutationHandler);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: tokens,
+            childList: true,
+            subtree: true,
+        });
+    };
+    if ( document.readyState !== 'complete' && /\bcomplete\b/.test(behavior) ) {
+        self.addEventListener('load', start, { once: true });
+    } else if ( document.readyState === 'loading' ) {
+        self.addEventListener('DOMContentLoaded', start, { once: true });
+    } else {
+        start();
+    }
 })();
 
 
