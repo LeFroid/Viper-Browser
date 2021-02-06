@@ -124,6 +124,14 @@
         return '';
     }
 
+    function GM_getResourceText(caption, commandFunc, accessKey) {
+        //no-op
+    }
+
+    function GM_registerMenuCommand(caption, commandFunc, accessKey) {
+        //no-op
+    }
+
     function GM_log(text) {
         console.log(text);
     }
@@ -137,7 +145,7 @@
         'openInTab': GM_openInTab,
         'xmlHttpRequest': GM_xmlhttpRequest,
     }
-    for (var newKey in entries) {
+    for (let newKey in entries) {
         let oldKey = entries[newKey];
         if (oldKey && (typeof GM[newKey] == 'undefined')) {
             GM[newKey] = function(...args) {
@@ -188,7 +196,7 @@
 	GM.listValues = function() {
         return new Promise(function(resolve) {
 			onWebChannelSetup(() => {
-				window.viper.storage.listKeys(_uuid, resolve);
+                window.viper.storage.listKeys(_uuid, (r) => { resolve(r); });
 			});
         });
     };
