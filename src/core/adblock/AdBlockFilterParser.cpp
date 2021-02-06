@@ -727,6 +727,11 @@ void FilterParser::parseOptions(const QString &optionString, Filter *filter) con
             filter->m_redirect = true;
             filter->m_redirectName = option.mid(9);
         }
+        else if (option.startsWith(QStringLiteral("redirect-rule=")))
+        {
+            filter->m_redirect = true;
+            filter->m_redirectName = option.mid(14);
+        }
         else if (option.compare(QStringLiteral("empty")) == 0)
         {
             filter->m_redirect = true;
