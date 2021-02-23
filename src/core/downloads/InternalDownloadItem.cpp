@@ -6,9 +6,9 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QList>
 #include <QNetworkReply>
 
+#include <QDebug>
 
 InternalDownloadItem::InternalDownloadItem(QNetworkReply *reply, const QString &downloadDir, bool askForFileName, bool writeOverExisting, QObject *parent) :
     QObject(parent),
@@ -21,6 +21,14 @@ InternalDownloadItem::InternalDownloadItem(QNetworkReply *reply, const QString &
     m_inProgress(false),
     m_finished(false)
 {
+    // Create parent directory if does not exist
+    QDir parentDir(m_downloadDir);
+    if (!parentDir.exists())
+    {
+        if (!parentDir.mkpath(parentDir.absolutePath()))
+            return;
+    }
+
     if (m_reply != nullptr)
         setupItem();
 }
@@ -41,55 +49,32 @@ void InternalDownloadItem::setupItem()
     connect(m_reply, &QNetworkReply::metaDataChanged, this, &InternalDownloadItem::onMetaDataChanged);
 
     // Get file info
-    QFileInfo info(m_reply->url().path());
-    QString externalName = info.baseName();
+    const QString url = m_reply->url().toString();
 
     // Request file name for download if needed
-    QString fileNameDefault = QString("%1%2").arg(m_downloadDir).arg(QDir::separator());
+    const QString suffix = url.mid(url.lastIndexOf(QChar('.')) + 1);
+    QString fileName = QDir(m_downloadDir).filePath(url.mid(url.lastIndexOf(QChar('/')) + 1));
+
     if (!m_writeOverExisting)
     {
-        fileNameDefault = getDefaultFileName(QString("%1%2").arg(fileNameDefault, (externalName.isEmpty() ? "unknown" : externalName)),
-                                             info.completeSuffix());
+        const QString suffix = url.mid(url.lastIndexOf(QChar('.')) + 1);
+        fileName = getDefaultFileName(fileName.left(fileName.lastIndexOf(QChar('.'))), suffix);
     }
-    else
-        fileNameDefault = QString("%1%2.%3").arg(fileNameDefault, (externalName.isEmpty() ? "unknown" : externalName), info.completeSuffix());
-
-    QString fileName = fileNameDefault;
 
     // Create file on disk
     m_file.setFileName(fileName);
-    QFileInfo localFileInfo(m_file.fileName());
 
-    // Create parent directory if does not exist
-    QDir parentDir = localFileInfo.dir();
-    if (!parentDir.exists())
-    {
-        if (!parentDir.mkpath(parentDir.absolutePath()))
-            return;
-    }
-
-    if (m_askForFileName)
-        onReadyRead();
-
-    if (m_reply->error() != QNetworkReply::NoError)
-    {
+    if (m_reply->isFinished() || m_reply->error() != QNetworkReply::NoError)
         onFinished();
-    }
 }
 
 void InternalDownloadItem::onReadyRead()
 {
-    if (m_askForFileName && m_file.fileName().isEmpty())
-        return;
-
-    // Check if output file is not opened yet
-    if (!m_file.isOpen())
+    // Open the output file or die trying
+    if (!m_file.isOpen() && !m_file.open(QIODevice::WriteOnly))
     {
-        if (!m_file.open(QIODevice::WriteOnly))
-        {
-            m_reply->abort();
-            return;
-        }
+        m_reply->abort();
+        return;
     }
 
     if (m_file.write(m_reply->readAll()) == -1)
@@ -99,19 +84,22 @@ void InternalDownloadItem::onReadyRead()
     else
     {
         m_inProgress = true;
-        if (m_finished)
-            onFinished();
     }
 }
 
 void InternalDownloadItem::onFinished()
 {
-    const bool hadError = m_reply->error() != QNetworkReply::NoError;
-
-    if (!hadError && (m_file.size() == 0 || (m_bytesReceived > 0 && m_file.size() < m_bytesReceived)))
-        onReadyRead();
+    if (m_finished)
+        return;
 
     m_finished = true;
+    const bool hadError = m_reply->error() != QNetworkReply::NoError;
+    if (!hadError && (m_file.size() == 0 || m_reply->isReadable()))
+    {
+        onReadyRead();
+    }
+
+    m_file.flush();
     m_file.close();
 
     if (!hadError)
@@ -130,6 +118,13 @@ void InternalDownloadItem::onMetaDataChanged()
 
     m_reply->deleteLater();
     m_reply = sBrowserApplication->getNetworkAccessManager()->get(QNetworkRequest(locHeader.toUrl()));
+
+    if (m_file.isOpen())
+    {
+        m_file.close();
+        m_file.remove();
+    }
+
     setupItem();
 }
 
