@@ -53,6 +53,8 @@ void WelcomeWindow::accept()
             m_adBlockManager->installSubscription(subscription);
         }
     }
+
+    QDialog::accept();
 }
 
 IntroductionPage::IntroductionPage(QWidget *parent) :
