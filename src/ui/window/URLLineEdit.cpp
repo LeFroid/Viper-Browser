@@ -8,6 +8,7 @@
 #include "WebWidget.h"
 
 #include <array>
+#include <QApplication>
 #include <QCoreApplication>
 #include <QIcon>
 #include <QResizeEvent>
@@ -150,7 +151,7 @@ void URLLineEdit::setURLFormatted(const QUrl &url)
     schemeFormatRange.start = 0;
 
     schemeFormat.setForeground(QBrush(QColor(110, 110, 110)));
-    hostFormat.setForeground(QBrush(Qt::black));
+    hostFormat.setForeground(QApplication::palette().text());
     pathFormat.setForeground(QBrush(QColor(110, 110, 110)));
 
     if (SchemeRegistry::isSecure(url.scheme()))
