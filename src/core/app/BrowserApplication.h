@@ -90,6 +90,9 @@ public:
     /// Wrapper around service locator call
     QObject *getService(const QString &serviceName) const;
 
+    /// Returns true if the application is *likely* using a dark theme
+    bool isDarkTheme() const;
+
 Q_SIGNALS:
     /// Emitted when any and all runtime plugins have been loaded into the application
     void pluginsLoaded();

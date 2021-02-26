@@ -5,13 +5,18 @@
         <file>AdBlockResources.txt</file>
         <file alias="AdBlock.svg">images/AdBlock.svg</file>
         <file alias="arrow-back.png">images/arrow-back.png</file>
+        <file alias="arrow-back-white.png">images/arrow-back-white.png</file>
         <file alias="arrow-forward.png">images/arrow-forward.png</file>
+        <file alias="arrow-forward-white.png">images/arrow-forward-white.png</file>
         <file alias="document-save.png">images/document-save.png</file>
         <file alias="edit-find.png">images/edit-find.png</file>
         <file alias="reload.png">images/reload.png</file>
+        <file alias="reload-white.png">images/reload-white.png</file>
         <file alias="stop.png">images/stop.png</file>
+        <file alias="stop-white.png">images/stop-white.png</file>
         <file alias="logo.png">images/logo.png</file>
         <file alias="new-tab.png">images/new-tab.png</file>
+        <file alias="new-tab-white.png">images/new-tab-white.png</file>
         <file alias="window-close.png">images/window-close.png</file>
         <file alias="plus_icon.png">images/plus_icon.png</file>
         <file alias="not_bookmarked.png">images/not_bookmarked.png</file>

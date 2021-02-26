@@ -1,3 +1,4 @@
+#include "BrowserApplication.h"
 #include "BrowserTabBar.h"
 #include "BrowserTabWidget.h"
 #include "MainWindow.h"
@@ -42,7 +43,8 @@ BrowserTabBar::BrowserTabBar(QWidget *parent) :
 
     // Add "New Tab" button
     m_buttonNewTab = new QToolButton(this);
-    m_buttonNewTab->setIcon(QIcon(QLatin1String(":/new-tab.png")));
+    const bool isDarkTheme = sBrowserApplication->isDarkTheme();
+    m_buttonNewTab->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/new-tab-white.png")) : QIcon(QStringLiteral(":/new-tab.png")));
     m_buttonNewTab->setStyleSheet(QLatin1String("QToolButton:hover { border: 1px solid #666666; border-radius: 2px; } "));
     m_buttonNewTab->setToolTip(tr("New Tab"));
     m_buttonNewTab->setFixedSize(28, height() - 2);

@@ -2,6 +2,7 @@
 #include "AdBlockManager.h"
 #include "BookmarkManager.h"
 #include "BookmarkNode.h"
+#include "BrowserApplication.h"
 #include "BrowserTabWidget.h"
 #include "FaviconManager.h"
 #include "MainWindow.h"
@@ -96,7 +97,9 @@ void NavigationToolBar::setupUI()
     m_prevPage = new QToolButton;
     QAction *pageAction = addWidget(m_prevPage);
 
-    m_prevPage->setIcon(QIcon(QLatin1String(":/arrow-back.png")));
+    const bool isDarkTheme = sBrowserApplication->isDarkTheme();
+
+    m_prevPage->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/arrow-back-white.png")) : QIcon(QStringLiteral(":/arrow-back.png")));
     m_prevPage->setToolTip(tr("Go back one page"));
 
     QMenu *buttonHistMenu = new QMenu(this);
@@ -112,7 +115,7 @@ void NavigationToolBar::setupUI()
     // Next Page Button
     m_nextPage = new QToolButton;
     pageAction = addWidget(m_nextPage);
-    m_nextPage->setIcon(QIcon(QLatin1String(":/arrow-forward.png")));
+    m_nextPage->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/arrow-forward-white.png")) : QIcon(QStringLiteral(":/arrow-forward.png")));
     m_nextPage->setToolTip(tr("Go forward one page"));
 
     buttonHistMenu = new QMenu(this);
@@ -126,7 +129,8 @@ void NavigationToolBar::setupUI()
 
     // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
-    m_stopRefresh->setIcon(QIcon(QLatin1String(":/reload.png")));
+
+    m_stopRefresh->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/reload-white.png")) : QIcon(QStringLiteral(":/reload.png")));
     connect(m_stopRefresh, &QAction::triggered, this, &NavigationToolBar::onStopRefreshActionTriggered);
 
     // URL Bar
@@ -225,15 +229,17 @@ void NavigationToolBar::onTabChanged(int index)
 
 void NavigationToolBar::onLoadProgress(int value)
 {
+    const bool isDarkTheme = sBrowserApplication->isDarkTheme();
+
     // Update stop/refresh icon and tooltip depending on state
     if (value > 0 && value < 100)
     {
-        m_stopRefresh->setIcon(QIcon(QLatin1String(":/stop.png")));
+        m_stopRefresh->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/stop-white.png")) : QIcon(QStringLiteral(":/stop.png")));
         m_stopRefresh->setToolTip(tr("Stop loading the page"));
     }
     else
     {
-        m_stopRefresh->setIcon(QIcon(QLatin1String(":/reload.png")));
+        m_stopRefresh->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/reload-white.png")) : QIcon(QStringLiteral(":/reload.png")));
         m_stopRefresh->setToolTip(tr("Reload the page"));
     }
 }

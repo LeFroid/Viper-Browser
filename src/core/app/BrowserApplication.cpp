@@ -32,11 +32,13 @@
 #include "WebWidget.h"
 #include "config.h"
 
+#include <cmath>
 #include <vector>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QPalette>
 #include <QPluginLoader>
 #include <QUrl>
 #include <QDebug>
@@ -255,6 +257,17 @@ MainWindow *BrowserApplication::getWindowById(WId windowId) const
 QObject *BrowserApplication::getService(const QString &serviceName) const
 {
     return m_serviceLocator.getService(serviceName.toStdString());
+}
+
+bool BrowserApplication::isDarkTheme() const
+{
+    // Source: https://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
+    const QColor textColor = palette().text().color();
+    const float hsp = std::sqrt(0.299 * (textColor.red() * textColor.red())
+                                + 0.587 * (textColor.green() * textColor.green())
+                                + 0.114 * (textColor.blue() * textColor.blue()));
+    // Light text color, dark theme (and vice versa)
+    return hsp > 127.5;
 }
 
 void BrowserApplication::prepareToQuit()
