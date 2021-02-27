@@ -16,12 +16,12 @@
 #include <QWidget>
 #include <QtGlobal>
 
-AdBlockButton::AdBlockButton(QWidget *parent) :
+AdBlockButton::AdBlockButton(bool isDarkTheme, QWidget *parent) :
     QToolButton(parent),
     m_adBlockManager(nullptr),
     m_settings(nullptr),
     m_mainWindow(nullptr),
-    m_icon(QLatin1String(":/AdBlock.svg")),
+    m_icon(isDarkTheme ? QStringLiteral(":/AdBlock-white.svg") : QStringLiteral(":/AdBlock.svg")),
     m_timer(),
     m_lastCount(0)
 {

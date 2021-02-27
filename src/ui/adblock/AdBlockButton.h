@@ -23,7 +23,7 @@ class AdBlockButton : public QToolButton
 
 public:
     /// Constructs the AdBlockButton with a given parent
-    explicit AdBlockButton(QWidget *parent = nullptr);
+    explicit AdBlockButton(bool isDarkTheme, QWidget *parent = nullptr);
 
     /// Sets the pointer to the advertisement blocking system manager
     void setAdBlockManager(adblock::AdBlockManager *adBlockManager);

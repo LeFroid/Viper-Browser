@@ -4,6 +4,7 @@
         <file>search_engines.json</file>
         <file>AdBlockResources.txt</file>
         <file alias="AdBlock.svg">images/AdBlock.svg</file>
+        <file alias="AdBlock-white.svg">images/AdBlock-white.svg</file>
         <file alias="arrow-back.png">images/arrow-back.png</file>
         <file alias="arrow-back-white.png">images/arrow-back-white.png</file>
         <file alias="arrow-forward.png">images/arrow-forward.png</file>
@@ -23,7 +24,9 @@
         <file alias="bookmarked.png">images/bookmarked.png</file>
         <file alias="blank_favicon.png">images/blank_favicon.png</file>
         <file alias="https_secure.png">images/https_secure.png</file>
+        <file alias="https_secure_bright.png">images/https_secure_bright.png</file>
         <file alias="https_insecure.png">images/https_insecure.png</file>
+        <file alias="https_insecure_bright.png">images/https_insecure_bright.png</file>
         <file alias="search_icon.png">images/search_icon.png</file>
         <file alias="blank">html/blank.html</file>
         <file alias="newtab">html/newtab.html</file>

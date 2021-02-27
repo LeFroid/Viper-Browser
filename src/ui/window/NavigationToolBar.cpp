@@ -28,7 +28,8 @@ NavigationToolBar::NavigationToolBar(const QString &title, QWidget *parent) :
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
     m_splitter(nullptr),
-    m_adBlockButton(nullptr)
+    m_adBlockButton(nullptr),
+    m_isDarkTheme(false)
 {
     setupUI();
 }
@@ -41,7 +42,8 @@ NavigationToolBar::NavigationToolBar(QWidget *parent) :
     m_urlInput(nullptr),
     m_searchEngineLineEdit(nullptr),
     m_splitter(nullptr),
-    m_adBlockButton(nullptr)
+    m_adBlockButton(nullptr),
+    m_isDarkTheme(false)
 {
     setupUI();
 }
@@ -97,9 +99,8 @@ void NavigationToolBar::setupUI()
     m_prevPage = new QToolButton;
     QAction *pageAction = addWidget(m_prevPage);
 
-    const bool isDarkTheme = sBrowserApplication->isDarkTheme();
-
-    m_prevPage->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/arrow-back-white.png")) : QIcon(QStringLiteral(":/arrow-back.png")));
+    m_isDarkTheme = sBrowserApplication->isDarkTheme();
+    m_prevPage->setIcon(QIcon(m_isDarkTheme ? QStringLiteral(":/arrow-back-white.png") : QStringLiteral(":/arrow-back.png")));
     m_prevPage->setToolTip(tr("Go back one page"));
 
     QMenu *buttonHistMenu = new QMenu(this);
@@ -115,7 +116,7 @@ void NavigationToolBar::setupUI()
     // Next Page Button
     m_nextPage = new QToolButton;
     pageAction = addWidget(m_nextPage);
-    m_nextPage->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/arrow-forward-white.png")) : QIcon(QStringLiteral(":/arrow-forward.png")));
+    m_nextPage->setIcon(QIcon(m_isDarkTheme ? QStringLiteral(":/arrow-forward-white.png") : QStringLiteral(":/arrow-forward.png")));
     m_nextPage->setToolTip(tr("Go forward one page"));
 
     buttonHistMenu = new QMenu(this);
@@ -130,7 +131,7 @@ void NavigationToolBar::setupUI()
     // Stop Loading / Refresh Page dual button
     m_stopRefresh = new QAction(this);
 
-    m_stopRefresh->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/reload-white.png")) : QIcon(QStringLiteral(":/reload.png")));
+    m_stopRefresh->setIcon(QIcon(m_isDarkTheme ? QStringLiteral(":/reload-white.png") : QStringLiteral(":/reload.png")));
     connect(m_stopRefresh, &QAction::triggered, this, &NavigationToolBar::onStopRefreshActionTriggered);
 
     // URL Bar
@@ -166,7 +167,7 @@ void NavigationToolBar::setupUI()
     addWidget(splitter);
 
     // Ad block button
-    m_adBlockButton = new AdBlockButton;
+    m_adBlockButton = new AdBlockButton(m_isDarkTheme);
     connect(m_adBlockButton, &AdBlockButton::clicked, this, &NavigationToolBar::clickedAdBlockButton);
     connect(m_adBlockButton, &AdBlockButton::viewLogsRequest, this, &NavigationToolBar::clickedAdBlockButton);
     connect(m_adBlockButton, &AdBlockButton::manageSubscriptionsRequest, this, &NavigationToolBar::requestManageAdBlockSubscriptions);
@@ -229,17 +230,15 @@ void NavigationToolBar::onTabChanged(int index)
 
 void NavigationToolBar::onLoadProgress(int value)
 {
-    const bool isDarkTheme = sBrowserApplication->isDarkTheme();
-
     // Update stop/refresh icon and tooltip depending on state
     if (value > 0 && value < 100)
     {
-        m_stopRefresh->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/stop-white.png")) : QIcon(QStringLiteral(":/stop.png")));
+        m_stopRefresh->setIcon(QIcon(m_isDarkTheme ? QStringLiteral(":/stop-white.png") : QStringLiteral(":/stop.png")));
         m_stopRefresh->setToolTip(tr("Stop loading the page"));
     }
     else
     {
-        m_stopRefresh->setIcon(isDarkTheme ? QIcon(QStringLiteral(":/reload-white.png")) : QIcon(QStringLiteral(":/reload.png")));
+        m_stopRefresh->setIcon(QIcon(m_isDarkTheme ? QStringLiteral(":/reload-white.png") : QStringLiteral(":/reload.png")));
         m_stopRefresh->setToolTip(tr("Reload the page"));
     }
 }

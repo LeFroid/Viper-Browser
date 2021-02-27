@@ -1,5 +1,6 @@
 #include "BookmarkNode.h"
 #include "BookmarkManager.h"
+#include "BrowserApplication.h"
 #include "MainWindow.h"
 #include "SchemeRegistry.h"
 #include "SecurityManager.h"
@@ -9,7 +10,6 @@
 
 #include <array>
 #include <QApplication>
-#include <QCoreApplication>
 #include <QIcon>
 #include <QResizeEvent>
 #include <QSize>
@@ -25,7 +25,8 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_activeWebView(nullptr),
     m_suggestionWidget(nullptr),
     m_bookmarkManager(nullptr),
-    m_bookmarkNode(nullptr)
+    m_bookmarkNode(nullptr),
+    m_isDarkTheme(sBrowserApplication->isDarkTheme())
 {
     setObjectName(QLatin1String("urlLineEdit"));
     setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
@@ -95,11 +96,11 @@ void URLLineEdit::setBookmarkIcon(BookmarkIcon iconType)
             m_bookmarkButton->setToolTip(QString());
             return;
         case BookmarkIcon::Bookmarked:
-            m_bookmarkButton->setIcon(QIcon(":/bookmarked.png"));
+            m_bookmarkButton->setIcon(QIcon(QStringLiteral(":/bookmarked.png")));
             m_bookmarkButton->setToolTip(tr("Edit this bookmark"));
             return;
         case BookmarkIcon::NotBookmarked:
-            m_bookmarkButton->setIcon(QIcon(":/not_bookmarked.png"));
+            m_bookmarkButton->setIcon(QIcon(QStringLiteral(":/not_bookmarked.png")));
             m_bookmarkButton->setToolTip(tr("Bookmark this page"));
             return;
     }
@@ -114,11 +115,11 @@ void URLLineEdit::setSecurityIcon(SecurityIcon iconType)
             m_securityButton->setToolTip(tr("Standard HTTP connection - insecure"));
             return;
         case SecurityIcon::Secure:
-            m_securityButton->setIcon(QIcon(":/https_secure.png"));
+            m_securityButton->setIcon(QIcon(m_isDarkTheme ? QStringLiteral(":/https_secure_bright.png") : QStringLiteral(":/https_secure.png")));
             m_securityButton->setToolTip(tr("Secure connection"));
             return;
         case SecurityIcon::Insecure:
-            m_securityButton->setIcon(QIcon(":/https_insecure.png"));
+            m_securityButton->setIcon(QIcon(m_isDarkTheme ? QStringLiteral(":/https_insecure_bright.png") : QStringLiteral(":/https_insecure.png")));
             m_securityButton->setToolTip(tr("Insecure connection"));
             return;
     }
@@ -157,9 +158,9 @@ void URLLineEdit::setURLFormatted(const QUrl &url)
     if (SchemeRegistry::isSecure(url.scheme()))
     {
         if (SecurityManager::instance().isInsecure(url.host()))
-            schemeFormat.setForeground(QBrush(QColor(157, 28, 28)));
+            schemeFormat.setForeground(QBrush(m_isDarkTheme ? QColor(210, 56, 62) : QColor(157, 28, 28)));
         else
-            schemeFormat.setForeground(QBrush(QColor(11, 128, 67)));
+            schemeFormat.setForeground(QBrush(m_isDarkTheme ? QColor(39, 174, 96) : QColor(11, 128, 67)));
     }
 
     schemeFormatRange.length = url.scheme().size();

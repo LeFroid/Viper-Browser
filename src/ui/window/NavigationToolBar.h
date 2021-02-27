@@ -95,6 +95,9 @@ private:
 
     /// Button that is used to show information about advertisements being blocked on the current page
     AdBlockButton *m_adBlockButton;
+
+    /// Flag indicating which themed icons to use (dark or light)
+    bool m_isDarkTheme;
 };
 
 #endif // NAVIGATIONTOOLBAR_H

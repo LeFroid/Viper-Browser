@@ -147,6 +147,9 @@ private:
 
     /// Pointer to the bookmark node of the page associated with the current URL, or a null pointer if the page is not bookmarked
     BookmarkNode *m_bookmarkNode;
+
+    /// Flag indicating which themed icons to use (dark or light)
+    bool m_isDarkTheme;
 };
 
 #endif // URLLINEEDIT_H
