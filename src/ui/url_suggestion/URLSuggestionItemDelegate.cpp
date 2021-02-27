@@ -1,3 +1,4 @@
+#include "BrowserApplication.h"
 #include "URLSuggestionItemDelegate.h"
 #include "URLSuggestionListModel.h"
 
@@ -46,7 +47,7 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->setFont(titleFont);
 
     QPen titlePen = painter->pen();
-    QBrush titleBrush = (isSelectedItem || isMouseOver) ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 0));
+    QBrush titleBrush = (isSelectedItem || isMouseOver) ? QApplication::palette().highlightedText() : QApplication::palette().text();
     titlePen.setBrush(titleBrush);
     painter->setPen(titlePen);
 
@@ -67,7 +68,11 @@ void URLSuggestionItemDelegate::paint(QPainter *painter, const QStyleOptionViewI
     painter->setFont(urlFont);
 
     QPen urlPen = painter->pen();
-    QBrush urlBrush = (isSelectedItem || isMouseOver) ? QBrush(QColor(255, 255, 255)) : QBrush(QColor(0, 0, 238));
+    QBrush urlBrush;
+    if (isSelectedItem || isMouseOver)
+        urlBrush = QBrush(QColor(255, 255, 255));
+    else
+        urlBrush = sBrowserApplication->isDarkTheme() ? QBrush(QColor(0, 127, 255)) : QBrush(QColor(0, 0, 238));
     urlPen.setBrush(urlBrush);
     painter->setPen(urlPen);
 
