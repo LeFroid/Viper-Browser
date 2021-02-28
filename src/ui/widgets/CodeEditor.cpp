@@ -48,6 +48,7 @@
 **
 ****************************************************************************/
 
+#include "BrowserApplication.h"
 #include "CodeEditor.h"
 
 #include <algorithm>
@@ -58,8 +59,17 @@
 
 CodeEditor::CodeEditor(QWidget *parent) :
     QPlainTextEdit(parent),
-    m_lineNumberArea(new LineNumberArea(this))
+    m_lineNumberArea(new LineNumberArea(this)),
+    m_colorCurrentLine(250, 255, 205)
 {
+    if (sBrowserApplication->isDarkTheme())
+    {
+        m_colorCurrentLine = QApplication::palette().window().color();
+        m_colorCurrentLine.setRgb(m_colorCurrentLine.red() + 18,
+                                  m_colorCurrentLine.green() + 18,
+                                  m_colorCurrentLine.blue() + 18);
+    }
+
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::onBlockCountChanged);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
     connect(this, &CodeEditor::cursorPositionChanged, this, &CodeEditor::highlightCurrentLine);
@@ -143,9 +153,8 @@ void CodeEditor::highlightCurrentLine()
     if (!isReadOnly())
     {
         QTextEdit::ExtraSelection selection;
-        QColor lineColor = QColor(250, 255, 205);
 
-        selection.format.setBackground(lineColor);
+        selection.format.setBackground(m_colorCurrentLine);
         selection.format.setProperty(QTextFormat::FullWidthSelection, true);
         selection.cursor = textCursor();
         //selection.cursor.clearSelection();

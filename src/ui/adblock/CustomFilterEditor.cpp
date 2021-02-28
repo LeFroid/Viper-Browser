@@ -33,6 +33,12 @@ CustomFilterEditor::CustomFilterEditor(QWidget *parent) :
     ui->widgetFindText->setTextFinder(std::move(textFinder));
     ui->widgetFindText->hide();
 
+    if (sBrowserApplication->isDarkTheme())
+    {
+        ui->actionSave->setIcon(QIcon(QStringLiteral(":/document-save-white.png")));
+        ui->actionFind->setIcon(QIcon(QStringLiteral(":/edit-find-white.png")));
+    }
+
     connect(ui->widgetFindText, &FindTextWidget::pseudoModifiedDocument, this, &CustomFilterEditor::onTextFindPseudoModify);
     connect(ui->filterEditor, &CodeEditor::modificationChanged, this, &CustomFilterEditor::onFiltersModified);
     connect(ui->actionSave, &QAction::triggered, this, &CustomFilterEditor::saveFilters);

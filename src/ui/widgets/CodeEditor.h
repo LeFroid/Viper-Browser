@@ -51,6 +51,7 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
+#include <QColor>
 #include <QPlainTextEdit>
 
 class LineNumberArea;
@@ -90,6 +91,9 @@ private Q_SLOTS:
 private:
     /// Widget used to display the line number on the code editor
     LineNumberArea *m_lineNumberArea;
+
+    /// Color of the active line
+    QColor m_colorCurrentLine;
 };
 
 /**

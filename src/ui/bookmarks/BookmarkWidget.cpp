@@ -5,6 +5,7 @@
 #include "BookmarkImporter.h"
 #include "BookmarkTableModel.h"
 #include "BookmarkNode.h"
+#include "BrowserApplication.h"
 
 #include <algorithm>
 #include <set>
@@ -31,11 +32,12 @@ BookmarkWidget::BookmarkWidget(QWidget *parent) :
     ui->setupUi(this);
 
     // Setup history buttons
-    ui->buttonBack->setIcon(QIcon(QLatin1String(":/arrow-back.png")));
+    const bool isDarkTheme = sBrowserApplication->isDarkTheme();
+    ui->buttonBack->setIcon(QIcon(isDarkTheme ? QStringLiteral(":/arrow-back-white.png") : QStringLiteral(":/arrow-back.png")));
     ui->buttonBack->setEnabled(false);
     connect(ui->buttonBack, &QPushButton::clicked, this, &BookmarkWidget::onClickBackButton);
 
-    ui->buttonForward->setIcon(QIcon(QLatin1String(":/arrow-forward.png")));
+    ui->buttonForward->setIcon(QIcon(isDarkTheme ? QStringLiteral(":/arrow-forward-white.png") : QStringLiteral(":/arrow-forward.png")));
     ui->buttonForward->setEnabled(false);
     connect(ui->buttonForward, &QPushButton::clicked, this, &BookmarkWidget::onClickForwardButton);
 

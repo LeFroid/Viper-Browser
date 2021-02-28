@@ -19,13 +19,15 @@ SearchEngineLineEdit::SearchEngineLineEdit(QWidget *parent) :
     setSizePolicy(QSizePolicy::Preferred, policy.verticalPolicy());
 
     // Setup search button
+    const bool isDarkTheme = sBrowserApplication->isDarkTheme();
     m_searchButton = new QToolButton(this);
     m_searchButton->setPopupMode(QToolButton::InstantPopup);
     m_searchButton->setCursor(Qt::ArrowCursor);
     m_searchButton->setToolTip(tr("Choose Search Engine"));
-    m_searchButton->setStyleSheet("QToolButton { border: none; padding: 0px; background-position: left center; "
-                                  "background-repeat: no-repeat; background-origin: content; background-image: url(\":/search_icon.png\"); }"
-                                  "QToolButton::menu-indicator { subcontrol-position: bottom right; subcontrol-origin: content; top: 3px; } ");
+    m_searchButton->setStyleSheet(QString("QToolButton { border: none; padding: 0px; background-position: left center; "
+                                  "background-repeat: no-repeat; background-origin: content; background-image: url(\"%1\"); }"
+                                  "QToolButton::menu-indicator { subcontrol-position: bottom right; subcontrol-origin: content; top: 3px; } ")
+                                  .arg(isDarkTheme ? QStringLiteral(":/search_icon_white.png") : QStringLiteral(":/search_icon.png")));
     m_searchButton->setFixedWidth(28);
 
     // Set appearance

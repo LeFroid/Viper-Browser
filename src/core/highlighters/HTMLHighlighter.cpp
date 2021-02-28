@@ -1,3 +1,4 @@
+#include "BrowserApplication.h"
 #include "HTMLHighlighter.h"
 
 HTMLHighlighter::HTMLHighlighter(QTextDocument *parent) :
@@ -10,24 +11,28 @@ HTMLHighlighter::HTMLHighlighter(QTextDocument *parent) :
     m_commentStartExpr("<!--"),
     m_commentEndExpr("-->")
 {
-    // Set highlighting rule for tags
+    // Set highlighting rules and then base the colors on the overall system theme
     m_tagRule.pattern = QRegularExpression("<(/?)([A-Za-z0-9-]+)");
-    m_tagRule.format.setForeground(QBrush(QColor(136, 18, 128)));
-
-    // Attribute highlighting rule
     m_attributeRule.pattern = QRegularExpression("[a-zA-Z-]+=");
-    m_attributeRule.format.setForeground(QBrush(QColor(153, 69, 0)));
-
-    // Quote highlighting rule
     m_quoteRule.pattern = QRegularExpression("=\"[^\"]*(\"?)");
-    m_quoteRule.format.setForeground(QBrush(QColor(26, 26, 166)));
-
-    // Doctype highlighting rule
     m_doctypeRule.pattern = QRegularExpression("<!(\\bdoctype\\b|\\bDOCTYPE\\b)([a-zA-Z0-9= ]*)>");
-    m_doctypeRule.format.setForeground(QBrush(QColor(192, 192, 192)));
 
-    // Comment format
-    m_commentFormat.setForeground(QBrush(QColor(35, 110, 37)));
+    if (sBrowserApplication->isDarkTheme())
+    {
+        m_tagRule.format.setForeground(QBrush(QColor(255, 71, 114)));
+        m_attributeRule.format.setForeground(QBrush(QColor(255, 187, 153)));
+        m_quoteRule.format.setForeground(QBrush(QColor(91, 219, 255)));
+        m_doctypeRule.format.setForeground(QBrush(QColor(224, 224, 224)));
+        m_commentFormat.setForeground(QBrush(QColor(133, 255, 147)));
+    }
+    else
+    {
+        m_tagRule.format.setForeground(QBrush(QColor(136, 18, 128)));
+        m_attributeRule.format.setForeground(QBrush(QColor(153, 69, 0)));
+        m_quoteRule.format.setForeground(QBrush(QColor(26, 26, 166)));
+        m_doctypeRule.format.setForeground(QBrush(QColor(174, 174, 174)));
+        m_commentFormat.setForeground(QBrush(QColor(35, 110, 37)));
+    }
 }
 
 void HTMLHighlighter::highlightBlock(const QString &text)

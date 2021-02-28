@@ -1,5 +1,6 @@
 #include "UserScriptEditor.h"
 #include "ui_UserScriptEditor.h"
+#include "BrowserApplication.h"
 #include "CodeEditor.h"
 #include "FindTextWidget.h"
 #include "JavaScriptHighlighter.h"
@@ -29,6 +30,12 @@ UserScriptEditor::UserScriptEditor(QWidget *parent) :
     static_cast<TextEditorTextFinder*>(textFinder.get())->setTextEdit(ui->scriptEditor);
     ui->widgetFindText->setTextFinder(std::move(textFinder));
     ui->widgetFindText->hide();
+
+    if (sBrowserApplication->isDarkTheme())
+    {
+        ui->actionSave->setIcon(QIcon(QStringLiteral(":/document-save-white.png")));
+        ui->actionFind->setIcon(QIcon(QStringLiteral(":/edit-find-white.png")));
+    }
 
     connect(ui->widgetFindText, &FindTextWidget::pseudoModifiedDocument, this, &UserScriptEditor::onTextFindPseudoModify);
     connect(ui->scriptEditor, &CodeEditor::modificationChanged, this, &UserScriptEditor::onScriptModified);

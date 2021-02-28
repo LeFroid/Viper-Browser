@@ -1,4 +1,5 @@
 #include "JavaScriptHighlighter.h"
+#include "BrowserApplication.h"
 
 JavaScriptHighlighter::JavaScriptHighlighter(QTextDocument *parent) :
     QSyntaxHighlighter(parent),
@@ -11,6 +12,30 @@ JavaScriptHighlighter::JavaScriptHighlighter(QTextDocument *parent) :
     m_commentEndExpr("\\*/"),
     m_lastQuoteChar()
 {
+    QColor keywordColor, nameColor, paramColor, literalColor, builtInColor, numberColor, quoteColor, commentColor;
+    if (sBrowserApplication->isDarkTheme())
+    {
+        keywordColor = QColor(255, 71, 114);
+        nameColor = QColor(91, 219, 255);
+        paramColor = QColor(255, 71, 114);
+        literalColor = QColor(181, 181, 255);
+        builtInColor = QColor(133, 255, 147);
+        numberColor = QColor(255, 31, 31);
+        quoteColor = QColor(91, 219, 255);
+        commentColor = QColor(133, 255, 147);
+    }
+    else
+    {
+        keywordColor = QColor(136, 18, 128);
+        nameColor = QColor(26, 26, 166);
+        paramColor = QColor(136, 18, 128);
+        literalColor = QColor(123, 113, 194);
+        builtInColor = QColor(35, 110, 37);
+        numberColor = QColor(204, 29, 29);
+        quoteColor = QColor(171, 21, 21);
+        commentColor = QColor(153, 69, 0);
+    }
+
     // Build keyword rule
     QStringList keywords;
     keywords << "if" << "else" << "of" << "in" << "for" << "while" << "do" << "finally" << "var"
@@ -27,19 +52,19 @@ JavaScriptHighlighter::JavaScriptHighlighter(QTextDocument *parent) :
 
     HighlightingRule keywordRule;
     keywordRule.pattern = QRegularExpression(keywordStr);
-    keywordRule.format.setForeground(QBrush(QColor(136, 18, 128)));
+    keywordRule.format.setForeground(QBrush(keywordColor));
     m_stdRules.push_back(keywordRule);
 
     // Build name rule (format is only applied to capture group 2 and optionally 4)
     m_nameRule.pattern = QRegularExpression("\\b(var|function|const)\\b ([_\\$a-zA-Z0-9, ]+)((\\(\\s*)([_\\$a-zA-Z0-9, ]+))?");
-    m_nameRule.format.setForeground(QBrush(QColor(26, 26, 166)));
+    m_nameRule.format.setForeground(QBrush(nameColor));
 
-    m_parameterFormat.setForeground(QBrush(QColor(136, 18, 128)));
+    m_parameterFormat.setForeground(QBrush(paramColor));
 
     // Build literals rule
     HighlightingRule literalRule;
     literalRule.pattern = QRegularExpression("\\b(true|false|null|undefined|NaN|Infinity)\\b");
-    literalRule.format.setForeground(QBrush(QColor(123, 113, 194)));
+    literalRule.format.setForeground(QBrush(literalColor));
     m_stdRules.push_back(literalRule);
 
     // Built-in objects, properties, methods, etc rule
@@ -63,23 +88,23 @@ JavaScriptHighlighter::JavaScriptHighlighter(QTextDocument *parent) :
 
     HighlightingRule jsBuiltInRule;
     jsBuiltInRule.pattern = QRegularExpression(keywordStr);
-    jsBuiltInRule.format.setForeground(QBrush(QColor(35, 110, 37)));
+    jsBuiltInRule.format.setForeground(QBrush(builtInColor));
     m_stdRules.push_back(jsBuiltInRule);
 
     // Number rule
     HighlightingRule numberRule;
     numberRule.pattern = QRegularExpression("\\b((\\d+)|(0x[\\da-fA-F]+))\\b");
-    numberRule.format.setForeground(QBrush(QColor(204, 29, 29)));
+    numberRule.format.setForeground(QBrush(numberColor));
     m_stdRules.push_back(numberRule);
 
     // Quotes rule
     HighlightingRule quotesRule;
     quotesRule.pattern = QRegularExpression("\"([^\"\\\\]*(\\\\.[^\"\\\\]*)*)\"|\\'([^\\'\\\\]*(\\\\.[^\\'\\\\]*)*)\\'|`([^`\\\\]*(\\\\.[^`\\\\]*)*)`");
-    quotesRule.format.setForeground(QBrush(QColor(171, 21, 21)));
+    quotesRule.format.setForeground(QBrush(quoteColor));
     m_stdRules.push_back(quotesRule);
 
     // Comment format
-    m_commentFormat.setForeground(QBrush(QColor(153, 69, 0)));
+    m_commentFormat.setForeground(QBrush(commentColor));
 }
 
 void JavaScriptHighlighter::highlightBlock(const QString &text)
