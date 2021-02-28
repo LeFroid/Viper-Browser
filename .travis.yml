@@ -7,6 +7,8 @@ matrix:
       env: QT_BASE=515 VER=6.0 STDFLAGS="-std=c++17" BUILD_TYPE=Release STANDARD=17
       compiler: gcc
       addons:
+        sonarcloud:
+          organization: "lefroid"
         apt:
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
@@ -20,10 +22,6 @@ matrix:
           - qt515tools
           - qt515webchannel
           - qt515webengine
-
-addons:
-  sonarcloud:
-    organization: "lefroid"
 
 before_install:
   - if [ "$QT_BASE" = "515" ]; then sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal -y; fi
