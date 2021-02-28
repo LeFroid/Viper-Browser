@@ -21,6 +21,10 @@ matrix:
           - qt515webchannel
           - qt515webengine
 
+addons:
+  sonarcloud:
+    organization: "lefroid"
+
 before_install:
   - if [ "$QT_BASE" = "515" ]; then sudo add-apt-repository ppa:beineri/opt-qt-5.15.2-focal -y; fi
   - sudo apt-get update -qq
@@ -42,12 +46,17 @@ before_script:
   - cd build
   - cmake --version
   - cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_CXX_FLAGS="-std=c++17" -DENABLE_TESTING=ON -DCMAKE_INSTALL_PREFIX=/usr ..
+  - export NUMBER_OF_PROCESSORS=$(nproc --all)
 
 script:
-  - make -j$(nproc)
+  - cd ..
+  - build-wrapper-linux-x86-64 --out-dir bw-output cmake --build build/
+  - cd build
+  #- make -j$(nproc)
   - make test
   - make DESTDIR=appdir install 
   - cd ..
+  - sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.cfamily.threads=${NUMBER_OF_PROCESSORS}
   - export VERSION=$(git rev-list master --count)
   - cd build
   - wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/5/linuxdeployqt-5-x86_64.AppImage"
