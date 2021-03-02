@@ -6,6 +6,7 @@
 #include "SecurityInfoDialog.h"
 #include "NetworkAccessManager.h"
 
+#include <QApplication>
 #include <QMessageBox>
 #include <QNetworkReply>
 #include <QRegularExpression>
@@ -184,7 +185,7 @@ void SecurityManager::onSSLErrors(QNetworkReply *reply, const QList<QSslError> &
     message.chop(2);
     message.append(QString(". Do you wish to proceed?"));
     QMessageBox::StandardButtons buttons = QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No);
-    int response = QMessageBox::question(nullptr, tr("Security Threat"), message, buttons, QMessageBox::NoButton);
+    int response = QMessageBox::question(QApplication::activeWindow(), tr("Security Threat"), message, buttons, QMessageBox::NoButton);
     if (response == QMessageBox::Yes)
         reply->ignoreSslErrors(errors);
     m_insecureHosts.insert(reply->url().host());

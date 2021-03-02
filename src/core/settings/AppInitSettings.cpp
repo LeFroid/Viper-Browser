@@ -64,11 +64,8 @@ void AppInitSettings::load()
     std::string homeDir = getenv("HOME");
     std::string settingsDir = homeDir + "/.config/Vaccarelli";
     struct stat st;
-    if (stat(settingsDir.c_str(), &st) != 0)
-        return;
-
-    // If mask does not equal S_IFDIR, try to create the settings directory
-    if ((st.st_mode & S_IFDIR) == 0)
+    bool ok = stat(settingsDir.c_str(), &st) == 0;
+    if (!ok || (st.st_mode & S_IFDIR) == 0)
     {
         if (mkdir(settingsDir.c_str(), 0777) != 0)
             return;

@@ -25,6 +25,7 @@ DownloadManager::DownloadManager(Settings *settings, const std::vector<QWebEngin
 {
     ui->setupUi(this);
     setObjectName(QLatin1String("DownloadManager"));
+    setAttribute(Qt::WA_QuitOnClose, false);
 
     if (settings)
     {
