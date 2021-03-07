@@ -49,21 +49,13 @@ bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QU
     const QUrl requestUrl = info.requestUrl();
     const QString requestUrlStr = info.requestUrl().toString(QUrl::FullyEncoded).toLower();
 
-    //const URL firstPartyUrlWrapper { firstPartyUrl };
     const URL requestUrlWrapper { requestUrl };
 
+    // Get hostname of the first party URL (main frame)
     const QString baseUrl = firstPartyUrl.host().toLower();
-    //QString baseUrl = firstPartyUrlWrapper.getSecondLevelDomain().toLower();
-    //if (baseUrl.isEmpty())
-    //    baseUrl = firstPartyUrl.host().toLower();
 
-    // Get request domain
-    QString domain = requestUrl.host().toLower();
-    if (domain.startsWith(QLatin1String("www.")))
-        domain = domain.mid(4);
-
-    if (domain.isEmpty())
-        domain = requestUrlWrapper.getSecondLevelDomain();
+    // Hostname of the request URL
+    const QString domain = requestUrl.host().toLower();
 
     // Convert QWebEngine request type to AdBlockFilter request type
     ElementType elemType = getRequestType(info, firstPartyUrl);

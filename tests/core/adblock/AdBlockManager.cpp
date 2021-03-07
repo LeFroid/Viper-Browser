@@ -183,25 +183,6 @@ void AdBlockManager::reloadSubscriptions()
     extractFilters();
 }
 
-QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const
-{
-    const QString topLevelDomain = url.topLevelDomain();
-    const QString host = url.host();
-
-    if (topLevelDomain.isEmpty() || host.isEmpty())
-        return QString();
-
-    QString domain = host.left(host.size() - topLevelDomain.size());
-
-    if (domain.count(QChar('.')) == 0)
-        return host;
-
-    while (domain.count(QChar('.')) != 0)
-        domain = domain.mid(domain.indexOf(QChar('.')) + 1);
-
-    return domain + topLevelDomain;
-}
-
 void AdBlockManager::loadDynamicTemplate()
 {
     QFile templateFile(QLatin1String(":/AdBlock.js"));

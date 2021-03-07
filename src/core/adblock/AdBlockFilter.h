@@ -196,7 +196,7 @@ private:
     bool isDomainMatch(QString base, const QString &domainStr) const;
 
     /// Compares the requested domain the evaluation string, returning true if the filter matches the request, false if else
-    bool isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const;
+    bool isDomainStartMatch(const QString &requestUrl, const QString &requestDomain) const;
 
 protected:
     /// Filter category

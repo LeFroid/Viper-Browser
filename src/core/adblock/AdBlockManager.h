@@ -143,9 +143,6 @@ private:
     /// Returns an empty string if no mapping is found
     QString getResourceFromAlias(const QString &alias) const;
 
-    /// Returns the second-level domain string of the given url
-    QString getSecondLevelDomain(const QUrl &url) const;
-
     /// Loads the AdBlock JavaScript template for dynamic filters
     void loadDynamicTemplate();
 

@@ -220,7 +220,7 @@ bool Filter::isMatch(const QString &baseUrl, const QString &requestUrl, const QS
                 match = isDomainMatch(requestDomain, m_evalString);
                 break;
             case FilterCategory::DomainStart:
-                match = isDomainStartMatch(requestUrl, URL(requestDomain).getSecondLevelDomain());
+                match = isDomainStartMatch(requestUrl, requestDomain);
                 break;
             case FilterCategory::StringStartMatch:
                 match = requestUrl.startsWith(m_evalString, caseSensitivity);
@@ -325,11 +325,11 @@ bool Filter::isDomainMatch(QString base, const QString &domainStr) const
     if (!base.endsWith(domainStr))
         return false;
 
-    int evalIdx = base.indexOf(domainStr); //domainStr.indexOf(base);
+    int evalIdx = base.indexOf(domainStr);
     return evalIdx == 0 || (evalIdx > 0 && base.at(evalIdx - 1) == QChar('.'));
 }
 
-bool Filter::isDomainStartMatch(const QString &requestUrl, const QString &secondLevelDomain) const
+bool Filter::isDomainStartMatch(const QString &requestUrl, const QString &requestDomain) const
 {
     Qt::CaseSensitivity caseSensitivity = m_matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive;
     int matchIdx = requestUrl.indexOf(m_evalString, 0, caseSensitivity);
@@ -337,7 +337,7 @@ bool Filter::isDomainStartMatch(const QString &requestUrl, const QString &second
     {
         QChar c = requestUrl[matchIdx - 1];
         const bool validChar = c == QChar('.') || c == QChar('/');
-        return validChar || m_evalString.contains(secondLevelDomain, caseSensitivity);
+        return validChar || m_evalString.contains(requestDomain, caseSensitivity);
     }
     return false;
 }

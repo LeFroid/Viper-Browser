@@ -232,9 +232,7 @@ const QString &AdBlockManager::getDomainStylesheet(const URL &url)
     if (!m_enabled)
         return m_emptyStr;
 
-    QString domain = url.host().toLower();
-    if (domain.startsWith(QLatin1String("www.")))
-        domain = domain.mid(4);
+    const QString domain = url.host().toLower();
 
     // Check for a cache hit
     std::string domainStdStr = domain.toStdString();
@@ -330,12 +328,14 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
                                    "})();");
 
     QString domain = url.host().toLower();
-    if (domain.startsWith(QLatin1String("www.")))
-        domain = domain.mid(4);
-    if (domain.isEmpty())
-        domain = url.getSecondLevelDomain();
-
     QString requestUrl = url.toString(QUrl::FullyEncoded).toLower();
+
+    if (domain.isEmpty())
+    {
+        domain = requestUrl.mid(requestUrl.indexOf(QStringLiteral("://") + 3));
+        if (domain.contains(QChar('/')))
+            domain = domain.left(domain.indexOf(QChar('/')));
+    }
 
     // Check for cache hit
     std::string requestHostStdStr = url.host().toLower().toStdString();
@@ -432,7 +432,10 @@ QString AdBlockManager::getResourceFromAlias(const QString &alias) const
 
 QString AdBlockManager::getResourceContentType(const QString &key) const
 {
-    return m_resourceContentTypeMap.value(key);
+    if (m_resourceContentTypeMap.contains(key))
+        return m_resourceContentTypeMap.value(key);
+    if (m_resourceAliasMap.contains(key))
+        return m_resourceContentTypeMap.value(m_resourceAliasMap.value(key));
 }
 
 int AdBlockManager::getNumSubscriptions() const
@@ -488,25 +491,6 @@ void AdBlockManager::reloadSubscriptions()
 
     clearFilters();
     extractFilters();
-}
-
-QString AdBlockManager::getSecondLevelDomain(const QUrl &url) const
-{
-    const QString topLevelDomain = url.topLevelDomain();
-    const QString host = url.host();
-
-    if (topLevelDomain.isEmpty() || host.isEmpty())
-        return QString();
-
-    QString domain = host.left(host.size() - topLevelDomain.size());
-
-    if (domain.count(QChar('.')) == 0)
-        return host;
-
-    while (domain.count(QChar('.')) != 0)
-        domain = domain.mid(domain.indexOf(QChar('.')) + 1);
-
-    return domain + topLevelDomain;
 }
 
 void AdBlockManager::loadDynamicTemplate()
