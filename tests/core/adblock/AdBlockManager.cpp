@@ -226,6 +226,10 @@ void AdBlockManager::loadUBOResources()
     }
 }
 
+void AdBlockManager::loadResourceAliases()
+{
+}
+
 void AdBlockManager::loadResourceFile(const QString &path)
 {
     QFile f(path);

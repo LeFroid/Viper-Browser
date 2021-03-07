@@ -152,6 +152,9 @@ private:
     /// Load uBlock Origin-style resources file(s) from m_subscriptionDir/resources folder
     void loadUBOResources();
 
+    /// Load built-in resource aliases for filter compatibility
+    void loadResourceAliases();
+
     /// Clears current filter data
     void clearFilters();
 

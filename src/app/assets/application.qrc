@@ -3,6 +3,7 @@
         <file>adblock_recommended.json</file>
         <file>search_engines.json</file>
         <file>AdBlockResources.txt</file>
+        <file>AdBlockAliases.txt</file>
         <file alias="AdBlock.svg">images/AdBlock.svg</file>
         <file alias="AdBlock-white.svg">images/AdBlock-white.svg</file>
         <file alias="arrow-back.png">images/arrow-back.png</file>

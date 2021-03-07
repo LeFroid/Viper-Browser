@@ -30,55 +30,7 @@ AdBlockManager::AdBlockManager(const ViperServiceLocator &serviceLocator, QObjec
     m_subscriptionDir(),
     m_cosmeticJSTemplate(),
     m_subscriptions(),
-    m_resourceAliasMap {
-        { QStringLiteral("acis"), QStringLiteral("abort-current-inline-script.js") },
-        { QStringLiteral("aopr"), QStringLiteral("abort-on-property-read.js") },
-        { QStringLiteral("aopw"), QStringLiteral("abort-on-property-write.js") },
-        { QStringLiteral("aeld"), QStringLiteral("addEventListener-defuser.js") },
-        { QStringLiteral("aell"), QStringLiteral("addEventListener-logger.js") },
-        { QStringLiteral("nano-sib"), QStringLiteral("nano-setInterval-booster.js") },
-        { QStringLiteral("nano-stb"), QStringLiteral("nano-setTimeout-booster.js") },
-        { QStringLiteral("ra"), QStringLiteral("remove-attr.js") },
-        { QStringLiteral("rc"), QStringLiteral("remove-class.js") },
-        { QStringLiteral("raf-if"), QStringLiteral("requestAnimationFrame-if.js") },
-        { QStringLiteral("norafif"), QStringLiteral("no-requestAnimationFrame-if.js") },
-        { QStringLiteral("set"), QStringLiteral("set-constant.js") },
-        { QStringLiteral("sid"), QStringLiteral("setInterval-defuser.js") },
-        { QStringLiteral("nosiif"), QStringLiteral("no-setInterval-if.js") },
-        { QStringLiteral("std"), QStringLiteral("setTimeout-defuser.js") },
-        { QStringLiteral("nostif"), QStringLiteral("no-setTimeout-if.js") },
-        { QStringLiteral("1x1.gif"), QStringLiteral("1x1-transparent.gif") },
-        { QStringLiteral("2x2.png"), QStringLiteral("2x2-transparent.png") },
-        { QStringLiteral("3x2.png"), QStringLiteral("3x2-transparent.png") },
-        { QStringLiteral("32x32.png"), QStringLiteral("32x32-transparent.png") },
-        { QStringLiteral("addthis_widget.js"), QStringLiteral("addthis.com/addthis_widget.js") },
-        { QStringLiteral("amazon_ads.js"), QStringLiteral("amazon-adsystem.com/aax2/amzn_ads.js") },
-        { QStringLiteral("ampproject_v0.js"), QStringLiteral("ampproject.org/v0.js") },
-        { QStringLiteral("chartbeat.js"), QStringLiteral("static.chartbeat.com/chartbeat.js") },
-        { QStringLiteral("disqus_embed.js"), QStringLiteral("disqus.com/embed.js") },
-        { QStringLiteral("disqus_forums_embed.js"), QStringLiteral("disqus.com/forums/*/embed.js") },
-        { QStringLiteral("doubleclick_instream_ad_status.js"), QStringLiteral("doubleclick.net/instream/ad_status.js") },
-        { QStringLiteral("google-analytics_analytics.js"), QStringLiteral("google-analytics.com/analytics.js") },
-        { QStringLiteral("google-analytics_cx_api.js"), QStringLiteral("google-analytics.com/cx/api.js") },
-        { QStringLiteral("google-analytics_ga.js"), QStringLiteral("google-analytics.com/ga.js") },
-        { QStringLiteral("google-analytics_inpage_linkid.js"), QStringLiteral("google-analytics.com/inpage_linkid.js") },
-        { QStringLiteral("googlesyndication_adsbygoogle.js"), QStringLiteral("googlesyndication.com/adsbygoogle.js") },
-        { QStringLiteral("googletagmanager_gtm.js"), QStringLiteral("googletagmanager.com/gtm.js") },
-        { QStringLiteral("googletagservices_gpt.js"), QStringLiteral("googletagservices.com/gpt.js") },
-        { QStringLiteral("ligatus_angular-tag.js"), QStringLiteral("ligatus.com/*/angular-tag.js") },
-        { QStringLiteral("monkeybroker.js"), QStringLiteral("d3pkae9owd2lcf.cloudfront.net/mb105.js") },
-        { QStringLiteral("noeval-silent.js"), QStringLiteral("silent-noeval.js") },
-        { QStringLiteral("nobab.js"), QStringLiteral("bab-defuser.js") },
-        { QStringLiteral("nofab.js"), QStringLiteral("fuckadblock.js-3.2.0") },
-        { QStringLiteral("noop-0.1s.mp3"), QStringLiteral("noopmp3-0.1s") },
-        { QStringLiteral("noop-1s.mp4"), QStringLiteral("noopmp4-1s") },
-        { QStringLiteral("noop.html"), QStringLiteral("noopframe") },
-        { QStringLiteral("noop.js"), QStringLiteral("noopjs") },
-        { QStringLiteral("noop.txt"), QStringLiteral("nooptext") },
-        { QStringLiteral("outbrain-widget.js"), QStringLiteral("widgets.outbrain.com/outbrain.js") },
-        { QStringLiteral("popads.js"), QStringLiteral("popads.net.js") },
-        { QStringLiteral("scorecardresearch_beacon.js"), QStringLiteral("scorecardresearch.com/beacon.js") }
-    },
+    m_resourceAliasMap (),
     m_resourceMap(),
     m_resourceContentTypeMap(),
     m_domainStylesheetCache(24),
@@ -569,7 +521,7 @@ void AdBlockManager::loadDynamicTemplate()
 
 void AdBlockManager::loadUBOResources()
 {
-    QDir resourceDir(QString("%1%2%3").arg(m_subscriptionDir).arg(QDir::separator()).arg(QLatin1String("resources")));
+    QDir resourceDir(QString("%1%2%3").arg(m_subscriptionDir, QDir::separator(), QStringLiteral("resources")));
     if (!resourceDir.exists())
         resourceDir.mkpath(QStringLiteral("."));
 
@@ -582,6 +534,31 @@ void AdBlockManager::loadUBOResources()
 
     // Load built-in resources as well
     loadResourceFile(QStringLiteral(":/AdBlockResources.txt"));
+
+    // Finally, load resource aliases
+    loadResourceAliases();
+}
+
+void AdBlockManager::loadResourceAliases()
+{
+    QFile f(QStringLiteral(":/AdBlockAliases.txt"));
+    if (!f.exists() || !f.open(QIODevice::ReadOnly))
+        return;
+
+    QString line;
+    QTextStream stream(&f);
+    while (stream.readLineInto(&line))
+    {
+        line = line.trimmed();
+
+        int delimIdx = line.indexOf(QChar('='));
+        if (line.isEmpty() || delimIdx < 1)
+            continue;
+
+        const QString alias = line.left(delimIdx);
+        const QString resourceName = line.mid(delimIdx + 1);
+        m_resourceAliasMap.insert(alias, resourceName);
+    }
 }
 
 void AdBlockManager::loadResourceFile(const QString &path)
