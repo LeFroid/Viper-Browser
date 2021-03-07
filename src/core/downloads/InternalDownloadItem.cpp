@@ -52,7 +52,6 @@ void InternalDownloadItem::setupItem()
     const QString url = m_reply->url().toString();
 
     // Request file name for download if needed
-    const QString suffix = url.mid(url.lastIndexOf(QChar('.')) + 1);
     QString fileName = QDir(m_downloadDir).filePath(url.mid(url.lastIndexOf(QChar('/')) + 1));
 
     if (!m_writeOverExisting)

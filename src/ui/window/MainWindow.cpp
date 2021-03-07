@@ -113,7 +113,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
 
-    for (WebActionProxy *proxy : m_webActions)
+    for (WebActionProxy *proxy : qAsConst(m_webActions))
         delete proxy;
 
     if (m_bookmarkDialog)
@@ -237,7 +237,7 @@ void MainWindow::setupMenuBar()
     if (WebWidget *view = m_tabWidget->getWebWidget(0))
     {
         WebPage *page = view->page();
-        for (WebActionProxy *proxy : m_webActions)
+        for (WebActionProxy *proxy : qAsConst(m_webActions))
             proxy->setPage(page);
     }
 }
@@ -333,7 +333,7 @@ void MainWindow::onTabChanged(int index)
 
     // Redirect web proxies to current page
     WebPage *page = ww->page();
-    for (WebActionProxy *proxy : m_webActions)
+    for (WebActionProxy *proxy : qAsConst(m_webActions))
         proxy->setPage(page);
 
     // Give focus to the url line edit widget when changing to a blank tab

@@ -63,7 +63,7 @@ void _handleCrash(int s, siginfo_t * /*siginfo*/, void * /*context*/)
     }
 
     QDateTime now = QDateTime::currentDateTime();
-    QFile crashFile(QString("%1/Crash_%2.log").arg(d.absolutePath()).arg(now.toString(Qt::ISODate)));
+    QFile crashFile(QString("%1/Crash_%2.log").arg(d.absolutePath(), now.toString(Qt::ISODate)));
     if (crashFile.open(QIODevice::WriteOnly))
     {
         QTextStream stream(&crashFile);
