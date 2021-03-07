@@ -289,6 +289,11 @@ bool Filter::isDomainStyleMatch(const QString &domain) const
         if (isDomainMatch(domain, d))
             return false;
     }
+
+    // "Block all" except for whitelisted domains. Consider this a match
+    if (!m_domainWhitelist.empty() && m_domainBlacklist.empty())
+        return true;
+
     for (const QString &d : m_domainBlacklist)
     {
         if (isDomainMatch(domain, d))
