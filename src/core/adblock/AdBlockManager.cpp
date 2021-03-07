@@ -436,6 +436,7 @@ QString AdBlockManager::getResourceContentType(const QString &key) const
         return m_resourceContentTypeMap.value(key);
     if (m_resourceAliasMap.contains(key))
         return m_resourceContentTypeMap.value(m_resourceAliasMap.value(key));
+    return QString();
 }
 
 int AdBlockManager::getNumSubscriptions() const
