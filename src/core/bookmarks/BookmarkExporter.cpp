@@ -6,7 +6,7 @@
 
 #include <QUrl>
 
-const QString BookmarkExporter::NetscapeHeader = QString("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n"
+const QString BookmarkExporter::NetscapeHeader = QStringLiteral("<!DOCTYPE NETSCAPE-Bookmark-file-1>\n"
                                        "<!-- This is an automatically generated file.\n"
                                        "     It will be read and overwritten.\n"
                                        "     DO NOT EDIT! -->\n"

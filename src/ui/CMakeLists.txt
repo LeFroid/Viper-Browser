@@ -12,6 +12,8 @@ set(viper_ui_src
     bookmarks/BookmarkDialog.cpp
     bookmarks/BookmarkMenu.cpp
     bookmarks/BookmarkWidget.cpp
+    bookmarks/FolderNavigationAction.cpp
+    bookmarks/FolderNavigator.cpp
     cookies/CookieModifyDialog.cpp
     cookies/CookieWidget.cpp
     downloads/DownloadItem.cpp

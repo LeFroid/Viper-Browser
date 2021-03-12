@@ -17,12 +17,12 @@ class BookmarkFolderModel : public QAbstractItemModel
 {
     Q_OBJECT
 
-    friend class BookmarkWidget;
-
 public:
     /// Constructs the bookmark folder model
     explicit BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *parent = nullptr);
-    ~BookmarkFolderModel();
+
+    /// Default destructor
+    ~BookmarkFolderModel() = default;
 
     // Basic functionality:
     QModelIndex index(int row, int column,
@@ -53,6 +53,9 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 
+    /// Returns the folder associated with the given model index, or the root folder if index is invalid
+    BookmarkNode *getItem(const QModelIndex &index) const;
+
 Q_SIGNALS:
     /// Emitted when one or more bookmarks are about to be dropped from one folder into another, so that the \ref BookmarkTableModel can update its data
     void beginMovingBookmarks();
@@ -62,10 +65,6 @@ Q_SIGNALS:
 
     /// Emitted when a folder was moved to a new parent node, so the \ref BookmarkTableModel can update its data if necessary
     void movedFolder(BookmarkNode *folder, BookmarkNode *updatedPtr);
-
-protected:
-    /// Returns the folder associated with the given model index, or the root folder if index is invalid
-    BookmarkNode *getItem(const QModelIndex &index) const;
 
 private:
     /// Root bookmark folder

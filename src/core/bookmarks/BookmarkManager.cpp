@@ -4,11 +4,14 @@
 #include "CommonUtil.h"
 #include "FaviconManager.h"
 
+#include <chrono>
 #include <deque>
 #include <memory>
 
 #include <QTimer>
 #include <QtConcurrent>
+
+using namespace std::chrono_literals;
 
 BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, DatabaseTaskScheduler &taskScheduler, QObject *parent) :
     QObject(parent),
@@ -28,7 +31,7 @@ BookmarkManager::BookmarkManager(const ViperServiceLocator &serviceLocator, Data
     m_faviconManager = serviceLocator.getServiceAs<FaviconManager>("FaviconManager");
     setObjectName(QLatin1String("BookmarkManager"));
 
-    QTimer::singleShot(250, this, &BookmarkManager::checkIfLoaded);
+    QTimer::singleShot(250ms, this, &BookmarkManager::checkIfLoaded);
 
     m_taskScheduler.onInit([this](){
         m_bookmarkStore = static_cast<BookmarkStore*>(m_taskScheduler.getWorker("BookmarkStore"));
@@ -419,7 +422,7 @@ void BookmarkManager::checkIfLoaded()
 {
     if (!m_rootNode.get())
     {
-        QTimer::singleShot(250, this, &BookmarkManager::checkIfLoaded);
+        QTimer::singleShot(250ms, this, &BookmarkManager::checkIfLoaded);
         return;
     }
 
@@ -524,5 +527,5 @@ void BookmarkManager::resetBookmarkList()
 
     m_numBookmarks.store(numBookmarks);
     m_nodeList = std::move(nodeList);
-    emit bookmarksChanged();
+    Q_EMIT bookmarksChanged();
 }

@@ -109,7 +109,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
 
             // URL parsing
             QString attributeStr = pageHtml.mid(pos, attrEndPos - pos);
-            int urlStartPos = attributeStr.indexOf(QLatin1String("HREF="), 0, Qt::CaseInsensitive);
+            int urlStartPos = attributeStr.indexOf(QStringLiteral("HREF="), 0, Qt::CaseInsensitive);
             if (urlStartPos < 0)
             {
                 qDebug() << "Error: invalid bookmark html. Halting import";
@@ -117,7 +117,7 @@ bool BookmarkImporter::import(const QString &fileName, BookmarkNode *importFolde
                 return false;
             }
             urlStartPos += 6;
-            int urlEndPos = attributeStr.indexOf(QLatin1Char('"'), urlStartPos);
+            int urlEndPos = attributeStr.indexOf(u'"', urlStartPos);
             if (urlEndPos < 0)
             {
                 qDebug() << "Error: invalid bookmark html. Halting import";

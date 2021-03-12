@@ -17,10 +17,6 @@ BookmarkFolderModel::BookmarkFolderModel(BookmarkManager *bookmarkMgr, QObject *
 {
 }
 
-BookmarkFolderModel::~BookmarkFolderModel()
-{
-}
-
 QModelIndex BookmarkFolderModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (parent.isValid() && column != 0)
@@ -119,7 +115,7 @@ bool BookmarkFolderModel::setData(const QModelIndex &index, const QVariant &valu
         if (BookmarkNode *folder = getItem(index))
         {
             m_bookmarkMgr->setBookmarkName(folder, value.toString());
-            emit dataChanged(index, index);
+            Q_EMIT dataChanged(index, index);
             return true;
         }
     }
@@ -221,7 +217,7 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
     // Handle each dropped node depending on its type
     //  - For folders, adjust their parent and/or position.
     //  - For bookmarks, if dropped onto root folder, ignore, otherwise change their parent folder
-    emit beginMovingBookmarks();
+    Q_EMIT beginMovingBookmarks();
     beginResetModel();
     for (BookmarkNode *n : droppedNodes)
     {
@@ -230,7 +226,7 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
             case BookmarkNode::Folder:
             {
                 BookmarkNode *newPtr = m_bookmarkMgr->setBookmarkParent(n, targetNode);
-                emit movedFolder(n, newPtr);
+                Q_EMIT movedFolder(n, newPtr);
                 break;
             }
             case BookmarkNode::Bookmark:
@@ -243,7 +239,7 @@ bool BookmarkFolderModel::dropMimeData(const QMimeData *data, Qt::DropAction act
         }
     }
     endResetModel();
-    emit endMovingBookmarks();
+    Q_EMIT endMovingBookmarks();
 
     return true;
 }

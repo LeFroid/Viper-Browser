@@ -2,14 +2,16 @@
 #define BookmarkWidget_H
 
 #include "BookmarkManager.h"
-#include <deque>
+
 #include <QModelIndex>
 #include <QUrl>
 #include <QVector>
 #include <QWidget>
 
 class BookmarkFolderModel;
+class BookmarkTableModel;
 class BookmarkManager;
+class FolderNavigator;
 
 namespace Ui {
 class BookmarkWidget;
@@ -42,6 +44,9 @@ public:
     /// Sets the pointer to the user's bookmark manager
     void setBookmarkManager(BookmarkManager *bookmarkManager);
 
+    /// Displays information about the given node at the bottom of the window
+    void showInfoForNode(BookmarkNode *node);
+
 protected:
     /// Called to adjust the proportions of the columns belonging to the table view
     void resizeEvent(QResizeEvent *event) override;
@@ -65,9 +70,6 @@ private Q_SLOTS:
 
     /// Called when the selected bookmark node in a given folder has changed from the previous index to the current index
     void onBookmarkSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
-
-    /// Called when the user changes their bookmark folder selection
-    void onFolderSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
 
     /// Called when the index of the active item has changed in the "Import/Export bookmarks from/to HTML" combo box
     void onImportExportBoxChanged(int index);
@@ -119,12 +121,6 @@ private Q_SLOTS:
     /// data must be updated
     void onFolderMoved(BookmarkNode *folder, BookmarkNode *updatedPtr);
 
-    /// Called when the user wants to go back by one selection in the folder view
-    void onClickBackButton();
-
-    /// Called when the user wants to go forward by one selection in the folder view
-    void onClickForwardButton();
-
     /// Updates any needed UI elements after a change has been made to the folder model
     void onFolderDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
 
@@ -140,15 +136,15 @@ private Q_SLOTS:
     /// Triggered when the Return or Enter key is pressed from the bookmark shortcut line edit
     void onEditNodeShortcut();
 
+    /// Triggered by the \ref FolderNavigator - notifies the bookmark UI to update the back/forward buttons
+    void onHistoryChanged();
+
 private:
     /// Clears the local bookmark folder navigation history
     void clearNavigationHistory();
 
     /// Returns a QUrl containing the location of the bookmark that the user has selected in the table view
     QUrl getUrlForSelection();
-
-    /// Displays information about the given node at the bottom of the window
-    void showInfoForNode(BookmarkNode *node);
 
     /// Sets the behavior of the folder model
     void setupFolderModel(BookmarkFolderModel *folderModel);
@@ -160,14 +156,14 @@ private:
     /// Pointer to the user's bookmark manager
     BookmarkManager *m_bookmarkManager;
 
+    /// Model supporting the table view
+    BookmarkTableModel *m_tableModel;
+
     /// Pointer to the selected bookmark node
     BookmarkNode *m_currentNode;
 
-    /// Stores the indices of previous selections made in the folder view. Used for the back button feature
-    std::deque<QModelIndex> m_folderBackHistory;
-
-    /// Stores the indices of active selections in the folder view when the "Back" button is clicked. Used for forward button feature
-    std::deque<QModelIndex> m_folderForwardHistory;
+    /// Folder navigation manager
+    FolderNavigator *m_navigator;
 };
 
 #endif // BookmarkWidget_H
