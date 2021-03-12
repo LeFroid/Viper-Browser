@@ -18,8 +18,8 @@ HttpRequest::HttpRequest(const HttpRequest &other) :
 {
 }
 
-HttpRequest::HttpRequest(HttpRequest &&other) :
-    m_url(other.m_url),
+HttpRequest::HttpRequest(HttpRequest &&other) noexcept :
+    m_url(std::move(other.m_url)),
     m_requestMethod(other.m_requestMethod),
     m_headers(std::move(other.m_headers)),
     m_postData(other.m_postData)
@@ -41,7 +41,7 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &other)
     return *this;
 }
 
-HttpRequest &HttpRequest::operator=(HttpRequest &&other)
+HttpRequest &HttpRequest::operator=(HttpRequest &&other) noexcept
 {
     if (&other == this)
         return *this;
@@ -52,10 +52,6 @@ HttpRequest &HttpRequest::operator=(HttpRequest &&other)
     m_postData = other.m_postData;
 
     return *this;
-}
-
-HttpRequest::~HttpRequest()
-{
 }
 
 QByteArray HttpRequest::getHeader(const QByteArray &name) const

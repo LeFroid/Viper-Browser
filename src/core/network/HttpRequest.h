@@ -34,16 +34,16 @@ public:
     HttpRequest(const HttpRequest &other);
 
     /// Move constructor
-    HttpRequest(HttpRequest &&other);
+    HttpRequest(HttpRequest &&other) noexcept;
 
     /// Copy assignment operator
     HttpRequest &operator =(const HttpRequest &other);
 
     /// Move assignment operator
-    HttpRequest &operator =(HttpRequest &&other);
+    HttpRequest &operator =(HttpRequest &&other) noexcept;
 
     /// Destructor
-    ~HttpRequest();
+    ~HttpRequest() = default;
 
     /// Returns the value of the header with the given name, or an empty QByteArray if the header is not set or its value is empty
     QByteArray getHeader(const QByteArray &name) const;

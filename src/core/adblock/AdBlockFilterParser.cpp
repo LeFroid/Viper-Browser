@@ -38,7 +38,7 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     auto filter = std::make_unique<Filter>(rule);
 
     // Make sure filter is able to be parsed
-    if (rule.isEmpty() || rule.startsWith(QLatin1Char('!')))
+    if (rule.isEmpty() || rule.startsWith(u'!'))
         return filter;
 
     Filter *filterPtr = filter.get();
@@ -55,7 +55,7 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     }
 
     // Check if filter options are set
-    int pos = rule.indexOf(QLatin1Char('$'));
+    int pos = rule.indexOf(u'$');
     if (pos >= 0 && pos + 1 < rule.size() && rule.at(pos + 1).isLetter())
     {
         parseOptions(rule.mid(pos + 1), filterPtr);
@@ -67,11 +67,11 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
         return filter;
 
     // Check if rule is a 'Match all' type
-    if (rule.isEmpty() || (rule.size() == 1 && rule.at(0) == QLatin1Char('*')))
+    if (rule.isEmpty() || (rule.size() == 1 && rule.at(0) == u'*'))
         filterPtr->m_matchAll = true;
 
     // Check if rule is a regular expression
-    if (rule.size() > 1 && rule.startsWith(QLatin1Char('/')) && rule.endsWith(QLatin1Char('/')))
+    if (rule.size() > 1 && rule.startsWith(u'/') && rule.endsWith(u'/'))
     {
         filterPtr->m_category = FilterCategory::RegExp;
 
@@ -85,15 +85,15 @@ std::unique_ptr<Filter> FilterParser::makeFilter(QString rule) const
     }
 
     // Remove any leading wildcard
-    if (rule.startsWith(QLatin1Char('*')))
+    if (rule.startsWith(u'*'))
         rule = rule.mid(1);
 
     // Remove trailing wildcard
-    if (rule.endsWith(QLatin1Char('*')))
+    if (rule.endsWith(u'*'))
         rule = rule.left(rule.size() - 1);
 
     // Check for domain matching rule
-    if (rule.startsWith(QStringLiteral("||")) && rule.endsWith(QLatin1Char('^')) && isDomainRule(rule))
+    if (rule.startsWith(QStringLiteral("||")) && rule.endsWith(u'^') && isDomainRule(rule))
     {
         rule = rule.mid(2);
         filterPtr->m_evalString = rule.left(rule.size() - 1);
@@ -276,8 +276,8 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
         const QChar quoteChar = filter->m_evalString.at(adGuardIndex + adGuardIfDirective.size());
         const int endIndex = filter->m_evalString.indexOf(quoteChar, adGuardIndex + adGuardIfDirective.size() + 1);
         filter->m_evalString.remove(endIndex + 1, 1);
-        filter->m_evalString.replace(endIndex, 1, QLatin1Char(')'));
-        filter->m_evalString.replace(adGuardIndex + adGuardIfDirective.size(), 1, QLatin1Char('('));
+        filter->m_evalString.replace(endIndex, 1, u')');
+        filter->m_evalString.replace(adGuardIndex + adGuardIfDirective.size(), 1, u'(');
         filter->m_evalString.replace(adGuardIfDirective, QStringLiteral(":if"));
     }
 
@@ -288,7 +288,7 @@ bool FilterParser::parseCosmeticOptions(Filter *filter) const
     }
 
     // Workaround until a better approach towards procedural filter parsing/execution is implemented
-    filter->m_evalString.replace(QLatin1String(":not(:has("), QLatin1String(":if-not("));
+    filter->m_evalString.replace(QStringLiteral(":not(:has("), QStringLiteral(":if-not("));
 
     // Search for each chainable type and handle the first one to appear, as any other
     // chainable filter options will appear as an argument of the first
