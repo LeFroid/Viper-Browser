@@ -44,11 +44,11 @@ WebView::WebView(bool privateView, QWidget *parent) :
     m_thumbnail()
 {
     setAcceptDrops(true);
-    setObjectName(QLatin1String("webView"));
+    setObjectName(QStringLiteral("webView"));
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     // Load context menu helper script for image URL detection
-    QFile contextScriptFile(QLatin1String(":/ContextMenuHelper.js"));
+    QFile contextScriptFile(QStringLiteral(":/ContextMenuHelper.js"));
     if (contextScriptFile.open(QIODevice::ReadOnly))
     {
         m_contextMenuHelper = QString(contextScriptFile.readAll());
@@ -67,14 +67,14 @@ int WebView::getProgress() const
 
 void WebView::loadBlankPage()
 {
-    load(QUrl(QLatin1String("viper://blank")));
+    load(QUrl(QStringLiteral("viper://blank")));
 }
 
 bool WebView::isOnBlankPage() const
 {
     const QUrl currentUrl = url();
-    return (currentUrl == QUrl(QLatin1String("viper://blank"))
-            || currentUrl == QUrl(QLatin1String("viper://newtab")));
+    return (currentUrl == QUrl(QStringLiteral("viper://blank"))
+            || currentUrl == QUrl(QStringLiteral("viper://newtab")));
 }
 
 QString WebView::getTitle() const
@@ -90,8 +90,8 @@ QString WebView::getTitle() const
     pageTitle = pageUrl.path();
     if (pageTitle.size() > 1)
     {
-        if (pageTitle.contains(QLatin1Char('/')))
-            return pageTitle.mid(pageTitle.lastIndexOf(QLatin1Char('/')) + 1);
+        if (pageTitle.contains(u'/'))
+            return pageTitle.mid(pageTitle.lastIndexOf(u'/') + 1);
 
         return pageTitle;
     }
@@ -167,7 +167,7 @@ void WebView::setupPage(const ViperServiceLocator &serviceLocator)
 
     // Load start / progress / finish handlers
     connect(m_page, &WebPage::loadStarted, this, [this](){
-        emit iconChanged(icon());
+        Q_EMIT iconChanged(icon());
     });
     connect(m_page, &WebPage::loadProgress, this, [this](int value){
        m_progress = value;
@@ -214,10 +214,10 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     if (!linkUrl.isEmpty())
     {
         menu->addAction(tr("Open link in new tab"), this, [this, linkUrl](){
-            emit openInNewBackgroundTab(linkUrl);
+            Q_EMIT openInNewBackgroundTab(linkUrl);
         });
         menu->addAction(tr("Open link in new window"), this, [this, linkUrl](){
-            emit openInNewWindowRequest(linkUrl, m_privateView);
+            Q_EMIT openInNewWindowRequest(linkUrl, m_privateView);
         });
         menu->addSeparator();
     }
@@ -229,10 +229,10 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
     {
         const QUrl mediaUrl = contextMenuData.mediaUrl();
         menu->addAction(tr("Open image in new tab"), this, [this, mediaUrl](){
-            emit openInNewBackgroundTab(mediaUrl);
+            Q_EMIT openInNewBackgroundTab(mediaUrl);
         });
         menu->addAction(tr("Open image"), this, [this, mediaUrl](){
-            emit openRequest(mediaUrl);
+            Q_EMIT openRequest(mediaUrl);
         });
         menu->addSeparator();
 
@@ -300,7 +300,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
         SearchEngineManager *searchMgr = &SearchEngineManager::instance();
         menu->addAction(tr("Search %1 for \"%2\"").arg(searchMgr->getDefaultSearchEngine(), selectedTextInMenu), this, [this, text, searchMgr](){
             HttpRequest request = searchMgr->getSearchRequest(text);
-            emit openHttpRequestInBackgroundTab(request);
+            Q_EMIT openHttpRequestInBackgroundTab(request);
         });
 
         QUrl selectionUrl = QUrl::fromUserInput(text);
@@ -309,7 +309,7 @@ void WebView::showContextMenu(const QPoint &globalPos, const QPoint &relativePos
                     || selectionUrl.host().compare(QStringLiteral("localhost"), Qt::CaseInsensitive) == 0))
         {
             menu->addAction(tr("Go to %1").arg(text), this, [this, selectionUrl](){
-                emit openInNewTab(selectionUrl);
+                Q_EMIT openInNewTab(selectionUrl);
             });
         }
 
@@ -341,7 +341,7 @@ void WebView::contextMenuEvent(QContextMenuEvent * /*event*/)
 
 void WebView::onFullScreenRequested(QWebEngineFullScreenRequest request)
 {
-    emit fullScreenRequested(request.toggleOn());
+    Q_EMIT fullScreenRequested(request.toggleOn());
     request.accept();
 }
 
@@ -349,7 +349,7 @@ void WebView::onLoadFinished(bool ok)
 {
     m_progress = 100;
 
-    emit iconChanged(icon());
+    Q_EMIT iconChanged(icon());
 
     if (ok && !isOnBlankPage())
         makeThumbnailOfPage();
@@ -399,17 +399,17 @@ void WebView::_mouseReleaseEvent(QMouseEvent *event)
             {
                 if (event->button() == Qt::MiddleButton)
                 {
-                    emit openInNewBackgroundTab(linkUrl);
+                    Q_EMIT openInNewBackgroundTab(linkUrl);
                     event->accept();
                 }
                 else if (event->modifiers() & Qt::ControlModifier)
                 {
-                    emit openInNewBackgroundTab(linkUrl);
+                    Q_EMIT openInNewBackgroundTab(linkUrl);
                     event->accept();
                 }
                 else if (event->modifiers() & Qt::ShiftModifier)
                 {
-                    emit openInNewWindowRequest(linkUrl, m_privateView);
+                    Q_EMIT openInNewWindowRequest(linkUrl, m_privateView);
                     event->accept();
                 }
             }

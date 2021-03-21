@@ -1,4 +1,4 @@
-#include "./CredentialStoreKWallet.h"
+﻿#include "./CredentialStoreKWallet.h"
 
 #include <algorithm>
 #include <kwallet.h>
@@ -7,6 +7,11 @@
 #include <QList>
 #include <QString>
 #include <QDebug>
+
+bool compareWebCredentials(const WebCredentials &a, const WebCredentials &b)
+{
+    return a.LastLogin < b.LastLogin;
+}
 
 CredentialStoreKWallet::CredentialStoreKWallet() :
     QObject(),
@@ -41,9 +46,7 @@ void CredentialStoreKWallet::addCredentials(const WebCredentials &credentials)
     std::vector<WebCredentials> &creds = m_credentials[credentials.Host];
     creds.push_back(credentials);
 
-    std::sort(creds.begin(), creds.end(), [](const WebCredentials &a, const WebCredentials &b) {
-        return a.LastLogin < b.LastLogin;
-    });
+    std::sort(creds.begin(), creds.end(), compareWebCredentials);
 
     saveCredentialsFor(credentials.Host);
 }
@@ -71,9 +74,7 @@ void CredentialStoreKWallet::removeCredentials(const WebCredentials &credentials
             ++it;
     }
 
-    std::sort(creds.begin(), creds.end(), [](const WebCredentials &a, const WebCredentials &b) {
-        return a.LastLogin < b.LastLogin;
-    });
+    std::sort(creds.begin(), creds.end(), compareWebCredentials);
 
     saveCredentialsFor(credentials.Host);
 }
@@ -99,9 +100,7 @@ void CredentialStoreKWallet::updateCredentials(const WebCredentials &credentials
 
     if (updated)
     {
-        std::sort(creds.begin(), creds.end(), [](const WebCredentials &a, const WebCredentials &b) {
-            return a.LastLogin < b.LastLogin;
-        });
+        std::sort(creds.begin(), creds.end(), compareWebCredentials);
         saveCredentialsFor(credentials.Host);
     }
     else
@@ -121,7 +120,7 @@ void CredentialStoreKWallet::openWallet()
         return;
     }
 
-    const QString folderName = QLatin1String("Viper-Browser");
+    const QString folderName = QStringLiteral("Viper-Browser");
 
     if (!m_wallet->hasFolder(folderName) && !m_wallet->createFolder(folderName))
     {
@@ -160,9 +159,7 @@ void CredentialStoreKWallet::openWallet()
             credentials.push_back(item);
         }
 
-        std::sort(credentials.begin(), credentials.end(), [](const WebCredentials &a, const WebCredentials &b) {
-            return a.LastLogin < b.LastLogin;
-        });
+        std::sort(credentials.begin(), credentials.end(), compareWebCredentials);
 
         m_credentials[host] = credentials;
     }

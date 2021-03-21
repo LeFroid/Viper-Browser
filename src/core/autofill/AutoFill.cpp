@@ -18,9 +18,9 @@ AutoFill::AutoFill(Settings *settings) :
     m_formFillScript(),
     m_enabled(settings->getValue(BrowserSetting::EnableAutoFill).toBool())
 {
-    setObjectName(QLatin1String("AutoFill"));
+    setObjectName(QStringLiteral("AutoFill"));
 
-    QFile scriptFile(QLatin1String(":/AutoFill.js"));
+    QFile scriptFile(QStringLiteral(":/AutoFill.js"));
     if (scriptFile.open(QIODevice::ReadOnly))
         m_formFillScript = scriptFile.readAll();
     scriptFile.close();

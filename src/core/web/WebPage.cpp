@@ -121,7 +121,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
     {
         if (url.path().compare(QLatin1String("print")) == 0)
         {
-            emit printPageRequest();
+            Q_EMIT printPageRequest();
             return false;
         }
     }
@@ -167,7 +167,7 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
     {
         // If only change in URL is fragment, try to update URL bar by emitting url changed signal
         if (this->url().toString(QUrl::RemoveFragment).compare(url.toString(QUrl::RemoveFragment)) == 0)
-            emit urlChanged(url);
+            Q_EMIT urlChanged(url);
     }
 
     if (type != QWebEnginePage::NavigationTypeReload)
