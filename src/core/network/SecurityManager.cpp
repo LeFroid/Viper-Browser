@@ -12,6 +12,7 @@
 #include <QRegularExpression>
 #include <QSslCertificate>
 #include <QSslError>
+#include <QtGlobal>
 #include <QDebug>
 
 SecurityManager::SecurityManager(QObject *parent) :
@@ -93,14 +94,13 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
     if (!m_securityDialog)
         m_securityDialog = new SecurityInfoDialog(m_cookieJar, m_cookieWidget, m_historyManager);
 
-    const bool isHttps = url.scheme().compare(QLatin1String("https")) == 0;
+    const bool isHttps = url.scheme().compare(QStringLiteral("https")) == 0;
 
-    QString hostStripped = url.host().toLower();
-    hostStripped = hostStripped.remove(QRegularExpression("(www\\.)"));
-    auto certIt = m_certChains.find(hostStripped);
+    QString hostLower = url.host().toLower();
+    auto certIt = m_certChains.find(hostLower);
     if (isHttps && certIt != m_certChains.end())
     {
-        m_securityDialog->setWebsite(url, hostStripped, certIt.value());
+        m_securityDialog->setWebsite(url, hostLower, certIt.value());
     }
     else
     {
@@ -112,13 +112,19 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
             QNetworkRequest request(url);
             QNetworkReply *reply = m_networkAccessManager->get(request);
             connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+            connect(reply, &QNetworkReply::errorOccurred, [reply](QNetworkReply::NetworkError) {
+                reply->deleteLater();
+            });
+#else
             connect(reply, static_cast<void(QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), [reply](QNetworkReply::NetworkError){
                 reply->deleteLater();
             });
+#endif
             return;
         }
 
-        m_securityDialog->setWebsite(url, hostStripped);
+        m_securityDialog->setWebsite(url, hostLower);
     }
 
     m_securityDialog->show();
@@ -128,7 +134,7 @@ void SecurityManager::showSecurityInfo(const QUrl &url)
 
 void SecurityManager::onNetworkReply(QNetworkReply *reply)
 {
-    if (!reply || !reply->url().scheme().startsWith("https"))
+    if (!reply || !reply->url().scheme().startsWith(QStringLiteral("https")))
         return;
 
     QSslConfiguration sslConfig = reply->sslConfiguration();
@@ -139,15 +145,15 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
 
     // Skip if already found in insecure host list
     //if (m_insecureHosts.contains(host))
-     //   return;
+    //   return;
 
     QList<QSslCertificate> certChain = sslConfig.peerCertificateChain();
     QList<QSslError> sslErrors = QSslCertificate::verify(certChain, host);
 
     // Add host and their certificate chain to our hash map if not already there
-    QString hostStripped = host.remove(QRegularExpression("(www\\.)"));
-    if (m_certChains.find(hostStripped) == m_certChains.end())
-        m_certChains.insert(hostStripped, certChain);
+    QString hostLower = host.toLower();
+    if (m_certChains.find(hostLower) == m_certChains.end())
+        m_certChains.insert(hostLower, certChain);
 
     for (const auto &errCode : sslErrors)
     {
@@ -170,7 +176,7 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
         m_needShowDialog = false;
         m_replyUrlTarget = QUrl();
 
-        m_securityDialog->setWebsite(reply->url(), hostStripped, certChain);
+        m_securityDialog->setWebsite(reply->url(), hostLower, certChain);
         m_securityDialog->show();
         m_securityDialog->raise();
         m_securityDialog->activateWindow();
@@ -179,14 +185,20 @@ void SecurityManager::onNetworkReply(QNetworkReply *reply)
 
 void SecurityManager::onSSLErrors(QNetworkReply *reply, const QList<QSslError> &errors)
 {
-    QString message = tr("This website is not secure. The following errors were found: ");
-    for (const QSslError &err : errors)
-        message.append(QString("%1, ").arg(err.errorString()));
-    message.chop(2);
-    message.append(QString(". Do you wish to proceed?"));
+    QString warning = tr("The website you are attempting to load at \"%1\" is not secure.").arg(reply->url().host());
+    QString preface = tr("The following errors were found:");
+    QString option = tr("Do you wish to proceed?");
+
+    QString errorHtmlList = QStringLiteral("<ul>");
+    for (const QSslError &err : qAsConst(errors))
+        errorHtmlList.append(QString("<li>%1</li>").arg(err.errorString()));
+    errorHtmlList.append(QStringLiteral("</ul>"));
+
+    QString messageBoxText = QString("%1<p>%2</p>%3<p>%4</p>").arg(warning, preface, errorHtmlList, option);
     QMessageBox::StandardButtons buttons = QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No);
-    int response = QMessageBox::question(QApplication::activeWindow(), tr("Security Threat"), message, buttons, QMessageBox::NoButton);
+    int response = QMessageBox::question(QApplication::activeWindow(), tr("Security Threat"), messageBoxText, buttons, QMessageBox::NoButton);
     if (response == QMessageBox::Yes)
         reply->ignoreSslErrors(errors);
+
     m_insecureHosts.insert(reply->url().host());
 }
