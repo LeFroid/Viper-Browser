@@ -7,7 +7,7 @@
 NetworkAccessManager::NetworkAccessManager(QObject *parent) :
     QNetworkAccessManager(parent)
 {
-    setObjectName(QLatin1String("NetworkAccessManager"));
+    setObjectName(QStringLiteral("NetworkAccessManager"));
 }
 
 QNetworkReply *NetworkAccessManager::createRequest(NetworkAccessManager::Operation op, const QNetworkRequest &request, QIODevice *outgoingData)

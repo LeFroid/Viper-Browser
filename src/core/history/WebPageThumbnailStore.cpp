@@ -30,7 +30,7 @@ WebPageThumbnailStore::WebPageThumbnailStore(const ViperServiceLocator &serviceL
     m_historyManager(serviceLocator.getServiceAs<HistoryManager>("HistoryManager")),
     m_mimeDatabase()
 {
-    setObjectName(QLatin1String("WebPageThumbnailStore"));
+    setObjectName(QStringLiteral("WebPageThumbnailStore"));
 
     // Save thumbnails every 10 minutes
     using namespace std::chrono_literals;
@@ -87,7 +87,7 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     const QUrl originalUrl = ww->getOriginalUrl();
     const QString scheme = url.scheme().toLower();
 
-    const std::array<QString, 2> ignoreSchemes { QLatin1String("qrc"), QLatin1String("viper") };
+    const std::array<QString, 2> ignoreSchemes { QStringLiteral("qrc"), QStringLiteral("viper") };
     if (std::find(ignoreSchemes.begin(), ignoreSchemes.end(), scheme) != ignoreSchemes.end())
         return;
 
@@ -98,7 +98,7 @@ void WebPageThumbnailStore::onPageLoaded(bool ok)
     if (!fileName.isEmpty())
     {
         const QString mimeType = m_mimeDatabase.mimeTypeForFile(fileName).name();
-        if (mimeType.startsWith(QLatin1String("image")) || mimeType.startsWith(QLatin1String("video")))
+        if (mimeType.startsWith(QStringLiteral("image")) || mimeType.startsWith(QStringLiteral("video")))
             return;
     }
 
@@ -144,7 +144,7 @@ void WebPageThumbnailStore::timerEvent(QTimerEvent *event)
 
 bool WebPageThumbnailStore::hasProperStructure()
 {
-    return hasTable(QLatin1String("Thumbnails"));
+    return hasTable(QStringLiteral("Thumbnails"));
 }
 
 void WebPageThumbnailStore::setup()

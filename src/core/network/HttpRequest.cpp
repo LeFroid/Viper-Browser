@@ -22,7 +22,7 @@ HttpRequest::HttpRequest(HttpRequest &&other) noexcept :
     m_url(std::move(other.m_url)),
     m_requestMethod(other.m_requestMethod),
     m_headers(std::move(other.m_headers)),
-    m_postData(other.m_postData)
+    m_postData(std::move(other.m_postData))
 {
     other.m_url = QUrl();
     other.m_postData = QByteArray();

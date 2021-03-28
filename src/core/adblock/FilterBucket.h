@@ -21,25 +21,7 @@ namespace adblock
 {
 
 using filter_mask_t = uint16_t;
-/*
-class FilterMask
-{
-private:
-    filter_mask_t m_value;
 
-public:
-    constexpr FilterMask() noexcept : m_value() {}
-    constexpr FilterMask(filter_mask_t value) noexcept : m_value(value) {}
-
-    FilterMask(const FilterMask &) = default;
-    FilterMask(FilterMask &&) = default;
-
-    FilterMask &operator=(const FilterMask &) = default;
-    FilterMask &operator=(FilterMask &&) = default;
-
-    constexpr const filter_mask_t &get() const noexcept { return m_value; }
-};
-*/
 class FilterBucket
 {
 public:

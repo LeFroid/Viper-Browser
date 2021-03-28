@@ -31,7 +31,7 @@ int FaviconStore::getFaviconId(const QUrl &url)
 
     auto iconQuery = m_database.prepare(R"(SELECT FaviconID FROM FaviconMap WHERE PageURL LIKE ?)");
 
-    QString searchTemplate("%%1%");
+    QString searchTemplate(QStringLiteral("%%1%"));
     std::array<QString, 2> searchTerms = { searchTemplate.arg(url.host()),
                                            searchTemplate.arg(URL(url).getSecondLevelDomain()) };
     for (size_t i = 0; i < searchTerms.size(); ++i)
@@ -161,26 +161,26 @@ void FaviconStore::setupQueries()
 
 bool FaviconStore::hasProperStructure()
 {
-    return hasTable(QLatin1String("Favicons"))
-            && hasTable(QLatin1String("FaviconData"))
-            && hasTable(QLatin1String("FaviconMap"));
+    return hasTable(QStringLiteral("Favicons"))
+            && hasTable(QStringLiteral("FaviconData"))
+            && hasTable(QStringLiteral("FaviconMap"));
 }
 
 void FaviconStore::setup()
 {   
     // Setup table structures    
-    exec(QLatin1String("CREATE TABLE IF NOT EXISTS Favicons(FaviconID INTEGER PRIMARY KEY, URL TEXT UNIQUE)"));
-    exec(QLatin1String("CREATE TABLE IF NOT EXISTS FaviconData(DataID INTEGER PRIMARY KEY, FaviconID INTEGER NOT NULL, Data BLOB, "
+    exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Favicons(FaviconID INTEGER PRIMARY KEY, URL TEXT UNIQUE)"));
+    exec(QStringLiteral("CREATE TABLE IF NOT EXISTS FaviconData(DataID INTEGER PRIMARY KEY, FaviconID INTEGER NOT NULL, Data BLOB, "
                "FOREIGN KEY(FaviconID) REFERENCES Favicons(FaviconID))"));
-    exec(QLatin1String("CREATE TABLE IF NOT EXISTS FaviconMap(MapID INTEGER PRIMARY KEY, PageURL TEXT UNIQUE, FaviconID INTEGER NOT NULL, "
+    exec(QStringLiteral("CREATE TABLE IF NOT EXISTS FaviconMap(MapID INTEGER PRIMARY KEY, PageURL TEXT UNIQUE, FaviconID INTEGER NOT NULL, "
                "FOREIGN KEY(FaviconID) REFERENCES Favicons(FaviconID))"));
 
     // Create indices
-    exec(QLatin1String("CREATE INDEX IF NOT EXISTS favicons_url ON Favicons(URL)"));
-    exec(QLatin1String("CREATE INDEX IF NOT EXISTS favicon_data_data_id ON FaviconData(DataID)"));
-    exec(QLatin1String("CREATE INDEX IF NOT EXISTS favicon_data_foreign_id ON FaviconData(FaviconID)"));
-    exec(QLatin1String("CREATE INDEX IF NOT EXISTS favicon_map_url ON FaviconMap(PageURL)"));
-    exec(QLatin1String("CREATE INDEX IF NOT EXISTS favicon_map_data_id ON FaviconMap(FaviconID)"));
+    exec(QStringLiteral("CREATE INDEX IF NOT EXISTS favicons_url ON Favicons(URL)"));
+    exec(QStringLiteral("CREATE INDEX IF NOT EXISTS favicon_data_data_id ON FaviconData(DataID)"));
+    exec(QStringLiteral("CREATE INDEX IF NOT EXISTS favicon_data_foreign_id ON FaviconData(FaviconID)"));
+    exec(QStringLiteral("CREATE INDEX IF NOT EXISTS favicon_map_url ON FaviconMap(PageURL)"));
+    exec(QStringLiteral("CREATE INDEX IF NOT EXISTS favicon_map_data_id ON FaviconMap(FaviconID)"));
 }
 
 void FaviconStore::load()

@@ -6,15 +6,15 @@
 #include <cstring>
 
 BrowserIPC::BrowserIPC() :
-    m_buffer(QLatin1String("_Viper_Browser_IPC_")),
-    m_semaphore(QLatin1String("_Viper_Browser_Sem_"), 1),
+    m_buffer(QStringLiteral("_Viper_Browser_IPC_")),
+    m_semaphore(QStringLiteral("_Viper_Browser_Sem_"), 1),
     m_hasPreExistingInstance(false)
 {
     m_semaphore.acquire();
 
     // Fix for linux and perhaps other *nix systems (see: https://habr.com/ru/post/173281/)
     {
-        QSharedMemory sharedMemTemp(QLatin1String("_Viper_Browser_IPC_"));
+        QSharedMemory sharedMemTemp(QStringLiteral("_Viper_Browser_IPC_"));
         sharedMemTemp.attach();
     }
 

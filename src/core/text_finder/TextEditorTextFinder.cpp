@@ -27,7 +27,7 @@ void TextEditorTextFinder::stopSearching()
     QString contents = doc->toPlainText();
     int currentPos = m_editor->textCursor().position();
 
-    emit pseudoModifiedDocument();
+    Q_EMIT pseudoModifiedDocument();
     doc->setPlainText(contents);
 
     QTextCursor c = m_editor->textCursor();
@@ -170,7 +170,7 @@ void TextEditorTextFinder::highlightAllInEditor(const QString &term)
         highlightCursor = doc->find(term, highlightCursor);
         if (!highlightCursor.isNull())
         {
-            emit pseudoModifiedDocument();
+            Q_EMIT pseudoModifiedDocument();
             highlightCursor.mergeCharFormat(highlightFormat);
         }
     }
@@ -182,7 +182,7 @@ void TextEditorTextFinder::onFindTextResult(bool isFindingNext, bool isFound)
     if (!isFound || isEmptySearch || !m_editor)
     {
         QString resultText = isEmptySearch ? QString() : tr("Phrase not found");
-        emit showMatchResultText(resultText);
+        Q_EMIT showMatchResultText(resultText);
         return;
     }
 
@@ -200,6 +200,6 @@ void TextEditorTextFinder::onFindTextResult(bool isFindingNext, bool isFound)
         m_occurrenceCounter = isFindingNext ? 1 : m_numOccurrences;
 
     // Send text representation to the UI
-    QString resultText = tr("%1 of %2 matches").arg(m_occurrenceCounter).arg(m_numOccurrences);
-    emit showMatchResultText(resultText);
+    QString resultText = tr("%1 of %2 matches").arg(m_occurrenceCounter, m_numOccurrences);
+    Q_EMIT showMatchResultText(resultText);
 }

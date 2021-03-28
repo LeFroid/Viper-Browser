@@ -21,7 +21,7 @@ RequestInterceptor::RequestInterceptor(const ViperServiceLocator &serviceLocator
     m_sendCustomUserAgent(false),
     m_userAgent()
 {
-    setObjectName(QLatin1String("RequestInterceptor"));
+    setObjectName(QStringLiteral("RequestInterceptor"));
 }
 
 void RequestInterceptor::fetchServices()
@@ -49,8 +49,8 @@ void RequestInterceptor::interceptRequest(QWebEngineUrlRequestInfo &info)
         fetchServices();
 
     const QString requestScheme = info.requestUrl().scheme();
-    if (requestScheme != QLatin1String("viper")
-            && requestScheme != QLatin1String("blocked"))
+    if (requestScheme != QStringLiteral("viper")
+            && requestScheme != QStringLiteral("blocked"))
             // && info.requestMethod() == QString("GET"))
     {
         QUrl firstPartyUrl { info.firstPartyUrl() };

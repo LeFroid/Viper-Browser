@@ -107,7 +107,7 @@ void CookieJar::setThirdPartyCookiesEnabled(bool value)
         return;
     }
 
-    m_store->setCookieFilter([=](const QWebEngineCookieStore::FilterRequest &request) -> bool {
+    m_store->setCookieFilter([this](const QWebEngineCookieStore::FilterRequest &request) -> bool {
         if (request.thirdParty && m_enableCookies)
         {
             const QString originHost = request.origin.host();

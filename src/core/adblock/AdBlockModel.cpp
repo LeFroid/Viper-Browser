@@ -19,10 +19,10 @@ QVariant AdBlockModel::headerData(int section, Qt::Orientation orientation, int 
     {
         switch (section)
         {
-            case 0: return QString("On");
-            case 1: return QString("Name");
-            case 2: return QString("Last Update");
-            case 3: return QString("Source");
+            case 0: return QStringLiteral("On");
+            case 1: return QStringLiteral("Name");
+            case 2: return QStringLiteral("Last Update");
+            case 3: return QStringLiteral("Source");
             default: return QVariant();
         }
     }
@@ -79,7 +79,7 @@ bool AdBlockModel::setData(const QModelIndex &index, const QVariant &/*value*/, 
     if (index.isValid() && role == Qt::CheckStateRole)
     {
         m_adBlockManager->toggleSubscriptionEnabled(index.row());
-        emit dataChanged(index, index);
+        Q_EMIT dataChanged(index, index);
         return true;
     }
     return false;

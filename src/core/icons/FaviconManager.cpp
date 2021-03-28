@@ -24,7 +24,7 @@ FaviconManager::FaviconManager(const QString &databaseFile) :
     m_iconCache(64),
     m_mutex()
 {
-    setObjectName(QLatin1String("FaviconManager"));
+    setObjectName(QStringLiteral("FaviconManager"));
     m_faviconStore = DatabaseFactory::createWorker<FaviconStore>(databaseFile);
 }
 
@@ -37,7 +37,7 @@ QIcon FaviconManager::getFavicon(const QUrl &url)
 {
     QString pageUrl = getUrlAsString(url);
     if (!m_faviconStore || pageUrl.isEmpty())
-        return QIcon(QLatin1String(":/blank_favicon.png"));
+        return QIcon(QStringLiteral(":/blank_favicon.png"));
 
     const std::string urlStdStr = pageUrl.toStdString();
 
@@ -56,14 +56,14 @@ QIcon FaviconManager::getFavicon(const QUrl &url)
 
     int iconId = m_faviconStore->getFaviconId(url);
     if (iconId < 0)
-        return QIcon(QLatin1String(":/blank_favicon.png"));
+        return QIcon(QStringLiteral(":/blank_favicon.png"));
 
     auto it = m_iconMap.find(iconId);
     if (it == m_iconMap.end())
     {
         auto &record = m_faviconStore->getDataRecord(iconId);
         if (record.iconData.isEmpty())
-            return QIcon(QLatin1String(":/blank_favicon.png"));
+            return QIcon(QStringLiteral(":/blank_favicon.png"));
 
         QIcon icon = CommonUtil::iconFromBase64(record.iconData);
         auto result = m_iconMap.emplace(std::make_pair(iconId, icon));
@@ -90,7 +90,7 @@ void FaviconManager::updateIcon(const QUrl &iconUrl, const QUrl &pageUrl, const 
 {
     if (!m_faviconStore
             || iconUrl.isEmpty()
-            || iconUrl.scheme().startsWith(QLatin1String("data")))
+            || iconUrl.scheme().startsWith(QStringLiteral("data")))
         return;
 
     const QString pageUrlStr = getUrlAsString(pageUrl);
@@ -162,14 +162,14 @@ void FaviconManager::onReplyFinished(QNetworkReply *reply)
     bool success = false;
 
     // Handle compressed data
-    if (format.compare(QLatin1String("gzip")) == 0)
+    if (format.compare(QStringLiteral("gzip")) == 0)
     {
         data = qUncompress(data);
         format.clear();
     }
 
     // Handle SVG favicons
-    if (format.compare(QLatin1String("svg")) == 0)
+    if (format.compare(QStringLiteral("svg")) == 0)
     {
         QSvgRenderer svgRenderer(data);
         img = QImage(32, 32, QImage::Format_ARGB32);

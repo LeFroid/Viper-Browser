@@ -103,7 +103,7 @@ void HistoryTableModel::onHistoryFetched(std::vector<URLRecord> &&entries)
 
         HistoryTableRow row;
         row.ItemIndex = mapIt.value();
-        row.VisitString = dateTime.toString("MMMM d yyyy, h:mm ap");
+        row.VisitString = dateTime.toString(QStringLiteral("MMMM d yyyy, h:mm ap"));
         m_history.push_back(row);
     }
 
