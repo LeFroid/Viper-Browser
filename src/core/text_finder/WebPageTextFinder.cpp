@@ -98,7 +98,7 @@ void WebPageTextFinder::onFindTextFinished(const QWebEngineFindTextResult &resul
     const int numMatches = result.numberOfMatches();
     QString resultText;
     if (numMatches > 0)
-        resultText = tr("%1 of %2 matches").arg(result.activeMatch(), numMatches);
+        resultText = tr("%1 of %2 matches").arg(result.activeMatch()).arg(numMatches);
     else
         resultText = tr("Phrase not found");
     Q_EMIT showMatchResultText(resultText);
@@ -143,6 +143,6 @@ void WebPageTextFinder::updatePositionTracker(bool isFindingNext)
         m_occurrenceCounter = isFindingNext ? 1 : m_numOccurrences;
 
     // Send text representation to the UI
-    QString resultText = tr("%1 of %2 matches").arg(m_occurrenceCounter, m_numOccurrences);
+    QString resultText = tr("%1 of %2 matches").arg(m_occurrenceCounter).arg(m_numOccurrences);
     Q_EMIT showMatchResultText(resultText);
 }

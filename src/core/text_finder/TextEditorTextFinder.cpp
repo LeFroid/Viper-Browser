@@ -200,6 +200,6 @@ void TextEditorTextFinder::onFindTextResult(bool isFindingNext, bool isFound)
         m_occurrenceCounter = isFindingNext ? 1 : m_numOccurrences;
 
     // Send text representation to the UI
-    QString resultText = tr("%1 of %2 matches").arg(m_occurrenceCounter, m_numOccurrences);
+    QString resultText = tr("%1 of %2 matches").arg(m_occurrenceCounter).arg(m_numOccurrences);
     Q_EMIT showMatchResultText(resultText);
 }
