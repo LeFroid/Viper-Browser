@@ -11,6 +11,7 @@ class DownloadItem;
 }
 
 class QPushButton;
+class QTimer;
 
 /**
  * @class DownloadItem
@@ -61,6 +62,9 @@ private Q_SLOTS:
     /// Opens the folder containing the downloaded item
     void openDownloadFolder();
 
+    /// Updates the ETA label to the most recent estimate
+    void updateTimeToCompleteLabel();
+
 private:
     /// Connects the interface items to network activity.
     void setupItem();
@@ -92,6 +96,12 @@ private:
 
     /// Time of last update to the ETA
     qint64 m_lastUpdateMs;
+
+    /// ETA until download is complete, in milliseconds
+    qint64 m_timeRemainingMs;
+
+    /// ETA countdown timer, to update the label, making a smoother progression
+    QTimer *m_countdownTimer;
 };
 
 #endif // DOWNLOADITEM_H

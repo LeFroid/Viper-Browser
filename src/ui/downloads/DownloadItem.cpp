@@ -16,6 +16,7 @@
 #include <QMimeType>
 #include <QNetworkReply>
 #include <QStyle>
+#include <QTimer>
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
 
@@ -29,7 +30,9 @@ DownloadItem::DownloadItem(QWebEngineDownloadItem *item, QWidget *parent) :
     m_bytesReceived(0),
     m_pushButtonPauseResume(nullptr),
     m_startTimeMs(QDateTime::currentMSecsSinceEpoch()),
-    m_lastUpdateMs(QDateTime::currentMSecsSinceEpoch())
+    m_lastUpdateMs(m_startTimeMs),
+    m_timeRemainingMs(0),
+    m_countdownTimer(nullptr)
 {
     ui->setupUi(this);
 
@@ -86,6 +89,10 @@ void DownloadItem::contextMenuEvent(QContextMenuEvent *event)
 
 void DownloadItem::setupItem()
 {
+    m_countdownTimer = new QTimer(this);
+    connect(m_countdownTimer, &QTimer::timeout, this, &DownloadItem::updateTimeToCompleteLabel);
+    m_countdownTimer->start(1000);
+
 #if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     ui->labelDownloadName->setText(m_download->downloadFileName());
 #else
@@ -175,7 +182,11 @@ void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
     ui->progressBarDownload->setValue(downloadPct);
 
     qint64 timeInMs = QDateTime::currentMSecsSinceEpoch();
-    if (bytesTotal >= 1048576L && bytesReceived < bytesTotal && timeInMs - m_lastUpdateMs > 4000)
+    qint64 thresholdToUpdateMs = m_timeRemainingMs > 60000 ? 10000 : 4000;
+
+    if (bytesTotal >= 1048576L
+            && bytesReceived < bytesTotal
+            && (m_lastUpdateMs == m_startTimeMs || timeInMs - m_lastUpdateMs > thresholdToUpdateMs))
     {
         m_lastUpdateMs = timeInMs;
         updateEstimatedTimeLeft(bytesReceived, bytesTotal);
@@ -188,6 +199,8 @@ void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void DownloadItem::onFinished()
 {
+    m_timeRemainingMs = 0;
+    m_countdownTimer->stop();
     ui->progressBarDownload->setValue(100);
     ui->progressBarDownload->setDisabled(true);
     ui->labelDownloadSize->setText(CommonUtil::bytesToUserFriendlyStr(m_bytesReceived));
@@ -203,6 +216,8 @@ void DownloadItem::onStateChanged(QWebEngineDownloadItem::DownloadState state)
 {
     if (state == QWebEngineDownloadItem::DownloadCancelled)
     {
+        m_timeRemainingMs = 0;
+        m_countdownTimer->stop();
         if (m_pushButtonPauseResume)
             m_pushButtonPauseResume->hide();
 
@@ -213,6 +228,8 @@ void DownloadItem::onStateChanged(QWebEngineDownloadItem::DownloadState state)
     }
     else if (state == QWebEngineDownloadItem::DownloadInterrupted)
     {
+        m_timeRemainingMs = 0;
+        m_countdownTimer->stop();
         if (m_pushButtonPauseResume)
             m_pushButtonPauseResume->hide();
 
@@ -229,17 +246,14 @@ void DownloadItem::openDownloadFolder()
     static_cast<void>(QDesktopServices::openUrl(QUrl(folderUrlStr, QUrl::TolerantMode)));
 }
 
-void DownloadItem::updateEstimatedTimeLeft(qint64 bytesReceived, qint64 bytesTotal)
+void DownloadItem::updateTimeToCompleteLabel()
 {
-    qint64 timeElapsedMs = QDateTime::currentMSecsSinceEpoch() - m_startTimeMs;
+    if (m_timeRemainingMs < qint64{1000})
+        return;
 
-    // TODO: Account for pause/resume times
-    double roughCompletionTime = (static_cast<double>(timeElapsedMs) / static_cast<double>(bytesReceived)) * static_cast<double>(bytesTotal);
-    qint64 etaInMsec = static_cast<qint64>(roughCompletionTime) - timeElapsedMs;
-
-    qint64 numHours = etaInMsec / 3600000;
-    qint64 numMins = (etaInMsec % 3600000) / 60000; 
-    qint64 numSeconds = (etaInMsec % 60000) / 1000;
+    qint64 numHours = m_timeRemainingMs / 3600000;
+    qint64 numMins = (m_timeRemainingMs % 3600000) / 60000;
+    qint64 numSeconds = (m_timeRemainingMs % 60000) / 1000;
 
     QString eta;
     if (numHours > 0)
@@ -270,4 +284,18 @@ void DownloadItem::updateEstimatedTimeLeft(qint64 bytesReceived, qint64 bytesTot
     }
     eta.append(tr(" remaining"));
     ui->labelEstimatedTimeLeft->setText(eta);
+    ui->labelEstimatedTimeLeft->show();
+
+    m_timeRemainingMs -= 1000;
+}
+
+void DownloadItem::updateEstimatedTimeLeft(qint64 bytesReceived, qint64 bytesTotal)
+{
+    qint64 timeElapsedMs = QDateTime::currentMSecsSinceEpoch() - m_startTimeMs;
+
+    // TODO: Account for pause/resume times
+    double roughCompletionTime = (static_cast<double>(timeElapsedMs) / static_cast<double>(bytesReceived)) * static_cast<double>(bytesTotal);
+    m_timeRemainingMs = static_cast<qint64>(roughCompletionTime) - timeElapsedMs;
+
+    //updateTimeToCompleteLabel();
 }
