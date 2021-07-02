@@ -13,8 +13,8 @@ env:
   STDFLAGS: "-std=c++17"
   STANDARD: 17
   QTHOME: /opt/qt515
-  PATH: "/opt/cmake/bin:/opt/qt515/bin:${PATH}"
-  CMAKE_PREFIX_PATH: "/opt/qt515:${CMAKE_PREFIX_PATH}"
+  #  PATH: "/opt/cmake/bin:/opt/qt515/bin:${{env.PATH}}"
+  # CMAKE_PREFIX_PATH: "/opt/qt515:${{env.CMAKE_PREFIX_PATH}}"
 
 jobs:
   build:
