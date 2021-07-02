@@ -1,6 +1,6 @@
 # Viper Browser
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/faef22a2f30e4f1cbea3b15db777cab3)](https://www.codacy.com/app/LeFroid/Viper-Browser?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LeFroid/Viper-Browser&amp;utm_campaign=Badge_Grade) [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/LeFroid/Viper-Browser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/LeFroid/Viper-Browser/context:cpp) [![Build Status](https://travis-ci.com/LeFroid/Viper-Browser.svg?branch=master)](https://travis-ci.com/LeFroid/Viper-Browser)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/faef22a2f30e4f1cbea3b15db777cab3)](https://www.codacy.com/app/LeFroid/Viper-Browser?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=LeFroid/Viper-Browser&amp;utm_campaign=Badge_Grade) [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/LeFroid/Viper-Browser.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/LeFroid/Viper-Browser/context:cpp) [![Build Status](https://github.com/LeFroid/Viper-Browser/actions/workflows/cmake.yml/badge.svg)](https://github.com/LeFroid/Viper-Browser/actions/workflows/cmake.yml) 
 
 A powerful yet lightweight web browser built with the Qt framework
 
