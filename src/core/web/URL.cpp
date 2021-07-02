@@ -1,3 +1,4 @@
+#include "public_suffix/PublicSuffixManager.h"
 #include "URL.h"
 
 URL::URL() :
@@ -17,7 +18,8 @@ URL::URL(const QString &url, URL::ParsingMode parsingMode) :
 
 QString URL::getSecondLevelDomain() const
 {
-    const QString topLevelDomain = this->topLevelDomain();
+    PublicSuffixManager &suffixManager = PublicSuffixManager::instance();
+    const QString topLevelDomain = suffixManager.findTld(host().toLower());
     const QString host = this->host();
 
     if (topLevelDomain.isEmpty() || host.isEmpty())
@@ -28,7 +30,7 @@ QString URL::getSecondLevelDomain() const
     if (domain.count(QChar('.')) == 0)
         return host;
 
-    while (domain.count(QChar('.')) != 0)
+    while (domain.count(QChar('.')) > 1)
         domain = domain.mid(domain.indexOf(QChar('.')) + 1);
 
     return domain + topLevelDomain;

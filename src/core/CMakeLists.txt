@@ -76,6 +76,10 @@ set(viper_src
     user_scripts/WebEngineScriptAdapter.cpp
     utility/CommonUtil.cpp
     utility/FastHash.cpp
+    web/public_suffix/PublicSuffixManager.cpp
+    web/public_suffix/PublicSuffixRuleParser.cpp
+    web/public_suffix/PublicSuffixTreeNode.cpp
+    web/public_suffix/PublicSuffixTree.cpp
     web/URL.cpp
     web/WebActionProxy.cpp
     web/WebHistory.cpp
