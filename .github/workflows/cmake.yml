@@ -53,5 +53,5 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: |
         chmod +x "${GITHUB_WORKSPACE}/.github/deploy.sh"
-        "${GITHUB_WORKSPACE}/.github/deploy.sh ${{ secrets.GITHUB_TOKEN }}"
+        ../.github/deploy.sh "${{ secrets.GITHUB_TOKEN }}"
 
