@@ -7,3 +7,4 @@ source /opt/qt515/bin/qt515-env.sh
 export QTHOME=/opt/qt515
 export PATH=/opt/cmake/bin:/opt/qt515/bin:${PATH}
 export CMAKE_PREFIX_PATH=/opt/qt515:${CMAKE_PREFIX_PATH}
+mkdir -p $GITHUB_WORKSPACE/build
