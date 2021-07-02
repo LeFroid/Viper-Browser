@@ -3,6 +3,7 @@
 cd $GITHUB_WORKSPACE
 export VERSION=$(git rev-list master --count)
 cd $GITHUB_WORKSPACE/build
+export GITHUB_TOKEN=$1
 wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/5/linuxdeployqt-5-x86_64.AppImage"
 chmod a+x linuxdeployqt-5-x86_64.AppImage
 ./linuxdeployqt-5-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage -exclude-libs="libnss3.so,libnssutil3.so"
