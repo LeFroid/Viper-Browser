@@ -3,3 +3,7 @@ if (KF5Wallet_FOUND)
   add_subdirectory(credential_store_kwallet)
 endif()
 
+if (Secret_FOUND)
+    message("-- Building Plugin: Secret Integration")
+    add_subdirectory(credential_store_secret)
+endif()
