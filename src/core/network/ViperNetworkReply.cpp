@@ -41,8 +41,8 @@ qint64 ViperNetworkReply::readData(char *data, qint64 maxSize)
 
 void ViperNetworkReply::errorFinished()
 {
-    emit error(QNetworkReply::ContentNotFoundError);
-    emit finished();
+    Q_EMIT errorOccurred(QNetworkReply::ContentNotFoundError);
+    Q_EMIT finished();
     deleteLater();
 }
 

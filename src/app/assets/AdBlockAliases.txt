@@ -47,3 +47,4 @@ noop.txt=nooptext
 outbrain-widget.js=widgets.outbrain.com/outbrain.js
 popads.js=popads.net.js
 scorecardresearch_beacon.js=scorecardresearch.com/beacon.js
+nowoif=window.open-defuser.js

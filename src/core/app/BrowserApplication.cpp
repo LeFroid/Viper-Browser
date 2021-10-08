@@ -306,7 +306,7 @@ MainWindow *BrowserApplication::getNewWindow()
                 w->loadBlankPage();
                 break;
             case StartupMode::LoadNewTabPage:
-                w->loadUrl(QUrl(QLatin1String("viper://newtab")));
+                w->loadUrl(QUrl(QStringLiteral("viper://newtab")));
                 break;
             case StartupMode::RestoreSession:
                 m_sessionMgr.restoreSession(w, this);
@@ -469,7 +469,7 @@ void BrowserApplication::checkBrowserIPC()
     std::string messageStdString(message.data(), message.size());
     QString messageStr = QString::fromStdString(messageStdString);
 
-    if (messageStr.compare(QLatin1String("new-window")) == 0)
+    if (messageStr.compare(QStringLiteral("new-window")) == 0)
     {
         static_cast<void>(getNewWindow());
     }

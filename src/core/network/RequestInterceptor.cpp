@@ -8,8 +8,6 @@
 #include <QtWebEngineCoreVersion>
 #include <QtGlobal>
 
-#include <QDebug>
-
 const static QByteArray cUserAgentHeader = QByteArray("User-Agent");
 
 RequestInterceptor::RequestInterceptor(const ViperServiceLocator &serviceLocator, QObject *parent) :
