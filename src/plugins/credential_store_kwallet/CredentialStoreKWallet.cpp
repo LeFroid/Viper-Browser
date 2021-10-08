@@ -1,5 +1,4 @@
 ﻿#include "./CredentialStoreKWallet.h"
-
 #include <algorithm>
 #include <kwallet.h>
 #include <QByteArray>
@@ -8,7 +7,7 @@
 #include <QString>
 #include <QDebug>
 
-bool compareWebCredentials(const WebCredentials &a, const WebCredentials &b)
+static bool compareWebCredentials(const WebCredentials &a, const WebCredentials &b)
 {
     return a.LastLogin < b.LastLogin;
 }
@@ -181,6 +180,6 @@ void CredentialStoreKWallet::saveCredentialsFor(const QString &host)
 
     if (m_wallet->writeEntry(host, walletData) != 0)
     {
-        qDebug() << "CredentialStoreKWallet: could not save credentails for " << host;
+        qDebug() << "CredentialStoreKWallet: could not save credentials for " << host;
     }
 }

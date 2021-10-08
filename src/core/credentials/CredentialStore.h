@@ -14,7 +14,7 @@
 /// Contains information used to log in to a certain website
 struct WebCredentials
 {
-    /// Host location where the credentails are used
+    /// Host location where the credentials are used
     QString Host;
 
     /// The last time that the credentials were used to log in to the website

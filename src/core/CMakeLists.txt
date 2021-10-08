@@ -110,8 +110,3 @@ target_link_libraries(viper-core
     Qt5::WebEngineCore
     Qt5::WebEngineWidgets
 )
-
-#if (KF5Wallet_FOUND)
-#    target_compile_definitions(viper-core PRIVATE USE_KWALLET=1)
-#    target_link_libraries(viper-core KF5::Wallet)
-#endif()
