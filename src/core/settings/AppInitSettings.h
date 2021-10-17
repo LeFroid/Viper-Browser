@@ -1,6 +1,7 @@
 #ifndef APPINITSETTINGS_H
 #define APPINITSETTINGS_H
 
+#include <functional>
 #include <string>
 #include <unordered_map>
 
@@ -22,9 +23,9 @@ enum class AppInitKey
 struct AppInitKeyHash
 {
     template <typename T>
-    std::size_t operator()(T t) const
+    std::size_t operator()(const T &t) const noexcept
     {
-        return static_cast<std::size_t>(t);
+        return std::hash<int>{}(static_cast<int>(t));
     }
 };
 
