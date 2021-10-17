@@ -52,6 +52,9 @@ if(UNIX AND NOT APPLE)
     endif()
 endif()
 
+option(DISABLE_KWALLET "Force KWallet plugin not to be compiled." OFF)
+option(DISABLE_LIBSECRET "Force lib secret plugin not to be compiled." OFF)
+
 find_package (SQLite3)
 include_directories(${SQLite3_INCLUDE_DIR})
 
