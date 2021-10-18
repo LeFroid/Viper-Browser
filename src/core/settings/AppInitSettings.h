@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 /// Enumeration of the valid application initialization settings
-enum class AppInitKey
+enum class AppInitKey : int
 {
     /// Web Engine process model
     ProcessModel,
@@ -71,7 +71,6 @@ private:
 
     /// Map of valid keys to their corresponding string values
     std::unordered_map<AppInitKey, std::string, AppInitKeyHash> m_settingKeyMap;
-    //QMap<BrowserSetting, QString> m_settingMap;
 };
 
 #endif // APPINITSETTINGS_H
