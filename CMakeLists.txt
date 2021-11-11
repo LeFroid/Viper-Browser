@@ -41,6 +41,7 @@ endif()
 
 # TODO: KF5Wallet incompatible with qt6. Need some version that is compatible with qt 6
 option(DISABLE_KWALLET "Disable KWallet plugin" ON)
+option(DISABLE_LIBSECRET "Force lib secret plugin not to be compiled." ON)
 
 # Check for credential storage backends
 if(UNIX AND NOT APPLE)
