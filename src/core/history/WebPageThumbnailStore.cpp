@@ -221,6 +221,6 @@ void WebPageThumbnailStore::save()
     if (!m_historyManager || !m_bookmarkManager)
         return;
 
-    int historyLimit = std::min(m_thumbnails.size(), 100);
+    int historyLimit = std::min(static_cast<int>(m_thumbnails.size()), 100);
     m_historyManager->loadMostVisitedEntries(historyLimit, std::bind(&WebPageThumbnailStore::onMostVisitedPagesLoaded, this, std::placeholders::_1));
 }

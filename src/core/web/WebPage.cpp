@@ -69,9 +69,7 @@ WebPage::WebPage(const ViperServiceLocator &serviceLocator, QWebEngineProfile *p
 
 void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
 {
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
     setUrlRequestInterceptor(new RequestInterceptor(serviceLocator, this));
-#endif
 
     AutoFill *autoFillManager = serviceLocator.getServiceAs<AutoFill>("AutoFill");
 
@@ -83,6 +81,7 @@ void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
     setWebChannel(channel, QWebEngineScript::ApplicationWorld);
 
     connect(this, &WebPage::authenticationRequired,      this, &WebPage::onAuthenticationRequired);
+    connect(this, &WebPage::certificateError,            this, &WebPage::onCertificateError);
     connect(this, &WebPage::proxyAuthenticationRequired, this, &WebPage::onProxyAuthenticationRequired);
     connect(this, &WebPage::loadFinished,                this, &WebPage::onLoadFinished);
     connect(this, &WebPage::loadFinished,     autoFillManager, &AutoFill::onPageLoaded);
@@ -98,10 +97,8 @@ void WebPage::setupSlots(const ViperServiceLocator &serviceLocator)
         }
     });
 
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     connect(this, &WebPage::quotaRequested, this, &WebPage::onQuotaRequested);
     connect(this, &WebPage::registerProtocolHandlerRequested, this, &WebPage::onRegisterProtocolHandlerRequested);
-#endif
 }
 
 WebHistory *WebPage::getHistory() const
@@ -132,36 +129,29 @@ bool WebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navigatio
     m_injectedAdblock = false;
     m_originalUrl = QUrl();
 
-    // Conditionally enable PDF.JS if QtWebEngine version is >= 5.13, otherwise, unconditionally enable
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
     const QWebEngineSettings *pageSettings = settings();
     if (!pageSettings->testAttribute(QWebEngineSettings::PluginsEnabled)
             || !pageSettings->testAttribute(QWebEngineSettings::PdfViewerEnabled))
     {
-#endif
-
-    // Check if the request is for a PDF and try to render with PDF.js
-    const QString urlString = url.toString(QUrl::FullyEncoded);
-    if (urlString.endsWith(QLatin1String(".pdf")))
-    {
-        QFile resource(":/viewer.html");
-        bool opened = resource.open(QIODevice::ReadOnly);
-        if (opened)
+        // Check if the request is for a PDF and try to render with PDF.js
+        const QString urlString = url.toString(QUrl::FullyEncoded);
+        if (urlString.endsWith(QLatin1String(".pdf")))
         {
-            QString data = QString::fromUtf8(resource.readAll().constData());
-            int endTag = data.indexOf("</html>");
-            data.insert(endTag - 1, QString("<script>window.Response = undefined; document.addEventListener(\"DOMContentLoaded\", function() {"
-                                            " window.PDFViewerApplicationOptions.set('verbosity', pdfjsLib.VerbosityLevel.INFOS); "
-                                            " window.PDFViewerApplication.open(\"%1\");});</script>").arg(urlString));
-            QByteArray bytes = data.toUtf8();
-            setHtml(bytes, url);
-            return false;
+            QFile resource(":/viewer.html");
+            bool opened = resource.open(QIODevice::ReadOnly);
+            if (opened)
+            {
+                QString data = QString::fromUtf8(resource.readAll().constData());
+                int endTag = data.indexOf("</html>");
+                data.insert(endTag - 1, QString("<script>window.Response = undefined; document.addEventListener(\"DOMContentLoaded\", function() {"
+                                                " window.PDFViewerApplicationOptions.set('verbosity', pdfjsLib.VerbosityLevel.INFOS); "
+                                                " window.PDFViewerApplication.open(\"%1\");});</script>").arg(urlString));
+                QByteArray bytes = data.toUtf8();
+                setHtml(bytes, url);
+                return false;
+            }
         }
     }
-
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 13, 0))
-    }
-#endif
 
     if (type == QWebEnginePage::NavigationTypeLinkClicked)
     {
@@ -266,15 +256,15 @@ void WebPage::javaScriptConsoleMessage(WebPage::JavaScriptConsoleMessageLevel le
     //std::cout << "[JS Console] [Source " << sourceId.toStdString() << "] Line " << lineId << ", message: " << message.toStdString() << std::endl;
 }
 
-bool WebPage::certificateError(const QWebEngineCertificateError &certificateError)
+void WebPage::onCertificateError(const QWebEngineCertificateError &certificateError)
 {
-    return SecurityManager::instance().onCertificateError(certificateError, view()->window());
+    SecurityManager::instance().onCertificateError(certificateError, qobject_cast<QWidget*>(parent())->window());
 }
 
 QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type)
 {
-    WebView *webView = qobject_cast<WebView*>(view());
-    const bool isPrivate = profile() != QWebEngineProfile::defaultProfile();
+    WebView *webView = qobject_cast<WebView*>(parent());
+    const bool isPrivate = profile()->objectName().compare(QStringLiteral("PrivateWebProfile")) == 0;
 
     switch (type)
     {
@@ -318,7 +308,11 @@ QWebEnginePage *WebPage::createWindow(QWebEnginePage::WebWindowType type)
 
 void WebPage::onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
 {
-    AuthDialog authDialog(view()->window());
+    WebView *webView = qobject_cast<WebView*>(parent());
+    if (!webView)
+        return;
+
+    AuthDialog authDialog(webView->window());
     authDialog.setMessage(tr("%1 is requesting your username and password for %2")
                           .arg(requestUrl.host(), authenticator->realm()));
 
@@ -335,7 +329,11 @@ void WebPage::onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *a
 
 void WebPage::onProxyAuthenticationRequired(const QUrl &/*requestUrl*/, QAuthenticator *authenticator, const QString &proxyHost)
 {
-    AuthDialog authDialog(view()->window());
+    WebView *webView = qobject_cast<WebView*>(parent());
+    if (!webView)
+        return;
+
+    AuthDialog authDialog(webView->window());
     authDialog.setMessage(tr("Authentication is required to connect to proxy %1").arg(proxyHost));
 
     if (authDialog.exec() == QDialog::Accepted)
@@ -369,6 +367,10 @@ bool WebPage::isPermissionDenied(const QUrl &securityOrigin, WebPage::Feature fe
 
 void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, QWebEnginePage::Feature feature)
 {
+    WebView *webView = qobject_cast<WebView*>(parent());
+    if (!webView)
+        return;
+
     if (isPermissionAllowed(securityOrigin, feature))
     {
         setFeaturePermission(securityOrigin, feature, PermissionGrantedByUser);
@@ -398,21 +400,19 @@ void WebPage::onFeaturePermissionRequested(const QUrl &securityOrigin, QWebEngin
         case WebPage::MouseLock:
             featureStr.append(tr("lock your mouse?"));
             break;
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 10, 0))
         case WebPage::DesktopVideoCapture:
             featureStr.append(tr("capture video of your desktop?"));
             break;
         case WebPage::DesktopAudioVideoCapture:
             featureStr.append(tr("capture audio and video of your desktop?"));
             break;
-#endif
         default:
             setFeaturePermission(securityOrigin, feature, PermissionDeniedByUser);
             return;
     }
 
     QString requestStr = featureStr.arg(securityOrigin.host());
-    QMessageBox::StandardButton choice = QMessageBox::question(view()->window(), tr("Web Permission Request"), requestStr, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    QMessageBox::StandardButton choice = QMessageBox::question(webView->window(), tr("Web Permission Request"), requestStr, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
     PermissionPolicy policy = (choice == QMessageBox::Yes ? PermissionGrantedByUser : PermissionDeniedByUser);
     setFeaturePermission(securityOrigin, feature, policy);
 
@@ -449,10 +449,13 @@ void WebPage::onLoadFinished(bool ok)
         runJavaScript(m_mainFrameAdBlockScript, QWebEngineScript::ApplicationWorld);
 }
 
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
 void WebPage::onQuotaRequested(QWebEngineQuotaRequest quotaRequest)
 {
-    auto response = QMessageBox::question(view()->window(), tr("Permission Request"),
+    WebView *webView = qobject_cast<WebView*>(parent());
+    if (!webView)
+        return;
+
+    auto response = QMessageBox::question(webView->window(), tr("Permission Request"),
                                           tr("Allow %1 to increase its storage quota to %2?")
                                           .arg(quotaRequest.origin().host(), CommonUtil::bytesToUserFriendlyStr(quotaRequest.requestedSize())));
     if (response == QMessageBox::Yes)
@@ -463,15 +466,18 @@ void WebPage::onQuotaRequested(QWebEngineQuotaRequest quotaRequest)
 
 void WebPage::onRegisterProtocolHandlerRequested(QWebEngineRegisterProtocolHandlerRequest request)
 {
+    WebView *webView = qobject_cast<WebView*>(parent());
+    if (!webView)
+        return;
+
     //todo: save user response, add a "Site Preferences" UI where site permissions and such can be modified
-    auto response = QMessageBox::question(view()->window(), tr("Permission Request"),
+    auto response = QMessageBox::question(webView->window(), tr("Permission Request"),
                                           tr("Allow %1 to open all %2 links?").arg(request.origin().host(), request.scheme()));
     if (response == QMessageBox::Yes)
         request.accept();
     else
         request.reject();
 }
-#endif
 
 void WebPage::onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode)
 {

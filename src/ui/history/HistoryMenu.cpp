@@ -116,10 +116,10 @@ void HistoryMenu::setup()
     connect(m_historyManager, &HistoryManager::historyCleared, this, &HistoryMenu::resetItems, Qt::QueuedConnection);
 
     m_actionShowHistory = addAction(QLatin1String("&Show all History"));
-    m_actionShowHistory->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_H));
+    m_actionShowHistory->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_H));
 
     m_actionClearHistory = addAction(QLatin1String("&Clear Recent History..."));
-    m_actionClearHistory->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_Delete));
+    m_actionClearHistory->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_Delete));
 
     addSeparator();
 

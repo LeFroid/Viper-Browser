@@ -216,13 +216,8 @@ int main(int argc, char *argv[])
     qRegisterMetaType<std::vector<URLSuggestion>>();
 
     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
-
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::Floor);
-#endif
 
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     AppInitSettings initSettings;
 
     std::string emptyStr = "";
@@ -251,11 +246,6 @@ int main(int argc, char *argv[])
     }
 
     BrowserApplication a(&ipc, argc2, argv2);
-#else
-    int argc2 = 2;
-    char *argv2[] = { argv[0], "--remote-debugging-port=9477" };
-    BrowserApplication a(&ipc, argc2, argv2);
-#endif
 
     if (!initSettings.hasSetting(AppInitKey::CompletedInitialSetup)
             || initSettings.getValue(AppInitKey::CompletedInitialSetup).size() < 3)

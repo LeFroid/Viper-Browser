@@ -63,7 +63,7 @@ void AdBlockLogDisplay::showAllLogs()
 
 void AdBlockLogDisplay::onSearchTermEntered()
 {
-    m_proxyModel->setFilterRegExp(ui->lineEditSearch->text());
+    m_proxyModel->setFilterFixedString(ui->lineEditSearch->text());
 }
 
 void AdBlockLogDisplay::onReloadClicked()

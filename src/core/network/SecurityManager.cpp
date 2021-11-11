@@ -63,7 +63,7 @@ bool SecurityManager::onCertificateError(const QWebEngineCertificateError &certi
     QString preface = tr("The following errors were found:");
     QString option = tr("Do you wish to proceed?");
 
-    QString messageBoxText = QString("%1<p>%2</p><ul><li>%3</li></ul><p>%4</p>").arg(warning, preface, certificateError.errorDescription(), option);
+    QString messageBoxText = QString("%1<p>%2</p><ul><li>%3</li></ul><p>%4</p>").arg(warning, preface, certificateError.description(), option);
     QMessageBox::StandardButtons buttons = QMessageBox::StandardButtons(QMessageBox::Yes | QMessageBox::No);
     int response = QMessageBox::question(window, tr("Security Threat"), messageBoxText, buttons, QMessageBox::NoButton);
     if (response == QMessageBox::Yes)

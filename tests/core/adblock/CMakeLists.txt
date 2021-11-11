@@ -10,6 +10,6 @@ set(AdBlockFilterTest_src
 
 add_executable(AdBlockFilterTest ${AdBlockFilterTest_src})
 
-target_link_libraries(AdBlockFilterTest viper-core Qt5::Test Qt5::WebEngine)
+target_link_libraries(AdBlockFilterTest viper-core Qt6::Test Qt6::WebEngineCore)
 
 add_test(NAME AdBlockFilter-Test COMMAND AdBlockFilterTest)

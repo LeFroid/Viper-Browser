@@ -98,15 +98,15 @@ set(viper_core_deps
 add_library(viper-core STATIC ${viper_src}) 
 target_link_libraries(viper-core
     sqlite-wrapper-cpp
-    Qt5::Core
-    Qt5::Concurrent
-    Qt5::Gui
-    Qt5::Network
-    Qt5::PrintSupport
-    Qt5::Svg
-    Qt5::QuickWidgets
-    Qt5::Widgets
-    Qt5::WebChannel
-    Qt5::WebEngineCore
-    Qt5::WebEngineWidgets
+    Qt6::Core
+    Qt6::Concurrent
+    Qt6::Gui
+    Qt6::Network
+    Qt6::PrintSupport
+    Qt6::Svg
+    Qt6::QuickWidgets
+    Qt6::Widgets
+    Qt6::WebChannel
+    Qt6::WebEngineCore
+    Qt6::WebEngineWidgets
 )

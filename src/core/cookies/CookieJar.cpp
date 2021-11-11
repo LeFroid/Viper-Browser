@@ -13,7 +13,7 @@
 #include "CookieJar.h"
 #include "Settings.h"
 
-CookieJar::CookieJar(Settings *settings, bool privateJar, QObject *parent) :
+CookieJar::CookieJar(Settings *settings, QWebEngineProfile *defaultProfile, bool privateJar, QObject *parent) :
     QNetworkCookieJar(parent),
     m_enableCookies(false),
     m_privateJar(privateJar),
@@ -34,7 +34,7 @@ CookieJar::CookieJar(Settings *settings, bool privateJar, QObject *parent) :
     }
 
     if (!m_privateJar)
-        m_store = QWebEngineProfile::defaultProfile()->cookieStore();
+        m_store = defaultProfile->cookieStore();
     else
         m_store = sBrowserApplication->getPrivateBrowsingProfile()->cookieStore();
 

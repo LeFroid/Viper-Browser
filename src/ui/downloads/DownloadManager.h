@@ -20,7 +20,7 @@ class NetworkAccessManager;
 class Settings;
 
 class QNetworkReply;
-class QWebEngineDownloadItem;
+class QWebEngineDownloadRequest;
 class QWebEngineProfile;
 
 /**
@@ -59,7 +59,7 @@ public Q_SLOTS:
     void clearDownloads();
 
     /// Called when a download request is initiated
-    void onDownloadRequest(QWebEngineDownloadItem *item);
+    void onDownloadRequest(QWebEngineDownloadRequest *item);
 
     /// Used for internal downloads (not explictly requested by the user)
     InternalDownloadItem *downloadInternal(const QNetworkRequest &request, const QString &downloadDir, bool askForFileName = false, bool writeOverExisting = true);

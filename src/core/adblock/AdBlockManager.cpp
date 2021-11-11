@@ -332,7 +332,7 @@ const QString &AdBlockManager::getDomainJavaScript(const URL &url)
 
     if (domain.isEmpty())
     {
-        domain = requestUrl.mid(requestUrl.indexOf(QStringLiteral("://") + 3));
+        domain = requestUrl.mid(requestUrl.indexOf(QStringLiteral("://")) + 3);
         if (domain.contains(QChar('/')))
             domain = domain.left(domain.indexOf(QChar('/')));
     }

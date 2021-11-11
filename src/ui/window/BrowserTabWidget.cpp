@@ -73,7 +73,7 @@ bool BrowserTabWidget::eventFilter(QObject *watched, QEvent *event)
         case QEvent::MouseMove:
         {
             if (m_mainWindow && m_mainWindow->isFullScreen())
-                m_mainWindow->onMouseMoveFullscreen(static_cast<QMouseEvent*>(event)->y());
+                m_mainWindow->onMouseMoveFullscreen(static_cast<QMouseEvent*>(event)->position().y());
             break;
         }
         case QEvent::KeyPress:

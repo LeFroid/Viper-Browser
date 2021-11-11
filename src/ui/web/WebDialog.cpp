@@ -11,7 +11,7 @@ WebDialog::WebDialog(bool isPrivate, QWidget *parent) :
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     QGridLayout *grid = new QGridLayout;
-    grid->setMargin(0);
+    grid->setContentsMargins(0, 0, 0, 0);
     setLayout(grid);
 
     grid->addWidget(m_view);

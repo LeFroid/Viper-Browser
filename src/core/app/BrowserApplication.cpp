@@ -57,7 +57,6 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     QCoreApplication::setApplicationName(QLatin1String("Viper-Browser"));
     QCoreApplication::setApplicationVersion(QLatin1String(VIPER_VERSION_STR));
 
-    setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     setAttribute(Qt::AA_DontShowIconsInMenus, false);
 
     setWindowIcon(QIcon(QLatin1String(":/logo.png")));
@@ -72,7 +71,7 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     m_ipcTimerId = startTimer(1000 * 5);
 
     // Instantiate and load settings
-    m_settings = new Settings;
+    m_settings = new Settings(m_defaultProfile->settings());
     registerService(m_settings);
 
     // Initialize favicon storage module
@@ -88,22 +87,21 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     registerService(m_bookmarkManager);
 
     // Initialize cookie jar and cookie manager UI
-    m_cookieJar = new CookieJar(m_settings, false);
+    m_cookieJar = new CookieJar(m_settings, m_defaultProfile, false);
     registerService(m_cookieJar);
 
-    m_cookieUI = new CookieWidget();
+    m_cookieUI = new CookieWidget(m_defaultProfile);
     registerService(m_cookieUI);
 
     // Get default profile and load cookies now that the cookie jar is instantiated
-    auto webProfile = QWebEngineProfile::defaultProfile();
-    webProfile->cookieStore()->loadAllCookies();
+    m_defaultProfile->cookieStore()->loadAllCookies();
 
     // Initialize auto fill manager
     m_autoFill = new AutoFill(m_settings);
     registerService(m_autoFill);
 
     // Initialize download manager
-    const std::vector<QWebEngineProfile*> webProfiles { webProfile, m_privateProfile };
+    const std::vector<QWebEngineProfile*> webProfiles { m_defaultProfile, m_privateProfile };
     m_downloadMgr = new DownloadManager(m_settings, webProfiles);
     registerService(m_downloadMgr);
 
@@ -132,7 +130,7 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     m_faviconMgr->setNetworkAccessManager(m_networkAccessMgr);
 
     // Setup user agent manager before settings
-    m_userAgentMgr = new UserAgentManager(m_settings);
+    m_userAgentMgr = new UserAgentManager(m_settings, m_defaultProfile);
     registerService(m_userAgentMgr);
 
     // Setup user script manager
@@ -147,7 +145,7 @@ BrowserApplication::BrowserApplication(BrowserIPC *ipc, int &argc, char **argv) 
     installGlobalWebScripts();
 
     // Apply web settings
-    m_webSettings = new WebSettings(m_serviceLocator, QWebEngineSettings::defaultSettings(), QWebEngineProfile::defaultProfile(), m_privateProfile);
+    m_webSettings = new WebSettings(m_serviceLocator, m_defaultProfile->settings(), m_defaultProfile, m_privateProfile);
 
     // Load search engine information
     SearchEngineManager::instance().loadSearchEngines(m_settings->getPathValue(BrowserSetting::SearchEnginesFile));
@@ -184,9 +182,6 @@ BrowserApplication::~BrowserApplication()
     delete m_userAgentMgr;
     delete m_userScriptMgr;
     delete m_privateProfile;
-#if (QTWEBENGINECORE_VERSION < QT_VERSION_CHECK(5, 13, 0))
-    delete m_requestInterceptor;
-#endif
     delete m_viperSchemeHandler;
     delete m_blockedSchemeHandler;
     delete m_cookieUI;
@@ -198,6 +193,7 @@ BrowserApplication::~BrowserApplication()
     delete m_faviconMgr;
     delete m_bookmarkManager;
     delete m_settings;
+    delete m_defaultProfile;
 }
 
 BrowserApplication *BrowserApplication::instance()
@@ -362,7 +358,7 @@ void BrowserApplication::clearHistory(HistoryType histType, QDateTime start)
     }
 
     if ((histType & HistoryType::Cache) == HistoryType::Cache)
-        QWebEngineProfile::defaultProfile()->clearHttpCache();
+        m_defaultProfile->clearHttpCache();
 
     //todo: support clearing form and search data
 }
@@ -380,7 +376,7 @@ void BrowserApplication::clearHistoryRange(HistoryType histType, std::pair<QDate
     }
 
     if ((histType & HistoryType::Cache) == HistoryType::Cache)
-        QWebEngineProfile::defaultProfile()->clearHttpCache();
+        m_defaultProfile->clearHttpCache();
 
     //todo: support clearing form and search data
 }
@@ -399,7 +395,7 @@ void BrowserApplication::installGlobalWebScripts()
 {
     BrowserScripts browserScriptContainer;
 
-    auto publicScriptCollection = QWebEngineProfile::defaultProfile()->scripts();
+    auto publicScriptCollection = m_defaultProfile->scripts();
     auto privateScriptCollection = m_privateProfile->scripts();
 
     const std::vector<QWebEngineScript> &globalScripts = browserScriptContainer.getGlobalScripts();
@@ -425,32 +421,21 @@ void BrowserApplication::registerService(QObject *service)
 void BrowserApplication::setupWebProfiles()
 {
     // Only two profiles for now, standard and private
-    auto webProfile = QWebEngineProfile::defaultProfile();
-    webProfile->setObjectName(QLatin1String("PublicWebProfile"));
-    registerService(webProfile);
+    m_defaultProfile = new QWebEngineProfile(QStringLiteral("Default"), this);
+    m_defaultProfile->setObjectName(QLatin1String("PublicWebProfile"));
+    registerService(m_defaultProfile);
 
-    m_privateProfile = new QWebEngineProfile(this);
+    m_privateProfile = QWebEngineProfile::defaultProfile();
     m_privateProfile->setObjectName(QLatin1String("PrivateWebProfile"));
     registerService(m_privateProfile);
-
-#if (QTWEBENGINECORE_VERSION < QT_VERSION_CHECK(5, 13, 0))
-    // Instantiate request interceptor
-    m_requestInterceptor = new RequestInterceptor(m_serviceLocator, this);
-    registerService(m_requestInterceptor);
-#endif
 
     // Instantiate scheme handlers
     m_viperSchemeHandler = new ViperSchemeHandler(this);
     m_blockedSchemeHandler = new BlockedSchemeHandler(m_serviceLocator, this);
 
     // Attach request interceptor and scheme handlers to web profiles
-#if (QTWEBENGINECORE_VERSION < QT_VERSION_CHECK(5, 13, 0))
-    webProfile->setRequestInterceptor(m_requestInterceptor);
-    m_privateProfile->setRequestInterceptor(m_requestInterceptor);
-#endif
-
-    webProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
-    webProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
+    m_defaultProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
+    m_defaultProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);
 
     m_privateProfile->installUrlSchemeHandler("viper", m_viperSchemeHandler);
     m_privateProfile->installUrlSchemeHandler("blocked", m_blockedSchemeHandler);

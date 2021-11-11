@@ -20,7 +20,7 @@ class CookieTableModel : public QAbstractTableModel
 
 public:
     /// Constructs the cookie table model
-    explicit CookieTableModel(QObject *parent = nullptr);
+    explicit CookieTableModel(QObject *parent, QWebEngineCookieStore *cookieStore);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;

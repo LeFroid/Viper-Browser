@@ -4,6 +4,6 @@ include_directories(
 )
 
 add_executable(HistorySuggestorTest HistorySuggestorTest.cpp)
-target_link_libraries(HistorySuggestorTest viper-core viper-ui Qt5::Test Threads::Threads)
+target_link_libraries(HistorySuggestorTest viper-core viper-ui Qt6::Test Threads::Threads)
 
 add_test(NAME HistorySuggestor-Test COMMAND HistorySuggestorTest)

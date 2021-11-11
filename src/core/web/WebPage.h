@@ -11,11 +11,8 @@
 #include <QString>
 #include <QWebEnginePage>
 #include <QtWebEngineCoreVersion>
-
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
 #include <QWebEngineQuotaRequest>
 #include <QWebEngineRegisterProtocolHandlerRequest>
-#endif
 
 namespace adblock {
     class AdBlockManager;
@@ -70,13 +67,13 @@ protected:
     /// Called when a JavaScript program attempts to print the given message to the browser console
     void javaScriptConsoleMessage(JavaScriptConsoleMessageLevel level, const QString &message, int lineId, const QString &sourceId) override;
 
-    /// Called when an invalid certificate error is raised while loading a given request. Returns true when ignoring the error, or false when the page will not be loaded.
-    bool certificateError(const QWebEngineCertificateError &certificateError) override;
-
     /// Creates a new web page in a new window, new tab or as a dialog, depending on the given type, and returns a pointer to the page
     QWebEnginePage *createWindow(QWebEnginePage::WebWindowType type) override;
 
 private Q_SLOTS:
+    /// Called when an invalid certificate error is raised while loading a given request. Returns true when ignoring the error, or false when the page will not be loaded.
+    void onCertificateError(const QWebEngineCertificateError &certificateError);
+
     /// Opens an authentication dialog when requested by the given URL
     void onAuthenticationRequired(const QUrl &requestUrl, QAuthenticator *authenticator);
 
@@ -89,13 +86,11 @@ private Q_SLOTS:
     /// Called when a frame is finished loading
     void onLoadFinished(bool ok);
 
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 11, 0))
     /// Called when a page requests larger persistent storage than the application's current allocation in File System API.
     void onQuotaRequested(QWebEngineQuotaRequest quotaRequest);
 
     /// Called when a page tries to register a custom protocol using the registerProtocolHandler API
     void onRegisterProtocolHandlerRequested(QWebEngineRegisterProtocolHandlerRequest request);
-#endif
 
     /// Handler for render process termination
     void onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus terminationStatus, int exitCode);

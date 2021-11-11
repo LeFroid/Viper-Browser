@@ -3,7 +3,7 @@
 
 #include <QFile>
 #include <QNetworkReply>
-#include <QWebEngineDownloadItem>
+#include <QWebEngineDownloadRequest>
 #include <QWidget>
 
 namespace Ui {
@@ -28,7 +28,7 @@ public:
      * @param writeOverExisting True if the download should overwrite any existing files with naming conflicts, false if else
      * @param parent Pointer to the DownloadManager
      */
-    explicit DownloadItem(QWebEngineDownloadItem *item, QWidget *parent = nullptr);
+    explicit DownloadItem(QWebEngineDownloadRequest *item, QWidget *parent = nullptr);
 
     /// Destructor
     ~DownloadItem();
@@ -51,13 +51,13 @@ protected:
 
 private Q_SLOTS:
     /// Called when progress has been made in the downloading of this item
-    void onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void onDownloadProgress();
 
     /// Called when the download has finished
     void onFinished();
 
     /// Called when the state of the download has changed
-    void onStateChanged(QWebEngineDownloadItem::DownloadState state);
+    void onStateChanged(QWebEngineDownloadRequest::DownloadState state);
 
     /// Opens the folder containing the downloaded item
     void openDownloadFolder();
@@ -80,7 +80,7 @@ private:
     Ui::DownloadItem *ui;
 
     /// Pointer to the download item
-    QWebEngineDownloadItem *m_download;
+    QWebEngineDownloadRequest *m_download;
 
     /// Download directory
     QString m_downloadDir;

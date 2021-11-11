@@ -15,7 +15,6 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QMenu>
-#include <QRegExp>
 #include <QResizeEvent>
 #include <QtConcurrent>
 #include <QDebug>

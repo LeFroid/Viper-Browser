@@ -9,16 +9,17 @@
 #include <QWebEngineCookieStore>
 #include <QWebEngineProfile>
 
-CookieWidget::CookieWidget(QWidget *parent) :
-    QWidget(parent),
+CookieWidget::CookieWidget(QWebEngineProfile *profile) :
+    QWidget(),
     ui(new Ui::CookieWidget),
     m_cookieDialog(new CookieModifyDialog(this)),
+    m_profile(profile),
     m_dialogEditMode(false)
 {
     ui->setupUi(this);
     setObjectName(QLatin1String("CookieWidget"));
 
-    ui->tableViewCookies->setModel(new CookieTableModel(this));
+    ui->tableViewCookies->setModel(new CookieTableModel(this, m_profile->cookieStore()));
     ui->tableViewCookieDetail->setModel(new DetailedCookieTableModel(this));
 
     // Enable search for cookies
@@ -153,7 +154,7 @@ void CookieWidget::onCookieDialogFinished(int result)
     if (result == QDialog::Rejected)
         return;
 
-    auto cookieStore = QWebEngineProfile::defaultProfile()->cookieStore();
+    auto cookieStore = m_profile->cookieStore();
     QNetworkCookie cookie = m_cookieDialog->getCookie();
     cookieStore->setCookie(cookie);
 

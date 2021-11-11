@@ -9,6 +9,7 @@ class CookieWidget;
 
 class CookieJar;
 class CookieModifyDialog;
+class QWebEngineProfile;
 
 /**
  * @class CookieWidget
@@ -21,7 +22,7 @@ class CookieWidget : public QWidget
 
 public:
     /// Constructs the cookie widget
-    explicit CookieWidget(QWidget *parent = 0);
+    explicit CookieWidget(QWebEngineProfile *profile);
     ~CookieWidget();
 
     /// Resets the checkbox states in the table view
@@ -59,6 +60,9 @@ private:
 
     /// Dialog for adding or modifying cookies
     CookieModifyDialog *m_cookieDialog;
+
+    /// Web engine profile
+    QWebEngineProfile *m_profile;
 
     /// True if the dialog was activated in edit mode, false if dialog is in new cookie mode
     bool m_dialogEditMode;

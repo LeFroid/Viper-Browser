@@ -38,7 +38,11 @@ void AutoFill::onFormSubmitted(WebPage *page, const QString &pageUrl, const QStr
     if (!m_credentialStore || !m_enabled)
         return;
 
-    if (!page || !page->view())
+    if (!page)
+        return;
+
+    QWidget *parentWidget = qobject_cast<QWidget*>(page->parent());
+    if (!parentWidget)
         return;
 
     // Todo: check if URL is blocked from inclusion in auto fill system
@@ -73,7 +77,7 @@ void AutoFill::onFormSubmitted(WebPage *page, const QString &pageUrl, const QStr
     for (auto it = formData.cbegin(); it != formData.cend(); ++it)
         credentials.FormData[it.key()] = it.value().toString();
 
-    QWidget *window = page->view()->window();
+    QWidget *window = parentWidget->window();
     AutoFillDialog *dialog = new AutoFillDialog;
 
     AutoFillDialog::DialogAction action = isExisting ? AutoFillDialog::UpdateCredentialsAction : AutoFillDialog::NewCredentialsAction;

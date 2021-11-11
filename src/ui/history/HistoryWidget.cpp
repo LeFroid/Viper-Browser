@@ -103,7 +103,7 @@ void HistoryWidget::onCriteriaChanged(const QModelIndex &index)
 
 void HistoryWidget::searchHistory()
 {
-    m_proxyModel->setFilterRegExp(ui->lineEditSearch->text());
+    m_proxyModel->setFilterFixedString(ui->lineEditSearch->text());
 }
 
 void HistoryWidget::setupCriteriaList()

@@ -9,6 +9,6 @@ set(FaviconManagerTest_src
 
 add_executable(FaviconManagerTest ${FaviconManagerTest_src})
 
-target_link_libraries(FaviconManagerTest viper-core viper-ui Qt5::Test Threads::Threads)
+target_link_libraries(FaviconManagerTest viper-core viper-ui Qt6::Test Threads::Threads)
 
 #add_test(NAME FaviconManager-Test COMMAND FaviconManagerTest)

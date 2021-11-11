@@ -161,7 +161,7 @@ std::vector<URLSuggestion> HistorySuggestor::getSuggestionsFromQuery(const std::
     const QRegularExpression prefixExpr = QRegularExpression(QLatin1String("^WWW\\."));
     const bool inputStartsWithWww = searchTerm.size() >= 3 && searchTerm.startsWith(QLatin1String("WWW"));
 
-    const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-864000);
+    const VisitEntry cutoffTime = QDateTime::currentDateTime().addSecs(-1814400);
 
     std::vector<URLSuggestion> result;
 

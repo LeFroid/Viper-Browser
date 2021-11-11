@@ -63,7 +63,7 @@ set(viper_ui_src
     window/URLLineEdit.cpp
 )
 
-qt5_wrap_ui(viper_ui_files
+qt6_wrap_ui(viper_ui_files
     adblock/AdBlockLogDisplay.ui
     adblock/AdBlockSubscribeDialog.ui
     adblock/AdBlockWidget.ui
@@ -108,14 +108,14 @@ set(viper_ui_deps
 add_library(viper-ui STATIC ${viper_ui_deps})
 target_link_libraries(viper-ui
     viper-core
-    Qt5::Core
-    Qt5::Concurrent
-    Qt5::Gui
-    Qt5::Network
-    Qt5::PrintSupport
-    Qt5::Svg
-    Qt5::QuickWidgets
-    Qt5::Widgets
-    Qt5::WebChannel
-    Qt5::WebEngineWidgets
+    Qt6::Core
+    Qt6::Concurrent
+    Qt6::Gui
+    Qt6::Network
+    Qt6::PrintSupport
+    Qt6::Svg
+    Qt6::QuickWidgets
+    Qt6::Widgets
+    Qt6::WebChannel
+    Qt6::WebEngineWidgets
 )

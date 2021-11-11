@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-project(Viper-Browser VERSION 0.9.1)
+project(Viper-Browser VERSION 1.0.0)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -32,12 +32,15 @@ set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
 
 # Get Qt
-set(QT_VERSION_MIN "5.9.0")
-find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Core Concurrent Gui Network PrintSupport Svg QuickWidgets Widgets WebChannel WebEngineWidgets)
+set(QT_VERSION_MIN "6.0.0")
+find_package(Qt6 ${QT_VERSION_MIN} REQUIRED COMPONENTS Core Concurrent Gui Network PrintSupport Svg QuickWidgets Widgets WebChannel WebEngineWidgets)
 
 if (ENABLE_TESTING)
-    find_package(Qt5 ${QT_VERSION_MIN} REQUIRED COMPONENTS Test WebEngine)
+    find_package(Qt6 ${QT_VERSION_MIN} REQUIRED COMPONENTS Test WebEngineCore)
 endif()
+
+# TODO: KF5Wallet incompatible with qt6. Need some version that is compatible with qt 6
+option(DISABLE_KWALLET "Disable KWallet plugin" ON)
 
 # Check for credential storage backends
 if(UNIX AND NOT APPLE)
@@ -51,9 +54,6 @@ if(UNIX AND NOT APPLE)
         message("-- Found Secret")
     endif()
 endif()
-
-option(DISABLE_KWALLET "Force KWallet plugin not to be compiled." OFF)
-option(DISABLE_LIBSECRET "Force lib secret plugin not to be compiled." OFF)
 
 find_package (SQLite3)
 include_directories(${SQLite3_INCLUDE_DIR})

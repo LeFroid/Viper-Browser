@@ -7,6 +7,8 @@
 #include <QMap>
 #include <QSettings>
 
+class QWebEngineSettings;
+
 /// The types of pages that can be loaded by default when a new web page or tab is created
 enum class NewTabType
 {
@@ -33,7 +35,7 @@ class Settings : public QObject
 
 public:
     /// Settings constructor - loads browser settings and sets to defaults if applicable
-    explicit Settings();
+    explicit Settings(QWebEngineSettings *webSettings);
 
     /// Returns the path to the item associated with the path- or file-related key
     QString getPathValue(BrowserSetting key);
@@ -70,6 +72,9 @@ private:
 
     /// Mapping of \ref BrowserSetting values to their equivalent key names
     QMap<BrowserSetting, QString> m_settingMap;
+
+    /// Default profile web settings
+    QWebEngineSettings *m_webSettings;
 };
 
 #endif // SETTINGS_H

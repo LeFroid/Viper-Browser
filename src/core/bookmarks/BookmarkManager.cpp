@@ -480,7 +480,7 @@ void BookmarkManager::scheduleBookmarkUpdate(const BookmarkNode *node)
 void BookmarkManager::scheduleResetList()
 {
     if (m_canUpdateList)
-        m_nodeListFuture = QtConcurrent::run(this, &BookmarkManager::resetBookmarkList);
+        m_nodeListFuture = QtConcurrent::run(&BookmarkManager::resetBookmarkList, this);
 }
 
 void BookmarkManager::setCanUpdateList(bool value)

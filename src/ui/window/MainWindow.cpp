@@ -29,7 +29,6 @@
 #include <functional>
 #include <QActionGroup>
 #include <QCloseEvent>
-#include <QDesktopWidget>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -42,7 +41,6 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QMouseEvent>
-#include <QPrinter>
 #include <QPrintPreviewDialog>
 #include <QPushButton>
 #include <QScreen>
@@ -64,7 +62,10 @@ MainWindow::MainWindow(const ViperServiceLocator &serviceLocator, bool privateWi
     m_tabWidget(nullptr),
     m_bookmarkDialog(nullptr),
     m_linkHoverLabel(nullptr),
-    m_closing(false)
+    m_closing(false),
+    m_printer(QPrinter::ScreenResolution),
+    m_printLoop(),
+    m_isInPrintPreview(false)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
@@ -299,7 +300,7 @@ void MainWindow::checkPageForBookmark()
         ui->toolBar->getURLWidget()->setCurrentPageBookmarked(isBookmarked, n);
         watcher->deleteLater();
     });
-    QFuture<bool> b = QtConcurrent::run(m_bookmarkManager, &BookmarkManager::isBookmarked, pageUrl);
+    QFuture<bool> b = QtConcurrent::run(&BookmarkManager::isBookmarked, m_bookmarkManager, pageUrl);
     watcher->setFuture(b);
 }
 
@@ -575,9 +576,10 @@ void MainWindow::onNewTabCreated(WebWidget *ww)
     connect(ww, &WebWidget::inspectElement, this, &MainWindow::openInspector);
     connect(ww, &WebWidget::linkHovered,    this, &MainWindow::onLinkHovered);
 
-    if (WebPage *page = ww->page())
+    if (WebView *view = ww->view())
     {
-        connect(page, &WebPage::printPageRequest, this, &MainWindow::printTabContents);
+        connect(view, &WebView::printRequested, this, &MainWindow::printTabContents);
+        connect(view, &WebView::printFinished,  this, &MainWindow::onPrintFinished);
     }
 }
 
@@ -665,36 +667,41 @@ void MainWindow::onMouseMoveFullscreen(int y)
     }
 }
 
-//TODO: move printTabContents & onPrintPreviewRequested functionality into a PrintHandler class
+//TODO: move printTabContents & onPrintPreviewRequested functionality into a separate PrintHandler class
 void MainWindow::printTabContents()
 {
-    WebPage *page = qobject_cast<WebPage*>(sender());
-    if (!page)
+    WebView *view = qobject_cast<WebView*>(sender());
+    if (!view)
     {
-        if (WebWidget *currentView = m_tabWidget->currentWebWidget())
-            page = currentView->page();
+        if (WebWidget *ww = m_tabWidget->currentWebWidget())
+            view = ww->view();
     }
-    if (!page)
+    if (!view)
         return;
 
-    QPrinter printer(QPrinter::ScreenResolution);
-    printer.setPaperSize(QPrinter::Letter);
-    printer.setFullPage(true);
-    QPrintPreviewDialog dialog(&printer, this);
+    m_printer.setFullPage(true);
+    QPrintPreviewDialog dialog(&m_printer, this);
     dialog.setWindowTitle(tr("Print Document"));
-    connect(&dialog, &QPrintPreviewDialog::paintRequested, [=](QPrinter *p) {
-        onPrintPreviewRequested(p, page);
+    connect(&dialog, &QPrintPreviewDialog::paintRequested, this, [this,view](QPrinter *p) {
+        onPrintPreviewRequested(p, view);
     });
-    static_cast<void>(dialog.exec());
+    dialog.exec();
 }
 
-void MainWindow::onPrintPreviewRequested(QPrinter *printer, WebPage *page)
+void MainWindow::onPrintPreviewRequested(QPrinter *printer, WebView *view)
 {
-    QEventLoop eventLoop;
-    page->print(printer, [&eventLoop](bool){
-        eventLoop.quit();
-    });
-    eventLoop.exec();
+    if (!view || m_isInPrintPreview)
+        return;
+
+    m_isInPrintPreview = true;
+    view->print(printer);
+    m_printLoop.exec();
+    m_isInPrintPreview = false;
+}
+
+void MainWindow::onPrintFinished(bool /*success*/)
+{
+    m_printLoop.quit();
 }
 
 void MainWindow::onClickBookmarkIcon()
@@ -791,7 +798,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     else
     {
         auto tabBar = m_tabWidget->tabBar();
-        int newTabIndex = tabBar->tabAt(event->pos());//tabBar->mapFrom(this, event->pos());
+        int newTabIndex = tabBar->tabAt(event->position().toPoint());
         if (newTabIndex < 0)
             newTabIndex = tabBar->count();
 
@@ -838,9 +845,9 @@ void MainWindow::onSavePageTriggered()
                                             tr("HTML page(*.html);;MIME HTML page(*.mhtml)"));
     if (!fileName.isEmpty())
     {
-        auto format = QWebEngineDownloadItem::SingleHtmlSaveFormat;
+        auto format = QWebEngineDownloadRequest::SingleHtmlSaveFormat;
         if (fileName.endsWith(QLatin1String("mhtml")))
-            format = QWebEngineDownloadItem::MimeHtmlSaveFormat;
+            format = QWebEngineDownloadRequest::MimeHtmlSaveFormat;
         m_tabWidget->currentWebWidget()->page()->save(fileName, format);
     }
 }

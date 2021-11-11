@@ -293,15 +293,15 @@ void AdBlockManager::loadSubscriptions()
 
         // Get last update as unix epoch value
         bool ok;
-        uint lastUpdateUInt = subscriptionObj.value(QLatin1String("last_update")).toVariant().toUInt(&ok);
-        QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromTime_t(lastUpdateUInt) : QDateTime::currentDateTime());
+        qint64 lastUpdateUInt = subscriptionObj.value(QLatin1String("last_update")).toVariant().toLongLong(&ok);
+        QDateTime lastUpdate = (ok && lastUpdateUInt > 0 ? QDateTime::fromSecsSinceEpoch(lastUpdateUInt) : QDateTime::currentDateTime());
         subscription.setLastUpdate(lastUpdate);
 
         // Attempt to get next update time as unix epoch value
-        uint nextUpdateUInt = subscriptionObj.value(QLatin1String("next_update")).toVariant().toUInt(&ok);
+        qint64 nextUpdateUInt = subscriptionObj.value(QLatin1String("next_update")).toVariant().toLongLong(&ok);
         if (ok && nextUpdateUInt > 0)
         {
-            QDateTime nextUpdate = QDateTime::fromTime_t(nextUpdateUInt);
+            QDateTime nextUpdate = QDateTime::fromSecsSinceEpoch(nextUpdateUInt);
             subscription.setNextUpdate(nextUpdate);
         }
 

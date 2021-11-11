@@ -10,6 +10,7 @@
 class AddUserAgentDialog;
 class Settings;
 class UserAgentsWindow;
+class QWebEngineProfile;
 
 /// Represents a custom user agent
 struct UserAgent
@@ -36,7 +37,7 @@ public:
     using const_iterator = QMap<QString,std::vector<UserAgent>>::const_iterator;
 
     /// Constructs the user agent manager, which will load custom user agents from a JSON data file
-    explicit UserAgentManager(Settings *settings, QObject *parent = nullptr);
+    explicit UserAgentManager(Settings *settings, QWebEngineProfile *profile, QObject *parent = nullptr);
 
     /// User agent manager destructor - saves user agents to data file
     ~UserAgentManager();
@@ -109,6 +110,9 @@ private:
 
     /// User agent management window
     UserAgentsWindow *m_userAgentsWindow;
+
+    /// Default web profile
+    QWebEngineProfile *m_profile;
 };
 
 #endif // USERAGENTMANAGER_H

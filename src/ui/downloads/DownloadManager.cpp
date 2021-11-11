@@ -10,7 +10,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QNetworkReply>
-#include <QWebEngineDownloadItem>
+#include <QWebEngineDownloadRequest>
 #include <QWebEngineProfile>
 #include <QtGlobal>
 #include <QtWebEngineCoreVersion>
@@ -78,15 +78,14 @@ void DownloadManager::clearDownloads()
     }
 }
 
-void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
+void DownloadManager::onDownloadRequest(QWebEngineDownloadRequest *item)
 {
-    if (!item || item->state() != QWebEngineDownloadItem::DownloadRequested)
+    if (!item || item->state() != QWebEngineDownloadRequest::DownloadRequested)
         return;
 
     QString fileName;
 
     // Get file name / directory
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     if (m_askWhereToSaveDownloads)
     {
         fileName = QDir(m_downloadDir).filePath(item->suggestedFileName());
@@ -104,22 +103,6 @@ void DownloadManager::onDownloadRequest(QWebEngineDownloadItem *item)
     m_downloadDir = fileInfo.absoluteDir().absolutePath();
     item->setDownloadDirectory(m_downloadDir);
     item->setDownloadFileName(fileInfo.fileName());
-#else
-    if (m_askWhereToSaveDownloads)
-    {
-        fileName = QFileInfo(item->path()).fileName();
-        QString downloadPath = QString(m_downloadDir + QDir::separator() + fileName);
-        fileName = QFileDialog::getSaveFileName(sBrowserApplication->activeWindow(), tr("Save as..."),  downloadPath);
-        if (fileName.isEmpty())
-            return;
-    }
-    else
-        fileName = item->path();
-
-    setDownloadDir(QFileInfo(fileName).absoluteDir().absolutePath());
-
-    item->setPath(fileName);
-#endif
     item->accept();
 
     DownloadItem *dlItem = new DownloadItem(item, this);

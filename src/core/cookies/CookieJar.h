@@ -12,6 +12,7 @@
 #include <QSet>
 #include <QUrl>
 #include <QWebEngineCookieStore>
+#include <QWebEngineProfile>
 
 class Settings;
 
@@ -27,7 +28,7 @@ class CookieJar : public QNetworkCookieJar, public ISettingsObserver
 
 public:
     /// Constructs the cookie jar
-    explicit CookieJar(Settings *settings, bool privateJar = false, QObject *parent =nullptr);
+    explicit CookieJar(Settings *settings, QWebEngineProfile *defaultProfile, bool privateJar = false, QObject *parent =nullptr);
 
     /// Saves cookies to database before calling ~QNetworkCookieJar
     ~CookieJar();

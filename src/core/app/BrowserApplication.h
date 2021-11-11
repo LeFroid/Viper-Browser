@@ -207,6 +207,9 @@ private:
     /// Ad-block request redirection scheme handler
     BlockedSchemeHandler *m_blockedSchemeHandler;
 
+    /// Regular browsing profile
+    QWebEngineProfile *m_defaultProfile;
+
     /// Private browsing profile
     QWebEngineProfile *m_privateProfile;
 

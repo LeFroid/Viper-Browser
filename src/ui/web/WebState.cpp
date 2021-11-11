@@ -55,7 +55,7 @@ WebState &WebState::operator=(WebState &&other) noexcept
 QByteArray WebState::serialize() const
 {
     QByteArray result;
-    QDataStream stream(&result, QIODevice::WriteOnly);
+    QDataStream stream(&result, QIODeviceBase::WriteOnly);
     stream << index
            << isPinned
            << icon
@@ -68,7 +68,7 @@ QByteArray WebState::serialize() const
 
 void WebState::deserialize(QByteArray &data)
 {
-    QDataStream stream(&data, QIODevice::ReadOnly);
+    QDataStream stream(&data, QIODeviceBase::ReadOnly);
     stream  >> index
             >> isPinned
             >> icon

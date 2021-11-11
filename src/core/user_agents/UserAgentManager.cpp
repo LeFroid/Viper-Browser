@@ -12,14 +12,15 @@
 #include <QJsonValue>
 #include <QWebEngineProfile>
 
-UserAgentManager::UserAgentManager(Settings *settings, QObject *parent) :
+UserAgentManager::UserAgentManager(Settings *settings, QWebEngineProfile *profile, QObject *parent) :
     QObject(parent),
     m_settings(settings),
     m_userAgents(),
     m_activeAgentCategory(),
     m_activeAgent(),
     m_addAgentDialog(nullptr),
-    m_userAgentsWindow(nullptr)
+    m_userAgentsWindow(nullptr),
+    m_profile(profile)
 {
     setObjectName(QLatin1String("UserAgentManager"));
     load();
@@ -50,10 +51,10 @@ void UserAgentManager::setActiveAgent(const QString &category, const UserAgent &
     m_activeAgentCategory = category;
     m_activeAgent = agent;
     m_settings->setValue(BrowserSetting::CustomUserAgent, true);
-    QWebEngineProfile::defaultProfile()->setHttpUserAgent(m_activeAgent.Value);
+    m_profile->setHttpUserAgent(m_activeAgent.Value);
 
     QTimer::singleShot(10, this, [this](){
-        emit updateUserAgents();
+        Q_EMIT updateUserAgents();
     });
 }
 
@@ -69,7 +70,7 @@ void UserAgentManager::addUserAgents(const QString &category, std::vector<UserAg
 
 void UserAgentManager::modifyWindowFinished()
 {
-    emit updateUserAgents();
+    Q_EMIT updateUserAgents();
 }
 
 void UserAgentManager::disableActiveAgent()
@@ -77,9 +78,9 @@ void UserAgentManager::disableActiveAgent()
     m_activeAgent = UserAgent();
     m_activeAgentCategory.clear();
     m_settings->setValue(BrowserSetting::CustomUserAgent, false);
-    QWebEngineProfile::defaultProfile()->setHttpUserAgent(QString());
+    m_profile->setHttpUserAgent(QString());
 
-    emit updateUserAgents();
+    Q_EMIT updateUserAgents();
 }
 
 void UserAgentManager::addUserAgent()
@@ -124,7 +125,7 @@ void UserAgentManager::onUserAgentAdded()
         m_userAgents.insert(category, std::move(agentList));
     }
 
-    emit updateUserAgents();
+    Q_EMIT updateUserAgents();
 }
 
 void UserAgentManager::load()

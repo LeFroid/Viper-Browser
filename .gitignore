@@ -7,3 +7,4 @@ build-debug/
 build-profile/
 documentation/
 Browser/Browser.pro.user
+src/config.h

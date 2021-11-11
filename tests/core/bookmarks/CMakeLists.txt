@@ -14,8 +14,8 @@ set(BookmarkIntegrationTest_src
 add_executable(BookmarkManagerTest ${BookmarkManagerTest_src})
 add_executable(BookmarkIntegrationTest ${BookmarkIntegrationTest_src})
 
-target_link_libraries(BookmarkManagerTest viper-core viper-ui Qt5::Test Threads::Threads)
-target_link_libraries(BookmarkIntegrationTest viper-core viper-ui Qt5::Test Threads::Threads)
+target_link_libraries(BookmarkManagerTest viper-core viper-ui Qt6::Test Threads::Threads)
+target_link_libraries(BookmarkIntegrationTest viper-core viper-ui Qt6::Test Threads::Threads)
 
 add_test(NAME BookmarkManager-Test COMMAND BookmarkManagerTest)
 add_test(NAME BookmarkIntegration-Test COMMAND BookmarkIntegrationTest)

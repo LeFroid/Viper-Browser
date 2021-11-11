@@ -58,7 +58,7 @@ bool RequestHandler::shouldBlockRequest(QWebEngineUrlRequestInfo &info, const QU
     QString domain = requestUrl.host().toLower();
     if (domain.isEmpty())
     {
-        domain = requestUrlStr.mid(requestUrlStr.indexOf(QStringLiteral("://") + 3)).toLower();
+        domain = requestUrlStr.mid(requestUrlStr.indexOf(QStringLiteral("://")) + 3).toLower();
         if (domain.contains(QChar('/')))
             domain = domain.left(domain.indexOf(QChar('/')));
     }

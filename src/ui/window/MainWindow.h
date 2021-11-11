@@ -10,8 +10,10 @@
 #include <memory>
 #include <unordered_map>
 
+#include <QEventLoop>
 #include <QIcon>
 #include <QList>
+#include <QPrinter>
 #include <QMainWindow>
 #include <QWebEnginePage>
 
@@ -194,7 +196,10 @@ private Q_SLOTS:
     void printTabContents();
 
     /// Called when a print preview dialog needs to generate a set of preview pages
-    void onPrintPreviewRequested(QPrinter *printer, WebPage *page);
+    void onPrintPreviewRequested(QPrinter *printer, WebView *view);
+
+    /// Callback handler when print operation is complete
+    void onPrintFinished(bool success);
 
     /// Called when a link is hovered by the user
     void onLinkHovered(const QString &url);
@@ -251,6 +256,15 @@ private:
 
     /// Flag indicating whether or not the window is being closed
     std::atomic_bool m_closing;
+
+    /// Printer
+    QPrinter m_printer;
+
+    /// Printer event loop
+    QEventLoop m_printLoop;
+
+    /// Flag indicating if print preview is active or not
+    bool m_isInPrintPreview;
 };
 
 #endif // MAINWINDOW_H

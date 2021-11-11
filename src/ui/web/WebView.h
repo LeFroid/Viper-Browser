@@ -4,7 +4,7 @@
 #include "ServiceLocator.h"
 
 #include <QPointer>
-#include <QWebEngineContextMenuData>
+#include <QWebEngineContextMenuRequest>
 #include <QWebEngineFullScreenRequest>
 #include <QWebEngineView>
 

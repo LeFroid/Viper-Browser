@@ -6,9 +6,9 @@
 #include "CookieTableModel.h"
 #include "NetworkAccessManager.h"
 
-CookieTableModel::CookieTableModel(QObject *parent) :
+CookieTableModel::CookieTableModel(QObject *parent, QWebEngineCookieStore *cookieStore) :
     QAbstractTableModel(parent),
-    m_cookieStore(QWebEngineProfile::defaultProfile()->cookieStore()),
+    m_cookieStore(cookieStore),
     m_checkedState(),
     m_cookies(),
     m_searchResults(),

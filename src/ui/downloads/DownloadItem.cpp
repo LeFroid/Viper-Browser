@@ -22,7 +22,7 @@
 
 QMimeDatabase mimeDB;
 
-DownloadItem::DownloadItem(QWebEngineDownloadItem *item, QWidget *parent) :
+DownloadItem::DownloadItem(QWebEngineDownloadRequest *item, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DownloadItem),
     m_download(item),
@@ -36,11 +36,7 @@ DownloadItem::DownloadItem(QWebEngineDownloadItem *item, QWidget *parent) :
 {
     ui->setupUi(this);
 
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     m_downloadDir = m_download->downloadDirectory();
-#else
-    m_downloadDir = QFileInfo(m_download->path()).absoluteDir().absolutePath();
-#endif
 
     // Connect "Open download folder" button to slot
     connect(ui->pushButtonOpenFolder, &QPushButton::clicked, this, &DownloadItem::openDownloadFolder);
@@ -69,15 +65,13 @@ void DownloadItem::contextMenuEvent(QContextMenuEvent *event)
 
     if (!m_download->isFinished())
     {
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 10, 0))
         if (m_download->isPaused())
-            menu.addAction(tr("Resume download"), m_download, &QWebEngineDownloadItem::resume);
+            menu.addAction(tr("Resume download"), m_download, &QWebEngineDownloadRequest::resume);
         else
-            menu.addAction(tr("Pause download"), m_download, &QWebEngineDownloadItem::pause);
+            menu.addAction(tr("Pause download"), m_download, &QWebEngineDownloadRequest::pause);
 
         menu.addSeparator();
-#endif
-        menu.addAction(tr("Cancel download"), m_download, &QWebEngineDownloadItem::cancel);
+        menu.addAction(tr("Cancel download"), m_download, &QWebEngineDownloadRequest::cancel);
     }
     else
     {
@@ -93,11 +87,7 @@ void DownloadItem::setupItem()
     connect(m_countdownTimer, &QTimer::timeout, this, &DownloadItem::updateTimeToCompleteLabel);
     m_countdownTimer->start(1000);
 
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     ui->labelDownloadName->setText(m_download->downloadFileName());
-#else
-    ui->labelDownloadName->setText(QFileInfo(m_download->path()).fileName());
-#endif
     ui->labelDownloadSize->setText(QString());
     ui->labelEstimatedTimeLeft->setText(QString());
     ui->progressBarDownload->show();
@@ -110,13 +100,12 @@ void DownloadItem::setupItem()
 
     ui->pushButtonOpenFolder->hide();
 
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 10, 0))
-    m_pushButtonPauseResume = new QPushButton(QIcon::fromTheme(QLatin1String("media-playback-pause")), QString(), this);
+    m_pushButtonPauseResume = new QPushButton(QIcon::fromTheme(QStringLiteral("media-playback-pause")), QString(), this);
     m_pushButtonPauseResume->setFlat(true);
     ui->horizontalLayout->addWidget(m_pushButtonPauseResume, 0, Qt::AlignRight);
 
     connect(m_pushButtonPauseResume, &QPushButton::clicked, this, [this](){
-        if (m_download->state() != QWebEngineDownloadItem::DownloadInProgress)
+        if (m_download->state() != QWebEngineDownloadRequest::DownloadInProgress)
             return;
 
         if (m_download->isPaused())
@@ -125,33 +114,28 @@ void DownloadItem::setupItem()
             m_download->pause();
     });
 
-    connect(m_download, &QWebEngineDownloadItem::isPausedChanged, this, [this](bool isPaused){
-        if (m_download->state() != QWebEngineDownloadItem::DownloadInProgress)
+    connect(m_download, &QWebEngineDownloadRequest::isPausedChanged, this, [this](){
+        if (m_download->state() != QWebEngineDownloadRequest::DownloadInProgress)
             return;
 
-        const QLatin1String iconName
-                = isPaused ? QLatin1String("media-playback-start") : QLatin1String("media-playback-pause");
+        const bool isPaused = m_download->isPaused();
+        const QString iconName
+                = isPaused ? QStringLiteral("media-playback-start") : QStringLiteral("media-playback-pause");
         m_pushButtonPauseResume->setIcon(QIcon::fromTheme(iconName));
 
         const QString tooltipText = isPaused ? tr("Resume download") : tr("Pause download");
         m_pushButtonPauseResume->setToolTip(tooltipText);
     });
-#endif
 
 
     // Setup network slots
-    connect(m_download, &QWebEngineDownloadItem::downloadProgress, this, &DownloadItem::onDownloadProgress);
-    connect(m_download, &QWebEngineDownloadItem::finished,         this, &DownloadItem::onFinished);
-    connect(m_download, &QWebEngineDownloadItem::stateChanged,     this, &DownloadItem::onStateChanged);
+    connect(m_download, &QWebEngineDownloadRequest::receivedBytesChanged, this, &DownloadItem::onDownloadProgress);
+    connect(m_download, &QWebEngineDownloadRequest::stateChanged,         this, &DownloadItem::onStateChanged);
 
     // Set icon for the download item
-#if (QTWEBENGINECORE_VERSION >= QT_VERSION_CHECK(5, 14, 0))
     setIconForItem(m_download->downloadFileName());
-#else
-    setIconForItem(QFileInfo(m_download->path()).fileName());
-#endif
 
-    if (m_download->state() == QWebEngineDownloadItem::DownloadCompleted)
+    if (m_download->state() == QWebEngineDownloadRequest::DownloadCompleted)
         onFinished();
 }
 
@@ -174,8 +158,10 @@ void DownloadItem::setIconForItem(const QString &fileName)
     ui->labelFileTypeIcon->setPixmap(style()->standardIcon(QStyle::SP_FileIcon).pixmap(48, 48));
 }
 
-void DownloadItem::onDownloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+void DownloadItem::onDownloadProgress()
 {
+    const qint64 bytesReceived = m_download->receivedBytes();
+    const qint64 bytesTotal = m_download->totalBytes();
     m_bytesReceived = bytesReceived;
 
     qint64 downloadPct = 100 * (static_cast<float>(bytesReceived) / bytesTotal);
@@ -212,31 +198,44 @@ void DownloadItem::onFinished()
     ui->pushButtonOpenFolder->show();
 }
 
-void DownloadItem::onStateChanged(QWebEngineDownloadItem::DownloadState state)
+void DownloadItem::onStateChanged(QWebEngineDownloadRequest::DownloadState state)
 {
-    if (state == QWebEngineDownloadItem::DownloadCancelled)
+    switch (state)
     {
-        m_timeRemainingMs = 0;
-        m_countdownTimer->stop();
-        if (m_pushButtonPauseResume)
-            m_pushButtonPauseResume->hide();
+        case QWebEngineDownloadRequest::DownloadRequested:
+            break;
+        case QWebEngineDownloadRequest::DownloadCancelled:
+        {
+            m_timeRemainingMs = 0;
+            m_countdownTimer->stop();
+            if (m_pushButtonPauseResume)
+                m_pushButtonPauseResume->hide();
 
-        ui->progressBarDownload->setValue(0);
-        ui->progressBarDownload->setDisabled(true);
-        ui->labelEstimatedTimeLeft->setText(QString());
-        ui->labelDownloadSize->setText(tr("Cancelled - %1 downloaded").arg(CommonUtil::bytesToUserFriendlyStr(m_bytesReceived)));
-    }
-    else if (state == QWebEngineDownloadItem::DownloadInterrupted)
-    {
-        m_timeRemainingMs = 0;
-        m_countdownTimer->stop();
-        if (m_pushButtonPauseResume)
-            m_pushButtonPauseResume->hide();
+            ui->progressBarDownload->setValue(0);
+            ui->progressBarDownload->setDisabled(true);
+            ui->labelEstimatedTimeLeft->setText(QString());
+            ui->labelDownloadSize->setText(tr("Cancelled - %1 downloaded").arg(CommonUtil::bytesToUserFriendlyStr(m_bytesReceived)));
+            break;
+        }
+        case QWebEngineDownloadRequest::DownloadInterrupted:
+        {
+            m_timeRemainingMs = 0;
+            m_countdownTimer->stop();
+            if (m_pushButtonPauseResume)
+                m_pushButtonPauseResume->hide();
 
-        ui->progressBarDownload->setValue(0);
-        ui->progressBarDownload->setDisabled(true);
-        ui->labelEstimatedTimeLeft->setText(QString());
-        ui->labelDownloadSize->setText(tr("Interrupted - %1").arg(m_download->interruptReasonString()));
+            ui->progressBarDownload->setValue(0);
+            ui->progressBarDownload->setDisabled(true);
+            ui->labelEstimatedTimeLeft->setText(QString());
+            ui->labelDownloadSize->setText(tr("Interrupted - %1").arg(m_download->interruptReasonString()));
+            break;
+        }
+        case QWebEngineDownloadRequest::DownloadInProgress:
+            onDownloadProgress();
+            break;
+        case QWebEngineDownloadRequest::DownloadCompleted:
+            onFinished();
+            break;
     }
 }
 

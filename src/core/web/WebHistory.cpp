@@ -50,7 +50,7 @@ void WebHistory::load(QByteArray &data)
 {
     QString version;
 
-    QDataStream stream(&data, QIODevice::ReadOnly);
+    QDataStream stream(&data, QIODeviceBase::ReadOnly);
     stream >> version;
     if (version.compare(SerializationVersion) != 0)
         return;
@@ -63,7 +63,7 @@ void WebHistory::load(QByteArray &data)
 QByteArray WebHistory::save() const
 {
     QByteArray result;
-    QDataStream stream(&result, QIODevice::WriteOnly);
+    QDataStream stream(&result, QIODeviceBase::WriteOnly);
     stream << SerializationVersion
            << *m_impl;
 

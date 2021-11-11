@@ -3,7 +3,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/assets)
 include_directories(${CMAKE_SOURCE_DIR}/src/app/assets)
 
-qt5_add_resources(viper_qrc assets/application.qrc)
+qt6_add_resources(viper_qrc assets/application.qrc)
 
 set(viper_browser_src
     main.cpp

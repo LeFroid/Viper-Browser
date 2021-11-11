@@ -29,7 +29,6 @@ URLLineEdit::URLLineEdit(QWidget *parent) :
     m_isDarkTheme(sBrowserApplication->isDarkTheme())
 {
     setObjectName(QLatin1String("urlLineEdit"));
-    setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     QFont lineEditFont = font();
     lineEditFont.setPointSize(lineEditFont.pointSize() + 1);

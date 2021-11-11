@@ -13,7 +13,7 @@
 #include <QMouseEvent>
 #include <QUrl>
 #include <QTimer>
-#include <QWebEngineContextMenuData>
+#include <QWebEngineContextMenuRequest>
 #include <QWebEngineHttpRequest>
 #include <QWebEngineProfile>
 #include <QWheelEvent>

@@ -54,7 +54,7 @@ void TabBarMimeDelegate::onDragMove(QDragMoveEvent *dragEvent)
 
     if (mimeData->hasUrls())
     {
-        const QPoint eventPos = dragEvent->pos();
+        const QPoint eventPos = dragEvent->position().toPoint();
 
         int nearestTabIndex = m_tabBar->tabAt(eventPos);
         if (nearestTabIndex < 0)
@@ -119,11 +119,11 @@ bool TabBarMimeDelegate::onDrop(QDropEvent *dropEvent)
         }
 
         int originalTabIndex = m_tabWidget->indexOf(m_draggedWebWidget);
-        int tabIndexAtPos = m_tabBar->tabAt(dropEvent->pos());
+        int tabIndexAtPos = m_tabBar->tabAt(dropEvent->position().toPoint());
         if (tabIndexAtPos < 0)
         {
             auto lastTabRect = m_tabBar->tabRect(m_tabBar->count() - 1);
-            if (dropEvent->pos().x() >= lastTabRect.x() + lastTabRect.width())
+            if (dropEvent->position().x() >= lastTabRect.x() + lastTabRect.width())
                 tabIndexAtPos = m_tabBar->count();
             else
                 tabIndexAtPos = 0;

@@ -11,6 +11,7 @@
 #include <QFontMetrics>
 #include <QIcon>
 #include <QMenu>
+#include <QPainter>
 #include <QPixmap>
 #include <QUrl>
 #include <QWidget>

@@ -145,7 +145,7 @@ void NavigationToolBar::setupUI()
     connect(m_searchEngineLineEdit, &SearchEngineLineEdit::requestPageLoad, win, &MainWindow::loadHttpRequest);
 
     // Splitter for resizing URL bar and quick search bar
-    QSplitter *splitter = new QSplitter(this);
+    QSplitter *splitter = new QSplitter(Qt::Horizontal, this);
     splitter->addWidget(m_urlInput);
     splitter->addWidget(m_searchEngineLineEdit);
 
